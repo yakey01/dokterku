@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             Master\RoleSeeder::class,
             Master\ShiftSeeder::class,
             Master\JenisTindakanSeeder::class,
+            Master\EnhancedJenisTindakanSeeder::class,
             RolePermissionSeeder::class,
             UserSeeder::class,
             

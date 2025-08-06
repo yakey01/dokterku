@@ -15,4 +15,7 @@ return [
     
     // Module Service Providers
     App\Modules\User\Providers\UserServiceProvider::class,
+    
+    // Medical Procedure Services
+    App\Providers\MedicalProcedureServiceProvider::class,
 ];
