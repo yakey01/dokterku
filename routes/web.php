@@ -13,11 +13,41 @@ use Illuminate\Support\Facades\Cache;
 // Include test routes
 require __DIR__.'/test.php';
 require __DIR__.'/test-models.php';
+require __DIR__.'/test-csrf.php';
 use Illuminate\Support\Facades\Auth;
 
 // Debug work location issue
 Route::get('/debug-work-location', function () {
     return view('debug-location-issue');
+});
+
+// Test route for WelcomeLogin component
+Route::get('/test-welcome-login', function () {
+    return view('test-welcome-login');
+});
+
+// Main Welcome Login with Animation - GUARANTEED TO SHOW
+Route::get('/welcome-login', function () {
+    return view('welcome-login-app');
+});
+
+// Force redirect from main login to animated welcome login
+Route::get('/login', function () {
+    return redirect('/welcome-login');
+});
+
+// Redirect unified login to welcome login
+Route::get('/unified-login', function () {
+    return redirect('/welcome-login');
+});
+
+// Alternative entry points for guaranteed animation
+Route::get('/welcome', function () {
+    return view('welcome-login-app');
+});
+
+Route::get('/animated-login', function () {
+    return view('welcome-login-app');
 });
 
 // WORLD-CLASS: New Jaspel Dashboard 
@@ -663,7 +693,7 @@ Route::get('/test-paramedis-attendance-summary', function () {
     }
 });
 
-// Test API endpoint for paramedis dashboard - simulate real response (no auth required)
+// Test API endpoint for paramedis dashboard - proxies to real API endpoint
 Route::get('/test-paramedis-dashboard-api', function () {
     try {
         // FIXED: Use authenticated user instead of hardcoded Siti
@@ -1127,8 +1157,8 @@ Route::get('/', function () {
 
 
 // Unified authentication routes
-Route::get('/login', [UnifiedAuthController::class, 'create'])->name('login');
-Route::get('/unified-login', [UnifiedAuthController::class, 'create'])->name('unified.login.form');
+// Route::get('/login', [UnifiedAuthController::class, 'create'])->name('login'); // Redirected to /welcome-login
+// Route::get('/unified-login', [UnifiedAuthController::class, 'create'])->name('unified.login.form'); // Redirected to /welcome-login
 Route::post('/login', [UnifiedAuthController::class, 'store'])
     ->middleware('throttle:20,1')
     ->name('unified.login');

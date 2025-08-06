@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultra Login Diagnostic Tool</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #1a1a1a;
+            color: #0f0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .section {
+            background: #2a2a2a;
+            border: 1px solid #0f0;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { color: #0f0; }
+        .error { color: #f00; }
+        .warning { color: #ff0; }
+        .info { color: #0ff; }
+        button {
+            background: #0f0;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-family: monospace;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #0a0;
+        }
+        pre {
+            background: #000;
+            padding: 10px;
+            overflow-x: auto;
+            border: 1px solid #0f0;
+        }
+        input {
+            background: #333;
+            color: #0f0;
+            border: 1px solid #0f0;
+            padding: 5px;
+            margin: 5px;
+            font-family: monospace;
+        }
+        .log-entry {
+            margin: 2px 0;
+            padding: 2px 5px;
+            background: #1a1a1a;
+        }
+        #console {
+            height: 300px;
+            overflow-y: auto;
+            background: #000;
+            border: 1px solid #0f0;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔬 ULTRA LOGIN DIAGNOSTIC TOOL</h1>
+    
+    <div class="section">
+        <h2>1. Browser & Environment Check</h2>
+        <div id="env-info"></div>
+    </div>
+
+    <div class="section">
+        <h2>2. Cookie & Session Status</h2>
+        <div id="cookie-info"></div>
+        <button onclick="clearAllCookies()">Clear All Cookies</button>
+        <button onclick="checkSessionStatus()">Check Session Status</button>
+    </div>
+
+    <div class="section">
+        <h2>3. CSRF Token Analysis</h2>
+        <div id="csrf-info"></div>
+        <button onclick="fetchNewCSRFToken()">Fetch New CSRF Token</button>
+        <button onclick="testCSRFEndpoint()">Test CSRF Endpoint</button>
+    </div>
+
+    <div class="section">
+        <h2>4. Login Test Suite</h2>
+        <input type="text" id="username" placeholder="Username/Email" value="admin@dokterku.com">
+        <input type="password" id="password" placeholder="Password" value="password">
+        <br>
+        <button onclick="testLogin('form')">Test Form Login</button>
+        <button onclick="testLogin('ajax')">Test AJAX Login</button>
+        <button onclick="testLogin('fetch')">Test Fetch API Login</button>
+        <button onclick="testForceLogin()">Test Force Login</button>
+    </div>
+
+    <div class="section">
+        <h2>5. API Endpoint Tests</h2>
+        <button onclick="testEndpoint('/login', 'GET')">GET /login</button>
+        <button onclick="testEndpoint('/admin', 'GET')">GET /admin</button>
+        <button onclick="testEndpoint('/api/user', 'GET')">GET /api/user</button>
+        <button onclick="testEndpoint('/test-session', 'GET')">GET /test-session</button>
+    </div>
+
+    <div class="section">
+        <h2>6. Real-time Console</h2>
+        <div id="console"></div>
+        <button onclick="clearConsole()">Clear Console</button>
+    </div>
+
+    <script>
+        const log = (message, type = 'info') => {
+            const console = document.getElementById('console');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.innerHTML = `[${timestamp}] ${message}`;
+            console.appendChild(entry);
+            console.scrollTop = console.scrollHeight;
+        };
+
+        // Override console methods
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        console.log = (...args) => {
+            originalLog(...args);
+            log(args.join(' '), 'info');
+        };
+        
+        console.error = (...args) => {
+            originalError(...args);
+            log(args.join(' '), 'error');
+        };
+        
+        console.warn = (...args) => {
+            originalWarn(...args);
+            log(args.join(' '), 'warning');
+        };
+
+        // Catch all errors
+        window.addEventListener('error', (e) => {
+            log(`JS Error: ${e.message} at ${e.filename}:${e.lineno}:${e.colno}`, 'error');
+        });
+
+        window.addEventListener('unhandledrejection', (e) => {
+            log(`Unhandled Promise Rejection: ${e.reason}`, 'error');
+        });
+
+        // 1. Environment Check
+        const checkEnvironment = () => {
+            const info = document.getElementById('env-info');
+            const data = {
+                'User Agent': navigator.userAgent,
+                'Cookies Enabled': navigator.cookieEnabled,
+                'Local Storage': typeof(Storage) !== "undefined",
+                'Session Storage': window.sessionStorage ? 'Yes' : 'No',
+                'Current URL': window.location.href,
+                'Protocol': window.location.protocol,
+                'Hostname': window.location.hostname,
+                'Port': window.location.port || '(default)',
+                'JavaScript Enabled': 'Yes (obviously)',
+                'Screen Resolution': `${screen.width}x${screen.height}`,
+                'Window Size': `${window.innerWidth}x${window.innerHeight}`,
+                'Timezone': Intl.DateTimeFormat().resolvedOptions().timeZone,
+                'Language': navigator.language
+            };
+            
+            info.innerHTML = Object.entries(data).map(([key, value]) => 
+                `<div><span class="info">${key}:</span> ${value}</div>`
+            ).join('');
+            
+            log('Environment check completed', 'success');
+        };
+
+        // 2. Cookie Analysis
+        const analyzeCookies = () => {
+            const info = document.getElementById('cookie-info');
+            const cookies = document.cookie.split(';').filter(c => c.trim());
+            
+            if (cookies.length === 0 || cookies[0] === '') {
+                info.innerHTML = '<div class="warning">No cookies found!</div>';
+                log('No cookies found', 'warning');
+                return;
+            }
+            
+            info.innerHTML = '<h3>Current Cookies:</h3>';
+            cookies.forEach(cookie => {
+                const [name, value] = cookie.trim().split('=');
+                const decoded = decodeURIComponent(value || '');
+                info.innerHTML += `
+                    <div class="log-entry">
+                        <strong>${name}:</strong> ${decoded.substring(0, 50)}${decoded.length > 50 ? '...' : ''}
+                    </div>
+                `;
+            });
+            
+            log(`Found ${cookies.length} cookies`, 'info');
+        };
+
+        const clearAllCookies = () => {
+            document.cookie.split(";").forEach(c => {
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+            });
+            log('All cookies cleared', 'warning');
+            analyzeCookies();
+        };
+
+        const checkSessionStatus = async () => {
+            try {
+                const response = await fetch('/test-session', {
+                    credentials: 'include'
+                });
+                const text = await response.text();
+                log(`Session status: ${response.status} - ${text.substring(0, 100)}`, 'info');
+            } catch (error) {
+                log(`Session check failed: ${error.message}`, 'error');
+            }
+        };
+
+        // 3. CSRF Token Analysis
+        const analyzeCSRF = () => {
+            const info = document.getElementById('csrf-info');
+            const metaToken = document.querySelector('meta[name="csrf-token"]');
+            const xsrfCookie = document.cookie.split(';').find(c => c.trim().startsWith('XSRF-TOKEN'));
+            
+            let html = '<h3>CSRF Token Status:</h3>';
+            
+            if (metaToken) {
+                html += `<div class="success">Meta CSRF Token: ${metaToken.content}</div>`;
+            } else {
+                html += '<div class="error">No meta CSRF token found!</div>';
+            }
+            
+            if (xsrfCookie) {
+                const value = xsrfCookie.split('=')[1];
+                html += `<div class="success">XSRF Cookie: ${decodeURIComponent(value).substring(0, 50)}...</div>`;
+            } else {
+                html += '<div class="warning">No XSRF cookie found</div>';
+            }
+            
+            info.innerHTML = html;
+            log('CSRF analysis completed', 'info');
+        };
+
+        const fetchNewCSRFToken = async () => {
+            try {
+                log('Fetching login page for CSRF token...', 'info');
+                const response = await fetch('/login', {
+                    credentials: 'include'
+                });
+                const html = await response.text();
+                
+                // Extract CSRF token from form
+                const tokenMatch = html.match(/name="_token" value="([^"]+)"/);
+                if (tokenMatch) {
+                    log(`Found CSRF token: ${tokenMatch[1]}`, 'success');
+                    
+                    // Update meta tag
+                    let meta = document.querySelector('meta[name="csrf-token"]');
+                    if (!meta) {
+                        meta = document.createElement('meta');
+                        meta.name = 'csrf-token';
+                        document.head.appendChild(meta);
+                    }
+                    meta.content = tokenMatch[1];
+                    
+                    analyzeCSRF();
+                } else {
+                    log('Could not extract CSRF token from login page', 'error');
+                }
+            } catch (error) {
+                log(`Failed to fetch CSRF token: ${error.message}`, 'error');
+            }
+        };
+
+        const testCSRFEndpoint = async () => {
+            const token = document.querySelector('meta[name="csrf-token"]')?.content;
+            
+            try {
+                const response = await fetch('/test-csrf-exempt', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': token || '',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ test: true })
+                });
+                
+                const data = await response.text();
+                log(`CSRF test: ${response.status} - ${data}`, response.ok ? 'success' : 'error');
+            } catch (error) {
+                log(`CSRF test failed: ${error.message}`, 'error');
+            }
+        };
+
+        // 4. Login Tests
+        const testLogin = async (method) => {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            log(`Testing ${method} login with ${username}...`, 'info');
+            
+            if (method === 'form') {
+                // Create and submit a real form
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/login';
+                
+                const tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = '_token';
+                tokenInput.value = await getCSRFToken();
+                
+                const usernameInput = document.createElement('input');
+                usernameInput.type = 'hidden';
+                usernameInput.name = 'email_or_username';
+                usernameInput.value = username;
+                
+                const passwordInput = document.createElement('input');
+                passwordInput.type = 'hidden';
+                passwordInput.name = 'password';
+                passwordInput.value = password;
+                
+                form.appendChild(tokenInput);
+                form.appendChild(usernameInput);
+                form.appendChild(passwordInput);
+                
+                document.body.appendChild(form);
+                
+                log('Submitting form...', 'info');
+                form.submit();
+                
+            } else if (method === 'ajax') {
+                // jQuery-style AJAX
+                const formData = new FormData();
+                formData.append('_token', await getCSRFToken());
+                formData.append('email_or_username', username);
+                formData.append('password', password);
+                
+                try {
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('POST', '/login', true);
+                    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                    xhr.withCredentials = true;
+                    
+                    xhr.onload = function() {
+                        if (xhr.status === 200 || xhr.status === 302) {
+                            log(`AJAX login success! Status: ${xhr.status}`, 'success');
+                            if (xhr.getResponseHeader('Location')) {
+                                log(`Redirect to: ${xhr.getResponseHeader('Location')}`, 'info');
+                                window.location.href = xhr.getResponseHeader('Location');
+                            }
+                        } else {
+                            log(`AJAX login failed! Status: ${xhr.status}`, 'error');
+                            log(`Response: ${xhr.responseText.substring(0, 200)}`, 'error');
+                        }
+                    };
+                    
+                    xhr.send(formData);
+                } catch (error) {
+                    log(`AJAX error: ${error.message}`, 'error');
+                }
+                
+            } else if (method === 'fetch') {
+                // Modern Fetch API
+                try {
+                    const response = await fetch('/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-CSRF-TOKEN': await getCSRFToken(),
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        },
+                        credentials: 'include',
+                        body: new URLSearchParams({
+                            '_token': await getCSRFToken(),
+                            'email_or_username': username,
+                            'password': password
+                        })
+                    });
+                    
+                    log(`Fetch response: ${response.status} ${response.statusText}`, response.ok ? 'success' : 'error');
+                    
+                    if (response.redirected) {
+                        log(`Redirected to: ${response.url}`, 'success');
+                        window.location.href = response.url;
+                    } else {
+                        const data = await response.text();
+                        log(`Response: ${data.substring(0, 200)}`, 'info');
+                    }
+                } catch (error) {
+                    log(`Fetch error: ${error.message}`, 'error');
+                }
+            }
+        };
+
+        const testForceLogin = async () => {
+            log('Testing force login...', 'info');
+            try {
+                const response = await fetch('/force-login/1', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': await getCSRFToken(),
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'include'
+                });
+                
+                const data = await response.text();
+                log(`Force login: ${response.status} - ${data}`, response.ok ? 'success' : 'error');
+                
+                if (response.ok) {
+                    setTimeout(() => {
+                        window.location.href = '/admin';
+                    }, 1000);
+                }
+            } catch (error) {
+                log(`Force login error: ${error.message}`, 'error');
+            }
+        };
+
+        // 5. Endpoint Tests
+        const testEndpoint = async (url, method = 'GET') => {
+            log(`Testing ${method} ${url}...`, 'info');
+            try {
+                const options = {
+                    method: method,
+                    credentials: 'include',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                };
+                
+                if (method === 'POST') {
+                    options.headers['X-CSRF-TOKEN'] = await getCSRFToken();
+                }
+                
+                const response = await fetch(url, options);
+                const contentType = response.headers.get('content-type');
+                let data;
+                
+                if (contentType && contentType.includes('application/json')) {
+                    data = await response.json();
+                } else {
+                    data = await response.text();
+                }
+                
+                log(`${url}: ${response.status} ${response.statusText}`, response.ok ? 'success' : 'error');
+                
+                if (typeof data === 'object') {
+                    log(`Data: ${JSON.stringify(data).substring(0, 200)}`, 'info');
+                } else {
+                    log(`Data: ${data.substring(0, 200)}`, 'info');
+                }
+            } catch (error) {
+                log(`${url} error: ${error.message}`, 'error');
+            }
+        };
+
+        // Helper function to get CSRF token
+        const getCSRFToken = async () => {
+            // Try meta tag first
+            const metaToken = document.querySelector('meta[name="csrf-token"]')?.content;
+            if (metaToken) return metaToken;
+            
+            // Fetch from login page
+            log('Fetching CSRF token from login page...', 'info');
+            const response = await fetch('/login');
+            const html = await response.text();
+            const match = html.match(/name="_token" value="([^"]+)"/);
+            return match ? match[1] : '';
+        };
+
+        const clearConsole = () => {
+            document.getElementById('console').innerHTML = '';
+            log('Console cleared', 'info');
+        };
+
+        // Initialize on load
+        window.onload = () => {
+            log('Ultra Login Diagnostic Tool loaded', 'success');
+            checkEnvironment();
+            analyzeCookies();
+            analyzeCSRF();
+            
+            // Auto-fetch CSRF if not present
+            if (!document.querySelector('meta[name="csrf-token"]')) {
+                fetchNewCSRFToken();
+            }
+        };
+    </script>
+</body>
+</html>

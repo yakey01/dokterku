@@ -1,51 +1,92 @@
 /* Attendance History Table Optimizations */
 
-/* Mobile responsiveness for attendance table */
-@media (max-width: 768px) {
-    /* Stack table columns on mobile */
+/* Enhanced Mobile responsiveness for attendance table */
+
+/* Base Mobile (0-575px) */
+@media (max-width: 575px) {
+    /* Ultra-compact mobile view */
     .fi-ta-table {
-        font-size: 0.875rem;
+        font-size: 0.75rem;
     }
     
-    /* Optimize column widths for mobile */
+    /* Minimal padding on mobile */
     .fi-ta-cell {
-        padding: 0.5rem 0.25rem;
+        padding: 0.375rem 0.25rem;
     }
     
-    /* Hide less important columns on mobile */
-    .fi-ta-col-location_name_in {
-        display: none;
+    /* Show only critical columns: Date, Time In, Time Out, Status */
+    .fi-ta-col-user\.name,
+    .fi-ta-col-work_duration,
+    .fi-ta-col-location_coordinates,
+    .fi-ta-col-location_validated,
+    .fi-ta-col-created_at {
+        display: none !important;
     }
     
-    /* Make status badges smaller */
+    /* Compact badges */
+    .fi-badge {
+        font-size: 0.625rem;
+        padding: 0.125rem 0.375rem;
+    }
+    
+    /* Truncate long text */
+    .fi-ta-text {
+        max-width: 100px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+/* Small Mobile (576px-767px) */
+@media (min-width: 576px) and (max-width: 767px) {
+    /* Slightly larger on landscape mobile */
+    .fi-ta-table {
+        font-size: 0.8125rem;
+    }
+    
+    /* Better padding */
+    .fi-ta-cell {
+        padding: 0.5rem 0.375rem;
+    }
+    
+    /* Show Date, Time In/Out, Duration, Status */
+    .fi-ta-col-user\.name,
+    .fi-ta-col-location_coordinates,
+    .fi-ta-col-location_validated,
+    .fi-ta-col-created_at {
+        display: none !important;
+    }
+    
+    /* Regular badge size */
     .fi-badge {
         font-size: 0.75rem;
         padding: 0.25rem 0.5rem;
     }
 }
 
-@media (max-width: 640px) {
-    /* Even more compact on small screens */
+/* Tablet (768px-1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+    /* Comfortable tablet view */
     .fi-ta-table {
-        font-size: 0.8rem;
+        font-size: 0.875rem;
     }
     
-    /* Hide additional columns */
-    .fi-ta-header-cell:nth-child(n+5),
-    .fi-ta-cell:nth-child(n+5) {
-        display: none;
+    /* Good padding for touch */
+    .fi-ta-cell {
+        padding: 0.625rem 0.5rem;
     }
     
-    /* Show only essential columns: Date, Check In, Check Out, Total Hours */
-    .fi-ta-header-cell:nth-child(1),
-    .fi-ta-header-cell:nth-child(2),
-    .fi-ta-header-cell:nth-child(3),
-    .fi-ta-header-cell:nth-child(4),
-    .fi-ta-cell:nth-child(1),
-    .fi-ta-cell:nth-child(2),
-    .fi-ta-cell:nth-child(3),
-    .fi-ta-cell:nth-child(4) {
-        display: table-cell;
+    /* Hide only non-essential columns */
+    .fi-ta-col-location_coordinates,
+    .fi-ta-col-created_at {
+        display: none !important;
+    }
+    
+    /* Normal badge size */
+    .fi-badge {
+        font-size: 0.8125rem;
+        padding: 0.375rem 0.625rem;
     }
 }
 
@@ -208,5 +249,121 @@
     
     .fi-ta-table {
         scroll-behavior: auto;
+    }
+}
+
+/* Responsive Table Actions */
+@media (max-width: 575px) {
+    /* Stack table actions vertically on mobile */
+    .fi-ta-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .fi-ta-actions .fi-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    /* Compact filter form */
+    .fi-ta-filters-form {
+        flex-direction: column;
+    }
+    
+    .fi-ta-filters-form > * {
+        width: 100%;
+    }
+}
+
+/* Responsive Forms in Attendance Pages */
+@media (max-width: 767px) {
+    /* Stack all form fields on mobile */
+    .fi-fo-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    /* Full width map on mobile */
+    .fi-fo-field-wrp.col-span-full {
+        grid-column: span 1;
+    }
+    
+    /* Collapse sections by default on mobile */
+    .fi-section.fi-collapsible {
+        --collapsed: 1;
+    }
+}
+
+/* iPad-specific optimizations */
+@media (min-width: 768px) and (max-width: 1024px) {
+    /* Optimize for iPad portrait and landscape */
+    .fi-page {
+        padding: 1.5rem;
+    }
+    
+    /* Two-column layout for forms */
+    .fi-fo-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    /* Better touch targets for iPad */
+    .fi-btn, .fi-link {
+        min-height: 48px;
+        padding: 0.75rem 1.25rem;
+    }
+}
+
+/* Desktop enhancements */
+@media (min-width: 1025px) {
+    /* Wider content area on desktop */
+    .fi-page {
+        padding: 2rem;
+    }
+    
+    /* Multi-column layouts */
+    .fi-fo-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+    
+    /* Hover states for desktop */
+    .fi-ta-row:hover {
+        background-color: var(--primary-50);
+    }
+    
+    .dark .fi-ta-row:hover {
+        background-color: var(--primary-950);
+    }
+}
+
+/* Print styles for attendance reports */
+@media print {
+    /* Hide navigation and actions */
+    .fi-sidebar,
+    .fi-topbar,
+    .fi-ta-actions,
+    .fi-ta-filters,
+    .fi-pagination {
+        display: none !important;
+    }
+    
+    /* Full width table for printing */
+    .fi-ta-table-wrp {
+        overflow: visible !important;
+    }
+    
+    /* Show all columns when printing */
+    .fi-ta-col-location_coordinates,
+    .fi-ta-col-created_at {
+        display: table-cell !important;
+    }
+    
+    /* Better print formatting */
+    .fi-ta-table {
+        font-size: 10pt;
+        border: 1px solid #000;
+    }
+    
+    .fi-ta-cell {
+        border: 1px solid #ccc;
+        padding: 4pt;
     }
 }

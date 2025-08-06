@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📱 Direct Mobile Login</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .btn {
+            display: block;
+            background: #3b82f6;
+            color: white;
+            text-decoration: none;
+            padding: 15px 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 10px 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .btn:active {
+            background: #2563eb;
+        }
+        .btn.success { background: #10b981; }
+        .btn.warning { background: #f59e0b; }
+        .btn.danger { background: #ef4444; }
+        .info {
+            background: #e0f2fe;
+            padding: 15px;
+            border-radius: 8px;
+            color: #0c4a6e;
+            margin: 10px 0;
+        }
+        .warning {
+            background: #fef3c7;
+            padding: 15px;
+            border-radius: 8px;
+            color: #92400e;
+            margin: 10px 0;
+        }
+        .log {
+            background: #1f2937;
+            color: #10b981;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>📱 Direct Mobile Login Solution</h1>
+    
+    <div class="card">
+        <h3>🚨 Issue: CORS/Network Blocking AJAX</h3>
+        <p>Mobile browser is blocking AJAX requests. Using direct navigation instead.</p>
+    </div>
+
+    <div class="card">
+        <h3>Step 1: Direct Login Links</h3>
+        <div class="info">
+            Click a link below to login directly. The page will show login status.
+        </div>
+        
+        <a href="/mobile-login-bypass/naning" class="btn success">
+            🔐 Login as "naning" (Should be Paramedis)
+        </a>
+        
+        <a href="/mobile-login-bypass/3" class="btn">
+            🔐 Login as User ID 3 (Naning Paramedis)
+        </a>
+        
+        <a href="/mobile-login-bypass/13" class="btn">
+            🔐 Login as User ID 13 (Naning Paramedis)
+        </a>
+    </div>
+
+    <div class="card">
+        <h3>Step 2: After Login, Test Access</h3>
+        <div class="warning">
+            After clicking login above and seeing success, test these:
+        </div>
+        
+        <a href="/dashboard" class="btn warning">
+            📊 Test Dashboard Redirect
+        </a>
+        
+        <a href="/paramedis" class="btn success">
+            📱 Go to Paramedis Dashboard
+        </a>
+        
+        <a href="/paramedis/mobile-app" class="btn success">
+            📱 Go to Paramedis Mobile App
+        </a>
+    </div>
+
+    <div class="card">
+        <h3>Step 3: Debug Tools</h3>
+        
+        <a href="/test-hasrole-debug" class="btn">
+            🔍 Check Current Session
+        </a>
+        
+        <a href="/test-naning-role-debug" class="btn">
+            🔍 Check Role Details
+        </a>
+        
+        <a href="/force-logout-all" class="btn danger">
+            🚪 Force Logout All Sessions
+        </a>
+    </div>
+
+    <div class="card">
+        <h3>📝 Instructions</h3>
+        <ol>
+            <li>Click "Login as naning" above</li>
+            <li>You'll see a text page showing login success</li>
+            <li>Click browser back button to return here</li>
+            <li>Click "Test Dashboard Redirect" to verify it goes to /paramedis</li>
+            <li>If still going to bendahara, try "Force Logout" then login again</li>
+        </ol>
+    </div>
+
+    <div class="card">
+        <h3>🔍 Expected Results</h3>
+        <div class="log">After successful login:
+- User: Naning Paramedis (ID 3 or 13)
+- Role: paramedis
+- hasRole('paramedis'): TRUE
+- Dashboard redirect: /paramedis ✅
+- NO bendahara redirect! 🎉</div>
+    </div>
+</body>
+</html>

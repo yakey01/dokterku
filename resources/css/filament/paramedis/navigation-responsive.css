@@ -1,0 +1,248 @@
+/* Responsive Navigation Improvements for Paramedis Panel */
+
+/* Mobile Navigation (0-767px) */
+@media (max-width: 767px) {
+    /* Mobile-first navigation */
+    .fi-sidebar {
+        position: fixed;
+        top: 0;
+        left: -100%;
+        width: 80%;
+        max-width: 300px;
+        height: 100vh;
+        z-index: 9999;
+        transition: left 0.3s ease-in-out;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Sidebar open state */
+    .fi-sidebar-open .fi-sidebar {
+        left: 0;
+    }
+    
+    /* Mobile menu toggle */
+    .fi-topbar-nav-toggle {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        min-height: 44px;
+    }
+    
+    /* Optimize navigation items for touch */
+    .fi-sidebar-nav-item {
+        min-height: 48px;
+        padding: 0.875rem 1rem;
+    }
+    
+    .fi-sidebar-nav-item-icon {
+        width: 24px;
+        height: 24px;
+        margin-right: 12px;
+    }
+    
+    /* Mobile navigation groups */
+    .fi-sidebar-nav-groups {
+        padding: 0.5rem;
+    }
+    
+    .fi-sidebar-group-label {
+        font-size: 0.75rem;
+        padding: 0.5rem 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    /* Overlay when sidebar is open */
+    .fi-sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 9998;
+    }
+    
+    .fi-sidebar-open .fi-sidebar-overlay {
+        display: block;
+    }
+}
+
+/* Tablet Navigation (768px-1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+    /* Collapsible sidebar for tablets */
+    .fi-sidebar {
+        width: 64px;
+        transition: width 0.3s ease-in-out;
+    }
+    
+    .fi-sidebar:hover,
+    .fi-sidebar-expanded {
+        width: 260px;
+    }
+    
+    /* Hide labels when collapsed */
+    .fi-sidebar:not(:hover):not(.fi-sidebar-expanded) .fi-sidebar-nav-item-label,
+    .fi-sidebar:not(:hover):not(.fi-sidebar-expanded) .fi-sidebar-group-label {
+        display: none;
+    }
+    
+    /* Center icons when collapsed */
+    .fi-sidebar:not(:hover):not(.fi-sidebar-expanded) .fi-sidebar-nav-item {
+        justify-content: center;
+    }
+    
+    .fi-sidebar:not(:hover):not(.fi-sidebar-expanded) .fi-sidebar-nav-item-icon {
+        margin-right: 0;
+    }
+}
+
+/* Desktop Navigation (1024px+) */
+@media (min-width: 1024px) {
+    /* Full sidebar always visible */
+    .fi-sidebar {
+        width: 280px;
+    }
+    
+    /* Hide mobile toggle */
+    .fi-topbar-nav-toggle {
+        display: none !important;
+    }
+    
+    /* Hover effects for desktop */
+    .fi-sidebar-nav-item:hover {
+        background-color: var(--primary-50);
+        border-radius: 0.5rem;
+    }
+    
+    .dark .fi-sidebar-nav-item:hover {
+        background-color: var(--primary-900);
+    }
+}
+
+/* Bottom Navigation for Mobile (Alternative Pattern) */
+@media (max-width: 767px) {
+    /* Optional bottom navigation for key actions */
+    .paramedis-bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background-color: white;
+        border-top: 1px solid var(--primary-100);
+        display: flex;
+        justify-content: space-around;
+        padding: 0.5rem;
+        z-index: 1000;
+    }
+    
+    .dark .paramedis-bottom-nav {
+        background-color: rgb(31, 41, 55);
+        border-color: rgb(55, 65, 81);
+    }
+    
+    .paramedis-bottom-nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem;
+        text-decoration: none;
+        color: var(--primary-600);
+        font-size: 0.75rem;
+        min-width: 64px;
+    }
+    
+    .paramedis-bottom-nav-item-icon {
+        font-size: 1.25rem;
+        margin-bottom: 0.25rem;
+    }
+    
+    .paramedis-bottom-nav-item.active {
+        color: var(--primary-700);
+        font-weight: 600;
+    }
+    
+    /* Adjust content for bottom nav */
+    .fi-main {
+        padding-bottom: 80px;
+    }
+}
+
+/* Breadcrumb Navigation */
+@media (max-width: 767px) {
+    /* Horizontal scroll for breadcrumbs on mobile */
+    .fi-breadcrumbs {
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        padding: 0.5rem 0;
+    }
+    
+    .fi-breadcrumbs::-webkit-scrollbar {
+        height: 4px;
+    }
+    
+    .fi-breadcrumbs::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    .fi-breadcrumbs::-webkit-scrollbar-thumb {
+        background: var(--primary-300);
+        border-radius: 2px;
+    }
+}
+
+/* User Menu Responsive */
+@media (max-width: 767px) {
+    /* Simplified user menu on mobile */
+    .fi-user-menu {
+        min-width: auto;
+    }
+    
+    .fi-user-avatar {
+        width: 32px;
+        height: 32px;
+    }
+    
+    /* Hide username on mobile */
+    .fi-user-name {
+        display: none;
+    }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+    /* Larger touch targets throughout navigation */
+    .fi-sidebar-nav-item,
+    .fi-breadcrumbs-item,
+    .fi-user-menu-trigger {
+        min-height: 48px;
+    }
+    
+    /* Remove hover-only features on touch devices */
+    .fi-sidebar:hover {
+        width: 64px;
+    }
+    
+    /* Explicit expand button for touch */
+    .fi-sidebar-expand-btn {
+        display: flex;
+        position: absolute;
+        right: -20px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--primary-500);
+        color: white;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+}

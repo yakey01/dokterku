@@ -1,0 +1,215 @@
+/* Medical RPG Navigation - iOS Safe Area & Touch Optimized */
+
+/* Root navigation container with safe area support */
+.medical-rpg-nav {
+  /* Force system font without emoji fallback */
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+  
+  /* Disable font substitution */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  
+  /* Prevent iOS text adjustments */
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  
+  /* Force GPU acceleration for better rendering */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  will-change: transform;
+  
+  /* iOS Safari specific positioning fixes */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  
+  /* Safe area support for all iOS devices */
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+  min-height: calc(5rem + env(safe-area-inset-bottom));
+  
+  /* Ensure consistent z-index behavior */
+  z-index: 9999;
+  position: fixed;
+  
+  /* Prevent scrolling issues on iPhone */
+  overscroll-behavior: contain;
+}
+
+/* Ensure SVG icons render consistently */
+.medical-rpg-nav svg {
+  /* Force vector rendering */
+  shape-rendering: geometricPrecision;
+  
+  /* Consistent stroke */
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  
+  /* Prevent scaling issues */
+  width: 20px !important;
+  height: 20px !important;
+  
+  /* Ensure visibility */
+  fill: none;
+  stroke: currentColor;
+}
+
+/* Icon container styling with enhanced touch support */
+.medical-rpg-nav-item {
+  /* Prevent text selection */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  
+  /* Enhanced touch targets for better iOS accessibility */
+  min-width: 48px;
+  min-height: 48px;
+  
+  /* iOS-specific touch optimizations */
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  
+  /* Center content */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* Ensure proper button behavior on iOS */
+  cursor: pointer;
+  outline: none;
+  border: none;
+  background: transparent;
+  
+  /* Better tap response on iOS */
+  -webkit-user-drag: none;
+  -webkit-user-modify: none;
+  
+  /* Force hardware acceleration for smooth animations */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Disable emoji font on all elements */
+.medical-rpg-nav * {
+  font-family: inherit !important;
+}
+
+/* Specific iOS Safari fixes */
+@supports (-webkit-touch-callout: none) {
+  .medical-rpg-nav {
+    /* iOS-specific font stack */
+    font-family: -apple-system, "SF Pro Display", "SF Pro Text", system-ui, sans-serif !important;
+  }
+  
+  .medical-rpg-nav svg {
+    /* Force hardware acceleration */
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+  }
+}
+
+/* Dark mode consistency */
+@media (prefers-color-scheme: dark) {
+  .medical-rpg-nav {
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Additional iOS Safari fixes for SVG rendering */
+.medical-rpg-nav-item svg {
+  /* Reset any inherited text properties */
+  font-size: 0 !important;
+  line-height: 0 !important;
+  letter-spacing: 0 !important;
+  word-spacing: 0 !important;
+  
+  /* Ensure SVG is treated as an image */
+  display: block !important;
+  overflow: visible !important;
+  
+  /* iOS specific rendering hints */
+  -webkit-backface-visibility: hidden;
+  -webkit-perspective: 1000;
+  backface-visibility: hidden;
+  perspective: 1000;
+}
+
+/* iOS-specific viewport and layout fixes */
+@supports (-webkit-touch-callout: none) {
+  /* iOS-specific navigation positioning */
+  .medical-rpg-nav {
+    /* Enhanced safe area support for all iPhone models */
+    padding-bottom: max(1rem, env(safe-area-inset-bottom, 34px));
+    /* iPhone 14 Pro and newer have larger safe areas */
+    min-height: calc(5rem + env(safe-area-inset-bottom, 34px));
+    
+    /* Prevent iOS Safari bouncing */
+    overscroll-behavior-y: none;
+    -webkit-overflow-scrolling: touch;
+    
+    /* Force stacking context */
+    isolation: isolate;
+  }
+  
+  /* Enhanced touch targets for iPhone */
+  .medical-rpg-nav-item {
+    /* Minimum 44px touch target as per Apple HIG */
+    min-width: 44px;
+    min-height: 44px;
+    
+    /* Better touch feedback */
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    
+    /* Prevent double-tap zoom */
+    touch-action: manipulation;
+    
+    /* Enhanced hardware acceleration */
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+  }
+  
+  /* Prevent zoom on input focus (not applicable but good practice) */
+  .medical-rpg-nav input,
+  .medical-rpg-nav select,
+  .medical-rpg-nav textarea {
+    font-size: 16px;
+  }
+}
+
+/* iPhone 14 Pro and newer with Dynamic Island */
+@media screen and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) {
+  .medical-rpg-nav {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom, 40px));
+    min-height: calc(5rem + env(safe-area-inset-bottom, 40px));
+  }
+}
+
+/* iPhone 14 Pro Max and newer */
+@media screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) {
+  .medical-rpg-nav {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom, 40px));
+    min-height: calc(5rem + env(safe-area-inset-bottom, 40px));
+  }
+}
+
+/* Fallback for text that might appear */
+.medical-rpg-nav-text-fallback {
+  /* Hide any text content that might leak through */
+  text-indent: -9999px;
+  overflow: hidden;
+}
+
+.medical-rpg-nav-item > div {
+  /* Reset text indent for the actual content */
+  text-indent: 0;
+  
+  /* Ensure proper positioning on iOS */
+  position: relative;
+  z-index: 1;
+}

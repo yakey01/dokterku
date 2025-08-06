@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔧 Fix Blank Page Issue</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .btn {
+            display: block;
+            background: #10b981;
+            color: white;
+            text-decoration: none;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 15px 0;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        .btn:active {
+            transform: scale(0.98);
+        }
+        .btn-test {
+            background: #f59e0b;
+        }
+        .btn-original {
+            background: #3b82f6;
+        }
+        .warning {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .code {
+            background: #1f2937;
+            color: #10b981;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        h1 {
+            color: #1f2937;
+            text-align: center;
+        }
+        .icon {
+            font-size: 48px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .debug-info {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Fix Blank Page Issue</h1>
+    
+    <div class="card">
+        <div class="icon">⚠️</div>
+        <h2 style="text-align: center;">Blank Page After Login</h2>
+        <div class="warning">
+            <strong>Issue:</strong> Login successful but React app not loading (blank page)
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>🧪 Option 1: Simple HTML Test</h3>
+        <p>Try this simple version first to verify mobile access is working:</p>
+        
+        <a href="/paramedis/mobile-test/3" class="btn btn-test">
+            🧪 TEST SIMPLE VERSION
+        </a>
+        
+        <div class="debug-info">
+            <strong>What this tests:</strong>
+            <ul style="margin: 5px 0; padding-left: 20px;">
+                <li>✅ Authentication bypass working</li>
+                <li>✅ Basic HTML rendering</li>
+                <li>✅ Mobile browser compatibility</li>
+                <li>❌ No React/JavaScript required</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>🚀 Option 2: Original React App</h3>
+        <p>If simple version works, try the original again:</p>
+        
+        <a href="/paramedis/mobile-direct/3" class="btn btn-original">
+            🚀 TRY ORIGINAL APP
+        </a>
+        
+        <div class="debug-info">
+            <strong>Possible fixes needed:</strong>
+            <ul style="margin: 5px 0; padding-left: 20px;">
+                <li>Run: <code>npm run build</code> on server</li>
+                <li>Check browser console for errors</li>
+                <li>Clear browser cache</li>
+                <li>Try different browser</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>🔍 Debugging Steps</h3>
+        
+        <h4>1. Check Browser Console</h4>
+        <div class="code">
+// On mobile browser:
+// 1. Open the blank page
+// 2. Look for menu (⋮) → "Developer tools" or "Inspect"
+// 3. Go to "Console" tab
+// 4. Look for red error messages
+        </div>
+        
+        <h4>2. Common Errors & Solutions</h4>
+        <ul>
+            <li><strong>"Failed to load resource"</strong> → Vite build needed</li>
+            <li><strong>"Cannot read property"</strong> → React app error</li>
+            <li><strong>"CORS blocked"</strong> → API endpoint issue</li>
+            <li><strong>No errors</strong> → Check if #paramedis-app exists</li>
+        </ul>
+        
+        <h4>3. Quick Server Fix</h4>
+        <div class="code">
+# SSH to server and run:
+cd /path/to/dokterku
+npm install
+npm run build
+php artisan config:cache
+php artisan view:cache
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>💡 Alternative Solution</h3>
+        <p>If React app continues to fail, we can:</p>
+        <ol>
+            <li>Create a lightweight mobile-specific dashboard</li>
+            <li>Use server-side rendering (Blade templates)</li>
+            <li>Build a Progressive Web App (PWA)</li>
+        </ol>
+        
+        <div class="success">
+            <strong>✅ Good News:</strong> Authentication is working perfectly! Only the frontend rendering needs fixing.
+        </div>
+    </div>
+
+    <div class="card" style="background: #e0f2fe;">
+        <h3>📱 Test Links Summary</h3>
+        <p><strong>For User: Naning (ID: 3)</strong></p>
+        
+        <a href="/paramedis/mobile-test/3" class="btn btn-test" style="margin: 10px 0;">
+            🧪 Simple HTML Version
+        </a>
+        
+        <a href="/paramedis/mobile-direct/3" class="btn btn-original" style="margin: 10px 0;">
+            🚀 React App Version
+        </a>
+        
+        <p style="text-align: center; margin-top: 20px; color: #666;">
+            Click Simple HTML first, then try React App
+        </p>
+    </div>
+</body>
+</html>

@@ -1,6 +1,7 @@
 /* Import only non-conflicting systems - design-system.css removed to prevent Filament conflicts */
 @import './loading-system.css';
 @import './mobile-responsive.css';
+@import './medical-rpg-nav.css';
 
 @tailwind base;
 @tailwind components;

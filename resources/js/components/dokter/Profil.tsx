@@ -1,331 +1,524 @@
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
-import { Separator } from '../ui/separator';
+import React, { useState, useEffect } from 'react';
 import { 
   User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Calendar, 
+  Crown, 
+  Award, 
+  Star, 
   Shield, 
+  Heart, 
+  Brain, 
+  Zap, 
+  Target, 
+  Calendar, 
+  Clock, 
+  MapPin, 
+  Phone, 
+  Mail, 
+  Edit3, 
   Settings, 
-  Bell, 
   LogOut,
-  Edit,
-  Award,
-  Clock,
-  Star,
-  Briefcase
+  Trophy,
+  Flame,
+  TrendingUp,
+  Activity,
+  Badge,
+  Medal,
+  Gem,
+  Sparkles,
+  Coffee,
+  Moon,
+  Sun,
+  Camera,
+  Upload,
+  Save,
+  X,
+  Check,
+  Eye,
+  EyeOff,
+  Lock,
+  Unlock
 } from 'lucide-react';
 
-interface ProfilProps {
-  userData?: {
-    name: string;
-    email?: string;
-    jabatan?: string;
-  };
+interface ProfileData {
+  id: string;
+  name: string;
+  title: string;
+  specialization: string;
+  level: number;
+  experience: number;
+  nextLevelXP: number;
+  avatar: string;
+  email: string;
+  phone: string;
+  workLocation: string;
+  joinDate: string;
+  totalPatients: number;
+  totalProcedures: number;
+  attendanceRate: number;
+  performanceScore: number;
+  achievements: Achievement[];
+  stats: Stats;
 }
 
-export function Profil({ userData }: ProfilProps) {
-  const userProfile = {
-    nama: userData?.name || 'Dokter',
-    email: userData?.email || 'dokter@klinikdokterku.com',
-    telefon: '+62 812-3456-7890',
-    spesialisasi: userData?.jabatan || 'Dokter Umum',
-    rumahSakit: 'KLINIK DOKTERKU',
-    nomorSip: 'SIP.123.456.789',
-    tanggalBergabung: '2020-01-15',
-    status: 'Aktif'
-  };
+interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: React.ComponentType<any>;
+  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+  unlocked: boolean;
+  unlockedDate?: string;
+}
 
-  const stats = {
-    totalJam: 2040,
-    totalJaspel: 24500000,
-    ratingKinerja: 4.8,
-    pengalamanTahun: 5
-  };
+interface Stats {
+  totalXP: number;
+  monthlyXP: number;
+  streak: number;
+  rank: number;
+  totalHours: number;
+  efficiency: number;
+}
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+interface ProfilProps {
+  userData?: any;
+  onNavigate?: (tab: string) => void;
+}
 
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('id-ID', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
-  };
+export function Profil({ userData, onNavigate }: ProfilProps) {
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [showStats, setShowStats] = useState(true);
 
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
+  const mockProfileData: ProfileData = {
+    id: '1',
+    name: 'Dr. Naning Paramedis',
+    title: 'Senior Medical Officer',
+    specialization: 'General Practitioner',
+    level: 7,
+    experience: 2847,
+    nextLevelXP: 3000,
+    avatar: '/api/placeholder/120/120',
+    email: 'naning@dokterku.com',
+    phone: '+62 812-3456-7890',
+    workLocation: 'Klinik Dokterku Utama',
+    joinDate: '2023-01-15',
+    totalPatients: 1247,
+    totalProcedures: 892,
+    attendanceRate: 96.7,
+    performanceScore: 94.2,
+    achievements: [
+      {
+        id: '1',
+        title: 'Perfect Attendance',
+        description: 'No missed days for 30 consecutive days',
+        icon: Calendar,
+        rarity: 'epic',
+        unlocked: true,
+        unlockedDate: '2024-07-15'
+      },
+      {
+        id: '2',
+        title: 'Patient Champion',
+        description: 'Treated 1000+ patients',
+        icon: Heart,
+        rarity: 'rare',
+        unlocked: true,
+        unlockedDate: '2024-06-10'
+      },
+      {
+        id: '3',
+        title: 'Excellence Master',
+        description: 'Maintain 95%+ performance for 6 months',
+        icon: Crown,
+        rarity: 'legendary',
+        unlocked: false
+      },
+      {
+        id: '4',
+        title: 'Speed Healer',
+        description: 'Complete 100 procedures in optimal time',
+        icon: Zap,
+        rarity: 'rare',
+        unlocked: true,
+        unlockedDate: '2024-05-20'
       }
+    ],
+    stats: {
+      totalXP: 15847,
+      monthlyXP: 2847,
+      streak: 28,
+      rank: 2,
+      totalHours: 1560,
+      efficiency: 97.8
     }
   };
 
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
+  const getRarityColor = (rarity: string) => {
+    switch (rarity) {
+      case 'common':
+        return 'from-gray-500/30 to-slate-500/30 border-gray-400/50 text-gray-300';
+      case 'rare':
+        return 'from-blue-500/30 to-cyan-500/30 border-blue-400/50 text-blue-300';
+      case 'epic':
+        return 'from-purple-500/30 to-pink-500/30 border-purple-400/50 text-purple-300';
+      case 'legendary':
+        return 'from-yellow-500/30 to-orange-500/30 border-yellow-400/50 text-yellow-300';
+      default:
+        return 'from-gray-500/30 to-slate-500/30 border-gray-400/50 text-gray-300';
+    }
   };
 
-  return (
-    <motion.div 
-      variants={container}
-      initial="hidden"
-      animate="show"
-      className="space-y-6 theme-transition"
-    >
-      {/* Header */}
-      <motion.div variants={item}>
-        <Card className="bg-gradient-to-r from-teal-500 to-teal-600 dark:from-teal-600 dark:to-teal-700 border-0 shadow-xl card-enhanced">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between text-white">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-white/20 dark:bg-white/30 rounded-full flex items-center justify-center">
-                  <User className="w-6 h-6" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold text-white text-heading-mobile">Profil</h2>
-                  <p className="text-teal-100 dark:text-teal-200 text-sm font-medium text-mobile-friendly">Kelola informasi pribadi</p>
+  const calculateExperiencePercent = () => {
+    return (mockProfileData.experience / mockProfileData.nextLevelXP) * 100;
+  };
+
+  const formatJoinDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('id-ID', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const renderOverviewTab = () => (
+    <div className="space-y-6">
+      {/* Character Stats */}
+      <div className="bg-white/5 backdrop-blur-2xl rounded-3xl p-6 border border-white/10">
+        <h3 className="text-lg font-bold text-white mb-4 flex items-center">
+          <Activity className="w-5 h-5 mr-2 text-purple-400" />
+          Character Stats
+        </h3>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div className="text-center">
+            <div className="flex items-center justify-center mb-2">
+              <Trophy className="w-5 h-5 text-yellow-400 mr-2" />
+              <span className="text-2xl font-bold text-white">{mockProfileData.stats.rank}</span>
+            </div>
+            <span className="text-yellow-300 text-sm">Server Rank</span>
+          </div>
+          
+          <div className="text-center">
+            <div className="flex items-center justify-center mb-2">
+              <TrendingUp className="w-5 h-5 text-green-400 mr-2" />
+              <span className="text-2xl font-bold text-white">{mockProfileData.performanceScore}%</span>
+            </div>
+            <span className="text-green-300 text-sm">Performance</span>
+          </div>
+          
+          <div className="text-center">
+            <div className="flex items-center justify-center mb-2">
+              <Flame className="w-5 h-5 text-orange-400 mr-2" />
+              <span className="text-2xl font-bold text-white">{mockProfileData.stats.streak}</span>
+            </div>
+            <span className="text-orange-300 text-sm">Day Streak</span>
+          </div>
+          
+          <div className="text-center">
+            <div className="flex items-center justify-center mb-2">
+              <Zap className="w-5 h-5 text-cyan-400 mr-2" />
+              <span className="text-2xl font-bold text-white">{mockProfileData.stats.efficiency}%</span>
+            </div>
+            <span className="text-cyan-300 text-sm">Efficiency</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Professional Info */}
+      <div className="bg-white/5 backdrop-blur-2xl rounded-3xl p-6 border border-white/10">
+        <h3 className="text-lg font-bold text-white mb-4 flex items-center">
+          <User className="w-5 h-5 mr-2 text-blue-400" />
+          Professional Info
+        </h3>
+        
+        <div className="space-y-4">
+          <div className="flex items-center justify-between py-2">
+            <span className="text-gray-300">Specialization</span>
+            <span className="text-white font-medium">{mockProfileData.specialization}</span>
+          </div>
+          
+          <div className="flex items-center justify-between py-2">
+            <span className="text-gray-300">Work Location</span>
+            <span className="text-white font-medium">{mockProfileData.workLocation}</span>
+          </div>
+          
+          <div className="flex items-center justify-between py-2">
+            <span className="text-gray-300">Join Date</span>
+            <span className="text-white font-medium">{formatJoinDate(mockProfileData.joinDate)}</span>
+          </div>
+          
+          <div className="flex items-center justify-between py-2">
+            <span className="text-gray-300">Total Patients</span>
+            <span className="text-green-400 font-bold">{mockProfileData.totalPatients.toLocaleString()}</span>
+          </div>
+          
+          <div className="flex items-center justify-between py-2">
+            <span className="text-gray-300">Total Procedures</span>
+            <span className="text-blue-400 font-bold">{mockProfileData.totalProcedures.toLocaleString()}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Contact Info */}
+      <div className="bg-white/5 backdrop-blur-2xl rounded-3xl p-6 border border-white/10">
+        <h3 className="text-lg font-bold text-white mb-4 flex items-center">
+          <Mail className="w-5 h-5 mr-2 text-green-400" />
+          Contact Info
+        </h3>
+        
+        <div className="space-y-4">
+          <div className="flex items-center space-x-3">
+            <Mail className="w-5 h-5 text-blue-400" />
+            <span className="text-white">{mockProfileData.email}</span>
+          </div>
+          
+          <div className="flex items-center space-x-3">
+            <Phone className="w-5 h-5 text-green-400" />
+            <span className="text-white">{mockProfileData.phone}</span>
+          </div>
+          
+          <div className="flex items-center space-x-3">
+            <MapPin className="w-5 h-5 text-purple-400" />
+            <span className="text-white">{mockProfileData.workLocation}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderAchievementsTab = () => (
+    <div className="space-y-4">
+      <div className="text-center mb-6">
+        <h3 className="text-xl font-bold bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent mb-2">
+          Achievement Gallery
+        </h3>
+        <p className="text-gray-300 text-sm">
+          {mockProfileData.achievements.filter(a => a.unlocked).length} / {mockProfileData.achievements.length} Unlocked
+        </p>
+      </div>
+
+      {mockProfileData.achievements.map((achievement) => (
+        <div 
+          key={achievement.id}
+          className={`bg-gradient-to-r ${getRarityColor(achievement.rarity)} rounded-2xl p-4 border backdrop-blur-sm relative ${
+            !achievement.unlocked ? 'opacity-60' : ''
+          }`}
+        >
+          <div className="flex items-center space-x-4">
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+              achievement.unlocked 
+                ? 'bg-gradient-to-br from-yellow-500 to-orange-500' 
+                : 'bg-gradient-to-br from-gray-500 to-slate-600'
+            }`}>
+              <achievement.icon className="w-6 h-6 text-white" />
+            </div>
+            
+            <div className="flex-1">
+              <div className="flex items-center space-x-2 mb-1">
+                <h4 className="text-white font-bold text-sm">{achievement.title}</h4>
+                <div className={`px-2 py-1 rounded-full text-xs font-bold ${
+                  achievement.rarity === 'legendary' ? 'bg-yellow-500/20 text-yellow-300' :
+                  achievement.rarity === 'epic' ? 'bg-purple-500/20 text-purple-300' :
+                  achievement.rarity === 'rare' ? 'bg-blue-500/20 text-blue-300' :
+                  'bg-gray-500/20 text-gray-300'
+                }`}>
+                  {achievement.rarity.toUpperCase()}
                 </div>
               </div>
+              <p className="text-gray-300 text-xs mb-2">{achievement.description}</p>
+              {achievement.unlocked && achievement.unlockedDate && (
+                <p className="text-green-400 text-xs">
+                  Unlocked: {new Date(achievement.unlockedDate).toLocaleDateString('id-ID')}
+                </p>
+              )}
             </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+            
+            {!achievement.unlocked && (
+              <Lock className="w-5 h-5 text-gray-400" />
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 
-      {/* Profile Header */}
-      <motion.div variants={item}>
-        <Card className="shadow-xl border-0 bg-gradient-to-br from-white to-blue-50/50 dark:from-gray-900 dark:to-blue-950/30 backdrop-blur-sm card-enhanced">
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-4">
-              <motion.div 
-                className="relative"
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.2 }}
-              >
-                <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 text-white rounded-full flex items-center justify-center shadow-lg">
-                  <User className="w-10 h-10" />
+  const renderStatsTab = () => (
+    <div className="space-y-6">
+      {/* XP Progress */}
+      <div className="bg-white/5 backdrop-blur-2xl rounded-3xl p-6 border border-white/10">
+        <h3 className="text-lg font-bold text-white mb-4 flex items-center">
+          <Star className="w-5 h-5 mr-2 text-yellow-400" />
+          Experience Points
+        </h3>
+        
+        <div className="text-center mb-4">
+          <div className="text-3xl font-bold text-white mb-2">
+            {mockProfileData.stats.totalXP.toLocaleString()} XP
+          </div>
+          <div className="text-gray-300 text-sm">Total Experience</div>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div className="text-center">
+            <div className="text-xl font-bold text-purple-400 mb-1">
+              {mockProfileData.stats.monthlyXP.toLocaleString()}
+            </div>
+            <div className="text-purple-300 text-sm">This Month</div>
+          </div>
+          
+          <div className="text-center">
+            <div className="text-xl font-bold text-blue-400 mb-1">
+              {mockProfileData.stats.totalHours.toLocaleString()}h
+            </div>
+            <div className="text-blue-300 text-sm">Total Hours</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Performance Metrics */}
+      <div className="bg-white/5 backdrop-blur-2xl rounded-3xl p-6 border border-white/10">
+        <h3 className="text-lg font-bold text-white mb-4 flex items-center">
+          <Target className="w-5 h-5 mr-2 text-green-400" />
+          Performance Metrics
+        </h3>
+        
+        <div className="space-y-4">
+          <div>
+            <div className="flex justify-between text-sm mb-2">
+              <span className="text-gray-300">Attendance Rate</span>
+              <span className="text-green-400 font-bold">{mockProfileData.attendanceRate}%</span>
+            </div>
+            <div className="w-full bg-gray-700/50 rounded-full h-2 overflow-hidden">
+              <div 
+                className="bg-gradient-to-r from-green-500 to-emerald-500 h-2 rounded-full transition-all duration-1000"
+                style={{ width: `${mockProfileData.attendanceRate}%` }}
+              ></div>
+            </div>
+          </div>
+          
+          <div>
+            <div className="flex justify-between text-sm mb-2">
+              <span className="text-gray-300">Performance Score</span>
+              <span className="text-blue-400 font-bold">{mockProfileData.performanceScore}%</span>
+            </div>
+            <div className="w-full bg-gray-700/50 rounded-full h-2 overflow-hidden">
+              <div 
+                className="bg-gradient-to-r from-blue-500 to-cyan-500 h-2 rounded-full transition-all duration-1000"
+                style={{ width: `${mockProfileData.performanceScore}%` }}
+              ></div>
+            </div>
+          </div>
+          
+          <div>
+            <div className="flex justify-between text-sm mb-2">
+              <span className="text-gray-300">Efficiency Rating</span>
+              <span className="text-purple-400 font-bold">{mockProfileData.stats.efficiency}%</span>
+            </div>
+            <div className="w-full bg-gray-700/50 rounded-full h-2 overflow-hidden">
+              <div 
+                className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-1000"
+                style={{ width: `${mockProfileData.stats.efficiency}%` }}
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="w-full">
+      <div className="max-w-sm mx-auto relative overflow-hidden">
+        
+        {/* Floating Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 left-8 w-40 h-40 bg-purple-500/5 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute top-60 right-4 w-32 h-32 bg-pink-500/5 rounded-full blur-2xl animate-bounce"></div>
+          <div className="absolute bottom-80 left-6 w-36 h-36 bg-blue-500/5 rounded-full blur-3xl animate-pulse"></div>
+        </div>
+
+        {/* Character Card */}
+        <div className="px-6 pt-8 pb-6 relative z-10">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-600/30 via-pink-600/30 to-blue-600/30 rounded-3xl backdrop-blur-2xl"></div>
+            <div className="absolute inset-0 bg-white/5 rounded-3xl border border-white/20"></div>
+            <div className="relative p-8">
+              
+              {/* Avatar and Level */}
+              <div className="text-center mb-6">
+                <div className="relative inline-block mb-4">
+                  <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg border-4 border-white/20">
+                    <User className="w-12 h-12 text-white" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-black text-sm font-bold px-3 py-1 rounded-full border-2 border-white shadow-lg">
+                    Lv.{mockProfileData.level}
+                  </div>
                 </div>
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 dark:bg-green-400 border-2 border-white dark:border-gray-900 rounded-full flex items-center justify-center">
-                  <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                </div>
-              </motion.div>
-              <div className="flex-1">
-                <h3 className="text-xl font-semibold text-high-contrast text-subheading-mobile">{userProfile.nama}</h3>
-                <p className="text-sm text-medium-contrast font-medium text-mobile-friendly">{userProfile.spesialisasi}</p>
-                <div className="flex items-center gap-2 mt-2">
-                  <Badge className="bg-gradient-to-r from-green-100 to-green-200 dark:from-green-900/50 dark:to-green-800/50 text-green-800 dark:text-green-300 border-green-200 dark:border-green-700">
-                    {userProfile.status}
-                  </Badge>
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 text-yellow-500 dark:text-yellow-400 fill-current" />
-                    <span className="text-sm text-medium-contrast font-medium">{stats.ratingKinerja}</span>
+                
+                <h1 className="text-2xl font-bold text-white mb-1">{mockProfileData.name}</h1>
+                <p className="text-purple-200 text-sm mb-2">{mockProfileData.title}</p>
+                
+                {/* XP Progress */}
+                <div className="mb-4">
+                  <div className="flex justify-between text-xs text-gray-300 mb-1">
+                    <span>Level {mockProfileData.level}</span>
+                    <span>{mockProfileData.experience}/{mockProfileData.nextLevelXP} XP</span>
+                  </div>
+                  <div className="w-full bg-gray-700/50 rounded-full h-2 overflow-hidden">
+                    <div 
+                      className="bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 h-2 rounded-full transition-all duration-1000 shadow-lg"
+                      style={{ width: `${calculateExperiencePercent()}%` }}
+                    ></div>
                   </div>
                 </div>
               </div>
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button variant="outline" size="sm" className="gap-2 border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 font-medium">
-                  <Edit className="w-4 h-4" />
-                  Edit
-                </Button>
-              </motion.div>
             </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+          </div>
+        </div>
 
-      {/* Personal Information */}
-      <motion.div variants={item}>
-        <Card className="shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm card-enhanced">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-high-contrast">
-              <Briefcase className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-              Informasi Personal
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <motion.div 
-              className="flex items-center gap-3 p-3 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950/50 transition-colors duration-200"
-              whileHover={{ x: 5 }}
-              transition={{ duration: 0.2 }}
+        {/* Tab Navigation */}
+        <div className="px-6 mb-6 relative z-10">
+          <div className="flex space-x-2 bg-white/5 backdrop-blur-2xl rounded-2xl p-2 border border-white/10">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`flex-1 py-3 px-4 rounded-xl text-sm font-medium transition-all duration-300 ${
+                activeTab === 'overview'
+                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                  : 'text-gray-300 hover:text-white hover:bg-white/10'
+              }`}
             >
-              <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center">
-                <Mail className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              </div>
-              <span className="text-sm text-high-contrast font-medium text-mobile-friendly">{userProfile.email}</span>
-            </motion.div>
-            
-            <motion.div 
-              className="flex items-center gap-3 p-3 rounded-lg hover:bg-green-50 dark:hover:bg-green-950/50 transition-colors duration-200"
-              whileHover={{ x: 5 }}
-              transition={{ duration: 0.2 }}
+              Overview
+            </button>
+            <button
+              onClick={() => setActiveTab('achievements')}
+              className={`flex-1 py-3 px-4 rounded-xl text-sm font-medium transition-all duration-300 ${
+                activeTab === 'achievements'
+                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                  : 'text-gray-300 hover:text-white hover:bg-white/10'
+              }`}
             >
-              <div className="w-8 h-8 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center">
-                <Phone className="w-4 h-4 text-green-600 dark:text-green-400" />
-              </div>
-              <span className="text-sm text-high-contrast font-medium text-mobile-friendly">{userProfile.telefon}</span>
-            </motion.div>
-            
-            <motion.div 
-              className="flex items-center gap-3 p-3 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-950/50 transition-colors duration-200"
-              whileHover={{ x: 5 }}
-              transition={{ duration: 0.2 }}
+              Achievements
+            </button>
+            <button
+              onClick={() => setActiveTab('stats')}
+              className={`flex-1 py-3 px-4 rounded-xl text-sm font-medium transition-all duration-300 ${
+                activeTab === 'stats'
+                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg'
+                  : 'text-gray-300 hover:text-white hover:bg-white/10'
+              }`}
             >
-              <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/50 rounded-full flex items-center justify-center">
-                <MapPin className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-              </div>
-              <span className="text-sm text-high-contrast font-medium text-mobile-friendly">{userProfile.rumahSakit}</span>
-            </motion.div>
-            
-            <motion.div 
-              className="flex items-center gap-3 p-3 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-950/50 transition-colors duration-200"
-              whileHover={{ x: 5 }}
-              transition={{ duration: 0.2 }}
-            >
-              <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900/50 rounded-full flex items-center justify-center">
-                <Shield className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-              </div>
-              <span className="text-sm text-high-contrast font-medium text-mobile-friendly">SIP: {userProfile.nomorSip}</span>
-            </motion.div>
-            
-            <motion.div 
-              className="flex items-center gap-3 p-3 rounded-lg hover:bg-teal-50 dark:hover:bg-teal-950/50 transition-colors duration-200"
-              whileHover={{ x: 5 }}
-              transition={{ duration: 0.2 }}
-            >
-              <div className="w-8 h-8 bg-teal-100 dark:bg-teal-900/50 rounded-full flex items-center justify-center">
-                <Calendar className="w-4 h-4 text-teal-600 dark:text-teal-400" />
-              </div>
-              <span className="text-sm text-high-contrast font-medium text-mobile-friendly">Bergabung: {formatDate(userProfile.tanggalBergabung)}</span>
-            </motion.div>
-          </CardContent>
-        </Card>
-      </motion.div>
+              Stats
+            </button>
+          </div>
+        </div>
 
-      {/* Statistics */}
-      <motion.div variants={item}>
-        <Card className="shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm card-enhanced">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-high-contrast">
-              <Award className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
-              Statistik Karir
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <motion.div variants={container} className="grid grid-cols-2 gap-4">
-              <motion.div 
-                variants={item}
-                className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/50 dark:to-blue-900/30 rounded-xl border border-blue-200 dark:border-blue-700"
-                whileHover={{ scale: 1.02, y: -2 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Clock className="w-6 h-6 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
-                <div className="text-lg font-bold text-blue-700 dark:text-blue-300 text-heading-mobile">{stats.totalJam.toLocaleString()}</div>
-                <div className="text-sm text-medium-contrast font-medium text-mobile-friendly">Total Jam Kerja</div>
-              </motion.div>
-              
-              <motion.div 
-                variants={item}
-                className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/50 dark:to-green-900/30 rounded-xl border border-green-200 dark:border-green-700"
-                whileHover={{ scale: 1.02, y: -2 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Award className="w-6 h-6 text-green-600 dark:text-green-400 mx-auto mb-2" />
-                <div className="text-lg font-bold text-green-700 dark:text-green-300 text-heading-mobile">{stats.ratingKinerja}/5</div>
-                <div className="text-sm text-medium-contrast font-medium text-mobile-friendly">Rating Kinerja</div>
-              </motion.div>
-              
-              <motion.div 
-                variants={item}
-                className="text-center p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950/50 dark:to-yellow-900/30 rounded-xl border border-yellow-200 dark:border-yellow-700"
-                whileHover={{ scale: 1.02, y: -2 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Calendar className="w-6 h-6 text-yellow-600 dark:text-yellow-400 mx-auto mb-2" />
-                <div className="text-lg font-bold text-yellow-700 dark:text-yellow-300 text-heading-mobile">{stats.pengalamanTahun}</div>
-                <div className="text-sm text-medium-contrast font-medium text-mobile-friendly">Tahun Pengalaman</div>
-              </motion.div>
-              
-              <motion.div 
-                variants={item}
-                className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/50 dark:to-purple-900/30 rounded-xl border border-purple-200 dark:border-purple-700"
-                whileHover={{ scale: 1.02, y: -2 }}
-                transition={{ duration: 0.2 }}
-              >
-                <span className="text-2xl">💰</span>
-                <div className="text-sm font-bold text-purple-700 dark:text-purple-300 text-mobile-friendly">{formatCurrency(stats.totalJaspel)}</div>
-                <div className="text-xs text-medium-contrast font-medium">Total Jaspel</div>
-              </motion.div>
-            </motion.div>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* Settings */}
-      <motion.div variants={item}>
-        <Card className="shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm card-enhanced">
-          <CardHeader>
-            <CardTitle className="text-high-contrast">Pengaturan</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <motion.div
-              whileHover={{ scale: 1.01, x: 5 }}
-              whileTap={{ scale: 0.99 }}
-              transition={{ duration: 0.2 }}
-            >
-              <Button variant="outline" className="w-full justify-start gap-3 h-12 hover:bg-blue-50 dark:hover:bg-blue-950/50 hover:border-blue-200 dark:hover:border-blue-700 font-medium transition-colors duration-300">
-                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center">
-                  <Settings className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                </div>
-                <span className="text-high-contrast">Pengaturan Akun</span>
-              </Button>
-            </motion.div>
-            
-            <motion.div
-              whileHover={{ scale: 1.01, x: 5 }}
-              whileTap={{ scale: 0.99 }}
-              transition={{ duration: 0.2 }}
-            >
-              <Button variant="outline" className="w-full justify-start gap-3 h-12 hover:bg-orange-50 dark:hover:bg-orange-950/50 hover:border-orange-200 dark:hover:border-orange-700 font-medium transition-colors duration-300">
-                <div className="w-8 h-8 bg-orange-100 dark:bg-orange-900/50 rounded-full flex items-center justify-center">
-                  <Bell className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-                </div>
-                <span className="text-high-contrast">Notifikasi</span>
-              </Button>
-            </motion.div>
-            
-            <Separator className="my-4 bg-gray-200 dark:bg-gray-700" />
-            
-            <motion.div
-              whileHover={{ scale: 1.01, x: 5 }}
-              whileTap={{ scale: 0.99 }}
-              transition={{ duration: 0.2 }}
-            >
-              <Button variant="outline" className="w-full justify-start gap-3 h-12 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 hover:border-red-200 dark:hover:border-red-700 font-medium transition-colors duration-300">
-                <div className="w-8 h-8 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center">
-                  <LogOut className="w-4 h-4 text-red-600 dark:text-red-400" />
-                </div>
-                <span>Keluar</span>
-              </Button>
-            </motion.div>
-          </CardContent>
-        </Card>
-      </motion.div>
-    </motion.div>
+        {/* Tab Content */}
+        <div className="px-6 relative z-10">
+          {activeTab === 'overview' && renderOverviewTab()}
+          {activeTab === 'achievements' && renderAchievementsTab()}
+          {activeTab === 'stats' && renderStatsTab()}
+        </div>
+      </div>
+    </div>
   );
 }

@@ -101,16 +101,16 @@ return new class extends Migration
         $addIndexIfNotExists('dokters', ['user_id', 'aktif'], 'idx_dokters_user_aktif');
 
         // Indexes for users table
-        $addIndexIfNotExists('users', 'role', 'idx_users_role');
+        // $addIndexIfNotExists('users', 'role', 'idx_users_role'); // Column doesn't exist
         $addIndexIfNotExists('users', 'role_id', 'idx_users_role_id');
         $addIndexIfNotExists('users', 'is_active', 'idx_users_is_active');
         $addIndexIfNotExists('users', 'created_at', 'idx_users_created_at');
-        $addIndexIfNotExists('users', 'last_login_at', 'idx_users_last_login_at');
+        // $addIndexIfNotExists('users', 'last_login_at', 'idx_users_last_login_at'); // Column doesn't exist yet
         $addIndexIfNotExists('users', 'deleted_at', 'idx_users_deleted_at');
         $addIndexIfNotExists('users', 'nip', 'idx_users_nip');
         
         // Composite indexes
-        $addIndexIfNotExists('users', ['role', 'is_active'], 'idx_users_role_active');
+        // $addIndexIfNotExists('users', ['role', 'is_active'], 'idx_users_role_active'); // role column doesn't exist
         $addIndexIfNotExists('users', ['is_active', 'created_at'], 'idx_users_active_created');
         $addIndexIfNotExists('users', ['role_id', 'is_active'], 'idx_users_role_id_active');
 
@@ -295,14 +295,14 @@ return new class extends Migration
 
         // Drop indexes from users table
         Schema::table('users', function (Blueprint $table) {
-            $table->dropIndex('idx_users_role');
+            // $table->dropIndex('idx_users_role');
             $table->dropIndex('idx_users_role_id');
             $table->dropIndex('idx_users_is_active');
             $table->dropIndex('idx_users_created_at');
-            $table->dropIndex('idx_users_last_login_at');
+            // $table->dropIndex('idx_users_last_login_at');
             $table->dropIndex('idx_users_deleted_at');
             $table->dropIndex('idx_users_nip');
-            $table->dropIndex('idx_users_role_active');
+            // $table->dropIndex('idx_users_role_active');
             $table->dropIndex('idx_users_active_created');
             $table->dropIndex('idx_users_role_id_active');
         });

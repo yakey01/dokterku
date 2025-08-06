@@ -47,6 +47,9 @@ export function JaspelDashboardCard() {
 
   const fetchData = async () => {
     try {
+      // Get CSRF token
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+      
       // Try test endpoint first
       let response = await fetch('/test-paramedis-dashboard-api', {
         method: 'GET',
@@ -54,7 +57,8 @@ export function JaspelDashboardCard() {
         headers: {
           'Content-Type': 'application/json',
           'X-Requested-With': 'XMLHttpRequest',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': csrfToken
         }
       });
 
@@ -67,6 +71,7 @@ export function JaspelDashboardCard() {
           headers: {
             'Content-Type': 'application/json',
             'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': csrfToken,
             'Accept': 'application/json',
             'Authorization': `Bearer ${localStorage.getItem('auth_token') || ''}`
           }

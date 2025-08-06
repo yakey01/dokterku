@@ -1,5 +1,6 @@
 @import '../../../../vendor/filament/filament/resources/css/theme.css';
 @import './attendance-history.css';
+@import './navigation-responsive.css';
 
 /* Paramedis Theme - Emerald Green Medical Theme */
 :root {
@@ -131,9 +132,169 @@
     border-bottom: 1px solid var(--primary-100);
 }
 
-/* Mobile responsiveness */
-@media (max-width: 768px) {
+/* Enhanced Responsive Breakpoints following Mobile Layout Guidelines */
+
+/* Base Mobile Styles (Mobile First Approach) */
+@media (min-width: 0px) {
+    /* Optimized font sizes for mobile */
+    html {
+        font-size: 16px;
+    }
+    
+    /* Touch-friendly button sizes */
+    .fi-btn {
+        min-height: 44px;
+        padding: 0.75rem 1rem;
+    }
+    
+    /* Stack forms on mobile */
+    .fi-fo-field-wrp-container > div {
+        grid-template-columns: 1fr !important;
+    }
+    
+    /* Mobile-optimized spacing */
+    .fi-section {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+}
+
+/* Small Devices (Mobile Landscape) */
+@media (min-width: 576px) {
+    /* Slightly larger spacing */
+    .fi-section {
+        padding: 1.25rem;
+    }
+}
+
+/* Medium Devices (Tablets/iPad) */
+@media (min-width: 768px) {
+    html {
+        font-size: 17px;
+    }
+    
+    /* Two-column layouts for tablets */
+    .fi-fo-field-wrp-container > div {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    /* Tablet-optimized spacing */
+    .fi-section {
+        padding: 1.5rem;
+    }
+    
+    /* Show sidebar on tablets */
+    .fi-sidebar {
+        position: sticky;
+        top: 0;
+    }
+}
+
+/* Large Devices (Desktop) */
+@media (min-width: 1024px) {
+    html {
+        font-size: 18px;
+    }
+    
+    /* Desktop layouts */
+    .fi-fo-field-wrp-container > div {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+    
+    /* Desktop spacing */
+    .fi-section {
+        padding: 2rem;
+    }
+}
+
+/* Extra Large Devices (Wide Desktop) */
+@media (min-width: 1280px) {
+    /* Maximum content width for readability */
+    .fi-page-content {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+}
+
+/* Mobile-specific sidebar styling */
+@media (max-width: 767px) {
     .fi-sidebar {
         background: linear-gradient(180deg, var(--primary-600) 0%, var(--primary-700) 100%);
+    }
+    
+    /* Mobile navigation improvements */
+    .fi-sidebar-nav-item {
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+    }
+    
+    /* Hide less important elements on mobile */
+    .fi-global-search {
+        display: none;
+    }
+}
+
+/* Responsive Typography */
+h1, .fi-header-heading {
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    line-height: 1.2;
+}
+
+h2, .fi-section-header-heading {
+    font-size: clamp(1.25rem, 3vw, 2rem);
+    line-height: 1.3;
+}
+
+p, .fi-body-text {
+    font-size: 1rem;
+    line-height: 1.6;
+    max-width: 65ch; /* Optimal reading length */
+}
+
+/* Responsive Tables */
+@media (max-width: 767px) {
+    /* Make tables horizontally scrollable on mobile */
+    .fi-ta-table-wrp {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Minimum table width to prevent cramping */
+    .fi-ta-table {
+        min-width: 600px;
+    }
+}
+
+/* Responsive Cards and Widgets */
+@media (max-width: 639px) {
+    /* Stack widget cards on mobile */
+    .fi-wi-stats-overview {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+    /* Two columns on tablets */
+    .fi-wi-stats-overview {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+/* Touch-optimized form elements */
+@media (hover: none) and (pointer: coarse) {
+    /* Larger touch targets for mobile/tablet */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    select,
+    textarea {
+        min-height: 44px;
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+    
+    /* Larger clickable areas */
+    .fi-link, a {
+        padding: 0.5rem;
+        margin: -0.5rem;
     }
 }

@@ -16,6 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Force local session configuration for development
+        $middleware->prepend(\App\Http\Middleware\ForceLocalSession::class);
+        
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'enhanced.role' => \App\Http\Middleware\EnhancedRoleMiddleware::class,

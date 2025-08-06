@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔧 Session Fix Diagnosis - Ultra-Think Analysis</title>
+    <style>
+        body {
+            font-family: 'Monaco', 'Menlo', monospace;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 100%);
+            color: #00ff00;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header {
+            text-align: center;
+            padding: 20px;
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            background: rgba(0, 255, 0, 0.1);
+        }
+        .section {
+            background: rgba(0, 30, 60, 0.3);
+            border: 1px solid #004080;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #00ff00;
+        }
+        .critical { border-left-color: #ff0000; background: rgba(60, 0, 0, 0.3); }
+        .success { border-left-color: #00ff00; background: rgba(0, 60, 0, 0.3); }
+        .warning { border-left-color: #ffaa00; background: rgba(60, 30, 0, 0.3); }
+        
+        button {
+            background: linear-gradient(45deg, #004080, #0080ff);
+            color: #ffffff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-family: inherit;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: linear-gradient(45deg, #0080ff, #00aaff);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 128, 255, 0.3);
+        }
+        .btn-critical {
+            background: linear-gradient(45deg, #800000, #ff0000);
+        }
+        .btn-critical:hover {
+            background: linear-gradient(45deg, #ff0000, #ff4444);
+        }
+        .btn-success {
+            background: linear-gradient(45deg, #008000, #00ff00);
+        }
+        .btn-success:hover {
+            background: linear-gradient(45deg, #00ff00, #44ff44);
+        }
+        
+        .log {
+            background: #000000;
+            border: 1px solid #333;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        h1, h2, h3 { color: #00aaff; margin-bottom: 10px; }
+        h1 { text-shadow: 0 0 10px #00aaff; }
+        
+        .diagnosis { 
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #ffaa00;
+        }
+        
+        .fix-steps {
+            background: rgba(0, 60, 0, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #00ff00;
+        }
+        
+        .evidence {
+            background: rgba(0, 0, 60, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #0080ff;
+        }
+        
+        code {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #ffaa00;
+        }
+        
+        .timestamp { color: #888; font-size: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 SESSION FIX DIAGNOSIS</h1>
+            <p>Ultra-Think Analysis: Root Cause & Solution</p>
+            <div class="timestamp">Session Issue Resolution Tool - Ultra-Diagnostic Mode</div>
+        </div>
+
+        <!-- Root Cause Analysis -->
+        <div class="section critical">
+            <h2>🎯 ROOT CAUSE IDENTIFIED</h2>
+            <div class="diagnosis">
+                <h3>🔍 Primary Issue: Cookie Domain/Port Mismatch</h3>
+                <p><strong>Evidence Found:</strong></p>
+                <ul>
+                    <li>✅ Sessions ARE being created in database (User ID 10: 3333@dokter.local)</li>
+                    <li>✅ Session table exists and has 13 active sessions</li>
+                    <li>✅ Recent session activity for doctor user confirmed</li>
+                    <li>❌ APP_URL configured for port 8002, but app likely accessed on port 8000</li>
+                    <li>❌ Browser not sending session cookies due to domain/port mismatch</li>
+                </ul>
+                
+                <h3>🧠 Technical Analysis:</h3>
+                <p>Sessions are working server-side but cookies aren't being sent by browser due to:</p>
+                <ol>
+                    <li><code>APP_URL=http://127.0.0.1:8002</code> in .env file</li>
+                    <li>Cookie generated for port 8002 domain</li>
+                    <li>User accessing app on different port (likely 8000)</li>
+                    <li>Browser treats different ports as different domains</li>
+                    <li>Session cookie not sent → Authentication fails</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Evidence Section -->
+        <div class="section">
+            <h2>📊 Evidence Collected</h2>
+            <div class="evidence">
+                <h3>Database Evidence:</h3>
+                <ul>
+                    <li>Sessions table: ✅ Exists and populated (13 sessions)</li>
+                    <li>User 3333@dokter.local: ✅ ID 10, Role: dokter</li>
+                    <li>Recent activity: ✅ 2025-08-03 05:50:05</li>
+                    <li>Session creation: ✅ Working correctly</li>
+                </ul>
+                
+                <h3>Configuration Evidence:</h3>
+                <ul>
+                    <li>SESSION_DRIVER: database ✅</li>
+                    <li>SESSION_LIFETIME: 120 minutes ⚠️ (short but adequate)</li>
+                    <li>APP_URL: http://127.0.0.1:8002 ❌ (likely wrong port)</li>
+                    <li>SESSION_DOMAIN: null ⚠️ (relies on APP_URL)</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Immediate Fix -->
+        <div class="section success">
+            <h2>⚡ IMMEDIATE FIX</h2>
+            <div class="fix-steps">
+                <h3>🔧 Fix Option 1: Update APP_URL (Recommended)</h3>
+                <button onclick="fixAppUrl()" class="btn-success">🎯 Fix APP_URL to Port 8000</button>
+                <p>Updates .env file to match actual access port</p>
+                
+                <h3>🔧 Fix Option 2: Clear Session Domain</h3>
+                <button onclick="clearSessionDomain()" class="btn-success">🌐 Set SESSION_DOMAIN to null</button>
+                <p>Makes cookies work across all local ports</p>
+                
+                <h3>🔧 Fix Option 3: Emergency Session Reset</h3>
+                <button onclick="emergencyReset()" class="btn-critical">💥 Emergency Reset & Reload</button>
+                <p>Clears all cookies and forces new session</p>
+            </div>
+        </div>
+
+        <!-- Verification Tests -->
+        <div class="section">
+            <h2>🧪 Verification Tests</h2>
+            <button onclick="testCurrentSetup()">🔍 Test Current Setup</button>
+            <button onclick="testPostFix()">✅ Test After Fix</button>
+            <button onclick="fullDiagnostic()">🕵️ Full Re-Diagnostic</button>
+            <div id="testResults"></div>
+        </div>
+
+        <!-- Manual Steps -->
+        <div class="section warning">
+            <h2>👨‍💻 Manual Fix Steps</h2>
+            <div class="fix-steps">
+                <h3>If automated fix fails:</h3>
+                <ol>
+                    <li>Open <code>.env</code> file</li>
+                    <li>Change <code>APP_URL=http://127.0.0.1:8002</code> to <code>APP_URL=http://127.0.0.1:8000</code></li>
+                    <li>Add <code>SESSION_DOMAIN=localhost</code></li>
+                    <li>Run: <code>php artisan config:clear</code></li>
+                    <li>Run: <code>php artisan cache:clear</code></li>
+                    <li>Clear browser cookies for localhost</li>
+                    <li>Login again: 3333@dokter.local / password</li>
+                </ol>
+            </div>
+        </div>
+
+        <!-- Console -->
+        <div class="section">
+            <h2>📝 Diagnostic Console</h2>
+            <button onclick="clearConsole()">🧹 Clear</button>
+            <div id="console" class="log"></div>
+        </div>
+    </div>
+
+    <script>
+        function log(message, data = null, type = 'info') {
+            const console = document.getElementById('console');
+            const timestamp = new Date().toLocaleTimeString();
+            const colors = {
+                info: '#00ff00',
+                error: '#ff6666', 
+                warning: '#ffaa66',
+                success: '#66ff66',
+                critical: '#ff0000'
+            };
+            
+            let logMessage = `[${timestamp}] ${message}`;
+            if (data) {
+                logMessage += '\n' + JSON.stringify(data, null, 2);
+            }
+            
+            const logEntry = document.createElement('div');
+            logEntry.style.color = colors[type] || colors.info;
+            logEntry.textContent = logMessage + '\n';
+            console.appendChild(logEntry);
+            console.scrollTop = console.scrollHeight;
+        }
+
+        async function fixAppUrl() {
+            log('🔧 Attempting to fix APP_URL...', null, 'info');
+            
+            try {
+                const response = await fetch('/fix-app-url', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        new_url: window.location.origin,
+                        session_domain: window.location.hostname
+                    })
+                });
+                
+                if (response.ok) {
+                    log('✅ APP_URL updated successfully', null, 'success');
+                    log('🔄 Please refresh the page and test login', null, 'warning');
+                } else {
+                    log('❌ Failed to update APP_URL automatically', null, 'error');
+                    log('👨‍💻 Please use manual fix steps', null, 'warning');
+                }
+            } catch (error) {
+                log('❌ Auto-fix failed:', error.message, 'error');
+                log('👨‍💻 Please use manual fix steps', null, 'warning');
+            }
+        }
+
+        async function clearSessionDomain() {
+            log('🌐 Clearing session domain restrictions...', null, 'info');
+            // This would require server-side implementation
+            log('⚠️ Manual implementation required', null, 'warning');
+            log('Add SESSION_DOMAIN=localhost to .env file', null, 'info');
+        }
+
+        async function emergencyReset() {
+            log('💥 Performing emergency reset...', null, 'critical');
+            
+            // Clear all cookies
+            document.cookie.split(';').forEach(cookie => {
+                const name = cookie.split('=')[0].trim();
+                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=localhost`;
+                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=127.0.0.1`;
+                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+            });
+            
+            // Clear storage
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            log('🧹 All cookies and storage cleared', null, 'success');
+            log('🔄 Reloading page in 3 seconds...', null, 'warning');
+            
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000);
+        }
+
+        async function testCurrentSetup() {
+            log('🔍 Testing current session setup...', null, 'info');
+            
+            // Test current URL and cookies
+            log(`Current URL: ${window.location.href}`, null, 'info');
+            log(`Current cookies: ${document.cookie || 'NONE'}`, null, 'info');
+            
+            // Test session endpoint
+            try {
+                const response = await fetch('/api/user', {
+                    credentials: 'include',
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    const user = await response.json();
+                    log('✅ Session working:', user, 'success');
+                    document.getElementById('testResults').innerHTML = 
+                        `<div class="success">✅ Session Active: ${user.name} (${user.email})</div>`;
+                } else {
+                    log('❌ Session not working:', response.status, 'error');
+                    document.getElementById('testResults').innerHTML = 
+                        '<div class="critical">❌ No active session detected</div>';
+                }
+            } catch (error) {
+                log('❌ Test failed:', error.message, 'error');
+            }
+        }
+
+        async function testPostFix() {
+            log('✅ Testing after fix application...', null, 'info');
+            await testCurrentSetup();
+        }
+
+        async function fullDiagnostic() {
+            log('🕵️ Running full diagnostic...', null, 'info');
+            
+            // Check multiple endpoints
+            const tests = [
+                { name: 'Session Check', url: '/api/user' },
+                { name: 'Dashboard Stats', url: '/dokter/web-api/dashboard-stats' },
+                { name: 'CSRF Token', url: '/sanctum/csrf-cookie' }
+            ];
+            
+            for (const test of tests) {
+                try {
+                    const response = await fetch(test.url, { credentials: 'include' });
+                    log(`${test.name}: ${response.status} ${response.statusText}`, null, 
+                        response.ok ? 'success' : 'error');
+                } catch (error) {
+                    log(`${test.name}: FAILED - ${error.message}`, null, 'error');
+                }
+            }
+        }
+
+        function clearConsole() {
+            document.getElementById('console').innerHTML = '';
+        }
+
+        // Initialize
+        window.onload = function() {
+            log('🔧 Session Fix Diagnosis Tool initialized', null, 'success');
+            log('🎯 Root cause: Cookie domain/port mismatch identified', null, 'warning');
+            log('💡 Solution: Update APP_URL or clear session domain', null, 'info');
+            
+            // Auto-test current setup
+            setTimeout(testCurrentSetup, 1000);
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+/* Petugas Panel Black Elegant Theme - Standalone CSS */
+/* Direct CSS without @layer to bypass Tailwind purging */
+
+/* CSS Variables for Petugas Panel */
+[data-filament-panel-id="petugas"] {
+    --primary: 234 179 8; /* Gold */
+    --success: 34 197 94; /* Green */
+    --warning: 251 189 35; /* Yellow */
+    --danger: 239 68 68; /* Red */
+    --info: 59 130 246; /* Blue */
+    --gray: 107 114 128; /* Gray */
+}
+
+/* Force Black Sidebar - Maximum Specificity */
+[data-filament-panel-id="petugas"] .fi-sidebar,
+[data-filament-panel-id="petugas"] aside[class*="sidebar"],
+[data-filament-panel-id="petugas"] nav[class*="sidebar"],
+[data-filament-panel-id="petugas"] .fi-main-ctn .fi-sidebar,
+[data-filament-panel-id="petugas"] .fi-main .fi-sidebar {
+    background: #0f0f0f !important;
+    background-color: #0f0f0f !important;
+    border-right: 1px solid rgba(234, 179, 8, 0.2) !important;
+    color: #ffffff !important;
+}
+
+/* Force Black Sidebar Header */
+[data-filament-panel-id="petugas"] .fi-sidebar-header,
+[data-filament-panel-id="petugas"] aside[class*="sidebar"] header,
+[data-filament-panel-id="petugas"] nav[class*="sidebar"] header {
+    background: #000000 !important;
+    background-color: #000000 !important;
+    border-bottom: 2px solid #eab308 !important;
+}
+
+/* Force Brand Color */
+[data-filament-panel-id="petugas"] .fi-sidebar-header .fi-brand,
+[data-filament-panel-id="petugas"] .fi-brand {
+    color: #eab308 !important;
+    font-weight: 700 !important;
+}
+
+/* Force Black Topbar */
+[data-filament-panel-id="petugas"] .fi-topbar,
+[data-filament-panel-id="petugas"] header[class*="topbar"] {
+    background: #0f0f0f !important;
+    background-color: #0f0f0f !important;
+    border-bottom: 1px solid rgba(234, 179, 8, 0.2) !important;
+}
+
+/* Force Navigation Links */
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item,
+[data-filament-panel-id="petugas"] nav a,
+[data-filament-panel-id="petugas"] aside a {
+    color: #ffffff !important;
+}
+
+/* Force Navigation Hover */
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover,
+[data-filament-panel-id="petugas"] nav a:hover,
+[data-filament-panel-id="petugas"] aside a:hover {
+    background: rgba(234, 179, 8, 0.1) !important;
+    background-color: rgba(234, 179, 8, 0.1) !important;
+    color: #eab308 !important;
+}
+
+/* Force Active Navigation */
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active,
+[data-filament-panel-id="petugas"] nav a[class*="active"],
+[data-filament-panel-id="petugas"] aside a[class*="active"] {
+    background: rgba(234, 179, 8, 0.2) !important;
+    background-color: rgba(234, 179, 8, 0.2) !important;
+    color: #eab308 !important;
+}
+
+/* Additional fallback styles */
+body[data-filament-panel-id="petugas"] aside {
+    background: #0f0f0f !important;
+    color: #ffffff !important;
+}
+
+body[data-filament-panel-id="petugas"] aside header {
+    background: #000000 !important;
+    border-bottom: 2px solid #eab308 !important;
+}
+
+/* Fix icon colors in sidebar */
+[data-filament-panel-id="petugas"] .fi-sidebar svg,
+[data-filament-panel-id="petugas"] aside svg {
+    color: #ffffff !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover svg,
+[data-filament-panel-id="petugas"] aside a:hover svg {
+    color: #eab308 !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active svg,
+[data-filament-panel-id="petugas"] aside a[class*="active"] svg {
+    color: #eab308 !important;
+}
+
+/* Test style to verify CSS is loading */
+[data-filament-panel-id="petugas"] body {
+    --test-var: black-theme-loaded-standalone;
+}

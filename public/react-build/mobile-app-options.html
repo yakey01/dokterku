@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📱 Mobile App Options</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .option {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            transition: all 0.3s;
+        }
+        .option:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.1);
+        }
+        .btn {
+            display: inline-block;
+            background: #3b82f6;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            margin: 5px;
+            font-weight: 600;
+        }
+        .btn:hover { background: #2563eb; }
+        .btn.success { background: #10b981; }
+        .btn.success:hover { background: #059669; }
+        .btn.purple { background: #8b5cf6; }
+        .btn.purple:hover { background: #7c3aed; }
+        .btn.orange { background: #f59e0b; }
+        .btn.orange:hover { background: #d97706; }
+        h2 { color: #1f2937; }
+        .pros { color: #059669; }
+        .cons { color: #dc2626; }
+        .tech-stack {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .tech {
+            background: #f3f4f6;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center;">📱 Mobile App Options untuk Paramedis</h1>
+    
+    <div class="card">
+        <h2>🚀 Pilihan Teknologi Selain React</h2>
+        
+        <div class="option">
+            <h3>1. Tailwind CSS + Alpine.js ⭐ RECOMMENDED</h3>
+            <p><strong>Deskripsi:</strong> Kombinasi CSS utility-first dengan JavaScript ringan untuk interaktivitas</p>
+            
+            <div class="pros">
+                <strong>✅ Kelebihan:</strong>
+                <ul>
+                    <li>Super ringan dan cepat</li>
+                    <li>No build process needed</li>
+                    <li>Perfect untuk mobile</li>
+                    <li>Easy to maintain</li>
+                </ul>
+            </div>
+            
+            <div class="cons">
+                <strong>❌ Kekurangan:</strong>
+                <ul>
+                    <li>Limited untuk app kompleks</li>
+                    <li>No component reusability seperti React</li>
+                </ul>
+            </div>
+            
+            <div class="tech-stack">
+                <span class="tech">Tailwind CSS</span>
+                <span class="tech">Alpine.js</span>
+                <span class="tech">No Build</span>
+                <span class="tech">CDN Ready</span>
+            </div>
+            
+            <div style="margin-top: 15px;">
+                <a href="/test-tailwind-alpine" class="btn success">🧪 Test Demo</a>
+                <span style="margin-left: 10px; color: #059669;">✅ READY!</span>
+            </div>
+        </div>
+        
+        <div class="option">
+            <h3>2. Vue.js 3 (via CDN)</h3>
+            <p><strong>Deskripsi:</strong> Framework JavaScript yang lebih sederhana dari React</p>
+            
+            <div class="pros">
+                <strong>✅ Kelebihan:</strong>
+                <ul>
+                    <li>Lebih mudah dipelajari dari React</li>
+                    <li>Two-way data binding</li>
+                    <li>Bisa digunakan via CDN (no build)</li>
+                    <li>Good documentation</li>
+                </ul>
+            </div>
+            
+            <div class="cons">
+                <strong>❌ Kekurangan:</strong>
+                <ul>
+                    <li>File size lebih besar dari Alpine.js</li>
+                    <li>Overkill untuk app sederhana</li>
+                </ul>
+            </div>
+            
+            <div class="tech-stack">
+                <span class="tech">Vue 3</span>
+                <span class="tech">CDN Option</span>
+                <span class="tech">Reactive</span>
+                <span class="tech">Components</span>
+            </div>
+            
+            <div style="margin-top: 15px;">
+                <a href="/test-vue-app" class="btn purple">🧪 Test Demo</a>
+                <span style="margin-left: 10px; color: #8b5cf6;">✅ READY!</span>
+            </div>
+        </div>
+        
+        <div class="option">
+            <h3>3. Flutter Web</h3>
+            <p><strong>Deskripsi:</strong> Google's UI toolkit untuk build native apps</p>
+            
+            <div class="pros">
+                <strong>✅ Kelebihan:</strong>
+                <ul>
+                    <li>One codebase untuk iOS, Android, Web</li>
+                    <li>Native performance</li>
+                    <li>Beautiful UI</li>
+                    <li>Hot reload</li>
+                </ul>
+            </div>
+            
+            <div class="cons">
+                <strong>❌ Kekurangan:</strong>
+                <ul>
+                    <li>Learning curve tinggi (Dart language)</li>
+                    <li>Large bundle size untuk web</li>
+                    <li>SEO issues</li>
+                    <li>Perlu setup kompleks</li>
+                </ul>
+            </div>
+            
+            <div class="tech-stack">
+                <span class="tech">Dart</span>
+                <span class="tech">Flutter SDK</span>
+                <span class="tech">Native</span>
+                <span class="tech">Cross-platform</span>
+            </div>
+            
+            <div style="margin-top: 15px;">
+                <a href="#" class="btn" onclick="alert('Flutter requires separate development environment'); return false;">📚 Learn More</a>
+            </div>
+        </div>
+        
+        <div class="option">
+            <h3>4. Progressive Web App (PWA)</h3>
+            <p><strong>Deskripsi:</strong> Web app yang bisa diinstall seperti native app</p>
+            
+            <div class="pros">
+                <strong>✅ Kelebihan:</strong>
+                <ul>
+                    <li>Installable on home screen</li>
+                    <li>Offline support</li>
+                    <li>Push notifications</li>
+                    <li>No app store needed</li>
+                </ul>
+            </div>
+            
+            <div class="tech-stack">
+                <span class="tech">Service Worker</span>
+                <span class="tech">Manifest</span>
+                <span class="tech">Offline First</span>
+                <span class="tech">Any Framework</span>
+            </div>
+            
+            <div style="margin-top: 15px;">
+                <a href="#" class="btn orange" onclick="alert('PWA can be added to any of the above options'); return false;">🔧 Setup Guide</a>
+            </div>
+        </div>
+        
+        <div class="option">
+            <h3>5. Svelte/SvelteKit</h3>
+            <p><strong>Deskripsi:</strong> Compiler-based framework, no virtual DOM</p>
+            
+            <div class="pros">
+                <strong>✅ Kelebihan:</strong>
+                <ul>
+                    <li>Smallest bundle size</li>
+                    <li>No runtime overhead</li>
+                    <li>Simple syntax</li>
+                    <li>Fast performance</li>
+                </ul>
+            </div>
+            
+            <div class="cons">
+                <strong>❌ Kekurangan:</strong>
+                <ul>
+                    <li>Smaller community</li>
+                    <li>Needs build step</li>
+                    <li>Less ecosystem</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="option">
+            <h3>6. Vanilla JavaScript + Modern CSS</h3>
+            <p><strong>Deskripsi:</strong> Pure JavaScript dengan CSS Grid/Flexbox</p>
+            
+            <div class="pros">
+                <strong>✅ Kelebihan:</strong>
+                <ul>
+                    <li>Zero dependencies</li>
+                    <li>Full control</li>
+                    <li>Smallest size possible</li>
+                    <li>No framework lock-in</li>
+                </ul>
+            </div>
+            
+            <div class="cons">
+                <strong>❌ Kekurangan:</strong>
+                <ul>
+                    <li>More code to write</li>
+                    <li>No component system</li>
+                    <li>Manual state management</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card" style="background: #e0f2fe;">
+        <h2>🎯 Rekomendasi</h2>
+        
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+                <th style="text-align: left; padding: 10px; border-bottom: 2px solid #3b82f6;">Use Case</th>
+                <th style="text-align: left; padding: 10px; border-bottom: 2px solid #3b82f6;">Best Option</th>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">Quick deployment, simple app</td>
+                <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;"><strong>Tailwind + Alpine.js</strong></td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">Complex interactions, components</td>
+                <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;"><strong>Vue.js 3</strong></td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">Native mobile feel</td>
+                <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;"><strong>Flutter or PWA</strong></td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">Maximum performance</td>
+                <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;"><strong>Svelte or Vanilla JS</strong></td>
+            </tr>
+        </table>
+        
+        <div style="margin-top: 20px; text-align: center;">
+            <h3>🚀 Quick Test Links</h3>
+            <a href="/paramedis/mobile-direct/3" class="btn">Current Simple HTML</a>
+            <a href="/test-tailwind-alpine" class="btn success">Tailwind + Alpine</a>
+            <a href="/test-vue-app" class="btn purple">Vue.js Demo</a>
+        </div>
+    </div>
+</body>
+</html>

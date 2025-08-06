@@ -25,7 +25,7 @@ class DatabaseSeeder extends Seeder
             NewUsersSeeder::class,
             
             // Location and GPS validation
-            LocationValidationSeeder::class,
+            // LocationValidationSeeder::class, // Doesn't exist
             GpsSpoofingDetectionSeeder::class,
             
             // NonParamedis system seeders

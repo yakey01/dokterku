@@ -233,7 +233,10 @@ class JenisTindakanSeeder extends Seeder
         ];
 
         foreach ($jenisTindakan as $jenis) {
-            JenisTindakan::create($jenis);
+            JenisTindakan::updateOrCreate(
+                ['kode' => $jenis['kode']],
+                $jenis
+            );
         }
     }
 }

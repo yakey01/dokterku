@@ -18,6 +18,17 @@ use App\Http\Controllers\Api\DokterStatsController;
 |
 */
 
+// API Version 2 Routes
+Route::prefix('v2')->middleware(['auth:sanctum', 'throttle:api'])->name('api.v2.')->group(function () {
+    // Dashboards
+    Route::prefix('dashboards')->name('dashboards.')->group(function () {
+        Route::get('/paramedis', [\App\Http\Controllers\Api\V2\Dashboards\ParamedisDashboardController::class, 'index']);
+        Route::get('/paramedis/jaspel', [\App\Http\Controllers\Api\V2\Dashboards\ParamedisDashboardController::class, 'getJaspel']);
+        Route::get('/paramedis/attendance', [\App\Http\Controllers\Api\V2\Dashboards\ParamedisDashboardController::class, 'getAttendance']);
+        Route::get('/paramedis/schedules', [\App\Http\Controllers\Api\V2\Dashboards\ParamedisDashboardController::class, 'getSchedules']);
+    });
+});
+
 Route::middleware('auth:sanctum')->group(function () {
     // User info
     Route::get('/user', function (Request $request) {

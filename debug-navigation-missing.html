@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Navigation Missing - Dokterku</title>
+    <style>
+        body {
+            font-family: monospace;
+            margin: 20px;
+            background: #1a1a1a;
+            color: #fff;
+            line-height: 1.6;
+        }
+        .debug-section {
+            background: #2a2a2a;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 4px solid #00ff00;
+        }
+        .error {
+            border-left-color: #ff0000;
+        }
+        .warning {
+            border-left-color: #ffaa00;
+        }
+        .info {
+            border-left-color: #0088ff;
+        }
+        button {
+            background: #444;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #666;
+        }
+        pre {
+            background: #111;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug: Bottom Navigation Missing</h1>
+    
+    <div class="debug-section info">
+        <h3>📊 Current Browser Info</h3>
+        <div id="browser-info">Loading...</div>
+    </div>
+    
+    <div class="debug-section">
+        <h3>🧪 Interactive Tests</h3>
+        <button onclick="checkDokterApp()">1. Check Dokter App Access</button>
+        <button onclick="testAuthentication()">2. Test Authentication</button>
+        <button onclick="analyzeNavigation()">3. Analyze Navigation HTML</button>
+        <button onclick="testCSS()">4. Test CSS Classes</button>
+        <button onclick="testReact()">5. Test React Component</button>
+        <button onclick="forceNavigation()">6. Force Show Navigation</button>
+    </div>
+    
+    <div id="test-results"></div>
+    
+    <div class="debug-section warning">
+        <h3>⚠️ Common Issues Checklist</h3>
+        <div id="checklist">
+            <div>🔍 Checking...</div>
+        </div>
+    </div>
+    
+    <script>
+        function log(message, type = 'info') {
+            const results = document.getElementById('test-results');
+            const div = document.createElement('div');
+            div.className = `debug-section ${type}`;
+            div.innerHTML = `<h3>${getIcon(type)} ${new Date().toLocaleTimeString()}</h3><pre>${message}</pre>`;
+            results.appendChild(div);
+            console.log(message);
+        }
+        
+        function getIcon(type) {
+            switch(type) {
+                case 'error': return '❌';
+                case 'warning': return '⚠️';
+                case 'info': return 'ℹ️';
+                default: return '✅';
+            }
+        }
+        
+        function updateBrowserInfo() {
+            document.getElementById('browser-info').innerHTML = `
+                <strong>Viewport:</strong> ${window.innerWidth} × ${window.innerHeight}<br>
+                <strong>User Agent:</strong> ${navigator.userAgent}<br>
+                <strong>URL:</strong> ${window.location.href}<br>
+                <strong>Breakpoint:</strong> ${getBreakpoint()}<br>
+                <strong>Expected Navigation:</strong> ${window.innerWidth < 1024 ? 'VISIBLE' : 'HIDDEN'}
+            `;
+        }
+        
+        function getBreakpoint() {
+            const w = window.innerWidth;
+            if (w >= 1280) return 'xl (≥1280px)';
+            if (w >= 1024) return 'lg (≥1024px)';
+            if (w >= 768) return 'md (≥768px)';
+            if (w >= 640) return 'sm (≥640px)';
+            return 'xs (<640px)';
+        }
+        
+        async function checkDokterApp() {
+            log('🔍 Checking Dokter App Access...', 'info');
+            
+            try {
+                const response = await fetch('/dokter/mobile-app', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                if (response.status === 200) {
+                    log('✅ Dokter app accessible');
+                    const html = await response.text();
+                    
+                    // Check if React app container exists
+                    if (html.includes('id="dokter-app"')) {
+                        log('✅ React container found in HTML');
+                    } else {
+                        log('❌ React container NOT found in HTML', 'error');
+                    }
+                    
+                    // Check if Vite assets are referenced
+                    if (html.includes('dokter-mobile-app')) {
+                        log('✅ Vite assets referenced in HTML');
+                    } else {
+                        log('❌ Vite assets NOT referenced in HTML', 'error');
+                    }
+                    
+                } else if (response.status === 403) {
+                    log('❌ Access denied - role check failed', 'error');
+                    log('Need to login as dokter user first');
+                } else if (response.status === 419) {
+                    log('❌ CSRF token expired', 'error');
+                    log('Need to refresh and login again');
+                } else {
+                    log(`❌ HTTP ${response.status}: ${response.statusText}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Network error: ${error.message}`, 'error');
+            }
+        }
+        
+        function testAuthentication() {
+            log('🔐 Testing Authentication...', 'info');
+            
+            // Check for auth meta tags
+            const authMeta = document.querySelector('meta[name="user-authenticated"]');
+            if (authMeta) {
+                const isAuth = authMeta.getAttribute('content') === 'true';
+                log(`Auth meta tag: ${isAuth ? 'authenticated' : 'not authenticated'}`);
+            } else {
+                log('❌ No auth meta tag found - not on dokter app page', 'warning');
+            }
+            
+            // Check for user data
+            const userMeta = document.querySelector('meta[name="user-data"]');
+            if (userMeta) {
+                try {
+                    const userData = JSON.parse(userMeta.getAttribute('content'));
+                    log(`User data: ${JSON.stringify(userData, null, 2)}`);
+                } catch (e) {
+                    log('❌ Invalid user data format', 'error');
+                }
+            } else {
+                log('❌ No user data meta tag found', 'warning');
+            }
+        }
+        
+        function analyzeNavigation() {
+            log('📱 Analyzing Navigation Elements...', 'info');
+            
+            // Check if we're on the dokter app page
+            if (!document.getElementById('dokter-app')) {
+                log('❌ Not on dokter app page - navigation only exists there', 'error');
+                log('Go to: http://localhost:8000/dokter/mobile-app');
+                return;
+            }
+            
+            // Check React app mount
+            const appDiv = document.getElementById('dokter-app');
+            if (appDiv.children.length === 0) {
+                log('❌ React app not mounted - empty dokter-app div', 'error');
+                log('Check console for React errors');
+            } else {
+                log('✅ React app mounted - has child elements');
+                
+                // Look for navigation elements
+                const navElements = document.querySelectorAll('[class*="bottom-0"], [class*="lg:hidden"]');
+                log(`Found ${navElements.length} potential navigation elements`);
+                
+                navElements.forEach((el, i) => {
+                    log(`Element ${i+1}: ${el.tagName} with classes: ${el.className}`);
+                });
+            }
+        }
+        
+        function testCSS() {
+            log('🎨 Testing CSS Classes...', 'info');
+            
+            // Create test element with navigation classes
+            const testEl = document.createElement('div');
+            testEl.className = 'lg:hidden absolute bottom-0 left-0 right-0 bg-gradient-to-t from-slate-800/90';
+            testEl.style.width = '100px';
+            testEl.style.height = '50px';
+            testEl.style.background = 'red';
+            testEl.style.zIndex = '9999';
+            testEl.innerHTML = 'TEST NAV';
+            
+            document.body.appendChild(testEl);
+            
+            setTimeout(() => {
+                const computed = window.getComputedStyle(testEl);
+                log(`Test element display: ${computed.display}`);
+                log(`Test element position: ${computed.position}`);
+                log(`Test element bottom: ${computed.bottom}`);
+                
+                if (window.innerWidth >= 1024 && computed.display === 'none') {
+                    log('✅ lg:hidden working correctly on desktop');
+                } else if (window.innerWidth < 1024 && computed.display !== 'none') {
+                    log('✅ lg:hidden working correctly on mobile');
+                } else {
+                    log('❌ CSS classes not working as expected', 'error');
+                }
+                
+                document.body.removeChild(testEl);
+            }, 100);
+        }
+        
+        function testReact() {
+            log('⚛️ Testing React Component...', 'info');
+            
+            // Check if React is loaded
+            if (typeof React !== 'undefined') {
+                log('✅ React is loaded globally');
+            } else {
+                log('⚠️ React not in global scope (normal for bundled apps)', 'warning');
+            }
+            
+            // Check for common React indicators
+            const reactElements = document.querySelectorAll('[data-reactroot], [data-react-]');
+            if (reactElements.length > 0) {
+                log(`✅ Found ${reactElements.length} React elements`);
+            } else {
+                log('❌ No React elements found', 'error');
+            }
+            
+            // Check console for React errors
+            log('Check browser console for React errors like:');
+            log('- Component render errors');
+            log('- Props validation warnings');
+            log('- Hooks usage errors');
+            log('- State update errors');
+        }
+        
+        function forceNavigation() {
+            log('🚀 Attempting to Force Navigation...', 'info');
+            
+            // Create forced navigation for testing
+            const nav = document.createElement('div');
+            nav.innerHTML = `
+                <div style="
+                    position: fixed;
+                    bottom: 0;
+                    left: 0;
+                    right: 0;
+                    background: linear-gradient(to top, rgba(30, 41, 59, 0.9), rgba(88, 28, 135, 0.8), rgba(71, 85, 105, 0.9));
+                    backdrop-filter: blur(24px);
+                    padding: 16px 24px;
+                    border-top: 1px solid rgba(147, 51, 234, 0.2);
+                    border-radius: 24px 24px 0 0;
+                    z-index: 9999;
+                    display: ${window.innerWidth < 1024 ? 'block' : 'none'};
+                ">
+                    <div style="display: flex; justify-content: space-between; align-items: center; color: white;">
+                        <button style="padding: 12px; background: rgba(6, 182, 212, 0.4); border: 1px solid rgba(34, 211, 238, 0.3); border-radius: 16px;">👑 Home</button>
+                        <button style="padding: 12px; background: transparent; border: none; color: #9ca3af;">📅 Missions</button>
+                        <button style="padding: 12px; background: transparent; border: none; color: #9ca3af;">🛡️ Guardian</button>
+                        <button style="padding: 12px; background: transparent; border: none; color: #9ca3af;">⭐ Rewards</button>
+                        <button style="padding: 12px; background: transparent; border: none; color: #9ca3af;">🧠 Profile</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(nav);
+            
+            log('✅ Forced navigation created');
+            log('If you can see the navigation now, then the issue is with React component rendering');
+            log('If you still can\'t see it, check viewport width and CSS');
+            
+            setTimeout(() => {
+                if (confirm('Remove forced navigation?')) {
+                    document.body.removeChild(nav);
+                    log('Forced navigation removed');
+                }
+            }, 5000);
+        }
+        
+        function runChecklist() {
+            const checks = [
+                {
+                    name: 'Browser width < 1024px',
+                    test: () => window.innerWidth < 1024,
+                    fix: 'Resize browser or use responsive mode'
+                },
+                {
+                    name: 'On dokter app page',
+                    test: () => window.location.pathname.includes('/dokter/mobile-app'),
+                    fix: 'Navigate to http://localhost:8000/dokter/mobile-app'
+                },
+                {
+                    name: 'Authenticated as dokter',
+                    test: () => {
+                        const meta = document.querySelector('meta[name="user-authenticated"]');
+                        return meta && meta.getAttribute('content') === 'true';
+                    },
+                    fix: 'Login with dokter credentials (3333@dokter.local)'
+                },
+                {
+                    name: 'React app mounted',
+                    test: () => {
+                        const app = document.getElementById('dokter-app');
+                        return app && app.children.length > 0;
+                    },
+                    fix: 'Check console for React errors, rebuild assets'
+                },
+                {
+                    name: 'CSS classes working',
+                    test: () => {
+                        const testEl = document.createElement('div');
+                        testEl.className = 'lg:hidden';
+                        document.body.appendChild(testEl);
+                        const isHidden = window.getComputedStyle(testEl).display === 'none';
+                        document.body.removeChild(testEl);
+                        return window.innerWidth >= 1024 ? isHidden : !isHidden;
+                    },
+                    fix: 'Check Tailwind CSS loading, rebuild assets'
+                }
+            ];
+            
+            let html = '';
+            checks.forEach(check => {
+                const passed = check.test();
+                const icon = passed ? '✅' : '❌';
+                const status = passed ? 'PASS' : 'FAIL';
+                html += `<div>${icon} ${check.name}: ${status}</div>`;
+                if (!passed) {
+                    html += `<div style="margin-left: 20px; color: #ffaa00;">Fix: ${check.fix}</div>`;
+                }
+            });
+            
+            document.getElementById('checklist').innerHTML = html;
+        }
+        
+        // Initialize
+        updateBrowserInfo();
+        runChecklist();
+        
+        // Update on resize
+        window.addEventListener('resize', () => {
+            updateBrowserInfo();
+            runChecklist();
+        });
+        
+        // Auto-run some checks
+        setTimeout(() => {
+            log('🚀 Starting automatic diagnosis...', 'info');
+            checkDokterApp();
+        }, 1000);
+    </script>
+</body>
+</html>

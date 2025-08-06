@@ -7,7 +7,7 @@
     <title>Presensi Harian - Dokterku Paramedis</title>
     
     <!-- Tailwind CSS v4 -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script>
         tailwind.config = {
             darkMode: 'class',

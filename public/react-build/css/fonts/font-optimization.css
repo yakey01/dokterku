@@ -1,0 +1,171 @@
+/**
+ * Font Loading Optimization & Fallback System
+ * Ensures perfect font rendering performance
+ */
+
+/* Font Loading Strategy */
+.font-loading-strategy {
+  /* Stage 1: System fonts (immediate) */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  
+  /* Stage 2: Inter loads (font-display: swap) */
+  /* Automatically switches when Inter is available */
+}
+
+/* Critical Font Preloading */
+.critical-fonts-loader {
+  position: absolute;
+  left: -9999px;
+  font-family: 'Inter';
+}
+
+.critical-fonts-loader::before {
+  content: "Regular Medium SemiBold Bold";
+  font-weight: 400;
+}
+
+.critical-fonts-loader::after {
+  content: "Medium SemiBold Bold ExtraBold";
+  font-weight: 500;
+}
+
+/* Font Feature Settings for Medical UI */
+.medical-typography {
+  /* Enable tabular numbers for medical data */
+  font-variant-numeric: tabular-nums;
+  
+  /* Enable Inter's medical-friendly ligatures */
+  font-feature-settings: 
+    'cv02' 1, /* Alternate a */
+    'cv03' 1, /* Alternate g */
+    'cv04' 1, /* Alternate y */
+    'cv11' 1, /* Alternate 1 */
+    'tnum' 1; /* Tabular numbers */
+}
+
+/* Responsive Font Sizing for Medical Dashboard */
+.medical-text-scale {
+  /* Mobile First */
+  font-size: 0.875rem; /* 14px */
+  line-height: 1.5;
+  
+  /* Tablet */
+  @media (min-width: 768px) {
+    font-size: 0.9375rem; /* 15px */
+    line-height: 1.6;
+  }
+  
+  /* Desktop */
+  @media (min-width: 1024px) {
+    font-size: 1rem; /* 16px */
+    line-height: 1.6;
+  }
+  
+  /* Large Desktop */
+  @media (min-width: 1440px) {
+    font-size: 1.0625rem; /* 17px */
+    line-height: 1.65;
+  }
+}
+
+/* Medical Dashboard Text Hierarchy */
+.medical-heading-xl {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+
+.medical-heading-lg {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+}
+
+.medical-heading-md {
+  font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.015em;
+}
+
+.medical-heading-sm {
+  font-size: clamp(1.125rem, 2vw, 1.25rem);
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.medical-body-lg {
+  font-size: clamp(1rem, 1.5vw, 1.125rem);
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.medical-body {
+  font-size: clamp(0.875rem, 1.25vw, 1rem);
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.medical-body-sm {
+  font-size: clamp(0.8125rem, 1vw, 0.875rem);
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.medical-caption {
+  font-size: clamp(0.75rem, 0.875vw, 0.8125rem);
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+}
+
+/* Medical Data Display */
+.medical-data-number {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1, 'cv11' 1;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.medical-data-currency {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  font-weight: 500;
+}
+
+.medical-data-time {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  font-family: var(--font-family-mono);
+  font-size: 0.9em;
+}
+
+/* Font Loading Performance */
+@supports (font-display: swap) {
+  .font-performance-optimized {
+    font-display: swap;
+  }
+}
+
+/* Accessibility Enhancements */
+.medical-accessible-text {
+  font-size: max(16px, 1rem); /* Minimum 16px for accessibility */
+  line-height: 1.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .medical-typography {
+    font-feature-settings: 'tnum' 1; /* Simpler features for reduced motion */
+  }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .medical-typography {
+    font-weight: 500; /* Slightly bolder for high contrast */
+    letter-spacing: 0.025em;
+  }
+}

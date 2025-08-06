@@ -12,8 +12,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table(Utils::getMenuTableName(), function (Blueprint $table) {
-            $table->boolean('is_filament_panel')->after('uri')->default(false);
+        $tableName = Utils::getMenuTableName();
+        if (!$tableName || !Schema::hasTable($tableName)) {
+            return; // Skip if table doesn't exist
+        }
+        
+        Schema::table($tableName, function (Blueprint $table) {
+            if (!Schema::hasColumn($tableName, 'is_filament_panel')) {
+                $table->boolean('is_filament_panel')->after('uri')->default(false);
+            }
         });
     }
 

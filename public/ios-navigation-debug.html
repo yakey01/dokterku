@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>iOS Navigation Debug</title>
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+            background: #0f172a;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .debug-container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        
+        .test-section {
+            background: rgba(147, 51, 234, 0.1);
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .test-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .icon-test {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .icon-wrapper {
+            width: 40px;
+            height: 40px;
+            background: rgba(147, 51, 234, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0;
+            line-height: 0;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .icon-wrapper svg {
+            width: 20px !important;
+            height: 20px !important;
+            display: block !important;
+            stroke: #a78bfa;
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        
+        .status {
+            font-size: 14px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+        
+        .status.success {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+        }
+        
+        .status.fail {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+        
+        .info-section {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        
+        .info-section pre {
+            margin: 10px 0 0 0;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        
+        /* Force SVG display on iOS */
+        @supports (-webkit-touch-callout: none) {
+            svg {
+                -webkit-transform: translateZ(0);
+                transform: translateZ(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <h1>iOS Navigation Icon Debug</h1>
+        
+        <div class="test-section">
+            <h3>Icon Rendering Tests</h3>
+            
+            <div class="test-row">
+                <div class="icon-test">
+                    <div class="icon-wrapper" id="crown-test">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="m5 12 5-7 5 7 5-7v15H5z"/>
+                            <path d="M5 20h14"/>
+                        </svg>
+                    </div>
+                    <span>Crown</span>
+                </div>
+                <span class="status" id="crown-status">Testing...</span>
+            </div>
+            
+            <div class="test-row">
+                <div class="icon-test">
+                    <div class="icon-wrapper" id="calendar-test">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+                            <line x1="16" x2="16" y1="2" y2="6"/>
+                            <line x1="8" x2="8" y1="2" y2="6"/>
+                            <line x1="3" x2="21" y1="10" y2="10"/>
+                        </svg>
+                    </div>
+                    <span>Calendar</span>
+                </div>
+                <span class="status" id="calendar-status">Testing...</span>
+            </div>
+            
+            <div class="test-row">
+                <div class="icon-test">
+                    <div class="icon-wrapper" id="shield-test">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                    </div>
+                    <span>Shield</span>
+                </div>
+                <span class="status" id="shield-status">Testing...</span>
+            </div>
+            
+            <div class="test-row">
+                <div class="icon-test">
+                    <div class="icon-wrapper" id="star-test">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                    </div>
+                    <span>Star</span>
+                </div>
+                <span class="status" id="star-status">Testing...</span>
+            </div>
+            
+            <div class="test-row">
+                <div class="icon-test">
+                    <div class="icon-wrapper" id="brain-test">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/>
+                            <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/>
+                        </svg>
+                    </div>
+                    <span>Brain</span>
+                </div>
+                <span class="status" id="brain-status">Testing...</span>
+            </div>
+        </div>
+        
+        <div class="info-section">
+            <h3>Device Information</h3>
+            <pre id="device-info"></pre>
+            
+            <h3>Test Results</h3>
+            <pre id="test-results"></pre>
+        </div>
+    </div>
+    
+    <script>
+        // Device detection
+        const deviceInfo = {
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            isIOS: /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream,
+            isSafari: /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent),
+            screenSize: `${window.screen.width} x ${window.screen.height}`,
+            viewport: `${window.innerWidth} x ${window.innerHeight}`,
+            pixelRatio: window.devicePixelRatio
+        };
+        
+        document.getElementById('device-info').textContent = JSON.stringify(deviceInfo, null, 2);
+        
+        // Test SVG rendering
+        const icons = ['crown', 'calendar', 'shield', 'star', 'brain'];
+        const results = {};
+        
+        setTimeout(() => {
+            icons.forEach(icon => {
+                const wrapper = document.getElementById(`${icon}-test`);
+                const svg = wrapper.querySelector('svg');
+                const status = document.getElementById(`${icon}-status`);
+                
+                if (svg) {
+                    const rect = svg.getBoundingClientRect();
+                    const computed = window.getComputedStyle(svg);
+                    
+                    results[icon] = {
+                        rendered: rect.width > 0 && rect.height > 0,
+                        dimensions: `${rect.width} x ${rect.height}`,
+                        display: computed.display,
+                        visibility: computed.visibility
+                    };
+                    
+                    if (results[icon].rendered) {
+                        status.textContent = 'Rendered';
+                        status.className = 'status success';
+                    } else {
+                        status.textContent = 'Failed';
+                        status.className = 'status fail';
+                    }
+                } else {
+                    results[icon] = { error: 'SVG not found' };
+                    status.textContent = 'Error';
+                    status.className = 'status fail';
+                }
+            });
+            
+            document.getElementById('test-results').textContent = JSON.stringify(results, null, 2);
+        }, 500);
+        
+        // Force layout recalculation for iOS
+        if (deviceInfo.isIOS) {
+            document.querySelectorAll('.icon-wrapper').forEach(wrapper => {
+                wrapper.style.display = 'none';
+                wrapper.offsetHeight; // Force reflow
+                wrapper.style.display = '';
+            });
+        }
+    </script>
+</body>
+</html>

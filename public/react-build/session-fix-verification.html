@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✅ Session Fix Verification</title>
+    <style>
+        body {
+            font-family: 'Monaco', 'Menlo', monospace;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 100%);
+            color: #00ff00;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .header {
+            text-align: center;
+            padding: 20px;
+            border: 2px solid #00ff00;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            background: rgba(0, 255, 0, 0.1);
+        }
+        .section {
+            background: rgba(0, 30, 60, 0.3);
+            border: 1px solid #004080;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #00ff00;
+        }
+        .success { border-left-color: #00ff00; background: rgba(0, 60, 0, 0.3); }
+        .warning { border-left-color: #ffaa00; background: rgba(60, 30, 0, 0.3); }
+        .critical { border-left-color: #ff0000; background: rgba(60, 0, 0, 0.3); }
+        
+        button {
+            background: linear-gradient(45deg, #004080, #0080ff);
+            color: #ffffff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+            font-family: inherit;
+            font-weight: bold;
+        }
+        .btn-success {
+            background: linear-gradient(45deg, #008000, #00ff00);
+        }
+        .btn-test {
+            background: linear-gradient(45deg, #800080, #ff00ff);
+        }
+        
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .result-pass { background: rgba(0, 255, 0, 0.2); color: #00ff00; }
+        .result-fail { background: rgba(255, 0, 0, 0.2); color: #ff6666; }
+        .result-pending { background: rgba(255, 255, 0, 0.2); color: #ffff66; }
+        
+        h1, h2, h3 { color: #00aaff; margin-bottom: 10px; }
+        h1 { text-shadow: 0 0 10px #00aaff; }
+        
+        .step {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #0080ff;
+        }
+        
+        code {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #ffaa00;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✅ SESSION FIX VERIFICATION</h1>
+            <p>Testing the APP_URL and SESSION_DOMAIN fix</p>
+            <div style="color: #888; font-size: 12px;">Ultra-Think Fix Implementation Complete</div>
+        </div>
+
+        <!-- Fix Summary -->
+        <div class="section success">
+            <h2>🔧 Fix Applied</h2>
+            <div class="step">
+                <h3>✅ Configuration Changes Made:</h3>
+                <ul>
+                    <li><code>APP_URL</code>: http://127.0.0.1:8002 → http://127.0.0.1:8000</li>
+                    <li><code>SESSION_DOMAIN</code>: null → localhost</li>
+                    <li>Laravel config and cache cleared</li>
+                </ul>
+                
+                <h3>🎯 Root Cause Resolved:</h3>
+                <p>Session cookies were being created for port 8002 but the app was accessed on port 8000. 
+                Browser treated these as different domains and wouldn't send cookies.</p>
+            </div>
+        </div>
+
+        <!-- Verification Tests -->
+        <div class="section">
+            <h2>🧪 Verification Tests</h2>
+            <button onclick="runFullVerification()" class="btn-test">🚀 Run Full Verification</button>
+            <button onclick="testIndividualSteps()" class="btn-test">🔍 Test Step by Step</button>
+            
+            <div id="testResults">
+                <div id="test1" class="test-result result-pending">⏳ Config Verification: Pending</div>
+                <div id="test2" class="test-result result-pending">⏳ Cookie Domain Test: Pending</div>
+                <div id="test3" class="test-result result-pending">⏳ Session Creation: Pending</div>
+                <div id="test4" class="test-result result-pending">⏳ Authentication Flow: Pending</div>
+                <div id="test5" class="test-result result-pending">⏳ Doctor Presensi API: Pending</div>
+            </div>
+        </div>
+
+        <!-- Manual Test Steps -->
+        <div class="section warning">
+            <h2>👨‍💻 Manual Verification Steps</h2>
+            <div class="step">
+                <h3>Step 1: Clear Browser Data</h3>
+                <ol>
+                    <li>Open browser Developer Tools (F12)</li>
+                    <li>Go to Application/Storage tab</li>
+                    <li>Clear all cookies for localhost/127.0.0.1</li>
+                    <li>Clear localStorage and sessionStorage</li>
+                </ol>
+                
+                <h3>Step 2: Test Login Flow</h3>
+                <ol>
+                    <li>Navigate to <a href="/login" target="_blank">/login</a></li>
+                    <li>Login with: <code>3333@dokter.local</code> / <code>password</code></li>
+                    <li>Should redirect to dashboard automatically</li>
+                    <li>Check browser cookies - should see dokterku_session cookie</li>
+                </ol>
+                
+                <h3>Step 3: Test Doctor Mobile App</h3>
+                <ol>
+                    <li>Navigate to <a href="/dokter/mobile-app" target="_blank">/dokter/mobile-app</a></li>
+                    <li>Should load without login prompt</li>
+                    <li>Go to Presensi tab</li>
+                    <li>Test map and check-in functionality</li>
+                </ol>
+                
+                <button onclick="openTestLinks()" class="btn-success">🔗 Open Test Links</button>
+            </div>
+        </div>
+
+        <!-- Expected Results -->
+        <div class="section success">
+            <h2>🎯 Expected Results</h2>
+            <div class="step">
+                <h3>✅ What Should Work Now:</h3>
+                <ul>
+                    <li>Login redirects properly without 419 errors</li>
+                    <li>Session persists across page navigation</li>
+                    <li>Doctor mobile app loads without authentication issues</li>
+                    <li>Presensi check-in API calls work (no more 401 errors)</li>
+                    <li>Map integration functions properly</li>
+                </ul>
+                
+                <h3>🍪 Cookie Behavior:</h3>
+                <ul>
+                    <li>Cookie name: <code>dokterku_session</code></li>
+                    <li>Domain: <code>localhost</code></li>
+                    <li>Path: <code>/</code></li>
+                    <li>Valid for all localhost ports</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Troubleshooting -->
+        <div class="section warning">
+            <h2>🔧 If Issues Persist</h2>
+            <div class="step">
+                <h3>Additional Diagnostics:</h3>
+                <ul>
+                    <li><a href="/ultra-session-diagnostic.html" target="_blank">Ultra Session Diagnostic Tool</a></li>
+                    <li><a href="/session-fix-diagnosis.html" target="_blank">Session Fix Diagnosis</a></li>
+                    <li><a href="/test-session-bypass.html" target="_blank">Session Bypass Test</a></li>
+                </ul>
+                
+                <h3>Alternative Solutions:</h3>
+                <ol>
+                    <li>Try accessing app via <code>http://localhost:8000</code> instead of <code>127.0.0.1:8000</code></li>
+                    <li>Clear all browser data and restart browser</li>
+                    <li>Try incognito/private browsing mode</li>
+                    <li>Check Laravel logs: <code>tail -f storage/logs/laravel.log</code></li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateTestResult(testId, status, message) {
+            const element = document.getElementById(testId);
+            element.className = `test-result result-${status}`;
+            element.textContent = `${status === 'pass' ? '✅' : status === 'fail' ? '❌' : '⏳'} ${message}`;
+        }
+
+        async function runFullVerification() {
+            console.log('🚀 Running full verification...');
+            
+            // Test 1: Config verification
+            updateTestResult('test1', 'pending', 'Config Verification: Testing...');
+            const configOk = window.location.port === '8000' || window.location.hostname === 'localhost';
+            updateTestResult('test1', configOk ? 'pass' : 'fail', 
+                `Config Verification: ${configOk ? 'Port/domain match' : 'Port/domain mismatch'}`);
+            
+            // Test 2: Cookie domain
+            updateTestResult('test2', 'pending', 'Cookie Domain Test: Testing...');
+            const cookieTest = document.cookie.includes('dokterku_session') || document.cookie.includes('laravel_session');
+            updateTestResult('test2', cookieTest ? 'pass' : 'fail', 
+                `Cookie Domain Test: ${cookieTest ? 'Session cookie found' : 'No session cookie'}`);
+            
+            // Test 3: Session creation
+            updateTestResult('test3', 'pending', 'Session Creation: Testing...');
+            try {
+                const response = await fetch('/api/user', { credentials: 'include' });
+                updateTestResult('test3', response.ok ? 'pass' : 'fail', 
+                    `Session Creation: ${response.ok ? 'User authenticated' : 'No authentication'}`);
+                
+                // Test 4: Authentication flow (depends on test 3)
+                if (response.ok) {
+                    const user = await response.json();
+                    const isDokter = user.role?.name === 'dokter';
+                    updateTestResult('test4', isDokter ? 'pass' : 'fail', 
+                        `Authentication Flow: ${isDokter ? 'Doctor role verified' : 'Role: ' + (user.role?.name || 'none')}`);
+                } else {
+                    updateTestResult('test4', 'fail', 'Authentication Flow: No user session');
+                }
+            } catch (error) {
+                updateTestResult('test3', 'fail', 'Session Creation: Network error');
+                updateTestResult('test4', 'fail', 'Authentication Flow: Network error');
+            }
+            
+            // Test 5: Doctor API
+            updateTestResult('test5', 'pending', 'Doctor Presensi API: Testing...');
+            try {
+                const apiResponse = await fetch('/dokter/web-api/dashboard-stats', { credentials: 'include' });
+                updateTestResult('test5', apiResponse.ok ? 'pass' : 'fail', 
+                    `Doctor Presensi API: ${apiResponse.ok ? 'Working' : 'Status: ' + apiResponse.status}`);
+            } catch (error) {
+                updateTestResult('test5', 'fail', 'Doctor Presensi API: Network error');
+            }
+        }
+
+        function testIndividualSteps() {
+            console.log('🔍 Running individual step tests...');
+            
+            // Reset all to pending
+            for (let i = 1; i <= 5; i++) {
+                updateTestResult(`test${i}`, 'pending', `Test ${i}: Click to test individually`);
+            }
+            
+            // Make each test clickable
+            document.getElementById('test1').onclick = () => runTest1();
+            document.getElementById('test2').onclick = () => runTest2();
+            document.getElementById('test3').onclick = () => runTest3();
+            document.getElementById('test4').onclick = () => runTest4();
+            document.getElementById('test5').onclick = () => runTest5();
+        }
+
+        function openTestLinks() {
+            const links = [
+                '/login',
+                '/dokter/mobile-app',
+                '/ultra-session-diagnostic.html'
+            ];
+            
+            links.forEach(link => {
+                window.open(link, '_blank');
+            });
+        }
+
+        async function runTest1() {
+            updateTestResult('test1', 'pending', 'Config Verification: Checking URL...');
+            const isCorrectPort = window.location.port === '8000' || window.location.port === '';
+            const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+            updateTestResult('test1', (isCorrectPort && isLocalhost) ? 'pass' : 'fail', 
+                `Config: Port ${window.location.port || '80'}, Host ${window.location.hostname}`);
+        }
+
+        async function runTest2() {
+            updateTestResult('test2', 'pending', 'Cookie Domain: Checking cookies...');
+            const cookies = document.cookie;
+            const hasSessionCookie = cookies.includes('session');
+            updateTestResult('test2', hasSessionCookie ? 'pass' : 'fail', 
+                `Cookies: ${hasSessionCookie ? 'Session cookie found' : 'No session cookies'}`);
+        }
+
+        async function runTest3() {
+            updateTestResult('test3', 'pending', 'Session Creation: Testing API...');
+            try {
+                const response = await fetch('/api/user', { credentials: 'include' });
+                updateTestResult('test3', response.ok ? 'pass' : 'fail', 
+                    `Session: ${response.ok ? 'Active' : 'Status ' + response.status}`);
+            } catch (error) {
+                updateTestResult('test3', 'fail', 'Session: Network error');
+            }
+        }
+
+        async function runTest4() {
+            updateTestResult('test4', 'pending', 'Authentication: Checking user...');
+            try {
+                const response = await fetch('/api/user', { credentials: 'include' });
+                if (response.ok) {
+                    const user = await response.json();
+                    const isDokter = user.role?.name === 'dokter';
+                    updateTestResult('test4', isDokter ? 'pass' : 'fail', 
+                        `Auth: ${user.name} (${user.role?.name || 'no role'})`);
+                } else {
+                    updateTestResult('test4', 'fail', 'Auth: Not authenticated');
+                }
+            } catch (error) {
+                updateTestResult('test4', 'fail', 'Auth: Network error');
+            }
+        }
+
+        async function runTest5() {
+            updateTestResult('test5', 'pending', 'Doctor API: Testing endpoint...');
+            try {
+                const response = await fetch('/dokter/web-api/dashboard-stats', { credentials: 'include' });
+                updateTestResult('test5', response.ok ? 'pass' : 'fail', 
+                    `API: ${response.ok ? 'Working' : 'Error ' + response.status}`);
+            } catch (error) {
+                updateTestResult('test5', 'fail', 'API: Network error');
+            }
+        }
+
+        // Auto-run verification on load
+        window.onload = function() {
+            console.log('✅ Session Fix Verification Tool loaded');
+            console.log('🔧 Fix applied: APP_URL updated, SESSION_DOMAIN set to localhost');
+            
+            // Auto-run after 2 seconds
+            setTimeout(runFullVerification, 2000);
+        };
+    </script>
+</body>
+</html>

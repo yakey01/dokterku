@@ -2,22 +2,24 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="user-authenticated" content="{{ auth()->check() ? 'true' : 'false' }}">
     <meta name="user-data" content="{{ auth()->check() ? json_encode($userData ?? []) : '{}' }}">
     <meta name="api-token" content="{{ $token ?? '' }}">
+    
+    <!-- PWA Meta Tags for Better iOS Experience -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Dokterku">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#6b21a8">
+    
     <title>KLINIK DOKTERKU - {{ auth()->user()->name ?? 'Dokter' }}</title>
     
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <!-- Favicon - Removed to prevent 404 errors -->
     
-    <!-- Preload critical resources -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Built-in System Fonts - No External Dependencies -->
     
     <!-- ULTRAFIX: Force clear all caches before loading app -->
     <!-- DISABLED: <script src="/ultrafix.js.disabled"></script> -->
@@ -35,7 +37,7 @@
         }
         
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             margin: 0;
             padding: 0;
             background: #f8fafc;
@@ -52,6 +54,33 @@
         #dokter-app {
             min-height: 100vh;
             width: 100%;
+            /* Prevent content from going under bottom navigation */
+            padding-bottom: calc(5rem + max(env(safe-area-inset-bottom), 44px));
+        }
+        
+        /* iOS Safari specific fixes */
+        @supports (-webkit-touch-callout: none) {
+            /* iOS only styles */
+            #dokter-app {
+                /* Extra padding for Safari browser UI */
+                padding-bottom: calc(6rem + env(safe-area-inset-bottom, 44px));
+            }
+            
+            /* Prevent Safari bounce scrolling */
+            body {
+                position: fixed;
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+            }
+            
+            #dokter-app {
+                position: fixed;
+                width: 100%;
+                height: 100%;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
         }
         
         /* Loading state */

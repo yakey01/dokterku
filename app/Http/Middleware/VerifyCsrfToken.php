@@ -15,8 +15,7 @@ class VerifyCsrfToken extends Middleware
         'livewire/update',
         'livewire/upload-file',
         'livewire/message/*',
-        'login',
-        'unified-login',
+        // Removed login and unified-login to enforce CSRF protection
     ];
     
 }

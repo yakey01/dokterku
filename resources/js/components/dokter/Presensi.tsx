@@ -1,416 +1,404 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
-import { Clock, MapPin, CheckCircle, XCircle, Timer, Activity, Calendar, Map } from 'lucide-react';
-import LeafletMap from './LeafletMap';
+import React, { useState, useEffect } from 'react';
+import { 
+  MapPin, 
+  Clock, 
+  Shield, 
+  CheckCircle, 
+  XCircle, 
+  AlertTriangle, 
+  User, 
+  Calendar, 
+  Activity, 
+  Target, 
+  Zap, 
+  Award,
+  Navigation,
+  Wifi,
+  Battery,
+  Signal,
+  Eye,
+  Lock,
+  Camera,
+  Fingerprint,
+  Star,
+  TrendingUp,
+  Heart,
+  Coffee
+} from 'lucide-react';
 
-export function Presensi() {
+interface PresensiProps {
+  userData?: any;
+  onNavigate?: (tab: string) => void;
+}
+
+interface AttendanceRecord {
+  id: string;
+  date: string;
+  checkIn: string;
+  checkOut?: string;
+  location: string;
+  status: 'present' | 'late' | 'absent';
+  guardianScore: number;
+}
+
+export function Presensi({ userData, onNavigate }: PresensiProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isCheckedIn, setIsCheckedIn] = useState(false);
-  const [checkedInAt, setCheckedInAt] = useState<string | null>(null);
-  const [workingHours, setWorkingHours] = useState<string>('00:00:00');
-  const [showMap, setShowMap] = useState(false);
-  const [checkinLocation, setCheckinLocation] = useState<{lat: number; lng: number; accuracy?: number; address?: string} | null>(null);
-  const [checkoutLocation, setCheckoutLocation] = useState<{lat: number; lng: number; accuracy?: number; address?: string} | null>(null);
-  const [isLocationRequired, setIsLocationRequired] = useState(true);
+  const [guardianLevel, setGuardianLevel] = useState(4);
+  const [attendanceScore, setAttendanceScore] = useState(94.7);
+  const [gpsAccuracy, setGpsAccuracy] = useState(12);
+  const [isLocationVerified, setIsLocationVerified] = useState(true);
+  const [attendanceStreak, setAttendanceStreak] = useState(28);
+  const [totalGuardianPoints, setTotalGuardianPoints] = useState(1847);
 
-  // Update time every second
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
-      
-      // Update working hours if checked in
-      if (isCheckedIn && checkedInAt) {
-        const checkedInTime = new Date();
-        const [hours, minutes] = checkedInAt.split(':');
-        checkedInTime.setHours(parseInt(hours), parseInt(minutes), 0);
-        
-        const diff = new Date().getTime() - checkedInTime.getTime();
-        const workHours = Math.floor(diff / (1000 * 60 * 60));
-        const workMinutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const workSeconds = Math.floor((diff % (1000 * 60)) / 1000);
-        
-        setWorkingHours(`${workHours.toString().padStart(2, '0')}:${workMinutes.toString().padStart(2, '0')}:${workSeconds.toString().padStart(2, '0')}`);
-      }
     }, 1000);
-    
     return () => clearInterval(timer);
-  }, [isCheckedIn, checkedInAt]);
+  }, []);
+
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('id-ID', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('id-ID', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const mockAttendanceHistory: AttendanceRecord[] = [
+    {
+      id: '1',
+      date: '2024-08-04',
+      checkIn: '07:45',
+      checkOut: '17:30',
+      location: 'Klinik Utama',
+      status: 'present',
+      guardianScore: 100
+    },
+    {
+      id: '2',
+      date: '2024-08-03',
+      checkIn: '08:15',
+      checkOut: '17:15',
+      location: 'Klinik Utama',
+      status: 'late',
+      guardianScore: 85
+    },
+    {
+      id: '3',
+      date: '2024-08-02',
+      checkIn: '07:30',
+      checkOut: '18:00',
+      location: 'Klinik Utama',
+      status: 'present',
+      guardianScore: 100
+    }
+  ];
 
   const handleCheckIn = () => {
-    // Check if location is required and available
-    if (isLocationRequired && !checkinLocation) {
-      alert('Mohon pilih lokasi presensi terlebih dahulu menggunakan peta di bawah');
-      setShowMap(true);
-      return;
-    }
-
-    const now = new Date();
-    setIsCheckedIn(true);
-    setCheckedInAt(now.toLocaleTimeString('id-ID', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    }));
-
-    // Here you would typically save to database
-    // Check-in data saved
-
-    // Show success notification
-    if (checkinLocation) {
-      alert(`Check-in berhasil!\nLokasi: ${checkinLocation.address || 'Koordinat: ' + checkinLocation.lat + ', ' + checkinLocation.lng}${checkinLocation.accuracy ? '\nAkurasi GPS: ' + Math.round(checkinLocation.accuracy) + ' meter' : ''}`);
+    if (!isCheckedIn) {
+      setIsCheckedIn(true);
+      setTotalGuardianPoints(prev => prev + 50);
     }
   };
 
   const handleCheckOut = () => {
-    // Check if location is required and available for checkout
-    if (isLocationRequired && !checkoutLocation) {
-      alert('Mohon pilih lokasi check-out terlebih dahulu menggunakan peta di bawah');
-      setShowMap(true);
-      return;
-    }
-
-    setIsCheckedIn(false);
-    setCheckedInAt(null);
-    setWorkingHours('00:00:00');
-
-    // Here you would typically save to database
-    // Check-out data saved
-
-    // Show success notification
-    if (checkoutLocation) {
-      alert(`Check-out berhasil!\nLokasi: ${checkoutLocation.address || 'Koordinat: ' + checkoutLocation.lat + ', ' + checkoutLocation.lng}${checkoutLocation.accuracy ? '\nAkurasi GPS: ' + Math.round(checkoutLocation.accuracy) + ' meter' : ''}`);
-    }
-
-    // Reset locations for next day
-    setCheckinLocation(null);
-    setCheckoutLocation(null);
-  };
-
-  const handleLocationSelect = (location: {lat: number; lng: number; accuracy?: number; address?: string}) => {
-    try {
-      if (!isCheckedIn) {
-        // Setting check-in location
-        setCheckinLocation(location);
-        // Check-in location set
-      } else {
-        // Setting check-out location
-        setCheckoutLocation(location);
-        // Check-out location set
-      }
-    } catch (error) {
-      // Error setting location
+    if (isCheckedIn) {
+      setIsCheckedIn(false);
+      setTotalGuardianPoints(prev => prev + 100);
     }
   };
 
-  const getTodayDate = () => {
-    return currentTime.toLocaleDateString('id-ID', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
-  };
-
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'present':
+        return <CheckCircle className="w-5 h-5 text-green-400" />;
+      case 'late':
+        return <AlertTriangle className="w-5 h-5 text-yellow-400" />;
+      case 'absent':
+        return <XCircle className="w-5 h-5 text-red-400" />;
+      default:
+        return <Clock className="w-5 h-5 text-gray-400" />;
     }
   };
 
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'present':
+        return 'from-green-500/30 to-emerald-500/30 border-green-400/30';
+      case 'late':
+        return 'from-yellow-500/30 to-amber-500/30 border-yellow-400/30';
+      case 'absent':
+        return 'from-red-500/30 to-pink-500/30 border-red-400/30';
+      default:
+        return 'from-gray-500/30 to-slate-500/30 border-gray-400/30';
+    }
   };
 
   return (
-    <motion.div 
-      variants={container}
-      initial="hidden"
-      animate="show"
-      className="space-y-6 theme-transition"
-    >
-      {/* Header */}
-      <motion.div variants={item}>
-        <Card className="bg-gradient-to-r from-purple-500 to-purple-600 dark:from-purple-600 dark:to-purple-700 border-0 shadow-xl card-enhanced">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between text-white">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-white/20 dark:bg-white/30 rounded-full flex items-center justify-center">
-                  <Timer className="w-6 h-6" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold text-white">Presensi</h2>
-                  <p className="text-purple-100 dark:text-purple-200 text-sm font-medium">Check In & Check Out</p>
-                </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
+      <div className="w-full min-h-screen relative overflow-y-auto">
+        <div className="pb-32 lg:pb-16">
+          <div className="max-w-sm mx-auto min-h-screen relative overflow-hidden">
+        
+        {/* Floating Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 left-8 w-40 h-40 bg-green-500/5 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute top-60 right-4 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl animate-bounce"></div>
+          <div className="absolute bottom-80 left-6 w-36 h-36 bg-purple-500/5 rounded-full blur-3xl animate-pulse"></div>
+        </div>
+
+        {/* Header */}
+        <div className="px-6 pt-8 pb-6 relative z-10">
+          <div className="text-center mb-6">
+            <div className="flex items-center justify-center mb-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg border-2 border-green-400">
+                <Shield className="w-8 h-8 text-white" />
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent mb-2">
+              Guardian Protocol
+            </h1>
+            <p className="text-green-200 text-lg">Smart Attendance System</p>
+          </div>
+        </div>
 
-      {/* Current Status Card */}
-      <motion.div variants={item}>
-        <Card className="shadow-xl border-0 bg-gradient-to-br from-white to-blue-50/50 dark:from-gray-900 dark:to-purple-950/30 backdrop-blur-sm card-enhanced">
-          <CardContent className="p-8 space-y-6">
-            {/* Digital Clock */}
-            <motion.div 
-              className="text-center"
-              animate={{ scale: [1, 1.02, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
-              <div className="text-5xl bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent font-bold">
-                {currentTime.toLocaleTimeString('id-ID', { 
-                  hour: '2-digit', 
-                  minute: '2-digit',
-                  second: '2-digit'
-                })}
-              </div>
-              <div className="text-base text-muted-foreground font-medium mt-2">
-                {getTodayDate()}
-              </div>
-            </motion.div>
-
-            {/* Location */}
-            <motion.div 
-              className="flex items-center justify-center gap-2"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center">
-                <MapPin className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              </div>
-              <span className="text-lg font-semibold text-high-contrast">KLINIK DOKTERKU</span>
-            </motion.div>
-
-            {/* Working Hours Display */}
-            {isCheckedIn && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="text-center p-4 bg-gradient-to-r from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30 rounded-xl"
-              >
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Activity className="w-5 h-5 text-green-600 dark:text-green-400" />
-                  <span className="text-green-700 dark:text-green-300 font-medium">Jam Kerja Hari Ini</span>
-                </div>
-                <div className="text-2xl text-green-800 dark:text-green-200 font-mono font-bold">{workingHours}</div>
-              </motion.div>
-            )}
-
-            {/* Check In/Out Button */}
-            <AnimatePresence mode="wait">
-              {isCheckedIn ? (
-                <motion.div
-                  key="checked-in"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  className="space-y-4"
-                >
-                  <motion.div 
-                    className="flex items-center justify-center gap-2 p-4 bg-gradient-to-r from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30 rounded-xl"
-                    animate={{ scale: [1, 1.02, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  >
-                    <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
-                    <span className="text-green-700 dark:text-green-300 font-medium">Check-in pada {checkedInAt}</span>
-                  </motion.div>
-                  <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <Button 
-                      onClick={handleCheckOut}
-                      className="w-full bg-gradient-to-r from-red-500 to-red-600 dark:from-red-600 dark:to-red-700 hover:from-red-600 hover:to-red-700 dark:hover:from-red-700 dark:hover:to-red-800 text-white shadow-lg h-14 text-lg font-semibold transition-all duration-300"
-                    >
-                      <XCircle className="w-6 h-6 mr-3" />
-                      Check Out
-                    </Button>
-                  </motion.div>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="not-checked-in"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Button 
-                    onClick={handleCheckIn}
-                    className="w-full bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 hover:from-blue-600 hover:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800 text-white shadow-lg h-14 text-lg font-semibold transition-all duration-300"
-                  >
-                    <CheckCircle className="w-6 h-6 mr-3" />
-                    Check In
-                  </Button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* Quick Stats Today */}
-      <motion.div variants={item}>
-        <Card className="shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm card-enhanced">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-high-contrast">
-              <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-              Status Hari Ini
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/50 dark:to-blue-900/30 rounded-xl border border-blue-200 dark:border-blue-700">
-                <Clock className="w-6 h-6 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
-                <div className="text-lg font-bold text-blue-700 dark:text-blue-300">
-                  {isCheckedIn ? checkedInAt || '--:--' : '--:--'}
-                </div>
-                <div className="text-xs font-medium text-blue-600 dark:text-blue-400">Check In</div>
-              </div>
+        {/* Guardian Status Card */}
+        <div className="px-6 mb-8 relative z-10">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-green-600/30 via-emerald-600/30 to-teal-600/30 rounded-3xl backdrop-blur-2xl"></div>
+            <div className="absolute inset-0 bg-white/5 rounded-3xl border border-white/20"></div>
+            <div className="relative p-8">
               
-              <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/50 dark:to-orange-900/30 rounded-xl border border-orange-200 dark:border-orange-700">
-                <Clock className="w-6 h-6 text-orange-600 dark:text-orange-400 mx-auto mb-2" />
-                <div className="text-lg font-bold text-orange-700 dark:text-orange-300">
-                  {!isCheckedIn && checkedInAt ? currentTime.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+              {/* Current Time & Date */}
+              <div className="text-center mb-6">
+                <div className="text-4xl font-bold text-white mb-2">
+                  {formatTime(currentTime)}
                 </div>
-                <div className="text-xs font-medium text-orange-600 dark:text-orange-400">Check Out</div>
+                <div className="text-green-300 text-sm">
+                  {formatDate(currentTime)}
+                </div>
               </div>
-              
-              <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/50 dark:to-green-900/30 rounded-xl border border-green-200 dark:border-green-700">
-                <Activity className="w-6 h-6 text-green-600 dark:text-green-400 mx-auto mb-2" />
-                <div className="text-lg font-bold text-green-700 dark:text-green-300">{workingHours.split(':')[0]}h</div>
-                <div className="text-xs font-medium text-green-600 dark:text-green-400">Total Jam</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
 
-      {/* Location Selection */}
-      <motion.div variants={item}>
-        <Card className="shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm card-enhanced">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2 text-high-contrast">
-                <Map className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                Lokasi Presensi
-              </CardTitle>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowMap(!showMap)}
-                className="text-blue-600 border-blue-200 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-700 dark:hover:bg-blue-950/50"
-              >
-                {showMap ? 'Sembunyikan' : 'Tampilkan'} Peta
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Location Status */}
-            <div className="grid grid-cols-1 gap-3">
-              <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950/50 dark:to-blue-900/30 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                    {!isCheckedIn ? 'Lokasi Check-in' : 'Lokasi Check-out'}
-                  </span>
-                </div>
-                <div className="text-xs text-blue-600 dark:text-blue-400">
-                  {(!isCheckedIn && checkinLocation) ? '✓ Tersimpan' : 
-                   (isCheckedIn && checkoutLocation) ? '✓ Tersimpan' : 
-                   'Belum dipilih'}
-                </div>
-              </div>
-              
-              {/* Current Location Display */}
-              {((checkinLocation && !isCheckedIn) || (checkoutLocation && isCheckedIn)) && (
-                <div className="p-3 bg-green-50 dark:bg-green-950/30 rounded-lg">
-                  <div className="text-xs text-green-700 dark:text-green-300 space-y-1">
-                    {!isCheckedIn && checkinLocation && (
-                      <>
-                        <p><strong>Check-in:</strong> {checkinLocation.address || `${checkinLocation.lat.toFixed(6)}, ${checkinLocation.lng.toFixed(6)}`}</p>
-                        {checkinLocation.accuracy && (
-                          <p><strong>Akurasi:</strong> {Math.round(checkinLocation.accuracy)} meter</p>
-                        )}
-                      </>
-                    )}
-                    {isCheckedIn && checkoutLocation && (
-                      <>
-                        <p><strong>Check-out:</strong> {checkoutLocation.address || `${checkoutLocation.lat.toFixed(6)}, ${checkoutLocation.lng.toFixed(6)}`}</p>
-                        {checkoutLocation.accuracy && (
-                          <p><strong>Akurasi:</strong> {Math.round(checkoutLocation.accuracy)} meter</p>
-                        )}
-                      </>
-                    )}
+              {/* Guardian Level */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-4">
+                  <div className="relative">
+                    <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center relative overflow-hidden border-2 border-green-400">
+                      <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
+                      <Shield className="w-8 h-8 text-white relative z-10" />
+                    </div>
+                    <div className="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-black text-xs font-bold px-2 py-1 rounded-full border-2 border-white shadow-lg">
+                      Lv.{guardianLevel}
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-white mb-1">Guardian Status</h3>
+                    <p className="text-green-200">Dr. Naning Paramedis</p>
                   </div>
                 </div>
-              )}
+              </div>
+
+              {/* Location Status */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <MapPin className="w-5 h-5 text-green-400" />
+                    <span className="text-white font-medium">Location Verified</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                    <span className="text-green-300 text-sm">{gpsAccuracy}m accuracy</span>
+                  </div>
+                </div>
+                <div className="bg-green-500/20 rounded-2xl p-4 border border-green-400/30">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-white font-medium">Klinik Dokterku</div>
+                      <div className="text-green-300 text-sm">Jl. Kesehatan No. 123</div>
+                    </div>
+                    <Navigation className="w-6 h-6 text-green-400" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Check-in/Check-out Buttons */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <button
+                  onClick={handleCheckIn}
+                  disabled={isCheckedIn}
+                  className={`relative overflow-hidden rounded-2xl p-4 transition-all duration-300 ${
+                    isCheckedIn 
+                      ? 'bg-green-500/30 border border-green-400/50' 
+                      : 'bg-gradient-to-br from-green-600/40 to-emerald-600/40 hover:from-green-500/50 hover:to-emerald-500/50 border border-green-400/30 hover:border-green-300/50'
+                  }`}
+                >
+                  <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
+                  <div className="relative flex flex-col items-center space-y-2">
+                    <CheckCircle className={`w-6 h-6 ${isCheckedIn ? 'text-green-300' : 'text-white'}`} />
+                    <span className={`text-sm font-medium ${isCheckedIn ? 'text-green-300' : 'text-white'}`}>
+                      {isCheckedIn ? 'Checked In' : 'Check In'}
+                    </span>
+                    {isCheckedIn && <span className="text-xs text-green-400">07:45</span>}
+                  </div>
+                </button>
+
+                <button
+                  onClick={handleCheckOut}
+                  disabled={!isCheckedIn}
+                  className={`relative overflow-hidden rounded-2xl p-4 transition-all duration-300 ${
+                    !isCheckedIn 
+                      ? 'bg-gray-500/20 border border-gray-400/30' 
+                      : 'bg-gradient-to-br from-orange-600/40 to-red-600/40 hover:from-orange-500/50 hover:to-red-500/50 border border-orange-400/30 hover:border-orange-300/50'
+                  }`}
+                >
+                  <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
+                  <div className="relative flex flex-col items-center space-y-2">
+                    <XCircle className={`w-6 h-6 ${!isCheckedIn ? 'text-gray-400' : 'text-white'}`} />
+                    <span className={`text-sm font-medium ${!isCheckedIn ? 'text-gray-400' : 'text-white'}`}>
+                      Check Out
+                    </span>
+                  </div>
+                </button>
+              </div>
+
+              {/* Guardian Stats */}
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center">
+                  <div className="flex items-center justify-center mb-2">
+                    <TrendingUp className="w-5 h-5 text-green-400 mr-2" />
+                    <span className="text-2xl font-bold text-white">{attendanceScore}%</span>
+                  </div>
+                  <span className="text-green-300 text-sm">Guardian Score</span>
+                </div>
+                <div className="text-center">
+                  <div className="flex items-center justify-center mb-2">
+                    <Coffee className="w-5 h-5 text-blue-400 mr-2" />
+                    <span className="text-2xl font-bold text-white">{attendanceStreak}</span>
+                  </div>
+                  <span className="text-blue-300 text-sm">Day Streak</span>
+                </div>
+                <div className="text-center">
+                  <div className="flex items-center justify-center mb-2">
+                    <Star className="w-5 h-5 text-yellow-400 mr-2" />
+                    <span className="text-2xl font-bold text-white">{totalGuardianPoints}</span>
+                  </div>
+                  <span className="text-yellow-300 text-sm">GP Points</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Security Features */}
+        <div className="px-6 mb-8 relative z-10">
+          <h3 className="text-xl font-bold mb-6 text-center bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+            Security Protocol
+          </h3>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white/5 backdrop-blur-2xl rounded-2xl p-4 border border-white/10">
+              <div className="flex items-center space-x-3 mb-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
+                  <Eye className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-white font-medium text-sm">Face Recognition</span>
+              </div>
+              <div className="text-cyan-300 text-xs">Active & Verified</div>
             </div>
 
-            {/* Leaflet Map */}
-            <AnimatePresence>
-              {showMap && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <LeafletMap
-                    onLocationSelect={handleLocationSelect}
-                    height="400px"
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </CardContent>
-        </Card>
-      </motion.div>
+            <div className="bg-white/5 backdrop-blur-2xl rounded-2xl p-4 border border-white/10">
+              <div className="flex items-center space-x-3 mb-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                  <Fingerprint className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-white font-medium text-sm">Biometric</span>
+              </div>
+              <div className="text-purple-300 text-xs">Enabled</div>
+            </div>
 
-      {/* Quick Actions */}
-      <motion.div variants={item}>
-        <Card className="shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm card-enhanced">
-          <CardHeader>
-            <CardTitle className="text-high-contrast">Aksi Cepat</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <motion.div
-              whileHover={{ scale: 1.01, x: 5 }}
-              whileTap={{ scale: 0.99 }}
-              transition={{ duration: 0.2 }}
-            >
-              <Button variant="outline" className="w-full justify-start gap-3 h-12 hover:bg-blue-50 dark:hover:bg-blue-950/50 hover:border-blue-200 dark:hover:border-blue-700 font-medium transition-colors duration-300">
-                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center">
-                  <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            <div className="bg-white/5 backdrop-blur-2xl rounded-2xl p-4 border border-white/10">
+              <div className="flex items-center space-x-3 mb-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
+                  <Lock className="w-4 h-4 text-white" />
                 </div>
-                Lihat Riwayat Presensi
-              </Button>
-            </motion.div>
-            
-            <motion.div
-              whileHover={{ scale: 1.01, x: 5 }}
-              whileTap={{ scale: 0.99 }}
-              transition={{ duration: 0.2 }}
-            >
-              <Button variant="outline" className="w-full justify-start gap-3 h-12 hover:bg-green-50 dark:hover:bg-green-950/50 hover:border-green-200 dark:hover:border-green-700 font-medium transition-colors duration-300">
-                <div className="w-8 h-8 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center">
-                  <Activity className="w-4 h-4 text-green-600 dark:text-green-400" />
+                <span className="text-white font-medium text-sm">Encryption</span>
+              </div>
+              <div className="text-green-300 text-xs">AES-256</div>
+            </div>
+
+            <div className="bg-white/5 backdrop-blur-2xl rounded-2xl p-4 border border-white/10">
+              <div className="flex items-center space-x-3 mb-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
+                  <Signal className="w-4 h-4 text-white" />
                 </div>
-                Laporan Jam Kerja
-              </Button>
-            </motion.div>
-          </CardContent>
-        </Card>
-      </motion.div>
-    </motion.div>
+                <span className="text-white font-medium text-sm">Anti-Spoofing</span>
+              </div>
+              <div className="text-orange-300 text-xs">Protected</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Attendance History */}
+        <div className="px-6 relative z-10">
+          <h3 className="text-xl font-bold mb-6 text-center bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+            Guardian History
+          </h3>
+
+          <div className="space-y-4">
+            {mockAttendanceHistory.map((record) => (
+              <div 
+                key={record.id}
+                className={`bg-gradient-to-r ${getStatusColor(record.status)} rounded-2xl p-4 border backdrop-blur-sm`}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-3">
+                    {getStatusIcon(record.status)}
+                    <div>
+                      <div className="text-white font-medium text-sm">
+                        {new Date(record.date).toLocaleDateString('id-ID', { 
+                          weekday: 'short', 
+                          month: 'short', 
+                          day: 'numeric' 
+                        })}
+                      </div>
+                      <div className="text-gray-300 text-xs">{record.location}</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-white font-bold text-sm">{record.guardianScore} GP</div>
+                    <div className="text-xs text-gray-300 capitalize">{record.status}</div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <div className="text-gray-300">
+                    In: {record.checkIn} {record.checkOut && `• Out: ${record.checkOut}`}
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Award className="w-3 h-3 text-yellow-400" />
+                    <span className="text-yellow-300">{record.guardianScore}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+          </div>
+        </div>
+        {/* End of main content container */}
+        
+        {/* Medical RPG Bottom Navigation */}
+      </div>
+    </div>
   );
 }

@@ -1,106 +1,226 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Badge } from '../ui/badge';
-import { Button } from '../ui/button';
-import { Calendar, Clock, MapPin, Plus, ChevronRight, Activity, Edit, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Calendar, 
+  Clock, 
+  Users, 
+  MapPin, 
+  Trophy, 
+  Star, 
+  ChevronLeft, 
+  ChevronRight,
+  Filter,
+  Search,
+  Target,
+  Zap,
+  Shield,
+  Heart,
+  Brain,
+  Eye,
+  Activity
+} from 'lucide-react';
 
-interface JadwalItem {
-  id: string;
-  tanggal: string;
-  waktu: string;
-  lokasi: string;
-  jenis: 'pagi' | 'siang' | 'malam';
-  status: 'scheduled' | 'completed' | 'missed';
+interface JadwalJagaProps {
+  userData?: any;
+  onNavigate?: (tab: string) => void;
 }
 
-export function JadwalJaga() {
-  const [jadwal, setJadwal] = useState<JadwalItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+// Interface untuk data jadwal
+interface JadwalData {
+  id: number;
+  tanggal: string;
+  waktu_mulai: string;
+  waktu_selesai: string;
+  lokasi: string;
+  status: 'upcoming' | 'completed' | 'in-progress';
+  jenis_shift: string;
+  pasien_count?: number;
+  tindakan_count?: number;
+  revenue?: number;
+}
 
-  // Fetch dynamic schedule data from API
+// Mock data untuk demo
+const mockJadwalData: JadwalData[] = [
+  {
+    id: 1,
+    tanggal: '2024-08-05',
+    waktu_mulai: '08:00',
+    waktu_selesai: '16:00',
+    lokasi: 'Klinik Utama',
+    status: 'upcoming',
+    jenis_shift: 'Shift Pagi',
+    pasien_count: 15,
+    tindakan_count: 8,
+    revenue: 1200000
+  },
+  {
+    id: 2,
+    tanggal: '2024-08-04',
+    waktu_mulai: '14:00',
+    waktu_selesai: '22:00',
+    lokasi: 'Klinik Cabang',
+    status: 'completed',
+    jenis_shift: 'Shift Sore',
+    pasien_count: 12,
+    tindakan_count: 6,
+    revenue: 950000
+  },
+  {
+    id: 3,
+    tanggal: '2024-08-06',
+    waktu_mulai: '22:00',
+    waktu_selesai: '06:00',
+    lokasi: 'Klinik 24 Jam',
+    status: 'upcoming',
+    jenis_shift: 'Shift Malam',
+    pasien_count: 8,
+    tindakan_count: 4,
+    revenue: 800000
+  },
+  {
+    id: 4,
+    tanggal: '2024-08-03',
+    waktu_mulai: '08:00',
+    waktu_selesai: '16:00',
+    lokasi: 'Klinik Utama',
+    status: 'completed',
+    jenis_shift: 'Shift Pagi',
+    pasien_count: 18,
+    tindakan_count: 10,
+    revenue: 1500000
+  },
+  {
+    id: 5,
+    tanggal: '2024-08-07',
+    waktu_mulai: '14:00',
+    waktu_selesai: '22:00',
+    lokasi: 'Klinik Cabang',
+    status: 'upcoming',
+    jenis_shift: 'Shift Sore',
+    pasien_count: 14,
+    tindakan_count: 7,
+    revenue: 1100000
+  },
+  {
+    id: 6,
+    tanggal: '2024-08-02',
+    waktu_mulai: '22:00',
+    waktu_selesai: '06:00',
+    lokasi: 'Klinik 24 Jam',
+    status: 'completed',
+    jenis_shift: 'Shift Malam',
+    pasien_count: 6,
+    tindakan_count: 3,
+    revenue: 600000
+  },
+  {
+    id: 7,
+    tanggal: '2024-08-08',
+    waktu_mulai: '08:00',
+    waktu_selesai: '16:00',
+    lokasi: 'Klinik Utama',
+    status: 'upcoming',
+    jenis_shift: 'Shift Pagi',
+    pasien_count: 16,
+    tindakan_count: 9,
+    revenue: 1350000
+  },
+  {
+    id: 8,
+    tanggal: '2024-08-01',
+    waktu_mulai: '14:00',
+    waktu_selesai: '22:00',
+    lokasi: 'Klinik Cabang',
+    status: 'completed',
+    jenis_shift: 'Shift Sore',
+    pasien_count: 11,
+    tindakan_count: 5,
+    revenue: 875000
+  }
+];
+
+export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'upcoming' | 'completed' | 'in-progress'>('all');
+  const [selectedMission, setSelectedMission] = useState<JadwalData | null>(null);
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  const itemsPerPage = 6;
+
+  // Check if we're on desktop/iPad
   useEffect(() => {
-    const fetchJadwalData = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        // Get CSRF token
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-        
-        const response = await fetch('/dokter/api/schedules', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': csrfToken || '',
-            'Accept': 'application/json'
-          },
-          credentials: 'same-origin'
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const schedules: any[] = await response.json();
-        
-        // Transform schedules to our format
-        const dynamicJadwal = schedules.map((jadwal: any) => ({
-          id: jadwal.id.toString(),
-          tanggal: jadwal.tanggal,
-          waktu: jadwal.waktu,
-          lokasi: jadwal.lokasi,
-          jenis: jadwal.jenis as 'pagi' | 'siang' | 'malam',
-          status: jadwal.status as 'scheduled' | 'completed' | 'missed'
-        }));
-
-        setJadwal(dynamicJadwal);
-      } catch (error) {
-        console.error('Error fetching jadwal data:', error);
-        setError('Gagal memuat data jadwal');
-        // No fallback data - keep empty array
-        setJadwal([]);
-      } finally {
-        setIsLoading(false);
-      }
+    const checkIsDesktop = () => {
+      setIsDesktop(window.innerWidth >= 768);
     };
-
-    fetchJadwalData();
+    
+    checkIsDesktop();
+    window.addEventListener('resize', checkIsDesktop);
+    
+    return () => window.removeEventListener('resize', checkIsDesktop);
   }, []);
 
-  const handleEditSchedule = (id: string) => {
-    console.log('Edit schedule:', id);
-    // Add edit functionality here
-  };
+  // Filter dan search jadwal
+  const filteredJadwal = mockJadwalData.filter(jadwal => {
+    const matchesSearch = jadwal.lokasi.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         jadwal.jenis_shift.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = filterStatus === 'all' || jadwal.status === filterStatus;
+    return matchesSearch && matchesFilter;
+  });
 
-  const handleCancelSchedule = (id: string) => {
-    console.log('Cancel schedule:', id);
-    setJadwal(prev => prev.map(item => 
-      item.id === id ? { ...item, status: 'missed' as const } : item
-    ));
-  };
+  // Pagination
+  const totalPages = Math.ceil(filteredJadwal.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentJadwal = filteredJadwal.slice(startIndex, startIndex + itemsPerPage);
+
+  // Stats calculation
+  const totalShifts = mockJadwalData.length;
+  const completedShifts = mockJadwalData.filter(j => j.status === 'completed').length;
+  const upcomingShifts = mockJadwalData.filter(j => j.status === 'upcoming').length;
+  const totalHours = mockJadwalData.reduce((acc, jadwal) => {
+    const start = new Date(`2024-01-01 ${jadwal.waktu_mulai}`);
+    const end = new Date(`2024-01-01 ${jadwal.waktu_selesai}`);
+    let hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+    if (hours < 0) hours += 24; // Handle overnight shifts
+    return acc + hours;
+  }, 0);
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'scheduled': return 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-700';
-      case 'completed': return 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300 border-green-200 dark:border-green-700';
-      case 'missed': return 'bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-300 border-red-200 dark:border-red-700';
-      default: return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 border-gray-200 dark:border-gray-700';
+      case 'completed':
+        return 'from-green-500 to-emerald-600';
+      case 'upcoming':
+        return 'from-blue-500 to-cyan-600';
+      case 'in-progress':
+        return 'from-yellow-500 to-orange-600';
+      default:
+        return 'from-gray-500 to-gray-600';
     }
   };
 
-  const getShiftColor = (jenis: string) => {
-    switch (jenis) {
-      case 'pagi': return 'bg-gradient-to-r from-yellow-400 to-yellow-500 dark:from-yellow-500 dark:to-yellow-600 text-white';
-      case 'siang': return 'bg-gradient-to-r from-orange-400 to-orange-500 dark:from-orange-500 dark:to-orange-600 text-white';
-      case 'malam': return 'bg-gradient-to-r from-purple-400 to-purple-500 dark:from-purple-500 dark:to-purple-600 text-white';
-      default: return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200';
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <Trophy className="w-4 h-4" />;
+      case 'upcoming':
+        return <Target className="w-4 h-4" />;
+      case 'in-progress':
+        return <Zap className="w-4 h-4" />;
+      default:
+        return <Clock className="w-4 h-4" />;
     }
   };
 
-  const formatTanggal = (tanggal: string) => {
-    return new Date(tanggal).toLocaleDateString('id-ID', {
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0
+    }).format(amount);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('id-ID', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
@@ -108,277 +228,325 @@ export function JadwalJaga() {
     });
   };
 
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
-  };
-
-  const scheduledCount = jadwal.filter(item => item.status === 'scheduled').length;
-  const completedCount = jadwal.filter(item => item.status === 'completed').length;
-  const missedCount = jadwal.filter(item => item.status === 'missed').length;
-
   return (
-    <motion.div 
-      variants={container}
-      initial="hidden"
-      animate="show"
-      className="space-y-6 theme-transition"
-    >
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      <div className="w-full min-h-screen relative overflow-y-auto">
+        <div className="pb-32 lg:pb-16 p-4">
       {/* Header Section */}
-      <motion.div variants={item}>
-        <Card className="bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 border-0 shadow-xl card-enhanced">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between text-white">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-white/20 dark:bg-white/30 rounded-full flex items-center justify-center">
-                  <Calendar className="w-6 h-6" />
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-6"
+      >
+        <div className="text-center mb-6">
+          <h1 className="text-3xl font-bold text-white mb-2 flex items-center justify-center gap-2">
+            <Target className="w-8 h-8 text-purple-400" />
+            Medical Mission Central
+          </h1>
+          <p className="text-purple-200">Kelola jadwal dan misi medis Anda</p>
+        </div>
+
+        {/* Gaming Stats Dashboard */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl p-4 text-center"
+          >
+            <div className="flex items-center justify-center mb-2">
+              <Calendar className="w-6 h-6 text-blue-200" />
+            </div>
+            <div className="text-2xl font-bold text-white">{totalShifts}</div>
+            <div className="text-blue-200 text-sm">Total Shifts</div>
+          </motion.div>
+
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            className="bg-gradient-to-r from-green-600 to-green-700 rounded-xl p-4 text-center"
+          >
+            <div className="flex items-center justify-center mb-2">
+              <Trophy className="w-6 h-6 text-green-200" />
+            </div>
+            <div className="text-2xl font-bold text-white">{completedShifts}</div>
+            <div className="text-green-200 text-sm">Completed</div>
+          </motion.div>
+
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            className="bg-gradient-to-r from-yellow-600 to-yellow-700 rounded-xl p-4 text-center"
+          >
+            <div className="flex items-center justify-center mb-2">
+              <Target className="w-6 h-6 text-yellow-200" />
+            </div>
+            <div className="text-2xl font-bold text-white">{upcomingShifts}</div>
+            <div className="text-yellow-200 text-sm">Upcoming</div>
+          </motion.div>
+
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            className="bg-gradient-to-r from-purple-600 to-purple-700 rounded-xl p-4 text-center"
+          >
+            <div className="flex items-center justify-center mb-2">
+              <Clock className="w-6 h-6 text-purple-200" />
+            </div>
+            <div className="text-2xl font-bold text-white">{totalHours.toFixed(0)}</div>
+            <div className="text-purple-200 text-sm">Total Hours</div>
+          </motion.div>
+        </div>
+
+        {/* Search and Filter */}
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <div className="relative flex-1">
+            <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Cari lokasi atau jenis shift..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-300 focus:border-purple-400 focus:outline-none transition-colors"
+            />
+          </div>
+          
+          <div className="relative">
+            <Filter className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value as any)}
+              className="pl-10 pr-8 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:border-purple-400 focus:outline-none appearance-none min-w-[150px]"
+            >
+              <option value="all">Semua Status</option>
+              <option value="upcoming">Mendatang</option>
+              <option value="completed">Selesai</option>
+              <option value="in-progress">Berlangsung</option>
+            </select>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Mission Cards Grid */}
+      <div className={`grid gap-4 mb-6 ${isDesktop ? 'grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
+        <AnimatePresence mode="wait">
+          {currentJadwal.map((jadwal, index) => (
+            <motion.div
+              key={jadwal.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ delay: index * 0.1 }}
+              whileHover={{ scale: 1.02 }}
+              onClick={() => setSelectedMission(jadwal)}
+              className="bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-sm border border-white/20 rounded-xl p-6 cursor-pointer hover:border-purple-400 transition-all"
+            >
+              {/* Mission Status Badge */}
+              <div className="flex items-center justify-between mb-4">
+                <div className={`px-3 py-1 rounded-full bg-gradient-to-r ${getStatusColor(jadwal.status)} text-white text-sm font-medium flex items-center gap-2`}>
+                  {getStatusIcon(jadwal.status)}
+                  {jadwal.status === 'completed' ? 'Selesai' : 
+                   jadwal.status === 'upcoming' ? 'Mendatang' : 'Berlangsung'}
                 </div>
-                <div>
-                  <h2 className="text-xl font-semibold text-white text-heading-mobile">Jadwal Jaga</h2>
-                  <p className="text-blue-100 dark:text-blue-200 text-sm font-medium text-mobile-friendly">Kelola jadwal kerja Anda</p>
+                <Star className="w-5 h-5 text-yellow-400" />
+              </div>
+
+              {/* Mission Title */}
+              <h3 className="text-lg font-bold text-white mb-2">{jadwal.jenis_shift}</h3>
+              <p className="text-purple-200 text-sm mb-4">{formatDate(jadwal.tanggal)}</p>
+
+              {/* Mission Details */}
+              <div className="space-y-2 mb-4">
+                <div className="flex items-center gap-2 text-gray-300">
+                  <Clock className="w-4 h-4" />
+                  <span className="text-sm">{jadwal.waktu_mulai} - {jadwal.waktu_selesai}</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-300">
+                  <MapPin className="w-4 h-4" />
+                  <span className="text-sm">{jadwal.lokasi}</span>
+                </div>
+                {jadwal.pasien_count && (
+                  <div className="flex items-center gap-2 text-gray-300">
+                    <Users className="w-4 h-4" />
+                    <span className="text-sm">{jadwal.pasien_count} Pasien</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Mission Stats */}
+              {jadwal.status === 'completed' && (
+                <div className="border-t border-white/10 pt-4">
+                  <div className="grid grid-cols-2 gap-4 text-center">
+                    <div>
+                      <div className="text-xl font-bold text-green-400">{jadwal.tindakan_count}</div>
+                      <div className="text-xs text-gray-400">Tindakan</div>
+                    </div>
+                    <div>
+                      <div className="text-xl font-bold text-blue-400">{formatCurrency(jadwal.revenue || 0)}</div>
+                      <div className="text-xs text-gray-400">Revenue</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Gaming Elements */}
+              <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/10">
+                <div className="flex items-center gap-1">
+                  <Heart className="w-4 h-4 text-red-400" />
+                  <div className="text-xs text-gray-400">+{Math.floor(Math.random() * 20 + 10)} HP</div>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Brain className="w-4 h-4 text-blue-400" />
+                  <div className="text-xs text-gray-400">+{Math.floor(Math.random() * 15 + 5)} XP</div>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Zap className="w-4 h-4 text-yellow-400" />
+                  <div className="text-xs text-gray-400">Level {Math.floor(Math.random() * 5 + 1)}</div>
                 </div>
               </div>
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex items-center justify-center gap-2 mb-16"
+        >
+          <button
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="p-2 bg-white/10 border border-white/20 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/20 transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          
+          <div className="flex items-center gap-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                  page === currentPage
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                }`}
               >
-                <Button 
-                  size="sm" 
-                  className="bg-white/20 dark:bg-white/25 hover:bg-white/30 dark:hover:bg-white/35 border-white/30 dark:border-white/40 text-white gap-2 backdrop-blur-sm transition-colors duration-300"
-                >
-                  <Plus className="w-4 h-4" />
-                  Tambah
-                </Button>
-              </motion.div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* Quick Stats */}
-      <motion.div variants={item} className="grid grid-cols-3 gap-3">
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/50 dark:to-blue-900/30 border-blue-200 dark:border-blue-700 card-enhanced">
-          <CardContent className="p-4 text-center">
-            <Activity className="w-5 h-5 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
-            <div className="text-lg font-bold text-blue-700 dark:text-blue-300">{scheduledCount}</div>
-            <div className="text-xs font-medium text-blue-600 dark:text-blue-400">Dijadwalkan</div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-950/50 dark:to-emerald-900/30 border-emerald-200 dark:border-emerald-700 card-enhanced">
-          <CardContent className="p-4 text-center">
-            <Clock className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mx-auto mb-2" />
-            <div className="text-lg font-bold text-emerald-700 dark:text-emerald-300">{completedCount}</div>
-            <div className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Selesai</div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/50 dark:to-red-900/30 border-red-200 dark:border-red-700 card-enhanced">
-          <CardContent className="p-4 text-center">
-            <MapPin className="w-5 h-5 text-red-600 dark:text-red-400 mx-auto mb-2" />
-            <div className="text-lg font-bold text-red-700 dark:text-red-300">{missedCount}</div>
-            <div className="text-xs font-medium text-red-600 dark:text-red-400">Terlewat</div>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* Schedule List */}
-      <motion.div variants={container} className="space-y-4">
-        {isLoading ? (
-          // Loading state
-          <div className="space-y-4">
-            {[1, 2, 3].map((index) => (
-              <motion.div key={index} variants={item}>
-                <Card className="shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm card-enhanced">
-                  <CardContent className="p-6">
-                    <div className="animate-pulse">
-                      <div className="flex justify-between items-start mb-4">
-                        <div>
-                          <div className="h-6 bg-gray-300 dark:bg-gray-600 rounded w-48 mb-2"></div>
-                          <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-24"></div>
-                        </div>
-                        <div className="h-6 bg-gray-300 dark:bg-gray-600 rounded w-20"></div>
-                      </div>
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-lg"></div>
-                          <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded flex-1"></div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-lg"></div>
-                          <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded flex-1"></div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
+                {page}
+              </button>
             ))}
           </div>
-        ) : error ? (
-          // Error state
-          <motion.div variants={item}>
-            <Card className="shadow-lg border-0 bg-red-50 dark:bg-red-950/30 backdrop-blur-sm card-enhanced">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <X className="w-8 h-8 text-red-600 dark:text-red-400" />
-                </div>
-                <h3 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">
-                  Gagal Memuat Jadwal
-                </h3>
-                <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
-                <Button 
-                  onClick={() => window.location.reload()} 
-                  variant="outline"
-                  className="border-red-300 dark:border-red-700 text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/50"
-                >
-                  Coba Lagi
-                </Button>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ) : jadwal.length === 0 ? (
-          // Empty state with orange warning color - Production deployed
-          <motion.div variants={item}>
-            <Card className="shadow-lg border-0 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/50 dark:to-orange-900/30 backdrop-blur-sm border-2 border-orange-200 dark:border-orange-700 card-enhanced">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-500 dark:from-orange-500 dark:to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                  <Calendar className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-lg font-semibold text-orange-800 dark:text-orange-200 mb-2">
-                  Belum Ada Jadwal Jaga
-                </h3>
-                <p className="text-orange-600 dark:text-orange-300 mb-4">
-                  Jadwal jaga akan muncul setelah diatur oleh admin atau manajer
-                </p>
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-orange-100 dark:bg-orange-900/50 rounded-full border border-orange-200 dark:border-orange-700">
-                  <Clock className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-                  <span className="text-sm font-medium text-orange-700 dark:text-orange-300">
-                    Menunggu Penjadwalan
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ) : (
-          jadwal.map((scheduleItem, index) => (
-          <motion.div
-            key={scheduleItem.id}
-            variants={item}
-            whileHover={{ scale: 1.01, y: -2 }}
-            transition={{ duration: 0.2 }}
-          >
-            <Card className="shadow-lg hover:shadow-xl transition-all duration-300 border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm card-enhanced">
-              <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h4 className="text-lg font-semibold text-high-contrast">{formatTanggal(scheduleItem.tanggal)}</h4>
-                    <p className="text-sm text-muted-foreground font-medium">Shift {scheduleItem.jenis}</p>
-                  </div>
-                  <Badge className={`${getStatusColor(scheduleItem.status)} border`}>
-                    {scheduleItem.status === 'scheduled' && 'Dijadwalkan'}
-                    {scheduleItem.status === 'completed' && 'Selesai'}
-                    {scheduleItem.status === 'missed' && 'Terlewat'}
-                  </Badge>
-                </div>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center">
-                      <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <span className="text-sm font-medium text-high-contrast">{scheduleItem.waktu}</span>
-                    <Badge className={`${getShiftColor(scheduleItem.jenis)} text-xs font-semibold ml-auto`}>
-                      {scheduleItem.jenis.charAt(0).toUpperCase() + scheduleItem.jenis.slice(1)}
-                    </Badge>
-                  </div>
-                  
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/50 rounded-lg flex items-center justify-center">
-                      <MapPin className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                    </div>
-                    <span className="text-sm font-medium text-high-contrast flex-1">{scheduleItem.lokasi}</span>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                  </div>
-                </div>
-                
-                {/* Action Buttons - Always visible for scheduled items */}
-                {scheduleItem.status === 'scheduled' && (
-                  <motion.div 
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    transition={{ duration: 0.3 }}
-                    className="flex gap-3 pt-4 mt-4 border-t border-gray-100 dark:border-gray-700"
-                  >
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="flex-1"
-                    >
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => handleEditSchedule(scheduleItem.id)}
-                        className="w-full border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 hover:border-blue-300 dark:hover:border-blue-600 gap-2 font-medium transition-colors duration-300"
-                      >
-                        <Edit className="w-4 h-4" />
-                        Ubah
-                      </Button>
-                    </motion.div>
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="flex-1"
-                    >
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        onClick={() => handleCancelSchedule(scheduleItem.id)}
-                        className="w-full border-red-200 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 hover:border-red-300 dark:hover:border-red-600 gap-2 font-medium transition-colors duration-300"
-                      >
-                        <X className="w-4 h-4" />
-                        Batalkan
-                      </Button>
-                    </motion.div>
-                  </motion.div>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))
-        )}
-      </motion.div>
 
-      {/* Add Schedule Button */}
-      <motion.div variants={item}>
-        <Card className="shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-dashed border-2 border-blue-200 dark:border-blue-700 card-enhanced">
-          <CardContent className="p-6">
+          <button
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages}
+            className="p-2 bg-white/10 border border-white/20 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/20 transition-colors"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </motion.div>
+      )}
+
+      {/* Mission Detail Modal */}
+      <AnimatePresence>
+        {selectedMission && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setSelectedMission(null)}
+          >
             <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="text-center"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-gradient-to-br from-slate-800 to-purple-900 rounded-xl p-6 max-w-md w-full max-h-[80vh] overflow-y-auto"
             >
-              <Button 
-                variant="ghost" 
-                className="w-full h-16 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 gap-3 text-base font-medium transition-colors duration-300"
-              >
-                <Plus className="w-5 h-5" />
-                Tambah Jadwal Baru
-              </Button>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-bold text-white">Detail Misi</h3>
+                <button
+                  onClick={() => setSelectedMission(null)}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className={`px-4 py-2 rounded-lg bg-gradient-to-r ${getStatusColor(selectedMission.status)} text-white text-center font-medium`}>
+                  {selectedMission.jenis_shift}
+                </div>
+
+                <div className="space-y-3 text-gray-300">
+                  <div className="flex items-center gap-3">
+                    <Calendar className="w-5 h-5 text-purple-400" />
+                    <span>{formatDate(selectedMission.tanggal)}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Clock className="w-5 h-5 text-purple-400" />
+                    <span>{selectedMission.waktu_mulai} - {selectedMission.waktu_selesai}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <MapPin className="w-5 h-5 text-purple-400" />
+                    <span>{selectedMission.lokasi}</span>
+                  </div>
+                  {selectedMission.pasien_count && (
+                    <div className="flex items-center gap-3">
+                      <Users className="w-5 h-5 text-purple-400" />
+                      <span>{selectedMission.pasien_count} Pasien</span>
+                    </div>
+                  )}
+                </div>
+
+                {selectedMission.status === 'completed' && (
+                  <div className="border-t border-white/20 pt-4">
+                    <h4 className="text-lg font-semibold text-white mb-3">Mission Results</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-green-500/20 rounded-lg p-3 text-center">
+                        <div className="text-2xl font-bold text-green-400">{selectedMission.tindakan_count}</div>
+                        <div className="text-sm text-green-300">Tindakan</div>
+                      </div>
+                      <div className="bg-blue-500/20 rounded-lg p-3 text-center">
+                        <div className="text-lg font-bold text-blue-400">{formatCurrency(selectedMission.revenue || 0)}</div>
+                        <div className="text-sm text-blue-300">Revenue</div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 space-y-2">
+                      <div className="flex items-center justify-between bg-white/5 rounded-lg p-2">
+                        <div className="flex items-center gap-2">
+                          <Heart className="w-4 h-4 text-red-400" />
+                          <span className="text-sm text-gray-300">Health Points</span>
+                        </div>
+                        <span className="text-red-400 font-medium">+{Math.floor(Math.random() * 20 + 10)}</span>
+                      </div>
+                      <div className="flex items-center justify-between bg-white/5 rounded-lg p-2">
+                        <div className="flex items-center gap-2">
+                          <Brain className="w-4 h-4 text-blue-400" />
+                          <span className="text-sm text-gray-300">Experience</span>
+                        </div>
+                        <span className="text-blue-400 font-medium">+{Math.floor(Math.random() * 15 + 5)}</span>
+                      </div>
+                      <div className="flex items-center justify-between bg-white/5 rounded-lg p-2">
+                        <div className="flex items-center gap-2">
+                          <Star className="w-4 h-4 text-yellow-400" />
+                          <span className="text-sm text-gray-300">Rating</span>
+                        </div>
+                        <span className="text-yellow-400 font-medium">★★★★★</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </motion.div>
-          </CardContent>
-        </Card>
-      </motion.div>
-    </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+        </div>
+        {/* End of main content container */}
+        
+        {/* Medical RPG Bottom Navigation */}
+      </div>
+    </div>
   );
 }
