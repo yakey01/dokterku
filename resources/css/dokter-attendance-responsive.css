@@ -1,0 +1,341 @@
+/* Dokter Attendance Responsive Design System */
+/* Mobile-first approach for Doctor Attendance Component */
+
+/* ==========================================================================
+   Mobile Base Styles (0px - 767px)
+   ========================================================================== */
+
+/* Touch-friendly buttons for mobile */
+@media (max-width: 767px) {
+  .dokter-attendance-container {
+    padding: 1rem 0.75rem;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+  
+  .dokter-attendance-card {
+    padding: 1rem;
+    border-radius: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .dokter-attendance-button {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    touch-action: manipulation;
+  }
+  
+  .dokter-attendance-text-sm {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+  
+  .dokter-attendance-text-base {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+  
+  .dokter-attendance-text-lg {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+  }
+  
+  /* Stack buttons vertically on small screens */
+  .dokter-checkin-buttons {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+/* ==========================================================================
+   Tablet Styles (768px - 1023px)
+   ========================================================================== */
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .dokter-attendance-container {
+    padding: 1.5rem 1rem;
+    max-width: 48rem;
+    margin: 0 auto;
+  }
+  
+  .dokter-attendance-card {
+    padding: 1.5rem;
+    border-radius: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .dokter-attendance-button {
+    min-height: 48px;
+    padding: 0.875rem 1.5rem;
+    border-radius: 1rem;
+    font-size: 1rem;
+  }
+  
+  .dokter-attendance-text-sm {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+  
+  .dokter-attendance-text-base {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+  
+  .dokter-attendance-text-lg {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+  
+  /* Side-by-side buttons on tablet */
+  .dokter-checkin-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+  
+  /* Tab navigation improvements */
+  .dokter-tab-navigation {
+    padding: 0.25rem;
+    border-radius: 0.75rem;
+  }
+  
+  .dokter-tab-item {
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* ==========================================================================
+   Desktop Styles (1024px and up)
+   ========================================================================== */
+
+@media (min-width: 1024px) {
+  .dokter-attendance-container {
+    padding: 2rem 1.5rem;
+    max-width: 64rem;
+    margin: 0 auto;
+  }
+  
+  .dokter-attendance-card {
+    padding: 2rem;
+    border-radius: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .dokter-attendance-button {
+    min-height: 52px;
+    padding: 1rem 2rem;
+    border-radius: 1.25rem;
+    font-size: 1.125rem;
+  }
+  
+  .dokter-attendance-text-sm {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+  
+  .dokter-attendance-text-base {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+  }
+  
+  .dokter-attendance-text-lg {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+  
+  /* Desktop layout enhancements */
+  .dokter-checkin-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+  
+  /* Enhanced tab navigation for desktop */
+  .dokter-tab-navigation {
+    padding: 0.375rem;
+    border-radius: 1rem;
+  }
+  
+  .dokter-tab-item {
+    padding: 0.625rem 1rem;
+    border-radius: 0.75rem;
+    font-size: 1rem;
+  }
+  
+  /* Grid improvements for desktop */
+  .dokter-stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+  }
+  
+  .dokter-working-hours-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+}
+
+/* ==========================================================================
+   Responsive Typography
+   ========================================================================== */
+
+.dokter-responsive-title {
+  font-size: clamp(1.875rem, 5vw, 3.5rem);
+  line-height: 1.1;
+  font-weight: 700;
+}
+
+.dokter-responsive-subtitle {
+  font-size: clamp(1rem, 3vw, 1.5rem);
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.dokter-responsive-body {
+  font-size: clamp(0.875rem, 2.5vw, 1.125rem);
+  line-height: 1.6;
+}
+
+.dokter-responsive-caption {
+  font-size: clamp(0.75rem, 2vw, 0.875rem);
+  line-height: 1.4;
+}
+
+/* ==========================================================================
+   Interactive Elements
+   ========================================================================== */
+
+.dokter-interactive-element {
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.dokter-interactive-element:hover {
+  transform: translateY(-1px);
+}
+
+.dokter-interactive-element:active {
+  transform: translateY(0);
+}
+
+/* Touch feedback for mobile */
+@media (max-width: 767px) {
+  .dokter-interactive-element:active {
+    transform: scale(0.98);
+  }
+}
+
+/* ==========================================================================
+   Gaming-Style Navigation Spacing
+   ========================================================================== */
+
+/* World-class gaming navigation spacing */
+.dokter-gaming-nav {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem; /* Mobile: 16px for optimal thumb navigation */
+}
+
+@media (min-width: 768px) {
+  .dokter-gaming-nav {
+    gap: 1.5rem; /* Desktop: 24px for comfortable mouse/trackpad */
+  }
+}
+
+.dokter-gaming-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease-in-out;
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* ==========================================================================
+   Accessibility & Performance
+   ========================================================================== */
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .dokter-interactive-element,
+  .dokter-gaming-nav-item {
+    transition: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .dokter-attendance-card {
+    border-width: 2px;
+  }
+  
+  .dokter-attendance-button {
+    border-width: 2px;
+  }
+}
+
+/* Focus indicators for keyboard navigation */
+.dokter-attendance-button:focus,
+.dokter-gaming-nav-item:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+  .dokter-gaming-nav,
+  .dokter-interactive-element {
+    display: none;
+  }
+  
+  .dokter-attendance-card {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+}
+
+/* ==========================================================================
+   Dark Mode Adaptations
+   ========================================================================== */
+
+@media (prefers-color-scheme: dark) {
+  .dokter-attendance-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+}
+
+/* ==========================================================================
+   Loading and Animation States
+   ========================================================================== */
+
+.dokter-loading-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: dokter-shimmer 1.5s infinite;
+}
+
+@keyframes dokter-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.dokter-fade-in {
+  animation: dokter-fadeIn 0.5s ease-in-out;
+}
+
+@keyframes dokter-fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

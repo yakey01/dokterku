@@ -40,6 +40,9 @@ class DatabaseSeeder extends Seeder
             DokterJadwalJagaSeeder::class,
             DokterTindakanSeeder::class,
             DokterAttendanceSeeder::class,
+            
+            // Specific doctor data
+            YayaJadwalJagaSeeder::class,
         ]);
     }
 }

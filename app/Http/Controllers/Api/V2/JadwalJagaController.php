@@ -8,6 +8,7 @@ use App\Models\WorkLocation;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 
 /**
@@ -350,6 +351,308 @@ class JadwalJagaController extends BaseApiController
         }
         
         return "wait";
+    }
+
+    /**
+     * Get schedule status relative to current time
+     */
+    private function getScheduleStatus(JadwalJaga $jadwalJaga, Carbon $now): array
+    {
+        $shiftStart = Carbon::createFromFormat('H:i', $jadwalJaga->effective_start_time);
+        $shiftEnd = Carbon::createFromFormat('H:i', $jadwalJaga->effective_end_time);
+        
+        // Set date to today for comparison
+        $shiftStart->setDate($now->year, $now->month, $now->day);
+        $shiftEnd->setDate($now->year, $now->month, $now->day);
+        
+        // Handle overnight shifts
+        if ($shiftEnd->lt($shiftStart)) {
+            $shiftEnd->addDay();
+        }
+
+        $workLocation = $jadwalJaga->pegawai->workLocation;
+        $checkInBeforeMinutes = $workLocation ? $workLocation->checkin_before_shift_minutes ?? 30 : 30;
+        $lateToleranceMinutes = $workLocation ? $workLocation->late_tolerance_minutes ?? 15 : 15;
+        
+        $checkInStart = $shiftStart->copy()->subMinutes($checkInBeforeMinutes);
+        $checkInEnd = $shiftStart->copy()->addMinutes($lateToleranceMinutes);
+        
+        if ($now->lt($checkInStart)) {
+            return [
+                'status' => 'upcoming',
+                'message' => 'Shift will start at ' . $shiftStart->format('H:i'),
+                'minutes_until_checkin' => $now->diffInMinutes($checkInStart),
+                'can_checkin_in' => $checkInStart->diffForHumans(),
+            ];
+        }
+        
+        if ($now->between($checkInStart, $checkInEnd)) {
+            return [
+                'status' => 'checkin_window',
+                'message' => 'Check-in window is open',
+                'window_closes_in' => $now->diffInMinutes($checkInEnd),
+                'is_late' => $now->gt($shiftStart),
+            ];
+        }
+        
+        if ($now->between($shiftStart, $shiftEnd)) {
+            return [
+                'status' => 'in_progress',
+                'message' => 'Shift is currently active',
+                'shift_ends_in' => $now->diffInMinutes($shiftEnd),
+                'shift_ends_at' => $shiftEnd->format('H:i'),
+            ];
+        }
+        
+        if ($now->gt($shiftEnd)) {
+            return [
+                'status' => 'completed',
+                'message' => 'Shift has ended',
+                'ended_at' => $shiftEnd->format('H:i'),
+                'ended_ago' => $shiftEnd->diffForHumans(),
+            ];
+        }
+        
+        return [
+            'status' => 'unknown',
+            'message' => 'Schedule status unclear',
+        ];
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/jadwal-jaga/current",
+     *     summary="Get current active schedule for authenticated user",
+     *     tags={"Jadwal Jaga"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="date",
+     *         in="query",
+     *         description="Date in Y-m-d format (optional, defaults to today)",
+     *         required=false,
+     *         @OA\Schema(type="string", example="2025-08-06")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Current schedule retrieved successfully"
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=404, description="No active schedule found")
+     * )
+     */
+    public function current(Request $request): JsonResponse
+    {
+        $user = $this->getAuthenticatedUser();
+        $date = $request->get('date', now()->format('Y-m-d'));
+        
+        try {
+            $targetDate = Carbon::parse($date);
+        } catch (\Exception $e) {
+            return $this->errorResponse('Invalid date format. Use Y-m-d format.', 400);
+        }
+
+        // Find active jadwal jaga for the user on the specified date
+        $jadwalJaga = JadwalJaga::whereDate('tanggal_jaga', $targetDate)
+            ->where('pegawai_id', $user->id)
+            ->where('status_jaga', 'Aktif')
+            ->with(['shiftTemplate', 'pegawai'])
+            ->first();
+
+        if (!$jadwalJaga) {
+            return $this->errorResponse('No active schedule found for ' . $targetDate->format('d M Y'), 404);
+        }
+
+        // Try to find associated work location
+        $workLocation = null;
+        
+        if ($jadwalJaga->unit_kerja) {
+            $workLocation = WorkLocation::where('unit_kerja', $jadwalJaga->unit_kerja)
+                ->where('is_active', true)
+                ->first();
+        }
+        
+        if (!$workLocation) {
+            $workLocation = WorkLocation::where('location_type', 'main_office')
+                ->where('is_active', true)
+                ->first();
+        }
+
+        $now = Carbon::now();
+        $shiftStart = Carbon::createFromFormat('H:i', $jadwalJaga->effective_start_time);
+        $shiftEnd = Carbon::createFromFormat('H:i', $jadwalJaga->effective_end_time);
+        
+        // Set date to today for comparison
+        $shiftStart->setDate($now->year, $now->month, $now->day);
+        $shiftEnd->setDate($now->year, $now->month, $now->day);
+        
+        // Handle overnight shifts
+        if ($shiftEnd->lt($shiftStart)) {
+            $shiftEnd->addDay();
+        }
+
+        $response = [
+            'id' => $jadwalJaga->id,
+            'tanggal_jaga' => $jadwalJaga->tanggal_jaga->format('Y-m-d'),
+            'shift_template_id' => $jadwalJaga->shift_template_id,
+            'pegawai_id' => $jadwalJaga->pegawai_id,
+            'unit_kerja' => $jadwalJaga->unit_kerja,
+            'unit_instalasi' => $jadwalJaga->unit_instalasi ?? null,
+            'peran' => $jadwalJaga->peran,
+            'status_jaga' => $jadwalJaga->status_jaga,
+            'keterangan' => $jadwalJaga->keterangan,
+            'effective_start_time' => $jadwalJaga->effective_start_time,
+            'effective_end_time' => $jadwalJaga->effective_end_time,
+            'is_today' => $jadwalJaga->tanggal_jaga->isToday(),
+            'shift_template' => $jadwalJaga->shiftTemplate ? [
+                'id' => $jadwalJaga->shiftTemplate->id,
+                'nama_shift' => $jadwalJaga->shiftTemplate->nama_shift,
+                'jam_masuk' => $jadwalJaga->shiftTemplate->jam_masuk,
+                'jam_pulang' => $jadwalJaga->shiftTemplate->jam_pulang,
+                'durasi' => $jadwalJaga->shiftTemplate->durasi,
+                'warna' => $jadwalJaga->shiftTemplate->warna ?? '#3b82f6',
+            ] : null,
+            'work_location' => $workLocation ? [
+                'id' => $workLocation->id,
+                'name' => $workLocation->name,
+                'description' => $workLocation->description,
+                'address' => $workLocation->address,
+                'latitude' => (float) $workLocation->latitude,
+                'longitude' => (float) $workLocation->longitude,
+                'radius_meters' => $workLocation->radius_meters,
+                'location_type' => $workLocation->location_type,
+                'location_type_label' => $workLocation->location_type_label,
+                'tolerance_settings' => [
+                    'late_tolerance_minutes' => $workLocation->late_tolerance_minutes ?? 15,
+                    'early_departure_tolerance_minutes' => $workLocation->early_departure_tolerance_minutes ?? 15,
+                    'checkin_before_shift_minutes' => $workLocation->checkin_before_shift_minutes ?? 30,
+                    'checkout_after_shift_minutes' => $workLocation->checkout_after_shift_minutes ?? 60,
+                ],
+                'require_photo' => $workLocation->require_photo,
+                'strict_geofence' => $workLocation->strict_geofence,
+                'gps_accuracy_required' => $workLocation->gps_accuracy_required ?? 50,
+            ] : null,
+            'schedule_status' => $this->getScheduleStatus($jadwalJaga, $now),
+            'timing_info' => $this->getTimingInfo($jadwalJaga, $workLocation),
+        ];
+
+        return $this->successResponse($response, 'Current active schedule retrieved successfully');
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/jadwal-jaga/validate-checkin",
+     *     summary="Validate if user can check-in now with current location",
+     *     tags={"Jadwal Jaga"},
+     *     security={{"sanctum": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"latitude", "longitude"},
+     *             @OA\Property(property="latitude", type="number", format="float", example="-6.2088"),
+     *             @OA\Property(property="longitude", type="number", format="float", example="106.8456"),
+     *             @OA\Property(property="accuracy", type="number", format="float", example="10.5"),
+     *             @OA\Property(property="date", type="string", format="date", example="2025-08-06")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Validation result returned"
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated"),
+     *     @OA\Response(response=422, description="Validation errors")
+     * )
+     */
+    public function validateCheckin(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
+            'accuracy' => 'nullable|numeric|min:0',
+            'date' => 'nullable|date_format:Y-m-d',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->validationErrorResponse($validator->errors());
+        }
+
+        $user = $this->getAuthenticatedUser();
+        $date = $request->get('date') ? Carbon::parse($request->get('date')) : Carbon::today();
+        $latitude = (float) $request->latitude;
+        $longitude = (float) $request->longitude;
+        $accuracy = $request->accuracy ? (float) $request->accuracy : null;
+
+        // Use AttendanceValidationService for comprehensive validation
+        $validation = app(\App\Services\AttendanceValidationService::class)
+            ->validateCheckin($user, $latitude, $longitude, $accuracy, $date);
+
+        // Check if user has already checked in today
+        $todayAttendance = \App\Models\Attendance::getTodayAttendance($user->id);
+        $attendanceStatus = \App\Models\Attendance::getTodayStatus($user->id);
+
+        $response = [
+            'validation' => [
+                'valid' => $validation['valid'],
+                'message' => $validation['message'],
+                'code' => $validation['code'],
+                'can_checkin' => $validation['valid'] && $attendanceStatus['can_check_in'],
+            ],
+            'attendance_status' => [
+                'status' => $attendanceStatus['status'],
+                'message' => $attendanceStatus['message'],
+                'can_check_in' => $attendanceStatus['can_check_in'],
+                'can_check_out' => $attendanceStatus['can_check_out'],
+                'has_checked_in_today' => $todayAttendance !== null,
+                'attendance' => $todayAttendance ? [
+                    'id' => $todayAttendance->id,
+                    'time_in' => $todayAttendance->time_in?->format('H:i:s'),
+                    'time_out' => $todayAttendance->time_out?->format('H:i:s'),
+                    'status' => $todayAttendance->status,
+                ] : null,
+            ],
+            'schedule_details' => null,
+            'validation_details' => $validation['validations'] ?? null,
+        ];
+
+        // Add schedule details if validation includes schedule
+        if ($validation['valid'] && isset($validation['jadwal_jaga'])) {
+            $jadwalJaga = $validation['jadwal_jaga'];
+            $response['schedule_details'] = [
+                'id' => $jadwalJaga->id,
+                'tanggal_jaga' => $jadwalJaga->tanggal_jaga->format('Y-m-d'),
+                'shift_name' => $jadwalJaga->shiftTemplate?->nama_shift ?? 'Unknown',
+                'unit_kerja' => $jadwalJaga->unit_kerja,
+                'status_jaga' => $jadwalJaga->status_jaga,
+                'effective_start_time' => $jadwalJaga->effective_start_time,
+                'effective_end_time' => $jadwalJaga->effective_end_time,
+                'is_late_checkin' => $validation['code'] === 'VALID_BUT_LATE',
+            ];
+        }
+
+        // Add work location details if validation includes location
+        if (isset($validation['work_location'])) {
+            $workLocation = $validation['work_location'];
+            $response['work_location'] = [
+                'id' => $workLocation->id,
+                'name' => $workLocation->name,
+                'address' => $workLocation->address,
+                'latitude' => (float) $workLocation->latitude,
+                'longitude' => (float) $workLocation->longitude,
+                'radius_meters' => $workLocation->radius_meters,
+                'distance_from_user' => $workLocation->calculateDistance($latitude, $longitude),
+                'within_geofence' => $workLocation->isWithinGeofence($latitude, $longitude, $accuracy),
+            ];
+        }
+
+        $httpStatus = $validation['valid'] ? 200 : 400;
+        $message = $validation['valid'] 
+            ? ($attendanceStatus['can_check_in'] ? 'Validation successful - ready for check-in' : 'Validation successful but check-in not allowed')
+            : 'Validation failed';
+
+        return response()->json([
+            'success' => $validation['valid'],
+            'message' => $message,
+            'data' => $response,
+        ], $httpStatus);
     }
 
     /**

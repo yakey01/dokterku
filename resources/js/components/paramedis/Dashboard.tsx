@@ -539,12 +539,12 @@ export function Dashboard({ userData: propUserData }: DashboardProps) {
       </motion.div>
 
       {/* Performance Stats */}
-      <motion.div variants={item} className="grid grid-cols-2 gap-4">
+      <motion.div variants={item} className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4 lg:gap-6">
         <Card className="shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm card-enhanced">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center">
-                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+          <CardContent className="p-4 md:p-5">
+            <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-3">
+              <div className="w-8 h-8 md:w-10 md:h-10 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-4 h-4 md:w-5 md:h-5 text-green-600 dark:text-green-400" />
               </div>
               <div>
                 <h4 className="text-sm font-semibold text-high-contrast text-mobile-friendly">Persentase Kehadiran</h4>
@@ -567,10 +567,10 @@ export function Dashboard({ userData: propUserData }: DashboardProps) {
         </Card>
 
         <Card className="shadow-lg border-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm card-enhanced">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center">
-                <Award className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+          <CardContent className="p-4 md:p-5">
+            <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-3">
+              <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center">
+                <Award className="w-4 h-4 md:w-5 md:h-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
                 <h4 className="text-sm font-semibold text-high-contrast text-mobile-friendly">Urutan Kehadiran</h4>

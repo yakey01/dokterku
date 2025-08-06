@@ -105,8 +105,8 @@ class AttendanceController extends BaseApiController
                     'current_status' => $attendanceStatus['status'],
                     'message' => $attendanceStatus['message'],
                     'attendance' => $attendanceStatus['attendance'] ? [
-                        'time_in' => $attendanceStatus['attendance']->time_in?->format('H:i:s'),
-                        'time_out' => $attendanceStatus['attendance']->time_out?->format('H:i:s'),
+                        'time_in' => $attendanceStatus['attendance']->time_in?->format('H:i'),
+                        'time_out' => $attendanceStatus['attendance']->time_out?->format('H:i'),
                         'duration' => $attendanceStatus['attendance']->formatted_work_duration
                     ] : null
                 ],
@@ -165,7 +165,7 @@ class AttendanceController extends BaseApiController
 
         return $this->successResponse([
             'attendance_id' => $attendance->id,
-            'time_in' => $attendance->time_in->format('H:i:s'),
+            'time_in' => $attendance->time_in->format('H:i'),
             'status' => $attendance->status,
             'coordinates' => [
                 'latitude' => $attendance->latitude,
@@ -294,8 +294,8 @@ class AttendanceController extends BaseApiController
 
         return $this->successResponse([
             'attendance_id' => $attendance->id,
-            'time_in' => $attendance->time_in->format('H:i:s'),
-            'time_out' => $attendance->time_out->format('H:i:s'),
+            'time_in' => $attendance->time_in->format('H:i'),
+            'time_out' => $attendance->time_out->format('H:i'),
             'work_duration' => [
                 'minutes' => $workDuration,
                 'hours_minutes' => $attendance->formatted_work_duration,
@@ -360,8 +360,8 @@ class AttendanceController extends BaseApiController
             'attendance' => [
                 'id' => $attendance->id,
                 'date' => $attendance->date->format('Y-m-d'),
-                'time_in' => $attendance->time_in?->format('H:i:s'),
-                'time_out' => $attendance->time_out?->format('H:i:s'),
+                'time_in' => $attendance->time_in?->format('H:i'),
+                'time_out' => $attendance->time_out?->format('H:i'),
                 'status' => $attendance->status,
                 'work_duration' => $attendance->time_out ? [
                     'minutes' => $attendance->time_in->diffInMinutes($attendance->time_out),
@@ -436,8 +436,8 @@ class AttendanceController extends BaseApiController
                 'id' => $attendance->id,
                 'date' => $attendance->date->format('Y-m-d'),
                 'day_name' => $attendance->date->format('l'),
-                'time_in' => $attendance->time_in?->format('H:i:s'),
-                'time_out' => $attendance->time_out?->format('H:i:s'),
+                'time_in' => $attendance->time_in?->format('H:i'),
+                'time_out' => $attendance->time_out?->format('H:i'),
                 'status' => $attendance->status,
                 'work_duration' => $attendance->time_out ? [
                     'minutes' => $attendance->time_in->diffInMinutes($attendance->time_out),

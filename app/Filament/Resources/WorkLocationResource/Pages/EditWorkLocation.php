@@ -12,6 +12,14 @@ use Illuminate\Support\Facades\Log;
 class EditWorkLocation extends EditRecord
 {
     protected static string $resource = WorkLocationResource::class;
+    
+    /**
+     * Resolve the record including soft-deleted records
+     */
+    public function resolveRecord(int|string $key): \Illuminate\Database\Eloquent\Model
+    {
+        return static::getResource()::getModel()::withTrashed()->findOrFail($key);
+    }
 
     protected function getHeaderActions(): array
     {
@@ -37,7 +45,14 @@ class EditWorkLocation extends EditRecord
 
     public function getSubheading(): ?string
     {
-        return 'Perbarui konfigurasi lokasi kerja dan pengaturan geofencing';
+        $baseSubheading = 'Perbarui konfigurasi lokasi kerja dan pengaturan geofencing';
+        
+        // Add warning for soft-deleted records
+        if ($this->record && $this->record->trashed()) {
+            return '⚠️ Lokasi ini telah dihapus. Editing akan mengembalikan status aktif. ' . $baseSubheading;
+        }
+        
+        return $baseSubheading;
     }
 
     protected function getSavedNotification(): ?Notification
@@ -61,22 +76,31 @@ class EditWorkLocation extends EditRecord
     {
         $workLocation = $this->record;
         
+        // Check if this was a soft-deleted record that got restored during editing
+        $wasRestored = $workLocation->wasChanged('deleted_at') && $workLocation->deleted_at === null;
+        
         Log::info('WorkLocation updated via Filament Admin', [
             'id' => $workLocation->id,
             'name' => $workLocation->name,
             'admin_user' => auth()->user()?->name,
-            'timestamp' => now()
+            'timestamp' => now(),
+            'was_restored' => $wasRestored
         ]);
 
         // Manual cache clearing for immediate effect
         $this->clearWorkLocationCaches($workLocation);
         
-        // Send additional notification about real-time update
+        // Send appropriate notification based on action
+        $title = $wasRestored ? '🔄 Lokasi Berhasil Dipulihkan!' : '🔄 Update Real-time Berhasil!';
+        $body = $wasRestored 
+            ? 'Lokasi kerja telah dipulihkan dan diaktifkan kembali. Semua dashboard akan ter-update.'
+            : 'Semua dashboard pengguna akan otomatis ter-update dengan lokasi terbaru.';
+        
         Notification::make()
             ->success()
-            ->title('🔄 Update Real-time Berhasil!')
-            ->body('Semua dashboard pengguna akan otomatis ter-update dengan lokasi terbaru.')
-            ->duration(3000)
+            ->title($title)
+            ->body($body)
+            ->duration(4000)
             ->send();
     }
 

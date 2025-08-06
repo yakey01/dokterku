@@ -70,6 +70,21 @@ Dokumentasi ini menyediakan panduan lengkap untuk membuat layout responsif yang 
 </nav>
 ```
 
+### 2. Bottom Navigation (Gaming-Style)
+**Responsive Spacing - World-Class Implementation**
+```tsx
+// Dokterku Gaming Navigation - Professional Spacing
+<div className="flex justify-center items-center gap-4 md:gap-6">
+  {/* 5 Navigation Buttons: Home, Missions, Guardian, Rewards, Profile */}
+</div>
+```
+
+**Spacing Strategy**:
+- **Mobile (< 768px)**: `gap-4` (16px) - Optimal for thumb navigation
+- **Desktop (≥ 768px)**: `gap-6` (24px) - Comfortable for mouse/trackpad
+- **Layout**: `justify-center` creates professional, compact grouping
+- **Result**: World-class appearance eliminating excessive spacing
+
 **Desktop (768px+)**
 ```html
 <nav class="desktop-nav">
@@ -89,7 +104,7 @@ Dokumentasi ini menyediakan panduan lengkap untuk membuat layout responsif yang 
 </nav>
 ```
 
-### 2. Content Grid System
+### 3. Content Grid System
 ```css
 /* Mobile: Single Column */
 .content-grid {

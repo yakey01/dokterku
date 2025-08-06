@@ -9,6 +9,14 @@ use Filament\Resources\Pages\ViewRecord;
 class ViewWorkLocation extends ViewRecord
 {
     protected static string $resource = WorkLocationResource::class;
+    
+    /**
+     * Resolve the record including soft-deleted records
+     */
+    public function resolveRecord(int|string $key): \Illuminate\Database\Eloquent\Model
+    {
+        return static::getResource()::getModel()::withTrashed()->findOrFail($key);
+    }
 
     protected function getHeaderActions(): array
     {
@@ -34,6 +42,13 @@ class ViewWorkLocation extends ViewRecord
 
     public function getSubheading(): ?string
     {
-        return 'Informasi lengkap lokasi kerja dan pengaturan geofencing';
+        $baseSubheading = 'Informasi lengkap lokasi kerja dan pengaturan geofencing';
+        
+        // Add warning for soft-deleted records
+        if ($this->record && $this->record->trashed()) {
+            return '🗑️ Lokasi ini telah dihapus (Soft Delete). Gunakan "Restore" untuk mengaktifkan kembali. ' . $baseSubheading;
+        }
+        
+        return $baseSubheading;
     }
 }

@@ -2,6 +2,8 @@
 @import './loading-system.css';
 @import './mobile-responsive.css';
 @import './medical-rpg-nav.css';
+@import './dokter-attendance-responsive.css';
+@import './progress-animations.css';
 
 @tailwind base;
 @tailwind components;

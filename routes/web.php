@@ -26,6 +26,19 @@ Route::get('/test-welcome-login', function () {
     return view('test-welcome-login');
 });
 
+// Test route for Dokter component (bypass auth)
+Route::get('/test-dokter-component', function () {
+    $userData = [
+        'id' => 13,
+        'name' => 'Dr. Yaya Test',
+        'email' => 'test@dokterku.com',
+        'role' => 'dokter'
+    ];
+    $token = 'test-token-123';
+    
+    return view('mobile.dokter.app', compact('token', 'userData'));
+});
+
 // Main Welcome Login with Animation - GUARANTEED TO SHOW
 Route::get('/welcome-login', function () {
     return view('welcome-login-app');
@@ -34,7 +47,7 @@ Route::get('/welcome-login', function () {
 // Force redirect from main login to animated welcome login
 Route::get('/login', function () {
     return redirect('/welcome-login');
-});
+})->name('login');
 
 // Redirect unified login to welcome login
 Route::get('/unified-login', function () {

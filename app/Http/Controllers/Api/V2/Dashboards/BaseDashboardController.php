@@ -65,8 +65,8 @@ class BaseDashboardController extends BaseApiController
             return [
                 'id' => $attendance->id,
                 'status' => $attendance->time_out ? 'checked_out' : 'checked_in',
-                'time_in' => $attendance->time_in?->format('H:i:s'),
-                'time_out' => $attendance->time_out?->format('H:i:s'),
+                'time_in' => $attendance->time_in?->format('H:i'),
+                'time_out' => $attendance->time_out?->format('H:i'),
                 'work_duration' => $attendance->time_out ? [
                     'minutes' => $attendance->time_in->diffInMinutes($attendance->time_out),
                     'formatted' => $this->formatWorkDuration($attendance->time_in->diffInMinutes($attendance->time_out)),

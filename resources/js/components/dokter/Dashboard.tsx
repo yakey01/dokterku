@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, DollarSign, User, Home, TrendingUp, Award, Target, Heart, Zap, Flame, Coffee, Moon, Sun, Crown, Star, Shield, Calendar, Loader2 } from 'lucide-react';
 import doctorApi, { UserData, DoctorDashboardData } from '../../utils/doctorApi';
+import { AttendanceProgressBar, JaspelProgressBar, PerformanceProgressBar } from './DynamicProgressBar';
+import MedicalProgressDashboard from './MedicalProgressDashboard';
 
 interface DashboardProps {
   userData?: any;
@@ -13,6 +15,7 @@ export function Dashboard({ userData, onNavigate }: DashboardProps) {
   const [experiencePoints, setExperiencePoints] = useState(2847);
   const [nextLevelXP, setNextLevelXP] = useState(3000);
   const [dailyStreak, setDailyStreak] = useState(15);
+  const [progressAnimationsComplete, setProgressAnimationsComplete] = useState(false);
   const [user, setUser] = useState<UserData | null>(null);
   const [dashboardData, setDashboardData] = useState<DoctorDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -160,12 +163,12 @@ export function Dashboard({ userData, onNavigate }: DashboardProps) {
                     <span className="text-cyan-300">Klinik Dokterku</span>
                     <span className="text-white font-semibold">Sahabat Menuju Sehat</span>
                   </div>
-                  <div className="w-full bg-gray-700/50 rounded-full h-3 overflow-hidden">
-                    <div 
-                      className="bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 h-3 rounded-full transition-all duration-1000 shadow-lg"
-                      style={{ width: `${(experiencePoints / nextLevelXP) * 100}%` }}
-                    ></div>
-                  </div>
+                  <PerformanceProgressBar
+                    performance={(experiencePoints / nextLevelXP) * 100}
+                    label=""
+                    delay={300}
+                    variant="info"
+                  />
                 </div>
 
                 {/* Daily Stats */}
@@ -198,39 +201,43 @@ export function Dashboard({ userData, onNavigate }: DashboardProps) {
             </div>
           </div>
 
-          {/* Doctor Analytics Card - Full width on mobile, 1 col on tablet+ */}
-          <div className="col-span-1 md:col-span-1 lg:col-span-2 relative z-10">
+          {/* Enhanced Progress Analytics - Full width on mobile, spans 2 cols on tablet+ */}
+          <div className="col-span-1 md:col-span-2 lg:col-span-2 relative z-10">
             <div className="bg-white/5 backdrop-blur-2xl rounded-3xl p-6 border border-white/10 h-full">
               <h3 className="text-xl font-bold mb-6 text-center bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
-                Doctor Analytics
+                Performance Analytics
               </h3>
               
-              {/* Achievement Timeline */}
-              <div className="space-y-4">
-                <h4 className="font-semibold text-white mb-4">Recent Achievements</h4>
-                
-                <div className="flex items-center space-x-4 p-3 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-2xl border border-green-400/30">
-                  <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
-                    <DollarSign className="w-5 h-5 text-white" />
+              <div className="space-y-6">
+                {/* Jaspel Progress with Dynamic Animation */}
+                <div className="p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-2xl border border-green-400/20">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <DollarSign className="w-5 h-5 text-green-400" />
+                    <div className="font-medium text-white">Jaspel Progress</div>
                   </div>
-                  <div className="flex-1">
-                    <div className="font-medium text-white">Jaspel Bulan Ini</div>
-                    <div className="text-green-300 text-sm">
-                      Rp {(dashboardData?.jaspel_summary?.current_month || 0).toLocaleString('id-ID')}
-                    </div>
+                  <JaspelProgressBar
+                    currentJaspel={dashboardData?.jaspel_summary?.current_month || 2847000}
+                    targetJaspel={3000000}
+                    delay={500}
+                  />
+                  <div className="text-green-300 text-sm mt-1">
+                    Rp {(dashboardData?.jaspel_summary?.current_month || 0).toLocaleString('id-ID')} this month
                   </div>
-                  <div className="text-2xl text-green-400">+</div>
                 </div>
 
-                <div className="flex items-center space-x-4 p-3 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-2xl border border-blue-400/30">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
-                    <Calendar className="w-5 h-5 text-white" />
+                {/* Attendance Progress with Dynamic Animation */}
+                <div className="p-4 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-2xl border border-blue-400/20">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <Calendar className="w-5 h-5 text-blue-400" />
+                    <div className="font-medium text-white">Attendance Performance</div>
                   </div>
-                  <div className="flex-1">
-                    <div className="font-medium text-white">Tingkat Kehadiran</div>
-                    <div className="text-blue-300 text-sm">96.7% - 29/30 hari</div>
+                  <AttendanceProgressBar
+                    attendanceRate={dashboardData?.performance?.attendance_rate || 96.7}
+                    delay={800}
+                  />
+                  <div className="text-blue-300 text-sm mt-1">
+                    {Math.round((dashboardData?.performance?.attendance_rate || 96.7) * 30 / 100)}/30 days this month
                   </div>
-                  <div className="text-2xl text-blue-400">✓</div>
                 </div>
               </div>
             </div>

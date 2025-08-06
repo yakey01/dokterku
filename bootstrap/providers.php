@@ -12,4 +12,7 @@ return [
     App\Providers\Filament\ParamedisPanelProvider::class,
     App\Providers\Filament\PetugasPanelProvider::class,
     App\Providers\Filament\VerifikatorPanelProvider::class,
+    
+    // Module Service Providers
+    App\Modules\User\Providers\UserServiceProvider::class,
 ];

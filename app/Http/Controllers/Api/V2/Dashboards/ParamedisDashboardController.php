@@ -14,10 +14,36 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @OA\Tag(
+ *     name="Paramedis Dashboard",
+ *     description="Dashboard endpoints for paramedis users"
+ * )
+ */
 class ParamedisDashboardController extends Controller
 {
     /**
-     * Dashboard utama paramedis dengan stats real
+     * @OA\Get(
+     *     path="/api/v2/dashboards/paramedis",
+     *     summary="Get paramedis dashboard overview",
+     *     tags={"Paramedis Dashboard"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Dashboard data retrieved successfully",
+     *         @OA\JsonContent(ref="#/components/schemas/StandardResponse")
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthenticated",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized - Not a paramedis user",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     )
+     * )
      */
     public function index(Request $request)
     {
@@ -119,8 +145,8 @@ class ParamedisDashboardController extends Controller
                         'message' => $attendanceStatus['message'],
                         'can_check_in' => $attendanceStatus['can_check_in'],
                         'can_check_out' => $attendanceStatus['can_check_out'],
-                        'check_in_time' => $attendanceToday ? $attendanceToday->time_in?->format('Y-m-d H:i:s') : null,
-                        'check_out_time' => $attendanceToday ? $attendanceToday->time_out?->format('Y-m-d H:i:s') : null,
+                        'check_in_time' => $attendanceToday ? $attendanceToday->time_in?->format('H:i') : null,
+                        'check_out_time' => $attendanceToday ? $attendanceToday->time_out?->format('H:i') : null,
                         'work_duration' => $attendanceToday ? $attendanceToday->formatted_work_duration : null,
                         'work_duration_minutes' => $attendanceToday && $attendanceToday->time_in && $attendanceToday->time_out 
                             ? $attendanceToday->work_duration 
@@ -253,8 +279,8 @@ class ParamedisDashboardController extends Controller
                     'attendance' => $attendance ? [
                         'id' => $attendance->id,
                         'date' => $attendance->date->format('Y-m-d'),
-                        'check_in_time' => $attendance->time_in?->format('Y-m-d H:i:s'),
-                        'check_out_time' => $attendance->time_out?->format('Y-m-d H:i:s'),
+                        'check_in_time' => $attendance->time_in?->format('H:i'),
+                        'check_out_time' => $attendance->time_out?->format('H:i'),
                         'work_duration' => $attendance->formatted_work_duration,
                         'work_duration_minutes' => $attendance->time_in && $attendance->time_out 
                             ? $attendance->work_duration 

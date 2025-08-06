@@ -91,7 +91,7 @@ export function Profil({ userData, onNavigate }: ProfilProps) {
 
   const mockProfileData: ProfileData = {
     id: '1',
-    name: 'Dr. Naning Paramedis',
+    name: userData?.name || 'Doctor',
     title: 'Senior Medical Officer',
     specialization: 'General Practitioner',
     level: 7,

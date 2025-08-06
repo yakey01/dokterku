@@ -23,7 +23,7 @@ class WorkLocationAssignmentController extends Controller
     }
 
     /**
-     * 🎯 Get comprehensive assignment dashboard data
+     * Get comprehensive assignment dashboard data
      */
     public function getDashboardData(Request $request): JsonResponse
     {

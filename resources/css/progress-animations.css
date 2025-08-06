@@ -1,0 +1,242 @@
+/* Dynamic Progress Bar Animations for Medical Dashboard */
+
+/* Base animations with hardware acceleration */
+.progress-bar {
+  transform: translateZ(0);
+  will-change: width;
+  backface-visibility: hidden;
+}
+
+/* Shimmer effect for active progress bars */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.animate-shimmer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: shimmer 2s linear infinite;
+}
+
+/* Celebration sparkles for high-performance metrics */
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0.5) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1) rotate(180deg);
+  }
+}
+
+.celebration-sparkle {
+  animation: sparkle 1.5s ease-in-out infinite;
+}
+
+.celebration-sparkle:nth-child(2) {
+  animation-delay: 0.3s;
+}
+
+.celebration-sparkle:nth-child(3) {
+  animation-delay: 0.6s;
+}
+
+/* Gentle bounce for celebration elements */
+@keyframes bounce-gentle {
+  0%, 100% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: translateY(-5px);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+.animate-bounce-gentle {
+  animation: bounce-gentle 2s ease-in-out infinite;
+}
+
+/* Pulse animation for completion indicators */
+@keyframes pulse-success {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+.animate-pulse-success {
+  animation: pulse-success 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Glow effects for high-performance metrics */
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 5px rgba(16, 185, 129, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.8), 0 0 30px rgba(16, 185, 129, 0.4);
+  }
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+/* Medical-specific color variants for glow */
+.animate-glow-blue {
+  animation: glow-blue 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow-blue {
+  0% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.8), 0 0 30px rgba(59, 130, 246, 0.4);
+  }
+}
+
+.animate-glow-purple {
+  animation: glow-purple 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow-purple {
+  0% {
+    box-shadow: 0 0 5px rgba(168, 85, 247, 0.5);
+  }
+  100% {
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.8), 0 0 30px rgba(168, 85, 247, 0.4);
+  }
+}
+
+/* Stagger delays for sequential animations */
+.animation-delay-75 { animation-delay: 75ms; }
+.animation-delay-100 { animation-delay: 100ms; }
+.animation-delay-150 { animation-delay: 150ms; }
+.animation-delay-200 { animation-delay: 200ms; }
+.animation-delay-300 { animation-delay: 300ms; }
+.animation-delay-500 { animation-delay: 500ms; }
+.animation-delay-700 { animation-delay: 700ms; }
+.animation-delay-1000 { animation-delay: 1000ms; }
+
+/* Progress bar easing functions */
+.ease-medical-slow {
+  transition-timing-function: cubic-bezier(0.19, 1, 0.22, 1); /* ease-out-expo */
+}
+
+.ease-medical-medium {
+  transition-timing-function: cubic-bezier(0.165, 0.84, 0.44, 1); /* ease-out-quart */
+}
+
+.ease-medical-fast {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); /* ease-out */
+}
+
+/* Accessibility considerations */
+@media (prefers-reduced-motion: reduce) {
+  .progress-bar {
+    transition-duration: 0.2s !important;
+  }
+  
+  .animate-shimmer,
+  .animate-bounce-gentle,
+  .animate-pulse-success,
+  .animate-glow,
+  .animate-glow-blue,
+  .animate-glow-purple {
+    animation: none !important;
+  }
+  
+  .celebration-sparkle {
+    animation: none !important;
+    opacity: 0.7;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .progress-bar {
+    border: 2px solid currentColor;
+  }
+  
+  .animate-shimmer::before {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.8),
+      transparent
+    );
+  }
+}
+
+/* Performance optimizations */
+.progress-container {
+  contain: layout style paint;
+  transform: translateZ(0);
+}
+
+.progress-fill {
+  will-change: width;
+  transform: translateZ(0);
+}
+
+/* Medical dashboard specific styling */
+.medical-progress-excellent {
+  background: linear-gradient(135deg, #10b981 0%, #34d399 50%, #6ee7b7 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.medical-progress-excellent::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: shimmer 3s linear infinite;
+}
+
+.medical-progress-good {
+  background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 50%, #93c5fd 100%);
+}
+
+.medical-progress-warning {
+  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #fcd34d 100%);
+}
+
+.medical-progress-critical {
+  background: linear-gradient(135deg, #ef4444 0%, #f87171 50%, #fca5a5 100%);
+}

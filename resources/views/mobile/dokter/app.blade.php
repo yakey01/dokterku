@@ -6,7 +6,15 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="user-authenticated" content="{{ auth()->check() ? 'true' : 'false' }}">
     <meta name="user-data" content="{{ auth()->check() ? json_encode($userData ?? []) : '{}' }}">
-    <meta name="api-token" content="{{ $token ?? '' }}">
+    <meta name="api-token" content="{{ $token ?? (auth()->user()?->createToken('mobile-app')?->plainTextToken ?? '') }}">
+    <meta name="user-id" content="{{ auth()->id() ?? '' }}">
+    <meta name="user-name" content="{{ auth()->user()?->name ?? '' }}">
+    <meta name="debug-auth" content="{{ json_encode([
+        'authenticated' => auth()->check(),
+        'user_id' => auth()->id(),
+        'has_token' => !empty($token ?? (auth()->user()?->createToken('mobile-app')?->plainTextToken ?? '')),
+        'timestamp' => now()->toISOString()
+    ]) }}">
     
     <!-- PWA Meta Tags for Better iOS Experience -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -269,8 +277,27 @@
     
     <!-- Service Worker Registration -->
     <script>
-        // Hide loading screen once app is ready
+        // Enhanced token validation and debug logging
         document.addEventListener('DOMContentLoaded', function() {
+            // Debug authentication state
+            const debugAuth = document.querySelector('meta[name="debug-auth"]')?.getAttribute('content');
+            const apiToken = document.querySelector('meta[name="api-token"]')?.getAttribute('content');
+            
+            console.log('🔐 Authentication Debug:', JSON.parse(debugAuth || '{}'));
+            console.log('🎫 API Token available:', apiToken ? (apiToken.substring(0, 10) + '...') : 'NO TOKEN');
+            
+            // Validate token availability for Dr. Rindang
+            const userName = document.querySelector('meta[name="user-name"]')?.getAttribute('content');
+            if (userName?.toLowerCase().includes('rindang')) {
+                console.log('🩺 Dr. Rindang detected - validating authentication...');
+                if (!apiToken || apiToken.trim() === '') {
+                    console.error('❌ CRITICAL: Dr. Rindang has no API token - this will cause authentication errors!');
+                } else {
+                    console.log('✅ Dr. Rindang has valid API token');
+                }
+            }
+            
+            // Hide loading screen once app is ready
             setTimeout(function() {
                 const loading = document.getElementById('loading');
                 if (loading) {

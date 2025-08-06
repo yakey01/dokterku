@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\WorkLocationResource\Pages;
 use App\Filament\Resources\WorkLocationResource\RelationManagers;
 use App\Models\WorkLocation;
+use App\Services\WorkLocationDeletionService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -15,6 +16,7 @@ use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\ViewField;
+use Filament\Support\Exceptions\Halt;
 
 class WorkLocationResource extends Resource
 {
@@ -442,6 +444,7 @@ class WorkLocationResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->withoutGlobalScopes([SoftDeletingScope::class]))
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->label('📍 Nama Lokasi')
@@ -536,6 +539,14 @@ class WorkLocationResource extends Resource
                     ->dateTime('d M Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('deleted_at')
+                    ->label('🗑️ Dihapus')
+                    ->dateTime('d M Y H:i')
+                    ->sortable()
+                    ->placeholder('Aktif')
+                    ->toggleable(isToggledHiddenByDefault: false)
+                    ->color(fn ($record) => $record->deleted_at ? 'danger' : 'success'),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('location_type')
@@ -652,12 +663,226 @@ class WorkLocationResource extends Resource
                             ->send();
                     }),
 
+                Action::make('deletion_preview')
+                    ->label('🔍 Preview Deletion')
+                    ->icon('heroicon-o-eye')
+                    ->color('info')
+                    ->modalHeading('Deletion Impact Preview')
+                    ->modalDescription('Review the impact of deleting this work location')
+                    ->modalContent(function ($record) {
+                        $service = app(WorkLocationDeletionService::class);
+                        $preview = $service->getDeletePreview($record);
+                        
+                        return view('filament.work-location.deletion-preview', compact('preview'));
+                    })
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Close'),
+
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                
+                Tables\Actions\DeleteAction::make()
+                    ->label('🗑️ Safe Delete')
+                    ->modalHeading('Safe Work Location Deletion')
+                    ->modalDescription('This will safely delete the work location with proper dependency handling.')
+                    ->form([
+                        Forms\Components\Alert::make('deletion_warning')
+                            ->warning()
+                            ->title('Deletion Impact Assessment')
+                            ->body(function ($record) {
+                                $service = app(WorkLocationDeletionService::class);
+                                $preview = $service->getDeletePreview($record);
+                                
+                                $message = "Location: {$record->name}";
+                                
+                                if (!empty($preview['dependencies']['blocking_dependencies'])) {
+                                    $message .= "\n\n⛔ BLOCKING ISSUES:\n" . implode("\n", $preview['dependencies']['blocking_dependencies']);
+                                }
+                                
+                                if (!empty($preview['dependencies']['warnings'])) {
+                                    $message .= "\n\n⚠️  WARNINGS:\n" . implode("\n", $preview['dependencies']['warnings']);
+                                }
+                                
+                                if ($preview['dependencies']['can_delete']) {
+                                    $message .= "\n\n✅ This location can be safely deleted.";
+                                } else {
+                                    $message .= "\n\n❌ This location cannot be deleted due to blocking dependencies.";
+                                }
+                                
+                                return $message;
+                            }),
+                            
+                        Forms\Components\Toggle::make('reassign_users')
+                            ->label('Automatically reassign users to alternative locations')
+                            ->default(true)
+                            ->helperText('Users will be reassigned to the best matching alternative location'),
+                            
+                        Forms\Components\Toggle::make('preserve_history')
+                            ->label('Preserve assignment history')
+                            ->default(true)
+                            ->helperText('Keep historical records with deletion context'),
+                            
+                        Forms\Components\Textarea::make('deletion_reason')
+                            ->label('Deletion Reason')
+                            ->required()
+                            ->placeholder('Please provide a reason for deleting this work location...')
+                            ->maxLength(500),
+                    ])
+                    ->action(function ($record, $data) {
+                        try {
+                            $service = app(WorkLocationDeletionService::class);
+                            
+                            // Check if deletion is possible
+                            $preview = $service->getDeletePreview($record);
+                            if (!$preview['dependencies']['can_delete']) {
+                                Notification::make()
+                                    ->title('❌ Deletion Failed')
+                                    ->body('Cannot delete location due to blocking dependencies: ' . implode(', ', $preview['dependencies']['blocking_dependencies']))
+                                    ->danger()
+                                    ->persistent()
+                                    ->send();
+                                    
+                                throw new Halt();
+                            }
+                            
+                            $result = $service->safeDelete($record, [
+                                'reassign_users' => $data['reassign_users'] ?? true,
+                                'preserve_history' => $data['preserve_history'] ?? true,
+                                'reason' => $data['deletion_reason'],
+                                'assigned_by' => auth()->id(),
+                            ]);
+                            
+                            if ($result['success']) {
+                                Notification::make()
+                                    ->title('✅ ' . $result['message'])
+                                    ->body("Users reassigned: {$result['data']['users_reassigned']}")
+                                    ->success()
+                                    ->duration(8000)
+                                    ->send();
+                            } else {
+                                Notification::make()
+                                    ->title('❌ Deletion Failed')
+                                    ->body($result['message'])
+                                    ->danger()
+                                    ->persistent()
+                                    ->send();
+                                    
+                                throw new Halt();
+                            }
+                            
+                        } catch (\Exception $e) {
+                            if (!($e instanceof Halt)) {
+                                \Log::error('Work location deletion error in Filament', [
+                                    'record_id' => $record->id,
+                                    'error' => $e->getMessage(),
+                                    'trace' => $e->getTraceAsString()
+                                ]);
+                                
+                                Notification::make()
+                                    ->title('❌ Deletion Error')
+                                    ->body('An unexpected error occurred: ' . $e->getMessage())
+                                    ->danger()
+                                    ->persistent()
+                                    ->send();
+                            }
+                            
+                            throw $e;
+                        }
+                    })
+                    ->requiresConfirmation()
+                    ->modalSubmitActionLabel('Delete Location')
+                    ->visible(fn ($record) => !$record->trashed()),
+
+                Tables\Actions\RestoreAction::make()
+                    ->label('🔄 Restore')
+                    ->successNotification(
+                        Notification::make()
+                            ->success()
+                            ->title('Location Restored')
+                            ->body('Work location has been restored and reactivated.')
+                    ),
+
+                Tables\Actions\ForceDeleteAction::make()
+                    ->label('📛 Force Delete')
+                    ->modalHeading('Permanent Deletion Warning')
+                    ->modalDescription('This will permanently delete the work location and all its data. This action cannot be undone!')
+                    ->modalSubmitActionLabel('Permanently Delete')
+                    ->successNotification(
+                        Notification::make()
+                            ->success()
+                            ->title('Location Permanently Deleted')
+                            ->body('Work location has been permanently removed from the system.')
+                    ),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\BulkAction::make('safe_bulk_delete')
+                        ->label('🗑️ Safe Bulk Delete')
+                        ->icon('heroicon-o-trash')
+                        ->color('danger')
+                        ->form([
+                            Forms\Components\Alert::make('bulk_warning')
+                                ->warning()
+                                ->title('Bulk Deletion Warning')
+                                ->body('You are about to delete multiple work locations. Each will be processed safely with dependency checking.'),
+                                
+                            Forms\Components\Toggle::make('reassign_users')
+                                ->label('Automatically reassign users')
+                                ->default(true),
+                                
+                            Forms\Components\Toggle::make('preserve_history')
+                                ->label('Preserve assignment history')
+                                ->default(true),
+                                
+                            Forms\Components\Textarea::make('deletion_reason')
+                                ->label('Bulk Deletion Reason')
+                                ->required()
+                                ->placeholder('Reason for bulk deletion...')
+                        ])
+                        ->action(function ($records, $data) {
+                            $service = app(WorkLocationDeletionService::class);
+                            $results = [
+                                'successful' => 0,
+                                'failed' => 0,
+                                'skipped' => 0,
+                                'details' => []
+                            ];
+                            
+                            foreach ($records as $record) {
+                                try {
+                                    $result = $service->safeDelete($record, [
+                                        'reassign_users' => $data['reassign_users'] ?? true,
+                                        'preserve_history' => $data['preserve_history'] ?? true,
+                                        'reason' => $data['deletion_reason'],
+                                        'assigned_by' => auth()->id(),
+                                    ]);
+                                    
+                                    if ($result['success']) {
+                                        $results['successful']++;
+                                        $results['details'][] = "✅ {$record->name}: Deleted successfully";
+                                    } else {
+                                        $results['failed']++;
+                                        $results['details'][] = "❌ {$record->name}: {$result['message']}";
+                                    }
+                                    
+                                } catch (\Exception $e) {
+                                    $results['failed']++;
+                                    $results['details'][] = "❌ {$record->name}: {$e->getMessage()}";
+                                }
+                            }
+                            
+                            $message = "Bulk deletion completed: {$results['successful']} successful, {$results['failed']} failed";
+                            
+                            Notification::make()
+                                ->title($results['failed'] === 0 ? '✅ Bulk Deletion Successful' : '⚠️ Bulk Deletion Completed with Issues')
+                                ->body($message)
+                                ->color($results['failed'] === 0 ? 'success' : 'warning')
+                                ->duration(10000)
+                                ->send();
+                        })
+                        ->requiresConfirmation()
+                        ->modalSubmitActionLabel('Delete Selected'),
+                        
                     Tables\Actions\BulkAction::make('activate')
                         ->label('✅ Aktifkan Terpilih')
                         ->icon('heroicon-o-check-circle')
@@ -689,6 +914,26 @@ class WorkLocationResource extends Resource
                         ->requiresConfirmation(),
 
                     Tables\Actions\DeleteBulkAction::make(),
+
+                    Tables\Actions\RestoreBulkAction::make()
+                        ->label('🔄 Restore Selected')
+                        ->successNotification(
+                            Notification::make()
+                                ->success()
+                                ->title('Locations Restored')
+                                ->body('Selected work locations have been restored.')
+                        ),
+
+                    Tables\Actions\ForceDeleteBulkAction::make()
+                        ->label('📛 Force Delete Selected')
+                        ->modalHeading('Permanent Bulk Deletion Warning')
+                        ->modalDescription('This will permanently delete all selected work locations and their data. This action cannot be undone!')
+                        ->successNotification(
+                            Notification::make()
+                                ->success()
+                                ->title('Locations Permanently Deleted')
+                                ->body('Selected work locations have been permanently removed.')
+                        ),
                 ]),
             ])
             ->defaultSort('name')

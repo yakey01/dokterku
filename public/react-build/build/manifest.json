@@ -1,79 +1,79 @@
 {
-  "_dollar-sign-vCdEEM7V.js": {
-    "file": "assets/dollar-sign-vCdEEM7V.js",
-    "name": "dollar-sign"
-  },
-  "_file-text-FTIbtVfz.js": {
-    "file": "assets/file-text-FTIbtVfz.js",
-    "name": "file-text",
+  "_WelcomeLogin-BDngBtA8.js": {
+    "file": "assets/WelcomeLogin-BDngBtA8.js",
+    "name": "WelcomeLogin",
     "imports": [
-      "_dollar-sign-vCdEEM7V.js"
+      "_index-DiapNgPT.js",
+      "_user-DxNguvuN.js",
+      "_zap-wyQ44zFk.js",
+      "_chevron-right-CSIekqs8.js"
     ]
   },
-  "_label-BhP5HlEg.js": {
-    "file": "assets/label-BhP5HlEg.js",
-    "name": "label",
+  "_chevron-right-CSIekqs8.js": {
+    "file": "assets/chevron-right-CSIekqs8.js",
+    "name": "chevron-right",
     "imports": [
-      "_dollar-sign-vCdEEM7V.js",
-      "_wallet-BGuEPEnM.js"
+      "_index-DiapNgPT.js"
     ]
   },
-  "_target-BdWsDL-O.js": {
-    "file": "assets/target-BdWsDL-O.js",
-    "name": "target",
-    "imports": [
-      "_dollar-sign-vCdEEM7V.js"
-    ]
+  "_index-DiapNgPT.js": {
+    "file": "assets/index-DiapNgPT.js",
+    "name": "index"
   },
-  "_trending-up-CO9fHvtZ.js": {
-    "file": "assets/trending-up-CO9fHvtZ.js",
+  "_trending-up-Cw-oqVN-.js": {
+    "file": "assets/trending-up-Cw-oqVN-.js",
     "name": "trending-up",
     "imports": [
-      "_dollar-sign-vCdEEM7V.js"
+      "_chevron-right-CSIekqs8.js"
     ]
   },
-  "_user-BX9MSCbz.js": {
-    "file": "assets/user-BX9MSCbz.js",
+  "_user-DxNguvuN.js": {
+    "file": "assets/user-DxNguvuN.js",
     "name": "user",
     "imports": [
-      "_dollar-sign-vCdEEM7V.js"
+      "_chevron-right-CSIekqs8.js"
     ]
   },
-  "_wallet-BGuEPEnM.js": {
-    "file": "assets/wallet-BGuEPEnM.js",
-    "name": "wallet",
+  "_zap-wyQ44zFk.js": {
+    "file": "assets/zap-wyQ44zFk.js",
+    "name": "zap",
     "imports": [
-      "_dollar-sign-vCdEEM7V.js"
+      "_chevron-right-CSIekqs8.js"
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/css/app-C4fDZ0FA.css",
+    "file": "assets/css/app-B4Akang5.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/css/filament/admin/theme.css": {
-    "file": "assets/css/theme-AzixW3t1.css",
+    "file": "assets/css/theme-CeWadMuC.css",
     "src": "resources/css/filament/admin/theme.css",
     "isEntry": true
   },
   "resources/css/filament/bendahara/theme.css": {
-    "file": "assets/css/theme-CXBkZ-DL.css",
+    "file": "assets/css/theme-CVI0Dr4w.css",
     "src": "resources/css/filament/bendahara/theme.css",
     "isEntry": true
   },
   "resources/css/filament/manajer/theme.css": {
-    "file": "assets/css/theme-DjTsWxQv.css",
+    "file": "assets/css/theme-ryWbd_T0.css",
     "src": "resources/css/filament/manajer/theme.css",
     "isEntry": true
   },
   "resources/css/filament/paramedis/theme.css": {
-    "file": "assets/css/theme-kg6dEZoz.css",
+    "file": "assets/css/theme-Ck5V3pSe.css",
     "src": "resources/css/filament/paramedis/theme.css",
     "isEntry": true
   },
   "resources/css/filament/petugas/theme.css": {
-    "file": "assets/css/theme-Bq3suiRj.css",
+    "file": "assets/css/theme-EUs9ef9c.css",
     "src": "resources/css/filament/petugas/theme.css",
+    "isEntry": true
+  },
+  "resources/css/petugas-table-ux.css": {
+    "file": "assets/css/petugas-table-ux-D7cjGxff.css",
+    "src": "resources/css/petugas-table-ux.css",
     "isEntry": true
   },
   "resources/js/app.js": {
@@ -82,102 +82,83 @@
     "src": "resources/js/app.js",
     "isEntry": true
   },
-  "resources/js/components/paramedis/dashboard-new.tsx": {
-    "file": "assets/dashboard-new-CCgpmTcc.js",
-    "name": "dashboard-new",
-    "src": "resources/js/components/paramedis/dashboard-new.tsx",
-    "isEntry": true,
-    "imports": [
-      "_dollar-sign-vCdEEM7V.js",
-      "_wallet-BGuEPEnM.js",
-      "_trending-up-CO9fHvtZ.js"
-    ]
-  },
   "resources/js/dokter-mobile-app.tsx": {
-    "file": "assets/dokter-mobile-app-C2CBdURZ.js",
+    "file": "assets/dokter-mobile-app-COzDV7Uh.js",
     "name": "dokter-mobile-app",
     "src": "resources/js/dokter-mobile-app.tsx",
     "isEntry": true,
     "imports": [
-      "_dollar-sign-vCdEEM7V.js",
-      "_label-BhP5HlEg.js",
-      "_wallet-BGuEPEnM.js",
-      "_target-BdWsDL-O.js",
-      "_trending-up-CO9fHvtZ.js",
-      "_user-BX9MSCbz.js",
-      "_file-text-FTIbtVfz.js"
+      "_index-DiapNgPT.js",
+      "_trending-up-Cw-oqVN-.js",
+      "_chevron-right-CSIekqs8.js",
+      "_zap-wyQ44zFk.js"
     ],
     "css": [
-      "assets/css/dokter-mobile-app-DrqnFsR5.css"
+      "assets/css/dokter-mobile-app-D5MCJaTt.css",
+      "assets/css/app-B4Akang5.css"
     ]
   },
-  "resources/js/filament/paramedis-gps-attendance.js": {
-    "file": "assets/paramedis-gps-attendance-j0lM6DAb.js",
-    "name": "paramedis-gps-attendance",
-    "src": "resources/js/filament/paramedis-gps-attendance.js",
-    "isEntry": true
-  },
   "resources/js/paramedis-mobile-app.tsx": {
-    "file": "assets/paramedis-mobile-app-Y4WKGsCU.js",
+    "file": "assets/paramedis-mobile-app-WnuTo-CA.js",
     "name": "paramedis-mobile-app",
     "src": "resources/js/paramedis-mobile-app.tsx",
     "isEntry": true,
     "imports": [
-      "_dollar-sign-vCdEEM7V.js",
-      "_label-BhP5HlEg.js",
-      "_wallet-BGuEPEnM.js",
-      "_target-BdWsDL-O.js",
-      "_trending-up-CO9fHvtZ.js",
-      "_user-BX9MSCbz.js",
-      "_file-text-FTIbtVfz.js"
+      "_index-DiapNgPT.js",
+      "_chevron-right-CSIekqs8.js",
+      "_trending-up-Cw-oqVN-.js",
+      "_user-DxNguvuN.js"
     ],
     "css": [
-      "assets/css/dokter-mobile-app-DrqnFsR5.css"
+      "assets/css/paramedis-mobile-app-eMd76FgG.css"
+    ]
+  },
+  "resources/js/test-welcome-login.tsx": {
+    "file": "assets/test-welcome-login-GBGed70L.js",
+    "name": "test-welcome-login",
+    "src": "resources/js/test-welcome-login.tsx",
+    "isEntry": true,
+    "imports": [
+      "_index-DiapNgPT.js",
+      "_WelcomeLogin-BDngBtA8.js",
+      "_user-DxNguvuN.js",
+      "_chevron-right-CSIekqs8.js",
+      "_zap-wyQ44zFk.js"
+    ]
+  },
+  "resources/js/welcome-login-app.tsx": {
+    "file": "assets/welcome-login-app-DO0j4Au9.js",
+    "name": "welcome-login-app",
+    "src": "resources/js/welcome-login-app.tsx",
+    "isEntry": true,
+    "imports": [
+      "_index-DiapNgPT.js",
+      "_WelcomeLogin-BDngBtA8.js",
+      "_user-DxNguvuN.js",
+      "_chevron-right-CSIekqs8.js",
+      "_zap-wyQ44zFk.js"
+    ],
+    "css": [
+      "assets/css/welcome-login-app-BIWBYsIo.css",
+      "assets/css/app-B4Akang5.css"
+    ]
+  },
+  "resources/js/welcome-login-new.tsx": {
+    "file": "assets/welcome-login-new-BisSLCCB.js",
+    "name": "welcome-login-new",
+    "src": "resources/js/welcome-login-new.tsx",
+    "isEntry": true,
+    "imports": [
+      "_index-DiapNgPT.js"
+    ],
+    "css": [
+      "assets/css/app-B4Akang5.css"
     ]
   },
   "resources/js/widget-animations.js": {
     "file": "assets/widget-animations-C3Cz4mpR.js",
     "name": "widget-animations",
     "src": "resources/js/widget-animations.js",
-    "isEntry": true
-  },
-  "resources/react/paramedis-jaspel/main.jsx": {
-    "file": "assets/main-fLAE-f2u.js",
-    "name": "main",
-    "src": "resources/react/paramedis-jaspel/main.jsx",
-    "isEntry": true,
-    "imports": [
-      "_dollar-sign-vCdEEM7V.js",
-      "_user-BX9MSCbz.js",
-      "_file-text-FTIbtVfz.js"
-    ],
-    "css": [
-      "assets/css/ParamedisJaspelDashboard-pIMxggWM.css"
-    ]
-  },
-  "resources/react/paramedis-jaspel/styles/ParamedisJaspelDashboard.css": {
-    "file": "assets/css/ParamedisJaspelDashboard-pIMxggWM.css",
-    "src": "resources/react/paramedis-jaspel/styles/ParamedisJaspelDashboard.css",
-    "isEntry": true
-  },
-  "resources/react/premium-paramedis-dashboard/main.jsx": {
-    "file": "assets/main-CiY_uKLT.js",
-    "name": "main",
-    "src": "resources/react/premium-paramedis-dashboard/main.jsx",
-    "isEntry": true,
-    "imports": [
-      "_dollar-sign-vCdEEM7V.js",
-      "_target-BdWsDL-O.js",
-      "_trending-up-CO9fHvtZ.js",
-      "_user-BX9MSCbz.js"
-    ],
-    "css": [
-      "assets/css/PremiumParamedisDashboard-C-qEcOhw.css"
-    ]
-  },
-  "resources/react/premium-paramedis-dashboard/styles/PremiumParamedisDashboard.css": {
-    "file": "assets/css/PremiumParamedisDashboard-C-qEcOhw.css",
-    "src": "resources/react/premium-paramedis-dashboard/styles/PremiumParamedisDashboard.css",
     "isEntry": true
   }
 }

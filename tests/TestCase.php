@@ -5,6 +5,7 @@ namespace Tests;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Contracts\Console\Kernel;
+use Illuminate\Support\Facades\DB;
 use Tests\Traits\RoleSetupTrait;
 
 abstract class TestCase extends BaseTestCase
@@ -28,6 +29,25 @@ abstract class TestCase extends BaseTestCase
         
         // Clear any existing permission cache
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        
+        // Enable query logging for performance testing
+        DB::enableQueryLog();
+        
+        // Set up test-specific configuration
+        $this->configureTestEnvironment();
+    }
+    
+    /**
+     * Configure test environment settings
+     */
+    protected function configureTestEnvironment(): void
+    {
+        config(['app.env' => 'testing']);
+        config(['cache.default' => 'array']);
+        config(['session.driver' => 'array']);
+        config(['queue.default' => 'sync']);
+        config(['api.rate_limits.enabled' => false]);
+        config(['logging.default' => 'stderr']);
     }
     
     /**
@@ -98,10 +118,97 @@ abstract class TestCase extends BaseTestCase
      */
     protected function tearDown(): void
     {
+        // Clear query log
+        DB::flushQueryLog();
+        
         // Clean up test database files
         $this->cleanupTestDatabases();
         
         parent::tearDown();
+    }
+    
+    /**
+     * Assert that response time is within acceptable limits
+     */
+    protected function assertResponseTimeWithin(int $maxMilliseconds = 2000): void
+    {
+        $executionTime = (microtime(true) - LARAVEL_START) * 1000;
+        
+        $this->assertLessThan(
+            $maxMilliseconds,
+            $executionTime,
+            "Response time {$executionTime}ms exceeded limit of {$maxMilliseconds}ms"
+        );
+    }
+    
+    /**
+     * Assert that database query count is within limits
+     */
+    protected function assertQueryCountWithin(int $maxQueries = 20): void
+    {
+        $queryCount = count(DB::getQueryLog());
+        
+        $this->assertLessThan(
+            $maxQueries,
+            $queryCount,
+            "Query count {$queryCount} exceeded limit of {$maxQueries}"
+        );
+    }
+    
+    /**
+     * Assert that memory usage is within limits
+     */
+    protected function assertMemoryUsageWithin(int $maxMegabytes = 64): void
+    {
+        $memoryUsage = memory_get_peak_usage(true) / 1024 / 1024;
+        
+        $this->assertLessThan(
+            $maxMegabytes,
+            $memoryUsage,
+            "Memory usage {$memoryUsage}MB exceeded limit of {$maxMegabytes}MB"
+        );
+    }
+    
+    /**
+     * Assert JSON response has standard API structure
+     */
+    protected function assertStandardApiResponse($response): void
+    {
+        $response->assertJsonStructure([
+            'success',
+            'data',
+            'meta' => [
+                'timestamp'
+            ]
+        ]);
+    }
+    
+    /**
+     * Assert error response has standard structure
+     */
+    protected function assertErrorResponse($response, int $statusCode = 400): void
+    {
+        $response->assertStatus($statusCode)
+                ->assertJsonStructure([
+                    'success',
+                    'message',
+                    'meta' => [
+                        'timestamp'
+                    ]
+                ]);
+        
+        $response->assertJson(['success' => false]);
+    }
+    
+    /**
+     * Assert API endpoint performance meets standards
+     */
+    protected function assertApiPerformance($response): void
+    {
+        $response->assertSuccessful();
+        $this->assertResponseTimeWithin(2000); // 2 seconds max
+        $this->assertQueryCountWithin(20);     // Max 20 queries
+        $this->assertMemoryUsageWithin(64);    // Max 64MB
     }
     
     /**

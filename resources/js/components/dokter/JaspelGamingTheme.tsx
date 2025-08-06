@@ -19,7 +19,11 @@ import {
   CheckCircle
 } from 'lucide-react';
 
-const JaspelGamingTheme = () => {
+interface JaspelGamingThemeProps {
+  userData?: any;
+}
+
+const JaspelGamingTheme: React.FC<JaspelGamingThemeProps> = ({ userData }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [currentJagaPage, setCurrentJagaPage] = useState(1);
   const [currentTindakanPage, setCurrentTindakanPage] = useState(1);
@@ -356,7 +360,7 @@ const JaspelGamingTheme = () => {
               Jasa Pelayanan (JASPEL)
             </h1>
             <p className={`text-cyan-200 ${isIpad ? 'text-lg md:text-xl' : 'text-base'}`}>
-              Dr. Naning Paramedis
+              {userData?.name || 'Doctor'}
             </p>
           </div>
 

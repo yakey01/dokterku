@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 class JadwalJaga extends Model
 {
@@ -176,5 +177,49 @@ class JadwalJaga extends Model
                 $query->whereIn('name', ['petugas', 'paramedis', 'bendahara', 'admin']);
             })->get();
         }
+    }
+
+    /**
+     * Boot method to handle model events for cache invalidation
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Clear dashboard cache when schedule is created, updated, or deleted
+        static::created(function ($jadwal) {
+            self::clearDashboardCacheForUser($jadwal->pegawai_id);
+        });
+
+        static::updated(function ($jadwal) {
+            self::clearDashboardCacheForUser($jadwal->pegawai_id);
+        });
+
+        static::deleted(function ($jadwal) {
+            self::clearDashboardCacheForUser($jadwal->pegawai_id);
+        });
+    }
+
+    /**
+     * Clear dashboard cache for a specific user
+     */
+    protected static function clearDashboardCacheForUser($userId)
+    {
+        if (!$userId) return;
+        
+        // Clear all dashboard-related cache keys for the user
+        $cacheKeys = [
+            "dokter_dashboard_stats_{$userId}",
+            "paramedis_dashboard_stats_{$userId}",
+            "user_dashboard_cache_{$userId}",
+            "schedule_cache_{$userId}",
+            "attendance_status_{$userId}"
+        ];
+
+        foreach ($cacheKeys as $key) {
+            Cache::forget($key);
+        }
+
+        \Log::info("🗑️ Cleared dashboard cache for user {$userId} due to schedule change");
     }
 }

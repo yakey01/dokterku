@@ -44,7 +44,11 @@ Route::prefix('v2')->middleware(['auth:sanctum', 'throttle:api'])->name('api.v2.
     Route::prefix('jadwal-jaga')->name('jadwal.')->group(function () {
         Route::get('/', 'Api\V2\JadwalJagaController@index');
         Route::get('/user/{userId}', 'Api\V2\JadwalJagaController@getUserSchedules');
-        Route::get('/current', 'Api\V2\JadwalJagaController@getCurrentSchedule');
+        Route::get('/current', 'Api\V2\JadwalJagaController@current');
+        Route::post('/validate-checkin', 'Api\V2\JadwalJagaController@validateCheckin');
+        Route::get('/today', 'Api\V2\JadwalJagaController@today');
+        Route::get('/week', 'Api\V2\JadwalJagaController@week');
+        Route::get('/duration', 'Api\V2\JadwalJagaController@duration');
         Route::get('/monthly', 'Api\V2\JadwalJagaController@getMonthlySchedules');
     });
     

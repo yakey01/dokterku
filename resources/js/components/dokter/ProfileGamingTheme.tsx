@@ -25,7 +25,11 @@ import {
   Zap
 } from 'lucide-react';
 
-const ProfileGamingTheme = () => {
+interface ProfileGamingThemeProps {
+  userData?: any;
+}
+
+const ProfileGamingTheme: React.FC<ProfileGamingThemeProps> = ({ userData }) => {
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditMode, setIsEditMode] = useState(false);
   const [isIpad, setIsIpad] = useState(false);
@@ -51,7 +55,7 @@ const ProfileGamingTheme = () => {
 
   // Profile Data
   const profileData = {
-    name: "Dr. Naning Paramedis",
+    name: userData?.name || 'Doctor',
     title: "Senior Medical Officer",
     specialization: "Emergency Medicine",
     level: 42,

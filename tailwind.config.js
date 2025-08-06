@@ -62,6 +62,42 @@ export default {
                 'mobile': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
                 'mobile-lg': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
             },
+            animation: {
+                'shimmer': 'shimmer 2s linear infinite',
+                'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                'bounce-gentle': 'bounce-gentle 2s ease-in-out infinite',
+                'glow': 'glow 2s ease-in-out infinite alternate',
+            },
+            keyframes: {
+                shimmer: {
+                    '0%': { transform: 'translateX(-100%)' },
+                    '100%': { transform: 'translateX(100%)' }
+                },
+                'bounce-gentle': {
+                    '0%, 100%': { 
+                        transform: 'translateY(0)',
+                        animationTimingFunction: 'cubic-bezier(0.8, 0, 1, 1)'
+                    },
+                    '50%': { 
+                        transform: 'translateY(-5%)',
+                        animationTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)'
+                    }
+                },
+                glow: {
+                    '0%': { boxShadow: '0 0 5px rgba(59, 130, 246, 0.5)' },
+                    '100%': { boxShadow: '0 0 20px rgba(59, 130, 246, 0.8)' }
+                }
+            },
+            animationDelay: {
+                '75': '75ms',
+                '100': '100ms',
+                '150': '150ms',
+                '200': '200ms',
+                '300': '300ms',
+                '500': '500ms',
+                '700': '700ms',
+                '1000': '1000ms',
+            },
         },
     },
 

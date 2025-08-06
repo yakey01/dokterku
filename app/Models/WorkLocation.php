@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class WorkLocation extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -309,6 +310,85 @@ class WorkLocation extends Model
     public function assignmentHistories(): HasMany
     {
         return $this->hasMany(AssignmentHistory::class);
+    }
+
+    /**
+     * Get location validations
+     */
+    public function locationValidations(): HasMany
+    {
+        return $this->hasMany(\App\Models\LocationValidation::class);
+    }
+
+    /**
+     * Boot method for model events
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($workLocation) {
+            // When soft deleting, also deactivate the location
+            if (!$workLocation->isForceDeleting()) {
+                $workLocation->is_active = false;
+                $workLocation->save();
+            }
+        });
+
+        static::restoring(function ($workLocation) {
+            // When restoring, reactivate the location
+            $workLocation->is_active = true;
+            $workLocation->save();
+        });
+    }
+
+    /**
+     * Check if location can be safely deleted
+     */
+    public function canBeDeleted(): array
+    {
+        $assignedUsersCount = $this->users()->count();
+        $attendancesCount = $this->attendances()->count();
+        $locationValidationsCount = 0;
+        
+        // Check location validations if the relationship exists
+        try {
+            $locationValidationsCount = $this->locationValidations()->count();
+        } catch (\Exception $e) {
+            // Relationship doesn't exist or table doesn't exist
+        }
+
+        $canDelete = $assignedUsersCount === 0 && $attendancesCount === 0 && $locationValidationsCount === 0;
+
+        return [
+            'can_delete' => $canDelete,
+            'assigned_users' => $assignedUsersCount,
+            'attendances' => $attendancesCount,
+            'location_validations' => $locationValidationsCount,
+            'blocking_reason' => !$canDelete ? $this->getBlockingReason($assignedUsersCount, $attendancesCount, $locationValidationsCount) : null
+        ];
+    }
+
+    /**
+     * Get blocking reason for deletion
+     */
+    protected function getBlockingReason(int $users, int $attendances, int $validations): string
+    {
+        $reasons = [];
+        
+        if ($users > 0) {
+            $reasons[] = "{$users} assigned user(s)";
+        }
+        
+        if ($attendances > 0) {
+            $reasons[] = "{$attendances} attendance record(s)";
+        }
+        
+        if ($validations > 0) {
+            $reasons[] = "{$validations} location validation(s)";
+        }
+        
+        return 'Has ' . implode(', ', $reasons);
     }
 
     /**

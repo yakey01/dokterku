@@ -1,7 +1,9 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import HolisticMedicalDashboard from './components/dokter/HolisticMedicalDashboard';
+import UnifiedAuth from './utils/UnifiedAuth';
 import '../css/app.css';
+import '../css/responsive-typography.css';
 import './setup-csrf';
 
 // 🌟 WORLD-CLASS ERROR HANDLING & MONITORING SYSTEM
@@ -184,6 +186,30 @@ class DokterKuBootstrap {
         }
         
         console.log('✅ Pre-flight checks passed');
+        
+        // Initialize authentication token from meta tag
+        this.initializeAuthentication();
+    }
+    
+    private initializeAuthentication(): void {
+        try {
+            console.log('🔐 Initializing authentication...');
+            
+            // Initialize token from meta tag if available
+            const tokenMeta = document.querySelector('meta[name="api-token"]');
+            const metaToken = tokenMeta?.getAttribute('content');
+            
+            if (metaToken && metaToken.trim()) {
+                // Store the token for API use
+                UnifiedAuth.setToken(metaToken.trim());
+                console.log('✅ API token initialized from meta tag');
+            } else {
+                console.warn('⚠️ No API token found in meta tag, may affect API calls');
+            }
+            
+        } catch (error) {
+            console.error('❌ Authentication initialization failed:', error);
+        }
     }
     
     private async mountReactApp(): Promise<void> {
@@ -193,6 +219,32 @@ class DokterKuBootstrap {
         
         const container = document.getElementById('dokter-app');
         if (!container) throw new Error('Container not found during mount');
+        
+        // Get user data from meta tag
+        let userData = null;
+        const userDataMeta = document.querySelector('meta[name="user-data"]');
+        if (userDataMeta) {
+            try {
+                const content = userDataMeta.getAttribute('content') || '{}';
+                if (content.trim() && content !== '{}') {
+                    userData = JSON.parse(content);
+                    console.log('✅ User data loaded:', userData.name || 'Unknown');
+                }
+            } catch (e) {
+                console.error('❌ Failed to parse user data:', e);
+            }
+        }
+        
+        // Fallback user data if needed
+        if (!userData || Object.keys(userData).length === 0) {
+            userData = {
+                name: 'Dokter',
+                email: '',
+                greeting: 'Selamat datang',
+                initials: 'DR'
+            };
+            console.log('⚠️ Using fallback user data');
+        }
         
         // Hide loading spinner with smooth transition
         const loadingElement = document.getElementById('loading');
@@ -207,11 +259,11 @@ class DokterKuBootstrap {
         // Create React root with error boundary
         const root = createRoot(container);
         
-        // Render with error boundary wrapper
+        // Render with error boundary wrapper - pass userData as prop
         root.render(
             <React.StrictMode>
                 <ErrorBoundary>
-                    <HolisticMedicalDashboard />
+                    <HolisticMedicalDashboard userData={userData} />
                 </ErrorBoundary>
             </React.StrictMode>
         );

@@ -150,7 +150,7 @@ function AppContent() {
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-950 transition-colors duration-300">
         {/* Header */}
         <div className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors duration-300">
-          <div className="max-w-md mx-auto px-4 py-4">
+          <div className="w-full max-w-md md:max-w-4xl lg:max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500 rounded-full flex items-center justify-center">
@@ -194,20 +194,42 @@ function AppContent() {
         </div>
 
         {/* Main Content */}
-        <div className="max-w-md mx-auto">
-          <div className="px-4 py-6 pb-28 min-h-[calc(100vh-120px)] theme-transition">
+        <div className="w-full max-w-md md:max-w-4xl lg:max-w-7xl mx-auto lg:flex lg:gap-8">
+          {/* Desktop Sidebar Navigation */}
+          <div className="hidden lg:block lg:w-64 lg:flex-shrink-0">
+            <div className="sticky top-8 space-y-2 p-4 bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
+              {tabs.map((tab) => (
+                <Button
+                  key={tab.id}
+                  variant="ghost"
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`w-full justify-start py-3 px-4 min-h-[48px] rounded-xl transition-all duration-300 ${
+                    activeTab === tab.id
+                      ? 'bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 shadow-sm font-semibold'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                  }`}
+                >
+                  <tab.icon className="w-5 h-5 mr-3" />
+                  <span className="text-base">{tab.label}</span>
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Main Content Area */}
+          <div className="flex-1 px-4 md:px-6 lg:px-0 py-6 pb-28 lg:pb-6 min-h-[calc(100vh-120px)] theme-transition">
             <div className="space-y-6">
               {renderContent()}
             </div>
             
             {/* Bottom Spacing untuk ensure content tidak terpotong */}
-            <div className="h-8 safe-area-pb"></div>
+            <div className="h-8 safe-area-pb lg:hidden"></div>
           </div>
         </div>
 
-        {/* Bottom Navigation */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-t border-gray-200 dark:border-gray-700 safe-area-pb shadow-lg transition-all duration-300 card-enhanced">
-          <div className="max-w-md mx-auto">
+        {/* Bottom Navigation - Hidden on Desktop */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-t border-gray-200 dark:border-gray-700 safe-area-pb shadow-lg transition-all duration-300 card-enhanced lg:hidden">
+          <div className="w-full max-w-md md:max-w-4xl mx-auto">
             <div className="flex items-center justify-around py-2">
               {tabs.map((tab) => (
                 <motion.div
@@ -220,7 +242,7 @@ function AppContent() {
                     variant="ghost"
                     size="sm"
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex flex-col items-center space-y-1 px-2 py-3 min-w-0 rounded-xl transition-all duration-300 ${
+                    className={`flex flex-col items-center space-y-1 px-2 py-3 min-w-0 min-h-[44px] rounded-xl transition-all duration-300 ${
                       activeTab === tab.id
                         ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 shadow-sm scale-105'
                         : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800/50'
@@ -249,7 +271,7 @@ function AppContent() {
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
-                className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden"
+                className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-sm md:max-w-md lg:max-w-lg overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
@@ -319,7 +341,7 @@ function AppContent() {
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
-                className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden"
+                className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-sm md:max-w-md lg:max-w-lg overflow-hidden"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="bg-gradient-to-r from-green-600 to-blue-600 p-6 text-white">

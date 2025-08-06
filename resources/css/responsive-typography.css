@@ -1,0 +1,267 @@
+/* Responsive Typography for DOKTERKU Mobile Layout */
+/* Following mobile_layout.md specifications exactly */
+
+/* Base font size for mobile */
+html {
+  font-size: 16px;
+}
+
+/* Scale up for tablets */
+@media (min-width: 768px) {
+  html {
+    font-size: 17px;
+  }
+}
+
+/* Scale up for desktop */
+@media (min-width: 1024px) {
+  html {
+    font-size: 18px;
+  }
+}
+
+/* Responsive heading sizes using clamp() */
+.responsive-h1 {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  line-height: 1.2;
+}
+
+.responsive-h2 {
+  font-size: clamp(1.25rem, 3vw, 2rem);
+  line-height: 1.3;
+}
+
+.responsive-body {
+  font-size: 1rem;
+  line-height: 1.6;
+  max-width: 65ch; /* Optimal reading length */
+}
+
+/* Study mode typography - enhanced readability */
+.study-mode .responsive-body {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  letter-spacing: 0.02em;
+}
+
+/* Mobile-first breakpoints matching mobile_layout.md */
+/* Extra Small (Mobile Portrait) */
+@media (min-width: 0px) {
+  .mobile-base {
+    /* Base mobile styles */
+    padding: 1rem;
+    gap: 1rem;
+  }
+}
+
+/* Small (Mobile Landscape) */
+@media (min-width: 576px) {
+  .mobile-landscape {
+    /* Larger phones */
+    padding: 1.25rem;
+    gap: 1.25rem;
+  }
+}
+
+/* Medium (Tablets) */
+@media (min-width: 768px) {
+  .tablet-base {
+    /* Tablets and small laptops */
+    padding: 1.5rem;
+    gap: 1.5rem;
+  }
+}
+
+/* Large (Desktop) */
+@media (min-width: 1024px) {
+  .desktop-base {
+    /* Desktop computers */
+    padding: 2rem;
+    gap: 2rem;
+  }
+}
+
+/* Extra Large (Wide Desktop) */
+@media (min-width: 1280px) {
+  .wide-desktop {
+    /* Large monitors */
+    padding: 2.5rem;
+    gap: 2.5rem;
+  }
+}
+
+/* Content Grid System exactly as specified */
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+/* Tablet: Two Columns */
+@media (min-width: 768px) {
+  .content-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+}
+
+/* Desktop: Three Columns with Sidebar */
+@media (min-width: 1024px) {
+  .content-grid {
+    grid-template-columns: 250px 1fr;
+    gap: 2rem;
+    padding: 2rem;
+  }
+  
+  .main-content {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+/* Touch-friendly design - 44px minimum button size */
+.touch-friendly {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 12px;
+}
+
+/* Responsive images */
+.responsive-img {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  display: block;
+}
+
+/* Navigation responsive styles */
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@media (min-width: 768px) {
+  .nav-container {
+    padding: 0 2rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .nav-container {
+    padding: 0 3rem;
+  }
+}
+
+/* Course card component responsive styles */
+.course-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.course-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Progress bar responsive styles */
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 1rem 0;
+}
+
+.progress {
+  height: 100%;
+  background: linear-gradient(90deg, #06b6d4, #8b5cf6);
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+
+/* Gaming-style enhancements */
+.gaming-card {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(88, 28, 135, 0.6));
+  border: 2px solid rgba(139, 92, 246, 0.3);
+  border-radius: 1rem;
+  backdrop-filter: blur(20px);
+  position: relative;
+  overflow: hidden;
+}
+
+.gaming-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.8), transparent);
+}
+
+/* Accessible focus styles */
+.focus-visible:focus-visible {
+  outline: 2px solid #06b6d4;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .gaming-card {
+    border-width: 3px;
+    border-color: #ffffff;
+  }
+  
+  .nav-link {
+    text-decoration: underline;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .progress,
+  .course-card,
+  .gaming-card {
+    transition: none;
+  }
+  
+  .animate-pulse,
+  .animate-bounce {
+    animation: none;
+  }
+}
+
+/* Dark mode optimization */
+@media (prefers-color-scheme: dark) {
+  .course-card {
+    background: rgba(15, 23, 42, 0.9);
+    border-color: rgba(139, 92, 246, 0.4);
+  }
+}
+
+/* Print styles */
+@media print {
+  .mobile-nav,
+  .desktop-nav,
+  .bottom-navigation {
+    display: none !important;
+  }
+  
+  .main-content {
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+    background: white;
+    color: black;
+  }
+}
