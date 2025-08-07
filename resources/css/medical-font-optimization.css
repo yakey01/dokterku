@@ -1,0 +1,418 @@
+/**
+ * 🏥 MEDICAL FONT OPTIMIZATION
+ * Built-in font system for medical dashboard - eliminates external dependencies
+ * Optimized for healthcare professionals with accessibility and performance
+ */
+
+/* =============================================================================
+   SYSTEM FONT STACKS - MEDICAL OPTIMIZED
+   ============================================================================= */
+
+:root {
+    /* Primary medical interface font - Sans Serif */
+    --font-medical-sans: 
+        system-ui,
+        -apple-system,
+        'Segoe UI',
+        'Roboto',
+        'Helvetica Neue',
+        'Arial',
+        'Noto Sans',
+        'Liberation Sans',
+        sans-serif,
+        'Apple Color Emoji',
+        'Segoe UI Emoji',
+        'Segoe UI Symbol',
+        'Noto Color Emoji';
+
+    /* Medical data and charts - Monospace for precise alignment */
+    --font-medical-mono: 
+        'SF Mono',
+        'Monaco',
+        'Inconsolata',
+        'Roboto Mono',
+        'Ubuntu Mono',
+        'Consolas',
+        'Courier New',
+        monospace;
+
+    /* Medical reports and printing - Serif for readability */
+    --font-medical-serif: 
+        'Times New Roman',
+        'Georgia',
+        'Cambria',
+        'Times',
+        serif;
+
+    /* Display fonts for headers and emphasis */
+    --font-medical-display: 
+        system-ui,
+        -apple-system,
+        'Segoe UI',
+        'Helvetica Neue',
+        'Arial',
+        sans-serif;
+
+    /* Font weights for medical interface hierarchy */
+    --weight-light: 300;
+    --weight-normal: 400;
+    --weight-medium: 500;
+    --weight-semibold: 600;
+    --weight-bold: 700;
+    --weight-extrabold: 800;
+    --weight-black: 900;
+}
+
+/* =============================================================================
+   BASE TYPOGRAPHY RESET
+   ============================================================================= */
+
+* {
+    font-family: var(--font-medical-sans);
+}
+
+body {
+    font-family: var(--font-medical-sans);
+    font-weight: var(--weight-normal);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+/* =============================================================================
+   MEDICAL INTERFACE TYPOGRAPHY
+   ============================================================================= */
+
+/* Headers - Medical Dashboard */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-medical-display);
+    font-weight: var(--weight-semibold);
+    line-height: 1.3;
+    letter-spacing: -0.025em;
+}
+
+h1 { font-size: 2.25rem; font-weight: var(--weight-bold); }
+h2 { font-size: 1.875rem; font-weight: var(--weight-semibold); }
+h3 { font-size: 1.5rem; font-weight: var(--weight-semibold); }
+h4 { font-size: 1.25rem; font-weight: var(--weight-medium); }
+h5 { font-size: 1.125rem; font-weight: var(--weight-medium); }
+h6 { font-size: 1rem; font-weight: var(--weight-medium); }
+
+/* Medical Data Display */
+.medical-data,
+.patient-info,
+.vital-signs,
+.lab-results {
+    font-family: var(--font-medical-mono);
+    font-weight: var(--weight-normal);
+    letter-spacing: 0.025em;
+    line-height: 1.5;
+}
+
+/* Charts and Analytics */
+.chart-container,
+.analytics-panel,
+.dashboard-metrics {
+    font-family: var(--font-medical-sans);
+    font-weight: var(--weight-normal);
+}
+
+/* Navigation and UI Elements */
+.nav-item,
+.menu-item,
+.button,
+.form-control {
+    font-family: var(--font-medical-sans);
+    font-weight: var(--weight-medium);
+}
+
+/* Medical Reports - Print Optimized */
+@media print {
+    * {
+        font-family: var(--font-medical-serif) !important;
+    }
+    
+    .medical-report,
+    .patient-report,
+    .lab-report {
+        font-family: var(--font-medical-serif);
+        font-size: 12pt;
+        line-height: 1.4;
+    }
+}
+
+/* =============================================================================
+   COMPONENT-SPECIFIC FONT OPTIMIZATIONS
+   ============================================================================= */
+
+/* Filament Admin Interface */
+.fi-body,
+.fi-main,
+.fi-sidebar {
+    font-family: var(--font-medical-sans);
+}
+
+.fi-header {
+    font-family: var(--font-medical-display);
+    font-weight: var(--weight-semibold);
+}
+
+.fi-ta-text {
+    font-family: var(--font-medical-sans);
+}
+
+/* Laravel Livewire Components */
+[wire\:loading],
+[wire\:target] {
+    font-family: var(--font-medical-sans);
+}
+
+/* React Components */
+.react-component,
+.medical-dashboard,
+.holistic-dashboard {
+    font-family: var(--font-medical-sans);
+}
+
+/* Tailwind CSS Integration */
+.font-inter,
+.font-sans {
+    font-family: var(--font-medical-sans) !important;
+}
+
+.font-mono {
+    font-family: var(--font-medical-mono) !important;
+}
+
+.font-serif {
+    font-family: var(--font-medical-serif) !important;
+}
+
+/* =============================================================================
+   ACCESSIBILITY ENHANCEMENTS
+   ============================================================================= */
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    body {
+        font-weight: var(--weight-medium);
+    }
+    
+    .medical-data,
+    .patient-info {
+        font-weight: var(--weight-semibold);
+    }
+}
+
+/* Large text preferences */
+@media (prefers-font-size: large) {
+    body {
+        font-size: 1.125rem;
+    }
+    
+    .medical-data,
+    .patient-info {
+        font-size: 1.25rem;
+    }
+}
+
+/* =============================================================================
+   MOBILE MEDICAL OPTIMIZATION
+   ============================================================================= */
+
+@media (max-width: 768px) {
+    body {
+        font-size: 16px; /* Minimum for healthcare professionals on mobile */
+    }
+    
+    .medical-data,
+    .patient-info {
+        font-size: 17px; /* Enhanced readability on mobile */
+        line-height: 1.6;
+    }
+    
+    h1 { font-size: 1.75rem; }
+    h2 { font-size: 1.5rem; }
+    h3 { font-size: 1.25rem; }
+    h4 { font-size: 1.125rem; }
+    h5 { font-size: 1rem; }
+    h6 { font-size: 0.925rem; }
+}
+
+/* =============================================================================
+   PERFORMANCE OPTIMIZATIONS
+   ============================================================================= */
+
+/* Font loading optimization */
+body {
+    font-display: swap; /* Ensure text remains visible during font load */
+}
+
+/* Prevent invisible text during font swap */
+@font-face {
+    font-display: swap;
+}
+
+/* Text rendering optimization for medical interfaces */
+.medical-text,
+.patient-data,
+.clinical-notes {
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* =============================================================================
+   LEGACY FONT CLASS OVERRIDES
+   ============================================================================= */
+
+/* Override any remaining external font references */
+.font-inter,
+.inter,
+[class*="inter"],
+.font-figtree,
+.figtree,
+[class*="figtree"],
+.font-jetbrains,
+.jetbrains,
+[class*="jetbrains"] {
+    font-family: var(--font-medical-sans) !important;
+}
+
+/* Monospace overrides */
+.font-jetbrains-mono,
+.jetbrains-mono,
+[class*="jetbrains-mono"],
+.font-mono,
+.mono {
+    font-family: var(--font-medical-mono) !important;
+}
+
+/* =============================================================================
+   CHART AND VISUALIZATION FONTS
+   ============================================================================= */
+
+/* Recharts specific optimization */
+.recharts-text,
+.recharts-label,
+.recharts-legend-item-text,
+.recharts-tooltip-wrapper {
+    font-family: var(--font-medical-sans) !important;
+    font-weight: var(--weight-normal) !important;
+}
+
+.recharts-cartesian-axis-tick-value,
+.recharts-polar-grid-angle-tick-value {
+    font-family: var(--font-medical-mono) !important;
+    font-size: 0.875rem !important;
+}
+
+/* Chart.js optimization */
+.chartjs-render-monitor,
+canvas[role="img"] {
+    font-family: var(--font-medical-sans);
+}
+
+/* =============================================================================
+   MEDICAL DASHBOARD SPECIFIC STYLING
+   ============================================================================= */
+
+/* Gaming-style components with professional fonts */
+.gaming-card,
+.medical-mission,
+.holistic-dashboard {
+    font-family: var(--font-medical-display);
+}
+
+.gaming-card .title {
+    font-weight: var(--weight-bold);
+    letter-spacing: -0.025em;
+}
+
+.gaming-card .subtitle {
+    font-weight: var(--weight-medium);
+}
+
+.gaming-card .stats {
+    font-family: var(--font-medical-mono);
+    font-weight: var(--weight-semibold);
+}
+
+/* Medical forms and inputs */
+.medical-form input,
+.medical-form select,
+.medical-form textarea,
+.patient-form input,
+.patient-form select,
+.patient-form textarea {
+    font-family: var(--font-medical-sans);
+    font-weight: var(--weight-normal);
+    font-size: 1rem;
+}
+
+/* Medical tables */
+.medical-table,
+.patient-table,
+.lab-results-table {
+    font-family: var(--font-medical-mono);
+    font-size: 0.925rem;
+    line-height: 1.4;
+}
+
+.medical-table th {
+    font-weight: var(--weight-semibold);
+    font-family: var(--font-medical-sans);
+}
+
+/* Status badges and alerts */
+.status-badge,
+.medical-alert,
+.patient-alert {
+    font-family: var(--font-medical-sans);
+    font-weight: var(--weight-medium);
+    font-size: 0.875rem;
+}
+
+/* Critical alerts */
+.alert-critical,
+.alert-urgent {
+    font-weight: var(--weight-bold) !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* =============================================================================
+   BROWSER-SPECIFIC OPTIMIZATIONS
+   ============================================================================= */
+
+/* Chrome/Edge specific optimizations */
+@supports (-webkit-appearance: none) {
+    body {
+        -webkit-font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+        font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+    }
+}
+
+/* Firefox specific optimizations */
+@-moz-document url-prefix() {
+    body {
+        -moz-font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+        font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+    }
+}
+
+/* Safari specific optimizations */
+@supports (-webkit-backdrop-filter: blur(1px)) {
+    .medical-text {
+        -webkit-font-smoothing: antialiased;
+    }
+}

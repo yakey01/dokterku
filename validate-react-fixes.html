@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="api-token" content="test-token-for-validation">
+    <meta name="user-authenticated" content="true">
+    <meta name="user-data" content='{"name":"Dr. Test User","email":"test@example.com","role":["dokter"]}'>
+    <title>React Mobile App Validation Test</title>
+    <link rel="stylesheet" href="/build/assets/css/dokter-mobile-app-Bj_ExP9V.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        #loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f172a 0%, #581c87 50%, #0f172a 100%);
+            color: white;
+            flex-direction: column;
+        }
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(139, 92, 246, 0.3);
+            border-top: 4px solid #8b5cf6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .error-log {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            color: #ff4444;
+            padding: 10px;
+            border-radius: 8px;
+            max-width: 300px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 12px;
+            font-family: monospace;
+            z-index: 10000;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">
+        <div class="loading-spinner"></div>
+        <div style="margin-top: 20px;">Loading React Mobile App...</div>
+        <div style="margin-top: 10px; font-size: 14px; color: #a78bfa;">
+            Testing JavaScript fixes for temporal dead zone issues...
+        </div>
+    </div>
+    
+    <div id="dokter-app"></div>
+    
+    <div id="error-log" class="error-log">
+        <div style="font-weight: bold; margin-bottom: 10px;">Error Log:</div>
+        <div id="error-content"></div>
+    </div>
+
+    <script>
+        // Enhanced error tracking for validation
+        let errorCount = 0;
+        const errorLog = document.getElementById('error-log');
+        const errorContent = document.getElementById('error-content');
+        
+        function logError(type, message, error) {
+            errorCount++;
+            console.error(`🚨 [${type}] ${message}`, error);
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.innerHTML = `
+                <div style="margin-bottom: 5px;">
+                    <strong>[${type}]:</strong> ${message}
+                </div>
+                <div style="font-size: 10px; color: #ffaa44; margin-bottom: 10px;">
+                    ${new Date().toLocaleTimeString()}
+                </div>
+            `;
+            errorContent.appendChild(errorDiv);
+            errorLog.style.display = 'block';
+            
+            // Auto-hide after many errors to prevent spam
+            if (errorCount > 5) {
+                errorLog.style.display = 'none';
+            }
+        }
+
+        // Global error handlers with enhanced TDZ detection
+        window.addEventListener('error', (event) => {
+            const message = event.error?.message || event.message;
+            const isTDZError = message && (
+                message.includes('uninitialized') || 
+                message.includes('Cannot access') || 
+                message.includes('before initialization')
+            );
+            
+            if (isTDZError) {
+                logError('TDZ_ERROR', `🔥 Temporal Dead Zone: ${message}`, event.error);
+            } else {
+                logError('JS_ERROR', message, event.error);
+            }
+        });
+        
+        window.addEventListener('unhandledrejection', (event) => {
+            logError('PROMISE_ERROR', `Promise rejection: ${event.reason}`, event.reason);
+        });
+        
+        // React error boundary detection
+        const originalConsoleError = console.error;
+        console.error = function(...args) {
+            const message = args.join(' ');
+            if (message.includes('Error Boundary') || message.includes('React Error')) {
+                logError('REACT_ERROR', 'React Error Boundary triggered', args);
+            }
+            return originalConsoleError.apply(console, args);
+        };
+        
+        // Validation timer
+        setTimeout(() => {
+            if (errorCount === 0) {
+                console.log('✅ Validation Complete: No critical JavaScript errors detected!');
+                
+                // Check if React app loaded successfully
+                const dokterApp = document.getElementById('dokter-app');
+                if (dokterApp && dokterApp.children.length > 0) {
+                    console.log('✅ React app loaded successfully');
+                    
+                    // Check for navigation elements
+                    const hasNavigation = document.querySelector('[class*="bottom-0"]') || 
+                                        document.querySelector('[class*="navigation"]');
+                    if (hasNavigation) {
+                        console.log('✅ Navigation elements rendered successfully');
+                    }
+                } else {
+                    console.warn('⚠️ React app container is empty - check loading logic');
+                }
+                
+                // Update loading message
+                const loadingEl = document.getElementById('loading');
+                if (loadingEl) {
+                    loadingEl.innerHTML = `
+                        <div style="color: #10b981; font-size: 24px; margin-bottom: 10px;">✅</div>
+                        <div>Validation Complete!</div>
+                        <div style="font-size: 14px; color: #a78bfa; margin-top: 10px;">
+                            No critical JavaScript errors found
+                        </div>
+                    `;
+                }
+            } else {
+                console.warn(`⚠️ Validation found ${errorCount} errors - check the error log`);
+            }
+        }, 8000); // Wait 8 seconds for app to load
+    </script>
+    
+    <!-- Load the fixed React mobile app -->
+    <script type="module" src="/build/assets/js/dokter-mobile-app-CkbNOgW2.js"></script>
+</body>
+</html>

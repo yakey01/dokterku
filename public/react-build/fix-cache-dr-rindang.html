@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix Cache - Dr Rindang Work Location</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 500px;
+            margin: 50px auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 30px;
+            text-align: center;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .btn {
+            background: #28a745;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        .icon {
+            font-size: 48px;
+            color: #28a745;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">✅</div>
+        <h1>Work Location Fixed!</h1>
+        
+        <div class="success">
+            <strong>Fix Applied Successfully!</strong><br>
+            Dr. Rindang has been assigned to "Cabang Bandung" work location.
+        </div>
+        
+        <p><strong>Issue Resolved:</strong></p>
+        <ul style="text-align: left; display: inline-block;">
+            <li>✅ Work location assigned: Cabang Bandung</li>
+            <li>✅ Geofence coordinates: -6.91750000, 107.61910000</li>
+            <li>✅ Radius: 150 meters</li>
+            <li>⚠️  Browser cache needs to be cleared</li>
+        </ul>
+        
+        <h3>Next Steps:</h3>
+        <p>The browser is using cached user data. Please:</p>
+        
+        <button class="btn" onclick="clearCacheAndReload()">
+            🔄 Clear Cache & Reload
+        </button>
+        
+        <button class="btn btn-secondary" onclick="forceLogout()">
+            🚪 Force Logout & Login
+        </button>
+        
+        <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; font-size: 14px;">
+            <strong>Technical Details:</strong><br>
+            The 400 Bad Request error was caused by Dr. Rindang having no work location assigned. 
+            This has been fixed in the database, but the browser session still has the old cached data.
+        </div>
+    </div>
+
+    <script>
+        function clearCacheAndReload() {
+            // Clear various caches
+            if ('caches' in window) {
+                caches.keys().then(function(names) {
+                    names.forEach(function(name) {
+                        caches.delete(name);
+                    });
+                });
+            }
+            
+            // Clear localStorage and sessionStorage
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            // Force reload with cache bypass
+            setTimeout(() => {
+                window.location.reload(true);
+            }, 1000);
+        }
+        
+        function forceLogout() {
+            // Clear all local data
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            // Redirect to logout endpoint
+            window.location.href = '/logout';
+        }
+
+        // Show current cache status
+        window.addEventListener('load', function() {
+            const status = document.createElement('div');
+            status.style.cssText = 'position: fixed; top: 10px; right: 10px; background: #007bff; color: white; padding: 10px; border-radius: 5px; font-size: 12px;';
+            status.innerHTML = `
+                Cache Status:<br>
+                LocalStorage: ${localStorage.length} items<br>
+                SessionStorage: ${sessionStorage.length} items<br>
+                Current User: ${localStorage.getItem('user_id') || 'Not cached'}
+            `;
+            document.body.appendChild(status);
+        });
+    </script>
+</body>
+</html>

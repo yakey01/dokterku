@@ -119,7 +119,7 @@ function detectGPSLocation() {
 }
 
 function findLatitudeInput() {
-    return document.querySelector('input[wire\\:model*="latitude"]') ||
+    return document.querySelector('input[wire\:model*="latitude"]') ||
            document.querySelector('input[name="latitude"]') ||
            document.querySelector('#latitude') ||
            Array.from(document.querySelectorAll('input')).find(input => {
@@ -129,7 +129,7 @@ function findLatitudeInput() {
 }
 
 function findLongitudeInput() {
-    return document.querySelector('input[wire\\:model*="longitude"]') ||
+    return document.querySelector('input[wire\:model*="longitude"]') ||
            document.querySelector('input[name="longitude"]') ||
            document.querySelector('#longitude') ||
            Array.from(document.querySelectorAll('input')).find(input => {

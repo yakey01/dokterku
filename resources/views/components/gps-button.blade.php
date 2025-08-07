@@ -105,4 +105,24 @@
     <small style="color: #6b7280; display: block; margin-top: 8px;">
         💡 Tips: Gunakan debug tool untuk analisis atau copy koordinat dari Google Maps
     </small>
+    
+    <!-- GPS Help Button -->
+    <div style="text-align: center; margin-top: 10px;">
+        <button onclick="window.showGPSHelp && window.showGPSHelp('general')" 
+                style="
+                    background: #6366f1;
+                    color: white;
+                    padding: 8px 16px;
+                    border: none;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    width: 100%;
+                ">
+            🆘 GPS Troubleshooting Help
+        </button>
+    </div>
 </div>
+
+<!-- Load GPS Help System -->
+<script src="/gps-help-system.js"></script>

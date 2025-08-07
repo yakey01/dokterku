@@ -17,7 +17,9 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: [...defaultTheme.fontFamily.sans],
+                sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+                mono: ['ui-monospace', 'SF Mono', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'monospace'],
+                display: ['SF Pro Display', '-apple-system', 'system-ui', 'BlinkMacSystemFont', 'sans-serif'],
             },
             screens: {
                 'xs': '475px',

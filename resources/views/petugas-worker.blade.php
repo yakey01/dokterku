@@ -7,10 +7,7 @@
     <meta name="description" content="Standalone Petugas dashboard for healthcare management system">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     
-    <!-- Preload critical fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Using built-in system fonts -->
     
     <!-- Chart.js for dashboard charts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js" integrity="sha512-ElRFoEQdI5Ht6kZvyzXhYG9NqjtkmlkfYk0wr6wHxU9JEHakS7UJZNeml5ALk+8IKlU6jDgMabC3vkumRokgJA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
@@ -23,7 +20,7 @@
         body {
             margin: 0;
             padding: 0;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
             background: #f8fafc;
             overflow-x: hidden;
         }
@@ -71,7 +68,7 @@
 
     <!-- Fallback for no JavaScript -->
     <noscript>
-        <div style="display: flex; align-items: center; justify-content: center; height: 100vh; flex-direction: column; font-family: Inter, sans-serif;">
+        <div style="display: flex; align-items: center; justify-content: center; height: 100vh; flex-direction: column; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;">
             <h2 style="color: #1e293b; margin-bottom: 16px;">JavaScript Required</h2>
             <p style="color: #64748b; text-align: center; max-width: 400px;">
                 This Petugas dashboard requires JavaScript to function properly. 
@@ -94,7 +91,7 @@
             const root = document.getElementById('petugas-worker-root');
             if (root && root.innerHTML.includes('loading-container')) {
                 root.innerHTML = `
-                    <div style="display: flex; align-items: center; justify-content: center; height: 100vh; flex-direction: column; font-family: Inter, sans-serif;">
+                    <div style="display: flex; align-items: center; justify-content: center; height: 100vh; flex-direction: column; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;">
                         <h2 style="color: #dc2626; margin-bottom: 16px;">Dashboard Load Error</h2>
                         <p style="color: #64748b; text-align: center; max-width: 400px; margin-bottom: 16px;">
                             There was an error loading the dashboard. Please refresh the page to try again.

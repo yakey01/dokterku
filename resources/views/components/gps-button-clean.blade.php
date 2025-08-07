@@ -27,9 +27,9 @@
                 const acc = Math.round(position.coords.accuracy);
                 
                 // Find form inputs
-                let latInput = document.querySelector('input[wire\\\\:model*=\"latitude\"]') ||
+                let latInput = document.querySelector('input[wire\\:model*=\"latitude\"]') ||
                               document.querySelector('input[name=\"latitude\"]');
-                let lonInput = document.querySelector('input[wire\\\\:model*=\"longitude\"]') ||
+                let lonInput = document.querySelector('input[wire\\:model*=\"longitude\"]') ||
                                document.querySelector('input[name=\"longitude\"]');
                 
                 if (latInput && lonInput) {
@@ -81,9 +81,9 @@
             return;
         }
         
-        let latInput = document.querySelector('input[wire\\\\:model*=\"latitude\"]') ||
+        let latInput = document.querySelector('input[wire\\:model*=\"latitude\"]') ||
                       document.querySelector('input[name=\"latitude\"]');
-        let lonInput = document.querySelector('input[wire\\\\:model*=\"longitude\"]') ||
+        let lonInput = document.querySelector('input[wire\\:model*=\"longitude\"]') ||
                        document.querySelector('input[name=\"longitude\"]');
         
         if (latInput && lonInput) {

@@ -1,0 +1,189 @@
+/**
+ * Minimal Design System Tokens
+ * Enhanced Healthcare Management System
+ * 
+ * Minimalist approach with clean color palette and refined spacing
+ * Inspired by modern healthcare dashboard designs
+ */
+
+:root {
+  /* ================================
+     MINIMAL COLOR SYSTEM
+     ================================ */
+  
+  /* Core Minimalist Palette */
+  --color-white: #ffffff;
+  --color-gray-50: #fafafa;
+  --color-gray-100: #f5f5f5;
+  --color-gray-200: #e5e5e5;
+  --color-gray-300: #d4d4d4;
+  --color-gray-400: #a3a3a3;
+  --color-gray-500: #737373;
+  --color-gray-600: #525252;
+  --color-gray-700: #404040;
+  --color-gray-800: #262626;
+  --color-gray-900: #171717;
+
+  /* Single Accent Color - Medical Green */
+  --color-accent-50: #ecfdf5;
+  --color-accent-100: #d1fae5;
+  --color-accent-200: #a7f3d0;
+  --color-accent-300: #6ee7b7;
+  --color-accent-400: #34d399;
+  --color-accent-500: #10b981;
+  --color-accent-600: #059669;
+  --color-accent-700: #047857;
+  --color-accent-800: #065f46;
+  --color-accent-900: #064e3b;
+
+  /* Simplified Brand Colors - Minimal Medical Green Focus */
+  --color-primary-50: var(--color-accent-50);
+  --color-primary-100: var(--color-accent-100);
+  --color-primary-200: var(--color-accent-200);
+  --color-primary-300: var(--color-accent-300);
+  --color-primary-400: var(--color-accent-400);
+  --color-primary-500: var(--color-accent-500);
+  --color-primary-600: var(--color-accent-600);
+  --color-primary-700: var(--color-accent-700);
+  --color-primary-800: var(--color-accent-800);
+  --color-primary-900: var(--color-accent-900);
+
+  /* Minimal Role Colors - Reduced Complexity */
+  --color-role-petugas: var(--color-accent-500);
+
+  /* Minimal Semantic Colors */
+  --color-success: var(--color-accent-500);
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: var(--color-gray-500);
+
+  /* ================================
+     MINIMAL TYPOGRAPHY SYSTEM
+     ================================ */
+  
+  /* Clean Font Stack */
+  --font-family-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-family-mono: ui-monospace, "SF Mono", Monaco, Consolas, monospace;
+
+  /* Refined Font Weights */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Optimized Font Sizes */
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-base: 1rem;     /* 16px */
+  --font-size-lg: 1.125rem;   /* 18px */
+  --font-size-xl: 1.25rem;    /* 20px */
+  --font-size-2xl: 1.5rem;    /* 24px */
+  --font-size-3xl: 1.875rem;  /* 30px */
+  --font-size-4xl: 2.25rem;   /* 36px */
+
+  /* Readable Line Heights */
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  /* ================================
+     GENEROUS SPACING SYSTEM
+     ================================ */
+  
+  /* Base spacing scale - focused on whitespace */
+  --space-1: 0.25rem;     /* 4px */
+  --space-2: 0.5rem;      /* 8px */
+  --space-3: 0.75rem;     /* 12px */
+  --space-4: 1rem;        /* 16px */
+  --space-5: 1.25rem;     /* 20px */
+  --space-6: 1.5rem;      /* 24px */
+  --space-8: 2rem;        /* 32px */
+  --space-10: 2.5rem;     /* 40px */
+  --space-12: 3rem;       /* 48px */
+  --space-16: 4rem;       /* 64px */
+  --space-20: 5rem;       /* 80px */
+  --space-24: 6rem;       /* 96px */
+  
+  /* Component spacing - generous for minimal design */
+  --space-section: var(--space-12);
+  --space-card: var(--space-8);
+  --space-element: var(--space-6);
+
+  /* ================================
+     MINIMAL BORDER RADIUS
+     ================================ */
+  
+  --radius-none: 0;
+  --radius-sm: 0.25rem;     /* 4px */
+  --radius-base: 0.5rem;    /* 8px */
+  --radius-lg: 0.75rem;     /* 12px */
+  --radius-full: 9999px;
+
+  /* Component-specific radius - minimal approach */
+  --radius-card: var(--radius-lg);
+  --radius-button: var(--radius-sm);
+  --radius-input: var(--radius-sm);
+
+  /* ================================
+     SUBTLE SHADOW SYSTEM
+     ================================ */
+  
+  --shadow-none: none;
+  --shadow-subtle: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-soft: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-hover: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+
+  /* Component shadows - minimal approach */
+  --shadow-card: var(--shadow-subtle);
+  --shadow-card-hover: var(--shadow-soft);
+
+  /* ================================
+     SMOOTH TRANSITIONS
+     ================================ */
+  
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  --transition-colors: color var(--transition-base), 
+                       background-color var(--transition-base),
+                       border-color var(--transition-base);
+  --transition-shadow: box-shadow var(--transition-base);
+  --transition-transform: transform var(--transition-base);
+
+}
+
+/* ================================
+   DARK MODE SUPPORT
+   ================================ */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-white: #171717;
+    --color-gray-50: #262626;
+    --color-gray-100: #404040;
+    --color-gray-200: #525252;
+    --color-gray-300: #737373;
+    --color-gray-400: #a3a3a3;
+    --color-gray-500: #d4d4d4;
+    --color-gray-600: #e5e5e5;
+    --color-gray-700: #f5f5f5;
+    --color-gray-800: #fafafa;
+    --color-gray-900: #ffffff;
+  }
+}
+
+.dark {
+  --color-white: #171717;
+  --color-gray-50: #262626;
+  --color-gray-100: #404040;
+  --color-gray-200: #525252;
+  --color-gray-300: #737373;
+  --color-gray-400: #a3a3a3;
+  --color-gray-500: #d4d4d4;
+  --color-gray-600: #e5e5e5;
+  --color-gray-700: #f5f5f5;
+  --color-gray-800: #fafafa;
+  --color-gray-900: #ffffff;
+}
+

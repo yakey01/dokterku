@@ -1,157 +1,144 @@
 import React, { useState, useEffect } from 'react';
-import DoctorApi from '../../utils/doctorApi';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+import { Calendar, Clock, DollarSign, User, Home, MapPin, CheckCircle, XCircle, Zap, Heart, Brain, Shield, Target, Award, TrendingUp, Sun, Moon, Coffee, Star, Crown, Hand, Camera, Wifi, WifiOff, AlertTriangle, History, UserCheck, FileText, Settings, Bell, ChevronLeft, ChevronRight, Filter, Plus, Send } from 'lucide-react';
+import DynamicMap from './DynamicMap';
+import '../../../css/map-styles.css';
 
-// Professional custom map pins with modern styling
-const createHospitalIcon = () => {
-  return L.divIcon({
-    className: 'custom-hospital-marker',
-    html: `
-      <div class="hospital-pin-container">
-        <div class="hospital-pin-body">
-          <div class="hospital-pin-icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
-              <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5Z"/>
-              <path d="M12 5L8 21l4-7 4 7-4-16"/>
-              <path d="M12 8v4M10 10h4"/>
-            </svg>
-          </div>
-        </div>
-        <div class="hospital-pin-pulse"></div>
-        <div class="hospital-pin-shadow"></div>
-      </div>
-    `,
-    iconSize: [40, 55],
-    iconAnchor: [20, 55],
-    popupAnchor: [0, -55]
-  });
-};
-
-const createUserLocationIcon = () => {
-  return L.divIcon({
-    className: 'custom-user-marker',
-    html: `
-      <div class="user-pin-container">
-        <div class="user-pin-body">
-          <div class="user-pin-icon">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
-              <circle cx="12" cy="12" r="10"/>
-              <circle cx="12" cy="12" r="4"/>
-            </svg>
-          </div>
-        </div>
-        <div class="user-pin-pulse"></div>
-        <div class="user-pin-accuracy-ring"></div>
-        <div class="user-pin-shadow"></div>
-      </div>
-    `,
-    iconSize: [36, 48],
-    iconAnchor: [18, 48],
-    popupAnchor: [0, -48]
-  });
-};
-import { Calendar, Clock, DollarSign, User, Home, MapPin, CheckCircle, XCircle, Zap, Heart, Brain, Shield, Target, Award, TrendingUp, Sun, Moon, Coffee, Star, Crown, HandHeart, Hand, Camera, Wifi, WifiOff, AlertTriangle, History, UserCheck, FileText, Settings, Bell, ChevronLeft, ChevronRight, Filter, Plus, Send } from 'lucide-react';
-
-interface CreativeAttendanceDashboardProps {
-  userData?: {
-    name: string;
-    email: string;
-    greeting?: string;
-    role?: string;
-    initials?: string;
-  };
-}
-
-interface ScheduleData {
-  id: number;
-  tanggal_jaga: string;
-  shift_template?: {
-    id: number;
-    nama_shift: string;
-    jam_masuk: string;
-    jam_pulang: string;
-    warna?: string;
-  };
-  work_location?: {
-    id: number;
-    name: string;
-    address: string;
-    latitude: number;
-    longitude: number;
-    radius_meters: number;
-    tolerance_settings: {
-      late_tolerance_minutes: number;
-      checkin_before_shift_minutes: number;
-    };
-  };
-  schedule_status: {
-    status: string;
-    message: string;
-    can_checkin_in?: string;
-    window_closes_in?: number;
-    is_late?: boolean;
-  };
-  timing_info: {
-    shift_start: string;
-    shift_end: string;
-    current_time: string;
-    check_in_window: {
-      start: string;
-      end: string;
-      is_open: boolean;
-    };
-    status: string;
-    next_action: string;
-  };
-}
-
-interface ValidationResult {
-  validation: {
-    valid: boolean;
-    message: string;
-    code: string;
-    can_checkin: boolean;
-  };
-  schedule_details?: {
-    shift_name: string;
-    effective_start_time: string;
-    effective_end_time: string;
-    is_late_checkin: boolean;
-  };
-}
-
-const CreativeAttendanceDashboard: React.FC<CreativeAttendanceDashboardProps> = ({ userData }) => {
+const CreativeAttendanceDashboard = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isCheckedIn, setIsCheckedIn] = useState(false);
   const [activeTab, setActiveTab] = useState('checkin');
   const [attendanceData, setAttendanceData] = useState({
-    checkInTime: null,
-    checkOutTime: null,
+    checkInTime: null as string | null,
+    checkOutTime: null as string | null,
     workingHours: '00:00:00',
     overtimeHours: '00:00:00',
     breakTime: '00:00:00',
     location: 'RS. Kediri Medical Center'
   });
+  
+  // Hospital Location Data (Dynamic - dari API)
+  const [hospitalLocation, setHospitalLocation] = useState({
+    lat: -7.8481, // Default Kediri coordinates
+    lng: 112.0178,
+    name: 'Loading...',
+    address: 'Loading...',
+    radius: 50 // meters
+  });
+  
+  // Load hospital data from API
+  useEffect(() => {
+    const loadHospitalData = async () => {
+      try {
+        // Try to get from API first
+        const response = await fetch('/api/v2/hospital/location', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+        });
+        
+        if (response.ok) {
+          const responseData = await response.json();
+          const data = responseData.data || responseData;
+          setHospitalLocation({
+            lat: data.latitude || -7.8481,
+            lng: data.longitude || 112.0178,
+            name: data.name || 'RS. Kediri Medical Center',
+            address: data.address || 'Jl. Ahmad Yani No. 123, Kediri, Jawa Timur',
+            radius: data.radius || 50
+          });
+        } else {
+          // Fallback to default data if API fails
+          console.log('Using default hospital location data');
+          setHospitalLocation({
+            lat: -7.8481,
+            lng: 112.0178,
+            name: 'RS. Kediri Medical Center',
+            address: 'Jl. Ahmad Yani No. 123, Kediri, Jawa Timur',
+            radius: 50
+          });
+        }
+      } catch (error) {
+        console.error('Error loading hospital data:', error);
+        // Fallback to default data
+        setHospitalLocation({
+          lat: -7.8481,
+          lng: 112.0178,
+          name: 'RS. Kediri Medical Center',
+          address: 'Jl. Ahmad Yani No. 123, Kediri, Jawa Timur',
+          radius: 50
+        });
+      }
+    };
+    
+    loadHospitalData();
+  }, []);
+  
+  // GPS and Location State
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number; accuracy?: number } | null>(null);
+  const [gpsStatus, setGpsStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [distanceToHospital, setDistanceToHospital] = useState<number | null>(null);
+  
+  // Auto-detect GPS on component mount
+  useEffect(() => {
+    if (navigator.geolocation) {
+      setGpsStatus('loading');
+      
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude, accuracy } = position.coords;
+          const location = { lat: latitude, lng: longitude, accuracy };
+          setUserLocation(location);
+          setGpsStatus('success');
+          
+          // Calculate initial distance
+          const R = 6371e3;
+          const φ1 = latitude * Math.PI / 180;
+          const φ2 = hospitalLocation.lat * Math.PI / 180;
+          const Δφ = (hospitalLocation.lat - latitude) * Math.PI / 180;
+          const Δλ = (hospitalLocation.lng - longitude) * Math.PI / 180;
+
+          const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                    Math.cos(φ1) * Math.cos(φ2) *
+                    Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+          const distance = R * c;
+          setDistanceToHospital(distance);
+        },
+        (error) => {
+          console.error('GPS Error:', error);
+          setGpsStatus('error');
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 30000
+        }
+      );
+    } else {
+      setGpsStatus('error');
+    }
+  }, [hospitalLocation.lat, hospitalLocation.lng]);
   const [showLeaveForm, setShowLeaveForm] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
   
-  // GPS and location states
-  const [userLocation, setUserLocation] = useState(null);
-  const [gpsStatus, setGpsStatus] = useState('idle'); // idle, loading, success, error
-  const [gpsAccuracy, setGpsAccuracy] = useState(null);
-  const [distanceToHospital, setDistanceToHospital] = useState(null);
-  const [gpsError, setGpsError] = useState(null);
-  
-  // Schedule and validation states
-  const [currentSchedule, setCurrentSchedule] = useState<ScheduleData | null>(null);
-  const [scheduleLoading, setScheduleLoading] = useState(false);
-  const [scheduleError, setScheduleError] = useState<string | null>(null);
-  const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
-  const [validationLoading, setValidationLoading] = useState(false);
-  
-  // Hospital location (RS. Kediri Medical Center)
-  const hospitalLocation = [-7.8481, 112.0178];
+  // Check screen size on mount and resize
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const width = window.innerWidth;
+      setIsMobile(width < 768);
+      setIsTablet(width >= 768 && width < 1024);
+      setIsDesktop(width >= 1024);
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -217,161 +204,6 @@ const CreativeAttendanceDashboard: React.FC<CreativeAttendanceDashboardProps> = 
     return () => clearInterval(timer);
   }, [isCheckedIn, attendanceData.checkInTime]);
 
-  // GPS Detection Effect
-  useEffect(() => {
-    // Auto-detect GPS location when component loads
-    detectUserLocation();
-    // Load current schedule on component mount
-    loadCurrentSchedule();
-  }, []);
-  
-  // Validate check-in when location changes
-  useEffect(() => {
-    if (userLocation && currentSchedule) {
-      validateCheckin();
-    }
-  }, [userLocation, currentSchedule]);
-
-  // Calculate distance between two points using Haversine formula
-  const calculateDistance = (lat1, lon1, lat2, lon2) => {
-    const R = 6371; // Earth's radius in kilometers
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    const distance = R * c;
-    return distance * 1000; // Convert to meters
-  };
-
-  // Hospital Location Functions
-  const getHospitalLocation = () => {
-    // Priority: Use work location from current schedule if available, otherwise use default hospital location
-    if (currentSchedule?.work_location?.latitude && currentSchedule?.work_location?.longitude) {
-      return [currentSchedule.work_location.latitude, currentSchedule.work_location.longitude];
-    }
-    return hospitalLocation;
-  };
-  
-  const getHospitalLocationObject = () => {
-    // Return detailed hospital location object with coordinates and metadata
-    if (currentSchedule?.work_location) {
-      return {
-        latitude: currentSchedule.work_location.latitude,
-        longitude: currentSchedule.work_location.longitude,
-        name: currentSchedule.work_location.name || 'Work Location',
-        address: currentSchedule.work_location.address || 'Work Address',
-        radius: currentSchedule.work_location.radius_meters || 50,
-        coordinates: [currentSchedule.work_location.latitude, currentSchedule.work_location.longitude]
-      };
-    }
-    return {
-      latitude: hospitalLocation[0],
-      longitude: hospitalLocation[1],
-      name: 'RS. Kediri Medical Center',
-      address: 'Jl. Ahmad Yani No. 123',
-      radius: 50,
-      coordinates: hospitalLocation
-    };
-  };
-
-  // GPS Detection Function
-  const detectUserLocation = () => {
-    setGpsStatus('loading');
-    setGpsError(null);
-
-    if (!navigator.geolocation) {
-      setGpsStatus('error');
-      setGpsError('GPS tidak didukung oleh browser ini');
-      return;
-    }
-
-    const options = {
-      enableHighAccuracy: true,
-      timeout: 15000,
-      maximumAge: 60000
-    };
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude, accuracy } = position.coords;
-        setUserLocation([latitude, longitude]);
-        setGpsAccuracy(accuracy);
-        setGpsStatus('success');
-        
-        // Calculate distance to hospital
-        const distance = calculateDistance(
-          latitude, longitude,
-          hospitalLocation[0], hospitalLocation[1]
-        );
-        setDistanceToHospital(distance);
-      },
-      (error) => {
-        setGpsStatus('error');
-        switch(error.code) {
-          case error.PERMISSION_DENIED:
-            setGpsError('Akses lokasi ditolak. Silakan aktifkan izin lokasi.');
-            break;
-          case error.POSITION_UNAVAILABLE:
-            setGpsError('Lokasi tidak tersedia. Pastikan GPS aktif.');
-            break;
-          case error.TIMEOUT:
-            setGpsError('Waktu habis. Coba lagi.');
-            break;
-          default:
-            setGpsError('Terjadi kesalahan saat mengakses lokasi.');
-            break;
-        }
-      },
-      options
-    );
-  };
-
-  // Format distance for display
-  const formatDistance = (meters) => {
-    if (meters < 1000) {
-      return `${Math.round(meters)}m`;
-    } else {
-      return `${(meters / 1000).toFixed(1)}km`;
-    }
-  };
-
-  // Get GPS status color and icon
-  const getGpsStatusDisplay = () => {
-    switch (gpsStatus) {
-      case 'loading':
-        return {
-          color: 'text-yellow-400',
-          icon: '📍',
-          text: 'Mencari lokasi...',
-          bgColor: 'bg-yellow-500/10 border-yellow-400/30'
-        };
-      case 'success':
-        return {
-          color: 'text-green-400',
-          icon: '✅',
-          text: `Lokasi ditemukan (±${Math.round(gpsAccuracy)}m)`,
-          bgColor: 'bg-green-500/10 border-green-400/30'
-        };
-      case 'error':
-        return {
-          color: 'text-red-400',
-          icon: '❌',
-          text: 'GPS gagal',
-          bgColor: 'bg-red-500/10 border-red-400/30'
-        };
-      default:
-        return {
-          color: 'text-gray-400',
-          icon: '📍',
-          text: 'GPS siap',
-          bgColor: 'bg-gray-500/10 border-gray-400/30'
-        };
-    }
-  };
-
   const formatTime = (date) => {
     return date.toLocaleTimeString('id-ID', { 
       hour: '2-digit', 
@@ -425,68 +257,7 @@ const CreativeAttendanceDashboard: React.FC<CreativeAttendanceDashboardProps> = 
     setCurrentPage(1);
   };
 
-  // Load current schedule
-  const loadCurrentSchedule = async () => {
-    setScheduleLoading(true);
-    setScheduleError(null);
-    
-    try {
-      const scheduleData = await DoctorApi.getCurrentSchedule();
-      if (scheduleData) {
-        setCurrentSchedule(scheduleData);
-      } else {
-        setScheduleError('Anda belum memiliki jadwal');
-      }
-    } catch (error) {
-      console.error('Error loading schedule:', error);
-      
-      // Handle specific API error messages
-      let errorMessage = 'Gagal terhubung ke server';
-      
-      if (error.message) {
-        if (error.message.includes('No active schedule found') || 
-            error.message.includes('404')) {
-          errorMessage = 'Anda belum memiliki jadwal';
-        } else if (error.message.includes('401') || error.message.includes('Unauthorized')) {
-          errorMessage = 'Sesi telah berakhir. Silakan login kembali.';
-        } else {
-          errorMessage = error.message;
-        }
-      }
-      
-      setScheduleError(errorMessage);
-    } finally {
-      setScheduleLoading(false);
-    }
-  };
-  
-  // Validate check-in with current location
-  const validateCheckin = async () => {
-    if (!userLocation) return;
-    
-    setValidationLoading(true);
-    
-    try {
-      const validationData = await DoctorApi.validateCheckin(
-        userLocation[0], // latitude
-        userLocation[1], // longitude
-        gpsAccuracy
-      );
-      setValidationResult(validationData);
-    } catch (error) {
-      console.error('Error validating check-in:', error);
-    } finally {
-      setValidationLoading(false);
-    }
-  };
-
   const handleCheckIn = async () => {
-    // Only allow check-in if validation passes
-    if (!validationResult?.validation?.can_checkin) {
-      alert('Check-in tidak diizinkan saat ini. Periksa jadwal dan lokasi Anda.');
-      return;
-    }
-    
     setIsCheckedIn(true);
     const now = new Date();
     setAttendanceData(prev => ({
@@ -539,179 +310,50 @@ const CreativeAttendanceDashboard: React.FC<CreativeAttendanceDashboardProps> = 
     switch (activeTab) {
       case 'checkin':
         return (
-          <div className="space-y-4 md:space-y-6 lg:space-y-8">
-            {/* Schedule Status Card - NEW */}
-            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-white/20 mb-4
-                            md:rounded-3xl md:p-6
-                            lg:p-8">
-              {scheduleLoading ? (
-                <div className="text-center">
-                  <div className="inline-flex items-center space-x-3">
-                    <div className="w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
-                    <span className="text-cyan-300">Memuat jadwal...</span>
-                  </div>
-                </div>
-              ) : scheduleError ? (
-                <div className="text-center py-2">
-                  {scheduleError.includes('Anda belum memiliki jadwal') ? (
-                    <div>
-                      <div className="inline-flex items-center space-x-3 px-4 py-3 rounded-2xl bg-blue-500/20 border border-blue-400/30">
-                        <Calendar className="w-5 h-5 text-blue-400" />
-                        <span className="text-blue-300 font-medium">{scheduleError}</span>
-                      </div>
-                      <div className="text-xs text-gray-400 mt-2">
-                        Silakan hubungi admin untuk mendapatkan jadwal jaga
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="inline-flex items-center space-x-3 px-4 py-2 rounded-2xl bg-yellow-500/20 border border-yellow-400/50">
-                      <AlertTriangle className="w-5 h-5 text-yellow-400" />
-                      <span className="text-yellow-300">{scheduleError}</span>
-                    </div>
-                  )}
-                </div>
-              ) : currentSchedule ? (
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" 
-                           style={{ backgroundColor: currentSchedule.shift_template?.warna || '#3b82f6' }}>
-                        <Clock className="w-5 h-5 text-white" />
-                      </div>
-                      <div>
-                        <div className="font-semibold text-white">
-                          {currentSchedule.shift_template?.nama_shift || 'Jadwal Jaga'}
-                        </div>
-                        <div className="text-sm text-gray-300">
-                          {currentSchedule.timing_info.shift_start} - {currentSchedule.timing_info.shift_end}
-                        </div>
-                      </div>
-                    </div>
-                    <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      currentSchedule.schedule_status.status === 'checkin_window' ? 'bg-green-500/20 text-green-400' :
-                      currentSchedule.schedule_status.status === 'upcoming' ? 'bg-yellow-500/20 text-yellow-400' :
-                      currentSchedule.schedule_status.status === 'in_progress' ? 'bg-blue-500/20 text-blue-400' :
-                      'bg-gray-500/20 text-gray-400'
-                    }`}>
-                      {currentSchedule.schedule_status.status === 'checkin_window' ? '✅ Bisa Check-in' :
-                       currentSchedule.schedule_status.status === 'upcoming' ? '⏳ Belum Waktunya' :
-                       currentSchedule.schedule_status.status === 'in_progress' ? '🔄 Sedang Jaga' :
-                       '📋 ' + currentSchedule.schedule_status.status}
-                    </div>
-                  </div>
-                  
-                  <div className="bg-black/20 rounded-xl p-3 mb-3">
-                    <div className="text-sm text-white mb-1 font-medium">{currentSchedule.timing_info.status}</div>
-                    <div className="text-xs text-gray-300">{currentSchedule.schedule_status.message}</div>
-                  </div>
-                  
-                  {currentSchedule.work_location && (
-                    <div className="flex items-center space-x-2 text-xs text-gray-300">
-                      <MapPin className="w-4 h-4" />
-                      <span>{currentSchedule.work_location.name}</span>
-                      <span>•</span>
-                      <span>Radius {currentSchedule.work_location.radius_meters}m</span>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-center py-6">
-                  <div className="inline-flex items-center space-x-3 px-4 py-3 rounded-2xl bg-blue-500/20 border border-blue-400/30">
-                    <Calendar className="w-5 h-5 text-blue-400" />
-                    <span className="text-blue-300 font-medium">Anda belum memiliki jadwal</span>
-                  </div>
-                  <div className="text-xs text-gray-400 mt-2">
-                    Silakan hubungi admin untuk mendapatkan jadwal jaga
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            {/* Validation Status - NEW */}
-            {validationResult && (
-              <div className={`bg-white/10 backdrop-blur-xl rounded-2xl p-4 border mb-4 ${
-                validationResult.validation.valid ? 'border-green-400/50' : 'border-red-400/50'
-              }`}>
-                <div className="flex items-center space-x-3 mb-2">
-                  <div className={`w-5 h-5 rounded-full ${
-                    validationResult.validation.valid ? 'bg-green-400' : 'bg-red-400'
-                  }`}></div>
-                  <div className={`font-medium ${
-                    validationResult.validation.valid ? 'text-green-300' : 'text-red-300'
-                  }`}>
-                    {validationResult.validation.message}
-                  </div>
-                </div>
-                
-                {validationResult.schedule_details && (
-                  <div className="text-xs text-gray-300">
-                    <div>Shift: {validationResult.schedule_details.shift_name}</div>
-                    <div>Jadwal: {validationResult.schedule_details.effective_start_time} - {validationResult.schedule_details.effective_end_time}</div>
-                    {validationResult.schedule_details.is_late_checkin && (
-                      <div className="text-yellow-400 mt-1">⚠️ Check-in terlambat tapi masih dalam toleransi</div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Responsive Current Date and Time */}
+          <div className="space-y-4 sm:space-y-6 md:space-y-8">
+            {/* Current Date and Time - Responsive Typography */}
             <div className="text-center">
-              <div className="text-base md:text-lg lg:text-xl text-purple-200 mb-2">
-                {formatDate(currentTime)}
-              </div>
-              <div className="dokter-responsive-title font-bold text-white">
-                {formatTime(currentTime)}
-              </div>
+              <div className="text-base sm:text-lg md:text-xl text-purple-200 mb-2">{formatDate(currentTime)}</div>
+              <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white">{formatTime(currentTime)}</div>
             </div>
 
-            {/* Responsive Attendance Status Card */}
-            <div className="dokter-attendance-card bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-white/20
-                            md:rounded-3xl md:p-6
-                            lg:p-8">
+            {/* Attendance Status Card - Responsive Padding and Layout */}
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 border border-white/20">
               <div className="text-center mb-4">
-                <div className={`inline-flex items-center space-x-3 px-6 py-3 rounded-2xl transition-all duration-500 ${
+                <div className={`inline-flex items-center space-x-2 sm:space-x-3 px-4 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl transition-all duration-500 ${
                   isCheckedIn 
                     ? 'bg-gradient-to-r from-green-500/30 to-emerald-500/30 border border-green-400/50' 
                     : 'bg-gradient-to-r from-gray-500/30 to-purple-500/30 border border-purple-400/50'
                 }`}>
-                  <div className={`w-3 h-3 rounded-full ${isCheckedIn ? 'bg-green-400 animate-pulse' : 'bg-purple-400'}`}></div>
-                  <span className="text-white font-semibold">
+                  <div className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full ${isCheckedIn ? 'bg-green-400 animate-pulse' : 'bg-purple-400'}`}></div>
+                  <span className="text-sm sm:text-base md:text-lg text-white font-semibold">
                     {isCheckedIn ? '🚀 Sedang Bekerja' : '😴 Belum Check-in'}
                   </span>
                 </div>
               </div>
 
-              {/* Responsive Working Hours Display */}
+              {/* Working Hours Display - Responsive Grid */}
               {isCheckedIn && (
-                <div className="grid grid-cols-3 gap-3 mt-4
-                                md:gap-4 md:mt-6
-                                lg:gap-6 lg:mt-8">
+                <div className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-6 mt-4 sm:mt-6">
                   <div className="text-center">
-                    <div className="text-base md:text-lg lg:text-xl font-bold text-green-400">
-                      {attendanceData.workingHours}
-                    </div>
-                    <div className="text-xs md:text-sm text-gray-300">Jam Kerja</div>
+                    <div className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-green-400">{attendanceData.workingHours}</div>
+                    <div className="text-xs sm:text-sm md:text-base text-gray-300">Jam Kerja</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-base md:text-lg lg:text-xl font-bold text-blue-400">
-                      {attendanceData.breakTime}
-                    </div>
-                    <div className="text-xs md:text-sm text-gray-300">Istirahat</div>
+                    <div className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-blue-400">{attendanceData.breakTime}</div>
+                    <div className="text-xs sm:text-sm md:text-base text-gray-300">Istirahat</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-base md:text-lg lg:text-xl font-bold text-purple-400">
-                      {attendanceData.overtimeHours}
-                    </div>
-                    <div className="text-xs md:text-sm text-gray-300">Overtime</div>
+                    <div className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-purple-400">{attendanceData.overtimeHours}</div>
+                    <div className="text-xs sm:text-sm md:text-base text-gray-300">Overtime</div>
                   </div>
                 </div>
               )}
 
-              {/* Check-in/out times */}
+              {/* Check-in/out times - Responsive Font Sizes */}
               {(attendanceData.checkInTime || attendanceData.checkOutTime) && (
-                <div className="mt-4 p-4 bg-black/20 rounded-2xl">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="mt-4 p-3 sm:p-4 md:p-5 bg-black/20 rounded-xl sm:rounded-2xl">
+                  <div className="grid grid-cols-2 gap-2 sm:gap-4 text-xs sm:text-sm md:text-base">
                     <div>
                       <span className="text-gray-400">Check-in: </span>
                       <span className="text-green-400">
@@ -729,55 +371,35 @@ const CreativeAttendanceDashboard: React.FC<CreativeAttendanceDashboardProps> = 
               )}
             </div>
 
-            {/* Responsive Check-in/out Buttons */}
-            <div className="dokter-checkin-buttons grid grid-cols-1 gap-4
-                            md:grid-cols-2 md:gap-6
-                            lg:gap-8">
+            {/* Check-in/out Buttons - Responsive Grid and Sizing */}
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6 lg:gap-8">
               <button 
                 onClick={handleCheckIn}
-                disabled={isCheckedIn || !validationResult?.validation?.can_checkin || validationLoading}
-                className={`dokter-attendance-button dokter-interactive-element relative group p-4 rounded-2xl transition-all duration-500 transform touch-manipulation min-h-[44px]
-                            md:p-6 md:rounded-3xl
-                            lg:p-8 lg:rounded-3xl
-                            ${
-                  (isCheckedIn || !validationResult?.validation?.can_checkin || validationLoading)
+                disabled={isCheckedIn}
+                className={`relative group p-4 sm:p-5 md:p-6 lg:p-8 rounded-2xl sm:rounded-3xl transition-all duration-500 transform ${
+                  isCheckedIn 
                     ? 'opacity-50 cursor-not-allowed' 
                     : 'hover:scale-105 active:scale-95'
                 }`}
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-green-500/30 to-emerald-600/30 rounded-3xl"></div>
-                <div className="absolute inset-0 bg-white/5 rounded-3xl border border-green-400/30"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500/30 to-emerald-600/30 rounded-2xl sm:rounded-3xl"></div>
+                <div className="absolute inset-0 bg-white/5 rounded-2xl sm:rounded-3xl border border-green-400/30"></div>
                 {!isCheckedIn && (
-                  <div className="absolute inset-0 bg-gradient-to-br from-green-400/0 to-green-400/20 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <div className="absolute inset-0 bg-gradient-to-br from-green-400/0 to-green-400/20 rounded-2xl sm:rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 )}
                 <div className="relative text-center">
-                  <div className="w-12 h-12 mx-auto mb-3 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl flex items-center justify-center
-                                  md:w-16 md:h-16 md:mb-4 md:rounded-2xl
-                                  lg:w-20 lg:h-20 lg:mb-6">
-                    {validationLoading ? (
-                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin md:w-8 md:h-8 lg:w-10 lg:h-10"></div>
-                    ) : (
-                      <Sun className="w-6 h-6 text-white md:w-8 md:h-8 lg:w-10 lg:h-10" />
-                    )}
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 lg:w-20 lg:h-20 mx-auto mb-2 sm:mb-3 md:mb-4 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl sm:rounded-2xl flex items-center justify-center">
+                    <Sun className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-10 lg:h-10 text-white" />
                   </div>
-                  <div className="text-white font-bold text-base md:text-lg lg:text-xl">
-                    {validationLoading ? 'Validating...' : 'Check In'}
-                  </div>
-                  <div className="text-green-300 text-sm md:text-base">
-                    {validationResult?.validation?.can_checkin ? 'Siap check-in' : 
-                     validationResult?.validation?.valid === false ? 'Tidak bisa check-in' :
-                     'Mulai bekerja'}
-                  </div>
+                  <div className="text-white font-bold text-sm sm:text-base md:text-lg lg:text-xl">Check In</div>
+                  <div className="text-green-300 text-xs sm:text-sm md:text-base">Mulai bekerja</div>
                 </div>
               </button>
               
               <button 
                 onClick={handleCheckOut}
                 disabled={!isCheckedIn}
-                className={`dokter-attendance-button dokter-interactive-element relative group p-4 rounded-2xl transition-all duration-500 transform touch-manipulation min-h-[44px]
-                            md:p-6 md:rounded-3xl
-                            lg:p-8 lg:rounded-3xl
-                            ${
+                className={`relative group p-4 sm:p-5 md:p-6 lg:p-8 rounded-2xl sm:rounded-3xl transition-all duration-500 transform ${
                   !isCheckedIn 
                     ? 'opacity-50 cursor-not-allowed' 
                     : 'hover:scale-105 active:scale-95'
@@ -789,366 +411,82 @@ const CreativeAttendanceDashboard: React.FC<CreativeAttendanceDashboardProps> = 
                   <div className="absolute inset-0 bg-gradient-to-br from-purple-400/0 to-purple-400/20 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 )}
                 <div className="relative text-center">
-                  <div className="w-12 h-12 mx-auto mb-3 bg-gradient-to-br from-purple-400 to-pink-500 rounded-xl flex items-center justify-center
-                                  md:w-16 md:h-16 md:mb-4 md:rounded-2xl
-                                  lg:w-20 lg:h-20 lg:mb-6">
-                    <Moon className="w-6 h-6 text-white md:w-8 md:h-8 lg:w-10 lg:h-10" />
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 lg:w-20 lg:h-20 mx-auto mb-2 sm:mb-3 md:mb-4 bg-gradient-to-br from-purple-400 to-pink-500 rounded-xl sm:rounded-2xl flex items-center justify-center">
+                    <Moon className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-10 lg:h-10 text-white" />
                   </div>
-                  <div className="text-white font-bold text-base md:text-lg lg:text-xl">Check Out</div>
-                  <div className="text-purple-300 text-sm md:text-base">Selesai bekerja</div>
+                  <div className="text-white font-bold text-sm sm:text-base md:text-lg lg:text-xl">Check Out</div>
+                  <div className="text-purple-300 text-xs sm:text-sm md:text-base">Selesai bekerja</div>
                 </div>
               </button>
             </div>
 
-            {/* Enhanced Location Map with Professional Pins */}
-            <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 overflow-hidden
-                            md:rounded-3xl
-                            lg:rounded-3xl">
-              <div className="p-3 border-b border-white/10
-                              md:p-4
-                              lg:p-6">
+            {/* Dynamic Location Map with Leaflet.js & OSM */}
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-white/20 overflow-hidden">
+              <div className="p-4 border-b border-white/10">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-blue-500 rounded-xl flex items-center justify-center">
                       <MapPin className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <div className="font-semibold text-white">RS. Kediri Medical Center</div>
-                      <div className="text-green-300 text-sm">Jl. Ahmad Yani No. 123</div>
+                      <div className="font-semibold text-white">{hospitalLocation.name}</div>
+                      <div className="text-green-300 text-sm">{hospitalLocation.address}</div>
                       {distanceToHospital && (
-                        <div className={`text-xs ${
-                          currentSchedule?.work_location && distanceToHospital <= currentSchedule.work_location.radius_meters
-                            ? 'text-green-300'
-                            : 'text-cyan-300'
-                        }`}>
-                          📏 {formatDistance(distanceToHospital)} dari Anda
-                          {currentSchedule?.work_location && distanceToHospital <= currentSchedule.work_location.radius_meters && 
-                            ' ✓ Dalam radius'}
+                        <div className="text-xs text-cyan-300">
+                          📏 {distanceToHospital < 1000 ? `${Math.round(distanceToHospital)}m` : `${(distanceToHospital / 1000).toFixed(1)}km`} dari Anda
                         </div>
                       )}
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <button
-                      onClick={detectUserLocation}
-                      disabled={gpsStatus === 'loading'}
-                      className="px-3 py-1.5 bg-purple-500/20 border border-purple-400/30 rounded-lg text-xs text-purple-300 hover:bg-purple-500/30 transition-colors disabled:opacity-50"
-                    >
-                      🔄 GPS
-                    </button>
-                    <button
-                      onClick={loadCurrentSchedule}
-                      disabled={scheduleLoading}
-                      className="px-3 py-1.5 bg-blue-500/20 border border-blue-400/30 rounded-lg text-xs text-blue-300 hover:bg-blue-500/30 transition-colors disabled:opacity-50"
-                    >
-                      📅 Jadwal
-                    </button>
-                    <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                    <div className={`w-2 h-2 rounded-full ${
+                      gpsStatus === 'success' ? 'bg-green-400 animate-pulse' :
+                      gpsStatus === 'error' ? 'bg-red-400' :
+                      gpsStatus === 'loading' ? 'bg-yellow-400 animate-pulse' :
+                      'bg-gray-400'
+                    }`}></div>
+                    <span className="text-xs text-gray-300">
+                      {gpsStatus === 'success' ? 'GPS Aktif' :
+                       gpsStatus === 'error' ? 'GPS Error' :
+                       gpsStatus === 'loading' ? 'Mendeteksi...' :
+                       'GPS Off'}
+                    </span>
                   </div>
-                </div>
-                
-                {/* GPS Status Display */}
-                <div className={`mt-3 p-2.5 rounded-xl border ${getGpsStatusDisplay().bgColor}`}>
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center space-x-2">
-                      <span>{getGpsStatusDisplay().icon}</span>
-                      <span className={getGpsStatusDisplay().color}>
-                        {getGpsStatusDisplay().text}
-                      </span>
-                    </div>
-                    {gpsStatus === 'success' && gpsAccuracy && (
-                      <div className="text-cyan-300 text-xs">
-                        ±{Math.round(gpsAccuracy)}m akurasi
-                      </div>
-                    )}
-                  </div>
-                  {gpsError && (
-                    <div className="mt-2 text-xs text-red-300">
-                      {gpsError}
-                    </div>
-                  )}
                 </div>
               </div>
               
-              <div className="relative h-32 md:h-48 lg:h-64 overflow-hidden">
-                <style>{`
-                  /* Enhanced Leaflet popup styling */
-                  .leaflet-popup-content-wrapper {
-                    background: rgba(255, 255, 255, 0.98);
-                    border-radius: 16px;
-                    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(147, 51, 234, 0.2);
-                    backdrop-filter: blur(20px);
-                  }
-                  .leaflet-popup-tip {
-                    background: rgba(255, 255, 255, 0.98);
-                    border: 1px solid rgba(147, 51, 234, 0.2);
-                  }
-                  .leaflet-control-zoom {
-                    border: none !important;
-                  }
-                  .leaflet-control-zoom a {
-                    background: rgba(0, 0, 0, 0.8) !important;
-                    color: white !important;
-                    border: 1px solid rgba(147, 51, 234, 0.4) !important;
-                    backdrop-filter: blur(15px);
-                    border-radius: 8px !important;
-                  }
-                  .leaflet-control-zoom a:hover {
-                    background: rgba(147, 51, 234, 0.9) !important;
-                    transform: scale(1.05);
-                  }
+              <div className="h-64 sm:h-80">
+                <DynamicMap
+                  hospitalLocation={hospitalLocation}
+                  userLocation={userLocation}
+                  onLocationUpdate={(location) => {
+                    // Only update if we have valid coordinates (not loading state)
+                    if (location.lat !== 0 && location.lng !== 0) {
+                      setUserLocation(location);
+                      setGpsStatus('success');
+                      
+                      // Calculate distance
+                      const R = 6371e3; // Earth's radius in meters
+                      const φ1 = location.lat * Math.PI / 180;
+                      const φ2 = hospitalLocation.lat * Math.PI / 180;
+                      const Δφ = (hospitalLocation.lat - location.lat) * Math.PI / 180;
+                      const Δλ = (hospitalLocation.lng - location.lng) * Math.PI / 180;
 
-                  /* Professional Hospital Pin */
-                  .hospital-pin-container {
-                    position: relative;
-                    width: 40px;
-                    height: 55px;
-                  }
-                  .hospital-pin-body {
-                    position: absolute;
-                    top: 0;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    width: 32px;
-                    height: 45px;
-                    background: linear-gradient(135deg, #8B5CF6 0%, #A855F7 50%, #C084FC 100%);
-                    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-                    border: 2px solid rgba(255, 255, 255, 0.2);
-                    animation: hospitalPinBounce 2s ease-in-out infinite;
-                  }
-                  .hospital-pin-icon {
-                    color: white;
-                    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-                  }
-                  .hospital-pin-pulse {
-                    position: absolute;
-                    top: 8px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    width: 48px;
-                    height: 48px;
-                    background: radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, transparent 70%);
-                    border-radius: 50%;
-                    animation: hospitalPulse 2s ease-out infinite;
-                  }
-                  .hospital-pin-shadow {
-                    position: absolute;
-                    bottom: -5px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    width: 20px;
-                    height: 8px;
-                    background: radial-gradient(ellipse, rgba(0, 0, 0, 0.3) 0%, transparent 70%);
-                    border-radius: 50%;
-                  }
+                      const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                                Math.cos(φ1) * Math.cos(φ2) *
+                                Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+                      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-                  /* Professional User Location Pin */
-                  .user-pin-container {
-                    position: relative;
-                    width: 36px;
-                    height: 48px;
-                  }
-                  .user-pin-body {
-                    position: absolute;
-                    top: 0;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    width: 28px;
-                    height: 38px;
-                    background: linear-gradient(135deg, #06B6D4 0%, #0EA5E9 50%, #3B82F6 100%);
-                    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.4);
-                    border: 2px solid rgba(255, 255, 255, 0.3);
-                    animation: userPinBounce 1.5s ease-in-out infinite;
-                  }
-                  .user-pin-icon {
-                    color: white;
-                    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-                  }
-                  .user-pin-pulse {
-                    position: absolute;
-                    top: 6px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    width: 40px;
-                    height: 40px;
-                    background: radial-gradient(circle, rgba(6, 182, 212, 0.4) 0%, transparent 70%);
-                    border-radius: 50%;
-                    animation: userPulse 1.8s ease-out infinite;
-                  }
-                  .user-pin-accuracy-ring {
-                    position: absolute;
-                    top: 2px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    width: 50px;
-                    height: 50px;
-                    border: 2px solid rgba(6, 182, 212, 0.3);
-                    border-radius: 50%;
-                    animation: accuracyRing 3s linear infinite;
-                  }
-                  .user-pin-shadow {
-                    position: absolute;
-                    bottom: -3px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    width: 16px;
-                    height: 6px;
-                    background: radial-gradient(ellipse, rgba(0, 0, 0, 0.25) 0%, transparent 70%);
-                    border-radius: 50%;
-                  }
-
-                  /* Animations */
-                  @keyframes hospitalPinBounce {
-                    0%, 100% { transform: translateX(-50%) translateY(0); }
-                    50% { transform: translateX(-50%) translateY(-4px); }
-                  }
-                  @keyframes userPinBounce {
-                    0%, 100% { transform: translateX(-50%) translateY(0); }
-                    50% { transform: translateX(-50%) translateY(-3px); }
-                  }
-                  @keyframes hospitalPulse {
-                    0% { opacity: 1; transform: translateX(-50%) scale(0.8); }
-                    100% { opacity: 0; transform: translateX(-50%) scale(1.4); }
-                  }
-                  @keyframes userPulse {
-                    0% { opacity: 1; transform: translateX(-50%) scale(0.7); }
-                    100% { opacity: 0; transform: translateX(-50%) scale(1.2); }
-                  }
-                  @keyframes accuracyRing {
-                    0% { opacity: 0.6; transform: translateX(-50%) scale(0.8) rotate(0deg); }
-                    50% { opacity: 0.3; transform: translateX(-50%) scale(1.1) rotate(180deg); }
-                    100% { opacity: 0.6; transform: translateX(-50%) scale(0.8) rotate(360deg); }
-                  }
-                `}</style>
-                <MapContainer
-                  center={userLocation || getHospitalLocation()}
-                  zoom={userLocation ? 17 : 16}
-                  scrollWheelZoom={false}
-                  touchZoom={true}
-                  doubleClickZoom={false}
-                  dragging={true}
-                  className="h-full w-full rounded-none"
-                  style={{
-                    filter: 'hue-rotate(280deg) saturate(1.2) brightness(0.95) contrast(1.1)',
-                    zIndex: 1,
+                      const distance = R * c;
+                      setDistanceToHospital(distance);
+                    } else {
+                      // Loading state
+                      setGpsStatus('loading');
+                    }
                   }}
-                >
-                  <TileLayer
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                  />
-                  
-                  {/* Hospital Marker with Professional Pin */}
-                  <Marker position={getHospitalLocation()} icon={createHospitalIcon()}>
-                    <Popup
-                      closeButton={false}
-                      className="custom-popup"
-                    >
-                      <div className="text-center p-2">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                            <span className="text-white text-xs">🏥</span>
-                          </div>
-                          <strong className="text-purple-800 text-sm">
-                            {currentSchedule?.work_location?.name || 'RS. Kediri Medical Center'}
-                          </strong>
-                        </div>
-                        <div className="text-gray-700 text-xs mb-1">
-                          {currentSchedule?.work_location?.address || 'Jl. Ahmad Yani No. 123'}
-                        </div>
-                        <div className="text-green-600 text-xs flex items-center justify-center space-x-1">
-                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                          <span>
-                            {currentSchedule?.work_location ? 'Work Location Verified' : 'Hospital Location Verified'}
-                          </span>
-                        </div>
-                        {distanceToHospital && (
-                          <div className={`text-xs mt-1 font-semibold ${
-                            currentSchedule?.work_location && distanceToHospital <= currentSchedule.work_location.radius_meters
-                              ? 'text-green-600'
-                              : 'text-cyan-600'
-                          }`}>
-                            📏 {formatDistance(distanceToHospital)} dari lokasi Anda
-                            {currentSchedule?.work_location && distanceToHospital <= currentSchedule.work_location.radius_meters && 
-                              ' ✓ Valid'}
-                          </div>
-                        )}
-                      </div>
-                    </Popup>
-                  </Marker>
-
-                  {/* User Location Marker with Professional Pin */}
-                  {userLocation && (
-                    <Marker position={userLocation} icon={createUserLocationIcon()}>
-                      <Popup
-                        closeButton={false}
-                        className="custom-popup"
-                      >
-                        <div className="text-center p-2">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <div className="w-6 h-6 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-full flex items-center justify-center">
-                              <span className="text-white text-xs">📍</span>
-                            </div>
-                            <strong className="text-cyan-800 text-sm">Lokasi Anda</strong>
-                          </div>
-                          <div className="text-gray-700 text-xs mb-1">
-                            GPS: {userLocation[0].toFixed(6)}, {userLocation[1].toFixed(6)}
-                          </div>
-                          <div className="text-blue-600 text-xs flex items-center justify-center space-x-1">
-                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                            <span>Akurasi ±{Math.round(gpsAccuracy)}m</span>
-                          </div>
-                          {distanceToHospital && (
-                            <div className="text-purple-600 text-xs mt-1 font-semibold">
-                              🎯 {formatDistance(distanceToHospital)} ke hospital
-                            </div>
-                          )}
-                        </div>
-                      </Popup>
-                    </Marker>
-                  )}
-                </MapContainer>
-                
-                {/* Enhanced Live Location Indicator */}
-                <div className="absolute top-4 left-4 bg-black/80 backdrop-blur-md rounded-2xl p-3 border border-white/20 z-[1000] shadow-lg">
-                  <div className="flex items-center space-x-2">
-                    <div className={`w-2 h-2 rounded-full animate-pulse ${
-                      gpsStatus === 'success' ? 'bg-green-400' :
-                      gpsStatus === 'loading' ? 'bg-yellow-400' :
-                      gpsStatus === 'error' ? 'bg-red-400' : 'bg-gray-400'
-                    }`}></div>
-                    <span className="text-white text-sm font-medium">
-                      {gpsStatus === 'success' ? '🎯 GPS Aktif' :
-                       gpsStatus === 'loading' ? '📍 Mencari...' :
-                       gpsStatus === 'error' ? '❌ GPS Error' : '📍 GPS Ready'}
-                    </span>
-                  </div>
-                  {gpsStatus === 'success' && distanceToHospital && (
-                    <div className="text-cyan-300 text-xs mt-1 font-medium">
-                      📏 {formatDistance(distanceToHospital)} ke RS
-                    </div>
-                  )}
-                </div>
-
-                {/* GPS Accuracy Indicator */}
-                {gpsStatus === 'success' && gpsAccuracy && (
-                  <div className="absolute top-4 right-4 bg-black/80 backdrop-blur-md rounded-2xl p-2 border border-white/20 z-[1000] shadow-lg">
-                    <div className="flex items-center space-x-1">
-                      <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
-                      <span className="text-cyan-300 text-xs font-medium">
-                        ±{Math.round(gpsAccuracy)}m
-                      </span>
-                    </div>
-                  </div>
-                )}
+                  showUserLocation={true}
+                  className="h-full w-full"
+                />
               </div>
             </div>
 
@@ -1317,21 +655,18 @@ const CreativeAttendanceDashboard: React.FC<CreativeAttendanceDashboardProps> = 
 
       case 'history':
         return (
-          <div className="space-y-3 md:space-y-4 lg:space-y-6">
-            <div className="flex flex-col space-y-3 mb-4
-                            md:flex-row md:justify-between md:items-center md:space-y-0 md:mb-6
-                            lg:mb-8">
-              <h3 className="text-lg md:text-xl lg:text-2xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+          <div className="space-y-4">
+            {/* Header with Filter - Responsive Layout */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 sm:mb-6">
+              <h3 className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
                 Riwayat Presensi
               </h3>
               <div className="flex items-center space-x-2">
-                <Filter className="w-4 h-4 text-purple-300 md:w-5 md:h-5" />
+                <Filter className="w-3 h-3 sm:w-4 sm:h-4 text-purple-300" />
                 <select 
                   value={filterPeriod}
                   onChange={(e) => handleFilterChange(e.target.value)}
-                  className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-purple-400
-                             md:px-4 md:py-2.5 md:text-base
-                             min-h-[44px] touch-manipulation"
+                  className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg sm:rounded-xl px-2 sm:px-3 py-1 text-xs sm:text-sm text-white focus:outline-none focus:border-purple-400"
                 >
                   <option value="weekly" className="bg-gray-800">7 Hari</option>
                   <option value="monthly" className="bg-gray-800">30 Hari</option>
@@ -1339,15 +674,16 @@ const CreativeAttendanceDashboard: React.FC<CreativeAttendanceDashboardProps> = 
               </div>
             </div>
 
+            {/* History Cards - Responsive Spacing and Typography */}
             {currentData.map((record, index) => (
-              <div key={index} className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-white/20">
+              <div key={index} className="bg-white/10 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5 border border-white/20">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-white font-semibold">{record.date}</span>
-                  <span className={`text-sm font-medium ${getStatusColor(record.status)}`}>
+                  <span className="text-sm sm:text-base md:text-lg text-white font-semibold">{record.date}</span>
+                  <span className={`text-xs sm:text-sm font-medium ${getStatusColor(record.status)}`}>
                     {record.status}
                   </span>
                 </div>
-                <div className="grid grid-cols-3 gap-2 text-sm">
+                <div className="grid grid-cols-3 gap-1 sm:gap-2 text-xs sm:text-sm md:text-base">
                   <div>
                     <span className="text-gray-400">Masuk: </span>
                     <span className="text-white">{record.checkIn}</span>
@@ -1418,40 +754,42 @@ const CreativeAttendanceDashboard: React.FC<CreativeAttendanceDashboardProps> = 
 
       case 'stats':
         return (
-          <div className="space-y-6">
-            <h3 className="text-xl font-bold mb-6 text-center bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+          <div className="space-y-4 sm:space-y-6">
+            <h3 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-4 sm:mb-6 text-center bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
               Statistik Bulanan
             </h3>
             
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-white/20">
+            {/* Stats Grid - Responsive Columns */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
+              <div className="bg-white/10 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5 border border-white/20">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-green-400">{monthlyStats.presentDays}</div>
-                  <div className="text-sm text-gray-300">Hari Hadir</div>
+                  <div className="text-xl sm:text-2xl md:text-3xl font-bold text-green-400">{monthlyStats.presentDays}</div>
+                  <div className="text-xs sm:text-sm md:text-base text-gray-300">Hari Hadir</div>
                 </div>
               </div>
-              <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-white/20">
+              <div className="bg-white/10 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5 border border-white/20">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-yellow-400">{monthlyStats.lateDays}</div>
-                  <div className="text-sm text-gray-300">Hari Terlambat</div>
+                  <div className="text-xl sm:text-2xl md:text-3xl font-bold text-yellow-400">{monthlyStats.lateDays}</div>
+                  <div className="text-xs sm:text-sm md:text-base text-gray-300">Hari Terlambat</div>
                 </div>
               </div>
-              <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-white/20">
+              <div className="bg-white/10 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5 border border-white/20">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-400">{monthlyStats.overtimeHours}h</div>
-                  <div className="text-sm text-gray-300">Overtime</div>
+                  <div className="text-xl sm:text-2xl md:text-3xl font-bold text-blue-400">{monthlyStats.overtimeHours}h</div>
+                  <div className="text-xs sm:text-sm md:text-base text-gray-300">Overtime</div>
                 </div>
               </div>
-              <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-white/20">
+              <div className="bg-white/10 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5 border border-white/20">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-400">{monthlyStats.leaveBalance}</div>
-                  <div className="text-sm text-gray-300">Sisa Cuti</div>
+                  <div className="text-xl sm:text-2xl md:text-3xl font-bold text-purple-400">{monthlyStats.leaveBalance}</div>
+                  <div className="text-xs sm:text-sm md:text-base text-gray-300">Sisa Cuti</div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
-              <h4 className="text-lg font-semibold text-white mb-4">Tingkat Kehadiran</h4>
+            {/* Attendance Rate - Responsive Padding */}
+            <div className="bg-white/10 backdrop-blur-xl rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 border border-white/20">
+              <h4 className="text-base sm:text-lg md:text-xl font-semibold text-white mb-3 sm:mb-4">Tingkat Kehadiran</h4>
               <div className="space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-300">Kehadiran</span>
@@ -1573,42 +911,43 @@ const CreativeAttendanceDashboard: React.FC<CreativeAttendanceDashboardProps> = 
 
       case 'leave':
         return (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+          <div className="space-y-4 sm:space-y-6">
+            {/* Header with Add Button - Responsive Layout */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 sm:mb-6">
+              <h3 className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
                 Manajemen Cuti
               </h3>
               <button
                 onClick={() => setShowLeaveForm(true)}
-                className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 px-4 py-2 rounded-xl flex items-center space-x-2 transition-all"
+                className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl flex items-center space-x-1.5 sm:space-x-2 transition-all"
               >
-                <Plus className="w-4 h-4" />
-                <span className="text-sm font-medium">Ajukan Cuti</span>
+                <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="text-xs sm:text-sm font-medium">Ajukan Cuti</span>
               </button>
             </div>
 
-            {/* Leave Balance Card */}
-            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
-              <h4 className="text-lg font-semibold text-white mb-4">Saldo Cuti</h4>
-              <div className="grid grid-cols-3 gap-4">
+            {/* Leave Balance Card - Responsive Grid and Typography */}
+            <div className="bg-white/10 backdrop-blur-xl rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 border border-white/20">
+              <h4 className="text-base sm:text-lg md:text-xl font-semibold text-white mb-3 sm:mb-4">Saldo Cuti</h4>
+              <div className="grid grid-cols-3 gap-2 sm:gap-3 md:gap-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-400">12</div>
-                  <div className="text-sm text-gray-300">Cuti Tahunan</div>
+                  <div className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-blue-400">12</div>
+                  <div className="text-xs sm:text-sm md:text-base text-gray-300">Cuti Tahunan</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-green-400">5</div>
-                  <div className="text-sm text-gray-300">Cuti Sakit</div>
+                  <div className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-green-400">5</div>
+                  <div className="text-xs sm:text-sm md:text-base text-gray-300">Cuti Sakit</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-400">3</div>
-                  <div className="text-sm text-gray-300">Cuti Khusus</div>
+                  <div className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-purple-400">3</div>
+                  <div className="text-xs sm:text-sm md:text-base text-gray-300">Cuti Khusus</div>
                 </div>
               </div>
             </div>
 
-            {/* Recent Leave Requests */}
-            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20">
-              <h4 className="text-lg font-semibold text-white mb-4">Pengajuan Terakhir</h4>
+            {/* Recent Leave Requests - Responsive Cards */}
+            <div className="bg-white/10 backdrop-blur-xl rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6 border border-white/20">
+              <h4 className="text-base sm:text-lg md:text-xl font-semibold text-white mb-3 sm:mb-4">Pengajuan Terakhir</h4>
               <div className="space-y-3">
                 {[
                   { date: '15-20 Jul 2025', type: 'Cuti Tahunan', status: 'Approved', days: 4 },
@@ -1641,53 +980,40 @@ const CreativeAttendanceDashboard: React.FC<CreativeAttendanceDashboardProps> = 
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white">
-      {/* Mobile-first responsive container with adaptive width and custom desktop enhancements */}
-      <div className="dokter-attendance-container w-full max-w-sm mx-auto min-h-screen relative overflow-hidden
-                      md:max-w-2xl lg:max-w-4xl
-                      md:px-4 lg:px-6">
+      {/* Responsive Container - Mobile First with Tablet/Desktop Breakpoints */}
+      <div className="w-full max-w-full sm:max-w-sm md:max-w-2xl lg:max-w-4xl xl:max-w-6xl 2xl:max-w-7xl mx-auto min-h-screen relative overflow-hidden">
         
-        {/* Animated Background Elements */}
+        {/* Animated Background Elements - Responsive Sizing */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-10 w-32 h-32 bg-blue-400/10 rounded-full blur-xl animate-pulse"></div>
-          <div className="absolute top-40 right-5 w-24 h-24 bg-purple-400/10 rounded-full blur-lg animate-bounce"></div>
-          <div className="absolute bottom-40 left-5 w-40 h-40 bg-pink-400/10 rounded-full blur-2xl animate-pulse"></div>
+          <div className="absolute top-20 left-10 w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 bg-blue-400/10 rounded-full blur-xl animate-pulse"></div>
+          <div className="absolute top-40 right-5 w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 lg:w-40 lg:h-40 bg-purple-400/10 rounded-full blur-lg animate-bounce"></div>
+          <div className="absolute bottom-40 left-5 w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 lg:w-56 lg:h-56 bg-pink-400/10 rounded-full blur-2xl animate-pulse"></div>
         </div>
 
-        {/* Responsive Status Bar */}
-        <div className="flex justify-between items-center px-4 pt-3 pb-2 text-white text-sm font-semibold relative z-10
-                        md:px-6 lg:px-8">
-          {/* Hide status bar on larger screens */}
-          <span className="md:hidden"></span>
-          <div className="flex items-center space-x-1 md:hidden">
-            <div className="w-6 h-3 border border-white rounded-sm relative">
-              <div className="w-4 h-2 bg-green-500 rounded-sm absolute top-0.5 left-0.5"></div>
+        {/* Status Bar - Hide on Desktop */}
+        <div className={`flex justify-between items-center px-4 sm:px-6 pt-3 pb-2 text-white text-sm font-semibold relative z-10 ${isDesktop ? 'lg:hidden' : ''}`}>
+          <span className="text-xs sm:text-sm">{formatTime(currentTime)}</span>
+          <div className="flex items-center space-x-1">
+            <Wifi className="w-3 h-3 sm:w-4 sm:h-4" />
+            <div className="w-5 h-2.5 sm:w-6 sm:h-3 border border-white rounded-sm relative">
+              <div className="w-3.5 h-1.5 sm:w-4 sm:h-2 bg-green-500 rounded-sm absolute top-0.5 left-0.5"></div>
             </div>
           </div>
         </div>
 
-        {/* Responsive Hero Section */}
-        <div className="px-4 pt-6 pb-4 relative z-10
-                        md:px-6 md:pt-8 md:pb-6
-                        lg:px-8 lg:pt-10 lg:pb-8">
-          <div className="text-center mb-6 md:mb-8">
-            {/* Responsive typography using clamp */}
-            <h1 className="font-bold mb-2 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent"
-                style={{ fontSize: 'clamp(1.875rem, 5vw, 3.5rem)' }}>
+        {/* Hero Section - Responsive Typography and Spacing */}
+        <div className="px-4 sm:px-6 md:px-8 lg:px-12 pt-4 sm:pt-6 md:pt-8 lg:pt-10 pb-4 sm:pb-6 relative z-10">
+          <div className="text-center mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
               Smart Attendance
             </h1>
-            <p className="text-purple-200 text-base md:text-lg lg:text-xl">
-              {userData?.name || 'Doctor'}
-            </p>
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-purple-200">Dr. Naning Paramedis</p>
           </div>
         </div>
 
-        {/* Responsive Tab Navigation */}
-        <div className="px-4 mb-4 relative z-10
-                        md:px-6 md:mb-6
-                        lg:px-8 lg:mb-8">
-          <div className="dokter-gaming-nav dokter-tab-navigation flex bg-gradient-to-r from-slate-800/40 via-slate-700/40 to-slate-800/40 backdrop-blur-sm rounded-lg border border-cyan-400/20 p-0.5 shadow-lg shadow-cyan-500/10
-                          md:rounded-xl md:p-1
-                          lg:rounded-2xl lg:p-1.5">
+        {/* Tab Navigation - Responsive Layout */}
+        <div className="px-4 sm:px-6 md:px-8 lg:px-12 mb-4 sm:mb-6 relative z-10">
+          <div className="flex bg-gradient-to-r from-slate-800/40 via-slate-700/40 to-slate-800/40 backdrop-blur-sm rounded-lg border border-cyan-400/20 p-0.5 sm:p-1 shadow-lg shadow-cyan-500/10">
             
             {/* Active Tab Indicator */}
             <div 
@@ -1710,15 +1036,15 @@ const CreativeAttendanceDashboard: React.FC<CreativeAttendanceDashboardProps> = 
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`dokter-gaming-nav-item dokter-tab-item relative z-10 flex-1 flex items-center justify-center space-x-1.5 px-2 py-1.5 rounded-md transition-all duration-200 group ${
+                  className={`relative z-10 flex-1 flex items-center justify-center space-x-1 sm:space-x-1.5 md:space-x-2 px-1 sm:px-2 md:px-3 py-1.5 sm:py-2 md:py-2.5 rounded-md transition-all duration-200 group ${
                     isActive 
                       ? 'text-cyan-300 scale-105' 
                       : 'text-gray-400 hover:text-cyan-400 hover:scale-102'
                   }`}
                 >
-                  {/* Icon with gaming glow */}
+                  {/* Icon with gaming glow - Responsive Sizing */}
                   <div className="relative">
-                    <Icon className={`w-3.5 h-3.5 flex-shrink-0 transition-all duration-200 ${
+                    <Icon className={`w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 lg:w-5 lg:h-5 flex-shrink-0 transition-all duration-200 ${
                       isActive ? 'filter drop-shadow-sm drop-shadow-cyan-400/50' : 'group-hover:drop-shadow-sm group-hover:drop-shadow-cyan-400/30'
                     }`} />
                     
@@ -1731,7 +1057,8 @@ const CreativeAttendanceDashboard: React.FC<CreativeAttendanceDashboardProps> = 
                     )}
                   </div>
                   
-                  <span className={`text-xs font-medium truncate transition-all duration-200 ${
+                  {/* Tab Label - Hide on small mobile, show on larger screens */}
+                  <span className={`hidden sm:inline text-xs md:text-sm lg:text-base font-medium truncate transition-all duration-200 ${
                     isActive ? 'text-cyan-300 font-semibold' : 'group-hover:text-cyan-400'
                   }`}>
                     {item.label}
@@ -1752,32 +1079,24 @@ const CreativeAttendanceDashboard: React.FC<CreativeAttendanceDashboardProps> = 
           <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-purple-500/5 to-pink-500/5 rounded-lg blur-xl -z-10"></div>
         </div>
 
-        {/* Responsive Tab Content */}
-        <div className="px-4 pb-20 relative z-10
-                        md:px-6 md:pb-24
-                        lg:px-8 lg:pb-28">
+        {/* Tab Content - Responsive Padding and Layout */}
+        <div className="px-4 sm:px-6 md:px-8 lg:px-12 pb-16 sm:pb-20 md:pb-24 relative z-10">
           {renderTabContent()}
         </div>
 
-        {/* Responsive Leave Form Modal */}
+        {/* Leave Form Modal - Responsive Sizing */}
         {showLeaveForm && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4
-                          md:p-6 lg:p-8">
-            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-white/20 w-full max-w-sm
-                            md:rounded-3xl md:p-6 md:max-w-md
-                            lg:p-8 lg:max-w-lg">
-              <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-white mb-4 text-center
-                          md:mb-6 lg:mb-8">Pengajuan Cuti</h3>
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 sm:p-6">
+            <div className="bg-white/10 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-white/20 w-full max-w-sm sm:max-w-md md:max-w-lg">
+              <h3 className="text-xl font-bold text-white mb-6 text-center">Pengajuan Cuti</h3>
               
-              <div className="space-y-3 md:space-y-4 lg:space-y-6">
+              <div className="space-y-4">
                 <div>
-                  <label className="block text-sm md:text-base font-medium text-gray-300 mb-2">Jenis Cuti</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Jenis Cuti</label>
                   <select 
                     value={leaveForm.type}
                     onChange={(e) => setLeaveForm(prev => ({ ...prev, type: e.target.value }))}
-                    className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-400
-                               md:text-base lg:text-lg
-                               min-h-[44px] touch-manipulation"
+                    className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-400"
                   >
                     <option value="annual" className="bg-gray-800">Cuti Tahunan</option>
                     <option value="sick" className="bg-gray-800">Cuti Sakit</option>
@@ -1785,63 +1104,48 @@ const CreativeAttendanceDashboard: React.FC<CreativeAttendanceDashboardProps> = 
                   </select>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3
-                                md:grid-cols-2 md:gap-4
-                                lg:gap-6">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm md:text-base font-medium text-gray-300 mb-2">Tanggal Mulai</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Tanggal Mulai</label>
                     <input 
                       type="date"
                       value={leaveForm.startDate}
                       onChange={(e) => setLeaveForm(prev => ({ ...prev, startDate: e.target.value }))}
-                      className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-400
-                                 md:text-base lg:text-lg
-                                 min-h-[44px] touch-manipulation"
+                      className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-400"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm md:text-base font-medium text-gray-300 mb-2">Tanggal Selesai</label>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">Tanggal Selesai</label>
                     <input 
                       type="date"
                       value={leaveForm.endDate}
                       onChange={(e) => setLeaveForm(prev => ({ ...prev, endDate: e.target.value }))}
-                      className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-400
-                                 md:text-base lg:text-lg
-                                 min-h-[44px] touch-manipulation"
+                      className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-400"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm md:text-base font-medium text-gray-300 mb-2">Alasan</label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Alasan</label>
                   <textarea 
                     value={leaveForm.reason}
                     onChange={(e) => setLeaveForm(prev => ({ ...prev, reason: e.target.value }))}
-                    className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-400 h-20 resize-none
-                               md:text-base md:h-24
-                               lg:text-lg lg:h-32
-                               touch-manipulation"
+                    className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple-400 h-20 resize-none"
                     placeholder="Jelaskan alasan pengajuan cuti..."
                   ></textarea>
                 </div>
               </div>
 
-              <div className="flex flex-col space-y-3 mt-4
-                              md:flex-row md:space-y-0 md:space-x-3 md:mt-6
-                              lg:mt-8">
+              <div className="flex space-x-3 mt-6">
                 <button
                   onClick={() => setShowLeaveForm(false)}
-                  className="flex-1 bg-gray-500/20 hover:bg-gray-500/30 px-4 py-3 rounded-xl text-white transition-colors
-                             min-h-[44px] touch-manipulation
-                             md:text-base lg:text-lg"
+                  className="flex-1 bg-gray-500/20 hover:bg-gray-500/30 px-4 py-3 rounded-xl text-white transition-colors"
                 >
                   Batal
                 </button>
                 <button
                   onClick={handleLeaveSubmit}
-                  className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 px-4 py-3 rounded-xl text-white transition-colors flex items-center justify-center space-x-2
-                             min-h-[44px] touch-manipulation
-                             md:text-base lg:text-lg"
+                  className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 px-4 py-3 rounded-xl text-white transition-colors flex items-center justify-center space-x-2"
                 >
                   <Send className="w-4 h-4" />
                   <span>Kirim</span>

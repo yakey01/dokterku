@@ -1,5 +1,5 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
+import React, { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
 import WelcomeLogin from './components/WelcomeLogin';
 import '../css/app.css'; // CRITICAL: Import CSS for bundling
 import '../css/mobile-login.css'; // Mobile-specific optimizations
@@ -24,8 +24,12 @@ const WelcomeLoginApp = () => {
 // Mount the component
 const container = document.getElementById('welcome-login-root');
 if (container) {
-  const root = ReactDOM.createRoot(container);
-  root.render(<WelcomeLoginApp />);
+  const root = createRoot(container);
+  root.render(
+    <StrictMode>
+      <WelcomeLoginApp />
+    </StrictMode>
+  );
   
   console.log('🚀 WelcomeLoginApp mounted successfully');
 } else {

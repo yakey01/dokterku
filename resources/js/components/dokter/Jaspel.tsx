@@ -1,663 +1,550 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  DollarSign, 
-  Calendar, 
-  Clock, 
-  TrendingUp, 
-  Award, 
-  Target, 
-  Activity, 
-  Star, 
-  ChevronLeft, 
-  ChevronRight,
-  Eye,
-  FileText,
-  CreditCard,
-  Stethoscope,
-  Users,
-  MapPin,
-  CheckCircle
+  DollarSign, Calendar, Clock, TrendingUp, Award, Target, Activity, Star, 
+  ChevronLeft, ChevronRight, Eye, FileText, CreditCard, Stethoscope, 
+  Users, MapPin, CheckCircle
 } from 'lucide-react';
 
-interface JaspelComponentProps {
-  userData?: {
-    name: string;
-    email: string;
-    greeting?: string;
-    role?: string;
-    initials?: string;
-  };
-}
+// Mock data untuk jaspel jaga
+const jaspelJagaData = [
+  {
+    id: 1,
+    tanggal: '2024-01-15',
+    shift: 'Pagi',
+    jam: '07:00 - 14:00',
+    lokasi: 'IGD',
+    tarif: 750000,
+    bonus: 150000,
+    status: 'completed',
+    keterangan: 'Jaga normal, tidak ada kasus emergency'
+  },
+  {
+    id: 2,
+    tanggal: '2024-01-18',
+    shift: 'Malam',
+    jam: '20:00 - 07:00',
+    lokasi: 'ICU',
+    tarif: 950000,
+    bonus: 200000,
+    status: 'completed',
+    keterangan: 'Jaga malam dengan 2 kasus critical'
+  },
+  {
+    id: 3,
+    tanggal: '2024-01-22',
+    shift: 'Siang',
+    jam: '14:00 - 20:00',
+    lokasi: 'Poli Umum',
+    tarif: 650000,
+    bonus: 100000,
+    status: 'pending',
+    keterangan: 'Jaga siang hari, antrian padat'
+  },
+  {
+    id: 4,
+    tanggal: '2024-01-25',
+    shift: 'Pagi',
+    jam: '07:00 - 14:00',
+    lokasi: 'Ruang Bedah',
+    tarif: 850000,
+    bonus: 180000,
+    status: 'scheduled',
+    keterangan: 'Stanby untuk operasi elektif'
+  },
+  {
+    id: 5,
+    tanggal: '2024-01-28',
+    shift: 'Malam',
+    jam: '20:00 - 07:00',
+    lokasi: 'IGD',
+    tarif: 950000,
+    bonus: 250000,
+    status: 'scheduled',
+    keterangan: 'Weekend shift, tarif premium'
+  },
+  {
+    id: 6,
+    tanggal: '2024-01-30',
+    shift: 'Siang',
+    jam: '14:00 - 20:00',
+    lokasi: 'Poli Spesialis',
+    tarif: 700000,
+    bonus: 120000,
+    status: 'scheduled',
+    keterangan: 'Konsultasi spesialis kardio'
+  }
+];
 
-const JaspelComponent: React.FC<JaspelComponentProps> = ({ userData }) => {
+// Mock data untuk jaspel tindakan
+const jaspelTindakanData = [
+  {
+    id: 1,
+    tanggal: '2024-01-16',
+    tindakan: 'Operasi Appendektomi',
+    jenis: 'Bedah Mayor',
+    durasi: '2.5 jam',
+    tarif: 2500000,
+    complexity: 'high',
+    tim: ['dr. Andi', 'dr. Budi', 'Sister Citra'],
+    status: 'completed'
+  },
+  {
+    id: 2,
+    tanggal: '2024-01-19',
+    tindakan: 'Konsultasi Kardiologi',
+    jenis: 'Konsultasi',
+    durasi: '45 menit',
+    tarif: 350000,
+    complexity: 'low',
+    tim: ['dr. Andi'],
+    status: 'completed'
+  },
+  {
+    id: 3,
+    tanggal: '2024-01-21',
+    tindakan: 'Endoskopi',
+    jenis: 'Diagnostik',
+    durasi: '1 jam',
+    tarif: 850000,
+    complexity: 'medium',
+    tim: ['dr. Andi', 'Nurse Dewi'],
+    status: 'completed'
+  },
+  {
+    id: 4,
+    tanggal: '2024-01-24',
+    tindakan: 'Emergency Surgery',
+    jenis: 'Bedah Darurat',
+    durasi: '4 jam',
+    tarif: 4200000,
+    complexity: 'critical',
+    tim: ['dr. Andi', 'dr. Budi', 'dr. Celine', 'Sister Fiona'],
+    status: 'completed'
+  },
+  {
+    id: 5,
+    tanggal: '2024-01-26',
+    tindakan: 'Pemeriksaan Rutin',
+    jenis: 'Check-up',
+    durasi: '30 menit',
+    tarif: 200000,
+    complexity: 'low',
+    tim: ['dr. Andi'],
+    status: 'pending'
+  },
+  {
+    id: 6,
+    tanggal: '2024-01-29',
+    tindakan: 'Operasi Hernia',
+    jenis: 'Bedah Minor',
+    durasi: '1.5 jam',
+    tarif: 1800000,
+    complexity: 'medium',
+    tim: ['dr. Andi', 'Sister Gina'],
+    status: 'scheduled'
+  },
+  {
+    id: 7,
+    tanggal: '2024-02-01',
+    tindakan: 'Konsultasi Multidisiplin',
+    jenis: 'Konsultasi Tim',
+    durasi: '2 jam',
+    tarif: 650000,
+    complexity: 'high',
+    tim: ['dr. Andi', 'dr. Hendra', 'dr. Ina'],
+    status: 'scheduled'
+  }
+];
+
+const JaspelComponent = () => {
   const [activeTab, setActiveTab] = useState('overview');
-  const [currentJagaPage, setCurrentJagaPage] = useState(1);
-  const [currentTindakanPage, setCurrentTindakanPage] = useState(1);
-  const [isIpad, setIsIpad] = useState(false);
-  const [orientation, setOrientation] = useState('portrait');
+  const [currentPageJaga, setCurrentPageJaga] = useState(1);
+  const [currentPageTindakan, setCurrentPageTindakan] = useState(1);
+  const itemsPerPage = 3;
+  const [isIPad, setIsIPad] = useState(false);
 
   useEffect(() => {
-    const checkDevice = () => {
-      const width = window.innerWidth;
-      const height = window.innerHeight;
-      setIsIpad(width >= 768);
-      setOrientation(width > height ? 'landscape' : 'portrait');
-    };
-    
-    checkDevice();
-    window.addEventListener('resize', checkDevice);
-    window.addEventListener('orientationchange', checkDevice);
-    
-    return () => {
-      window.removeEventListener('resize', checkDevice);
-      window.removeEventListener('orientationchange', checkDevice);
-    };
+    // Detect iPad for layout adjustments
+    const userAgent = navigator.userAgent.toLowerCase();
+    setIsIPad(userAgent.includes('ipad'));
   }, []);
-
-  // Data Jaspel Jaga
-  const jaspelJagaData = [
-    {
-      id: 1,
-      tanggal: "1 Agustus 2025",
-      hari: "Jumat",
-      shift: "Malam",
-      waktu: "21:00 - 07:00",
-      lokasi: "IGD - Trauma Center",
-      durasi: "10 jam",
-      tarif: 150000,
-      bonus: 50000,
-      total: 200000,
-      status: "Dibayar"
-    },
-    {
-      id: 2,
-      tanggal: "2 Agustus 2025",
-      hari: "Sabtu",
-      shift: "Pagi",
-      waktu: "07:00 - 14:00",
-      lokasi: "Ward 3A",
-      durasi: "7 jam",
-      tarif: 105000,
-      bonus: 25000,
-      total: 130000,
-      status: "Pending"
-    },
-    {
-      id: 3,
-      tanggal: "5 Agustus 2025",
-      hari: "Selasa",
-      shift: "Sore",
-      waktu: "14:00 - 21:00",
-      lokasi: "Poliklinik Umum",
-      durasi: "7 jam",
-      tarif: 105000,
-      bonus: 15000,
-      total: 120000,
-      status: "Dibayar"
-    },
-    {
-      id: 4,
-      tanggal: "7 Agustus 2025",
-      hari: "Kamis",
-      shift: "Malam",
-      waktu: "20:00 - 08:00",
-      lokasi: "ICU Level 2",
-      durasi: "12 jam",
-      tarif: 180000,
-      bonus: 70000,
-      total: 250000,
-      status: "Pending"
-    },
-    {
-      id: 5,
-      tanggal: "10 Agustus 2025",
-      hari: "Minggu",
-      shift: "Pagi",
-      waktu: "08:00 - 15:00",
-      lokasi: "Emergency Room",
-      durasi: "7 jam",
-      tarif: 105000,
-      bonus: 35000,
-      total: 140000,
-      status: "Dibayar"
-    },
-    {
-      id: 6,
-      tanggal: "12 Agustus 2025",
-      hari: "Selasa",
-      shift: "Sore",
-      waktu: "15:00 - 22:00",
-      lokasi: "OR Suite 2",
-      durasi: "7 jam",
-      tarif: 105000,
-      bonus: 45000,
-      total: 150000,
-      status: "Pending"
-    }
-  ];
-
-  // Data Jaspel Tindakan
-  const jaspelTindakanData = [
-    {
-      id: 1,
-      tanggal: "1 Agustus 2025",
-      tindakan: "Operasi Jantung Bypass",
-      kategori: "Bedah Kardio",
-      pasien: "Tn. Ahmad Wijaya",
-      durasi: "4 jam",
-      kompleksitas: "Tinggi",
-      tarif: 2500000,
-      bonus: 500000,
-      total: 3000000,
-      status: "Dibayar"
-    },
-    {
-      id: 2,
-      tanggal: "3 Agustus 2025",
-      tindakan: "Endoskopi Saluran Cerna",
-      kategori: "Diagnostik",
-      pasien: "Ny. Sari Indah",
-      durasi: "1.5 jam",
-      kompleksitas: "Sedang",
-      tarif: 800000,
-      bonus: 100000,
-      total: 900000,
-      status: "Dibayar"
-    },
-    {
-      id: 3,
-      tanggal: "5 Agustus 2025",
-      tindakan: "Operasi Laparoskopi",
-      kategori: "Bedah Umum",
-      pasien: "Tn. Budi Santoso",
-      durasi: "2.5 jam",
-      kompleksitas: "Sedang",
-      tarif: 1200000,
-      bonus: 200000,
-      total: 1400000,
-      status: "Pending"
-    },
-    {
-      id: 4,
-      tanggal: "8 Agustus 2025",
-      tindakan: "Kateterisasi Jantung",
-      kategori: "Intervensional",
-      pasien: "Ny. Maya Dewi",
-      durasi: "3 jam",
-      kompleksitas: "Tinggi",
-      tarif: 1800000,
-      bonus: 300000,
-      total: 2100000,
-      status: "Pending"
-    },
-    {
-      id: 5,
-      tanggal: "10 Agustus 2025",
-      tindakan: "Bronkoskopi Diagnostik",
-      kategori: "Paru",
-      pasien: "Tn. Rahman Ali",
-      durasi: "1 jam",
-      kompleksitas: "Rendah",
-      tarif: 600000,
-      bonus: 75000,
-      total: 675000,
-      status: "Dibayar"
-    },
-    {
-      id: 6,
-      tanggal: "12 Agustus 2025",
-      tindakan: "Operasi Tumor Otak",
-      kategori: "Bedah Saraf",
-      pasien: "Ny. Indira Putri",
-      durasi: "6 jam",
-      kompleksitas: "Sangat Tinggi",
-      tarif: 4000000,
-      bonus: 800000,
-      total: 4800000,
-      status: "Pending"
-    },
-    {
-      id: 7,
-      tanggal: "15 Agustus 2025",
-      tindakan: "Colonoscopy",
-      kategori: "Diagnostik",
-      pasien: "Tn. Fahri Hamzah",
-      durasi: "1.5 jam",
-      kompleksitas: "Sedang",
-      tarif: 750000,
-      bonus: 100000,
-      total: 850000,
-      status: "Dibayar"
-    }
-  ];
-
-  // Pagination settings
-  const itemsPerPageJaga = 3;
-  const itemsPerPageTindakan = 4;
-  
-  const totalJagaPages = Math.ceil(jaspelJagaData.length / itemsPerPageJaga);
-  const totalTindakanPages = Math.ceil(jaspelTindakanData.length / itemsPerPageTindakan);
-  
-  const currentJagaData = jaspelJagaData.slice(
-    (currentJagaPage - 1) * itemsPerPageJaga, 
-    currentJagaPage * itemsPerPageJaga
-  );
-  
-  const currentTindakanData = jaspelTindakanData.slice(
-    (currentTindakanPage - 1) * itemsPerPageTindakan, 
-    currentTindakanPage * itemsPerPageTindakan
-  );
-
-  // Calculate totals
-  const totalJaspelBulan = jaspelJagaData.reduce((sum, item) => sum + item.total, 0) + 
-                          jaspelTindakanData.reduce((sum, item) => sum + item.total, 0);
-  const totalJaspelJaga = jaspelJagaData.reduce((sum, item) => sum + item.total, 0);
-  const totalJaspelTindakan = jaspelTindakanData.reduce((sum, item) => sum + item.total, 0);
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
       currency: 'IDR',
-      minimumFractionDigits: 0
+      minimumFractionDigits: 0,
     }).format(amount);
   };
 
   const getStatusBadge = (status) => {
-    if (status === 'Dibayar') {
-      return (
-        <div className="flex items-center space-x-1 bg-green-500/20 px-2 py-1 rounded-full border border-green-400/50">
-          <CheckCircle className="w-3 h-3 text-green-400" />
-          <span className="text-green-400 text-xs font-medium">Dibayar</span>
-        </div>
-      );
-    }
+    const statusConfig = {
+      completed: { bg: 'bg-green-500/20', text: 'text-green-400', border: 'border-green-500/30', label: 'Selesai' },
+      pending: { bg: 'bg-yellow-500/20', text: 'text-yellow-400', border: 'border-yellow-500/30', label: 'Tertunda' },
+      scheduled: { bg: 'bg-blue-500/20', text: 'text-blue-400', border: 'border-blue-500/30', label: 'Terjadwal' }
+    };
+    
+    const config = statusConfig[status] || statusConfig.pending;
+    
     return (
-      <div className="flex items-center space-x-1 bg-yellow-500/20 px-2 py-1 rounded-full border border-yellow-400/50">
-        <Clock className="w-3 h-3 text-yellow-400" />
-        <span className="text-yellow-400 text-xs font-medium">Pending</span>
+      <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${config.bg} ${config.text} ${config.border}`}>
+        {config.label}
       </div>
     );
   };
 
-  const getKompleksitasColor = (kompleksitas) => {
-    switch (kompleksitas) {
-      case 'Rendah': return 'text-green-400 bg-green-400/20 border-green-400/50';
-      case 'Sedang': return 'text-blue-400 bg-blue-400/20 border-blue-400/50';
-      case 'Tinggi': return 'text-orange-400 bg-orange-400/20 border-orange-400/50';
-      case 'Sangat Tinggi': return 'text-red-400 bg-red-400/20 border-red-400/50';
-      default: return 'text-gray-400 bg-gray-400/20 border-gray-400/50';
-    }
+  const getComplexityBadge = (complexity) => {
+    const complexityConfig = {
+      low: { bg: 'bg-emerald-500/20', text: 'text-emerald-400', border: 'border-emerald-500/30', label: 'Rendah', icon: '●' },
+      medium: { bg: 'bg-yellow-500/20', text: 'text-yellow-400', border: 'border-yellow-500/30', label: 'Sedang', icon: '●●' },
+      high: { bg: 'bg-orange-500/20', text: 'text-orange-400', border: 'border-orange-500/30', label: 'Tinggi', icon: '●●●' },
+      critical: { bg: 'bg-red-500/20', text: 'text-red-400', border: 'border-red-500/30', label: 'Kritis', icon: '●●●●' }
+    };
+    
+    const config = complexityConfig[complexity] || complexityConfig.low;
+    
+    return (
+      <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${config.bg} ${config.text} ${config.border}`}>
+        <span className="mr-2">{config.icon}</span>
+        {config.label}
+      </div>
+    );
   };
 
-  const PaginationControls = ({ currentPage, totalPages, onPageChange, prefix }) => (
-    <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-white/20">
-      <div className="flex items-center justify-center space-x-4">
+  const totalJaspelJaga = jaspelJagaData.reduce((sum, item) => sum + item.tarif + item.bonus, 0);
+  const totalJaspelTindakan = jaspelTindakanData.reduce((sum, item) => sum + item.tarif, 0);
+  const grandTotal = totalJaspelJaga + totalJaspelTindakan;
+
+  const completedJaga = jaspelJagaData.filter(item => item.status === 'completed').length;
+  const completedTindakan = jaspelTindakanData.filter(item => item.status === 'completed').length;
+
+  // Pagination logic
+  const paginateJaga = () => {
+    const startIndex = (currentPageJaga - 1) * itemsPerPage;
+    return jaspelJagaData.slice(startIndex, startIndex + itemsPerPage);
+  };
+
+  const paginateTindakan = () => {
+    const startIndex = (currentPageTindakan - 1) * itemsPerPage;
+    return jaspelTindakanData.slice(startIndex, startIndex + itemsPerPage);
+  };
+
+  const totalPagesJaga = Math.ceil(jaspelJagaData.length / itemsPerPage);
+  const totalPagesTindakan = Math.ceil(jaspelTindakanData.length / itemsPerPage);
+
+  const PaginationControls = ({ currentPage, totalPages, onPageChange, type }) => (
+    <div className="flex items-center justify-between mt-6 px-4">
+      <div className="text-sm text-gray-400">
+        Halaman {currentPage} dari {totalPages}
+      </div>
+      <div className="flex items-center space-x-2">
         <button 
           onClick={() => onPageChange(Math.max(1, currentPage - 1))}
           disabled={currentPage === 1}
-          className={`p-2 rounded-xl transition-colors ${
+          className={`p-2 rounded-lg border ${
             currentPage === 1 
-              ? 'text-gray-600 cursor-not-allowed' 
-              : 'text-purple-400 hover:text-white hover:bg-purple-700/50'
-          }`}
+              ? 'border-gray-600 text-gray-600 cursor-not-allowed' 
+              : 'border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10'
+          } transition-colors`}
         >
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft className="w-4 h-4" />
         </button>
-        
-        <div className="flex items-center space-x-2">
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+        <div className="flex items-center space-x-1">
+          {[...Array(totalPages)].map((_, index) => (
             <button
-              key={page}
-              onClick={() => onPageChange(page)}
-              className={`w-10 h-10 rounded-xl text-sm font-medium transition-colors ${
-                currentPage === page
-                  ? 'bg-purple-600 text-white shadow-lg'
-                  : 'text-purple-400 hover:text-white hover:bg-purple-700/50'
+              key={index}
+              onClick={() => onPageChange(index + 1)}
+              className={`w-8 h-8 rounded-lg border transition-colors ${
+                currentPage === index + 1
+                  ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400'
+                  : 'border-gray-600 text-gray-400 hover:border-emerald-500/50'
               }`}
             >
-              {page}
+              {index + 1}
             </button>
           ))}
         </div>
-        
         <button 
           onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
           disabled={currentPage === totalPages}
-          className={`p-2 rounded-xl transition-colors ${
+          className={`p-2 rounded-lg border ${
             currentPage === totalPages 
-              ? 'text-gray-600 cursor-not-allowed' 
-              : 'text-purple-400 hover:text-white hover:bg-purple-700/50'
-          }`}
+              ? 'border-gray-600 text-gray-600 cursor-not-allowed' 
+              : 'border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10'
+          } transition-colors`}
         >
-          <ChevronRight className="w-5 h-5" />
+          <ChevronRight className="w-4 h-4" />
         </button>
-      </div>
-      
-      <div className="text-center mt-3">
-        <span className="text-gray-400 text-sm">
-          Halaman {currentPage} dari {totalPages}
-        </span>
       </div>
     </div>
   );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
-      <div className="w-full min-h-screen relative overflow-hidden">
+      {/* Responsive container with full-width assumption and self-managed padding */}
+      <div className="w-full max-w-none px-4 md:px-6 lg:px-8 pt-8 pb-32">
         
-        {/* Dynamic Floating Background Elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 bg-emerald-500 bg-opacity-5 rounded-full blur-3xl animate-pulse" style={{ left: '10%', width: '30vw', maxWidth: '400px', height: '30vw', maxHeight: '400px' }}></div>
-          <div className="absolute top-60 bg-cyan-500 bg-opacity-5 rounded-full blur-2xl animate-bounce" style={{ right: '5%', width: '25vw', maxWidth: '350px', height: '25vw', maxHeight: '350px' }}></div>
-          <div className="absolute bottom-80 bg-blue-500 bg-opacity-5 rounded-full blur-3xl animate-pulse" style={{ left: '15%', width: '28vw', maxWidth: '380px', height: '28vw', maxHeight: '380px' }}></div>
-        </div>
+        {/* Header Card */}
+        <div className="relative mb-8">
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/30 via-green-600/30 to-teal-600/30 rounded-3xl backdrop-blur-2xl"></div>
+          <div className="absolute inset-0 bg-white/5 rounded-3xl border border-white/20"></div>
+          <div className="relative p-8">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-emerald-400 via-green-500 to-teal-500 rounded-2xl flex items-center justify-center relative overflow-hidden shadow-2xl">
+                  <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
+                  <DollarSign className="w-10 h-10 text-white relative z-10" />
+                </div>
+                <div className="ml-6">
+                  <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent mb-2">
+                    Jasa Pelayanan (JASPEL)
+                  </h1>
+                  <p className="text-gray-300 text-lg">Dashboard Pendapatan Dokter</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-gradient-to-r from-emerald-500/10 to-green-500/10 rounded-2xl p-6 border border-emerald-400/20">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <p className="text-emerald-300 text-sm mb-1">Total Pendapatan</p>
+                    <p className="text-3xl font-bold text-white">{formatCurrency(grandTotal)}</p>
+                  </div>
+                  <CreditCard className="w-8 h-8 text-emerald-400" />
+                </div>
+                <p className="text-xs text-emerald-300 mt-2">Jaga + Tindakan</p>
+              </div>
 
-        {/* Header */}
-        <div className="relative z-10 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-20 pt-8 pb-6">
-          <div className="text-center mb-8">
-            <h1 className={`font-bold bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent mb-2
-              ${isIpad ? 'text-3xl md:text-4xl lg:text-5xl' : 'text-2xl sm:text-3xl'}
-            `}>
-              Jasa Pelayanan (JASPEL)
-            </h1>
-            <p className={`text-cyan-200 ${isIpad ? 'text-lg md:text-xl' : 'text-base'}`}>
-              {userData?.name || 'Doctor'}
-            </p>
-          </div>
+              <div className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-2xl p-6 border border-blue-400/20">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <p className="text-blue-300 text-sm mb-1">Shift Selesai</p>
+                    <p className="text-3xl font-bold text-white">{completedJaga}/{jaspelJagaData.length}</p>
+                  </div>
+                  <Clock className="w-8 h-8 text-blue-400" />
+                </div>
+                <p className="text-xs text-blue-300 mt-2">Jaga terlaksana</p>
+              </div>
 
-          {/* Tab Navigation */}
-          <div className="flex justify-center mb-8">
-            <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-2 border border-white/20">
-              <div className="flex space-x-2">
-                {[
-                  { id: 'overview', label: 'Overview', icon: TrendingUp },
-                  { id: 'jaga', label: 'Jaspel Jaga', icon: Clock },
-                  { id: 'tindakan', label: 'Jaspel Tindakan', icon: Stethoscope }
-                ].map((tab) => {
-                  const Icon = tab.icon;
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`
-                        flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-300
-                        ${activeTab === tab.id 
-                          ? 'bg-purple-600 text-white shadow-lg' 
-                          : 'text-gray-300 hover:text-white hover:bg-white/10'
-                        }
-                      `}
-                    >
-                      <Icon className="w-4 h-4" />
-                      <span className="text-sm font-medium">{tab.label}</span>
-                    </button>
-                  );
-                })}
+              <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-2xl p-6 border border-purple-400/20">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <p className="text-purple-300 text-sm mb-1">Tindakan Selesai</p>
+                    <p className="text-3xl font-bold text-white">{completedTindakan}/{jaspelTindakanData.length}</p>
+                  </div>
+                  <Stethoscope className="w-8 h-8 text-purple-400" />
+                </div>
+                <p className="text-xs text-purple-300 mt-2">Prosedur medis</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="relative z-10 px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-20 pb-32">
-          
-          {/* Overview Tab */}
-          {activeTab === 'overview' && (
-            <div className="space-y-8">
-              {/* Monthly Summary */}
-              <div className="bg-white/5 backdrop-blur-2xl rounded-3xl p-6 md:p-8 border border-white/20">
-                <h2 className="text-2xl font-bold text-white mb-6 text-center">
-                  Ringkasan Jaspel Bulan Ini
-                </h2>
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {/* Total Jaspel */}
-                  <div className="bg-gradient-to-br from-emerald-600/20 to-cyan-600/20 rounded-2xl p-6 border border-emerald-400/30">
-                    <div className="flex items-center space-x-4 mb-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-cyan-500 rounded-xl flex items-center justify-center">
-                        <DollarSign className="w-6 h-6 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="text-emerald-400 font-semibold">Total Jaspel</h3>
-                        <p className="text-gray-400 text-sm">Bulan Agustus</p>
-                      </div>
-                    </div>
-                    <div className="text-3xl font-bold text-white mb-2">
-                      {formatCurrency(totalJaspelBulan)}
-                    </div>
-                    <div className="text-emerald-300 text-sm">
-                      +12.5% dari bulan lalu
-                    </div>
-                  </div>
-
-                  {/* Jaspel Jaga */}
-                  <div className="bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-2xl p-6 border border-blue-400/30">
-                    <div className="flex items-center space-x-4 mb-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
-                        <Clock className="w-6 h-6 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="text-blue-400 font-semibold">Jaspel Jaga</h3>
-                        <p className="text-gray-400 text-sm">{jaspelJagaData.length} shift</p>
-                      </div>
-                    </div>
-                    <div className="text-3xl font-bold text-white mb-2">
-                      {formatCurrency(totalJaspelJaga)}
-                    </div>
-                    <div className="text-blue-300 text-sm">
-                      Rata-rata {formatCurrency(totalJaspelJaga / jaspelJagaData.length)}/shift
-                    </div>
-                  </div>
-
-                  {/* Jaspel Tindakan */}
-                  <div className="bg-gradient-to-br from-purple-600/20 to-pink-600/20 rounded-2xl p-6 border border-purple-400/30">
-                    <div className="flex items-center space-x-4 mb-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
-                        <Stethoscope className="w-6 h-6 text-white" />
-                      </div>
-                      <div>
-                        <h3 className="text-purple-400 font-semibold">Jaspel Tindakan</h3>
-                        <p className="text-gray-400 text-sm">{jaspelTindakanData.length} tindakan</p>
-                      </div>
-                    </div>
-                    <div className="text-3xl font-bold text-white mb-2">
-                      {formatCurrency(totalJaspelTindakan)}
-                    </div>
-                    <div className="text-purple-300 text-sm">
-                      Rata-rata {formatCurrency(totalJaspelTindakan / jaspelTindakanData.length)}/tindakan
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Achievement Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-white/20 text-center">
-                  <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <Award className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="text-xl font-bold text-white">96.5%</div>
-                  <div className="text-yellow-300 text-sm">Attendance Rate</div>
-                </div>
-
-                <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-white/20 text-center">
-                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <Target className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="text-xl font-bold text-white">125</div>
-                  <div className="text-green-300 text-sm">Total Jam Kerja</div>
-                </div>
-
-                <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-white/20 text-center">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <Activity className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="text-xl font-bold text-white">42</div>
-                  <div className="text-blue-300 text-sm">Pasien Ditangani</div>
-                </div>
-
-                <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-white/20 text-center">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mx-auto mb-3">
-                    <Star className="w-6 h-6 text-white" />
-                  </div>
-                  <div className="text-xl font-bold text-white">4.9</div>
-                  <div className="text-purple-300 text-sm">Rating Pasien</div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Jaspel Jaga Tab */}
-          {activeTab === 'jaga' && (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-white text-center mb-6">
-                Daftar Jaspel Jaga
-              </h2>
-              
-              <div className="space-y-4">
-                {currentJagaData.map((item) => (
-                  <div key={item.id} className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-blue-400/50 transition-all duration-300">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
-                          <Clock className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-bold text-white">{item.tanggal}</h3>
-                          <p className="text-blue-300">{item.hari} • {item.shift}</p>
-                        </div>
-                      </div>
-                      {getStatusBadge(item.status)}
-                    </div>
-                    
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                      <div>
-                        <div className="flex items-center space-x-2 mb-1">
-                          <Clock className="w-4 h-4 text-gray-400" />
-                          <span className="text-gray-400 text-sm">Waktu</span>
-                        </div>
-                        <p className="text-white font-medium">{item.waktu}</p>
-                        <p className="text-gray-400 text-xs">{item.durasi}</p>
-                      </div>
-                      
-                      <div>
-                        <div className="flex items-center space-x-2 mb-1">
-                          <MapPin className="w-4 h-4 text-gray-400" />
-                          <span className="text-gray-400 text-sm">Lokasi</span>
-                        </div>
-                        <p className="text-white font-medium">{item.lokasi}</p>
-                      </div>
-                      
-                      <div>
-                        <div className="flex items-center space-x-2 mb-1">
-                          <DollarSign className="w-4 h-4 text-gray-400" />
-                          <span className="text-gray-400 text-sm">Tarif</span>
-                        </div>
-                        <p className="text-white font-medium">{formatCurrency(item.tarif)}</p>
-                        <p className="text-green-400 text-xs">+{formatCurrency(item.bonus)} bonus</p>
-                      </div>
-                      
-                      <div>
-                        <div className="flex items-center space-x-2 mb-1">
-                          <CreditCard className="w-4 h-4 text-gray-400" />
-                          <span className="text-gray-400 text-sm">Total</span>
-                        </div>
-                        <p className="text-2xl font-bold text-emerald-400">{formatCurrency(item.total)}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              <PaginationControls 
-                currentPage={currentJagaPage}
-                totalPages={totalJagaPages}
-                onPageChange={setCurrentJagaPage}
-                prefix="jaga"
-              />
-            </div>
-          )}
-
-          {/* Jaspel Tindakan Tab */}
-          {activeTab === 'tindakan' && (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-white text-center mb-6">
-                Daftar Jaspel Tindakan
-              </h2>
-              
-              <div className="space-y-4">
-                {currentTindakanData.map((item) => (
-                  <div key={item.id} className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-purple-400/50 transition-all duration-300">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
-                          <Stethoscope className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-bold text-white">{item.tindakan}</h3>
-                          <p className="text-purple-300">{item.kategori}</p>
-                        </div>
-                      </div>
-                      {getStatusBadge(item.status)}
-                    </div>
-                    
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
-                      <div>
-                        <div className="flex items-center space-x-2 mb-1">
-                          <Calendar className="w-4 h-4 text-gray-400" />
-                          <span className="text-gray-400 text-sm">Tanggal</span>
-                        </div>
-                        <p className="text-white font-medium">{item.tanggal}</p>
-                        <p className="text-gray-400 text-xs">{item.durasi}</p>
-                      </div>
-                      
-                      <div>
-                        <div className="flex items-center space-x-2 mb-1">
-                          <Users className="w-4 h-4 text-gray-400" />
-                          <span className="text-gray-400 text-sm">Pasien</span>
-                        </div>
-                        <p className="text-white font-medium">{item.pasien}</p>
-                      </div>
-                      
-                      <div>
-                        <div className="flex items-center space-x-2 mb-1">
-                          <Target className="w-4 h-4 text-gray-400" />
-                          <span className="text-gray-400 text-sm">Kompleksitas</span>
-                        </div>
-                        <div className={`px-2 py-1 rounded-full text-xs font-medium border ${getKompleksitasColor(item.kompleksitas)}`}>
-                          {item.kompleksitas}
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <div className="flex items-center space-x-2 mb-1">
-                          <DollarSign className="w-4 h-4 text-gray-400" />
-                          <span className="text-gray-400 text-sm">Tarif</span>
-                        </div>
-                        <p className="text-white font-medium">{formatCurrency(item.tarif)}</p>
-                        <p className="text-green-400 text-xs">+{formatCurrency(item.bonus)} bonus</p>
-                      </div>
-                      
-                      <div>
-                        <div className="flex items-center space-x-2 mb-1">
-                          <CreditCard className="w-4 h-4 text-gray-400" />
-                          <span className="text-gray-400 text-sm">Total</span>
-                        </div>
-                        <p className="text-2xl font-bold text-emerald-400">{formatCurrency(item.total)}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              <PaginationControls 
-                currentPage={currentTindakanPage}
-                totalPages={totalTindakanPages}
-                onPageChange={setCurrentTindakanPage}
-                prefix="tindakan"
-              />
-            </div>
-          )}
+        {/* Tab Navigation */}
+        <div className="bg-white/5 backdrop-blur-2xl rounded-2xl p-2 mb-8 border border-white/10">
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { id: 'overview', label: 'Ringkasan', icon: TrendingUp },
+              { id: 'jaga', label: 'Jaga', icon: Clock },
+              { id: 'tindakan', label: 'Tindakan', icon: Activity }
+            ].map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                onClick={() => setActiveTab(id)}
+                className={`flex items-center justify-center px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
+                  activeTab === id
+                    ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg'
+                    : 'text-gray-300 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Icon className="w-5 h-5 mr-2" />
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
+
+        {/* Content based on active tab */}
+        {activeTab === 'overview' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Statistik Jaga */}
+            <div className="bg-white/5 backdrop-blur-2xl rounded-3xl p-6 border border-white/10">
+              <div className="flex items-center mb-6">
+                <Clock className="w-6 h-6 text-blue-400 mr-3" />
+                <h3 className="text-xl font-bold text-white">Statistik Jaga</h3>
+              </div>
+              <div className="space-y-4">
+                <div className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-2xl p-4 border border-blue-400/20">
+                  <div className="flex justify-between items-center">
+                    <span className="text-blue-300">Total Pendapatan Jaga</span>
+                    <span className="text-white font-bold">{formatCurrency(totalJaspelJaga)}</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-green-500/10 rounded-xl p-4 border border-green-400/20">
+                    <p className="text-green-300 text-sm">Selesai</p>
+                    <p className="text-2xl font-bold text-white">{completedJaga}</p>
+                  </div>
+                  <div className="bg-yellow-500/10 rounded-xl p-4 border border-yellow-400/20">
+                    <p className="text-yellow-300 text-sm">Tertunda</p>
+                    <p className="text-2xl font-bold text-white">
+                      {jaspelJagaData.filter(item => item.status === 'pending').length}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Statistik Tindakan */}
+            <div className="bg-white/5 backdrop-blur-2xl rounded-3xl p-6 border border-white/10">
+              <div className="flex items-center mb-6">
+                <Activity className="w-6 h-6 text-purple-400 mr-3" />
+                <h3 className="text-xl font-bold text-white">Statistik Tindakan</h3>
+              </div>
+              <div className="space-y-4">
+                <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-2xl p-4 border border-purple-400/20">
+                  <div className="flex justify-between items-center">
+                    <span className="text-purple-300">Total Pendapatan Tindakan</span>
+                    <span className="text-white font-bold">{formatCurrency(totalJaspelTindakan)}</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-green-500/10 rounded-xl p-4 border border-green-400/20">
+                    <p className="text-green-300 text-sm">Selesai</p>
+                    <p className="text-2xl font-bold text-white">{completedTindakan}</p>
+                  </div>
+                  <div className="bg-orange-500/10 rounded-xl p-4 border border-orange-400/20">
+                    <p className="text-orange-300 text-sm">Kompleks</p>
+                    <p className="text-2xl font-bold text-white">
+                      {jaspelTindakanData.filter(item => item.complexity === 'high' || item.complexity === 'critical').length}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'jaga' && (
+          <div className="bg-white/5 backdrop-blur-2xl rounded-3xl border border-white/10 overflow-hidden">
+            <div className="p-6 border-b border-white/10">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Clock className="w-6 h-6 text-blue-400 mr-3" />
+                  <h3 className="text-xl font-bold text-white">Jadwal Jaga</h3>
+                </div>
+                <div className="text-sm text-gray-400">
+                  {jaspelJagaData.length} total jaga
+                </div>
+              </div>
+            </div>
+            
+            <div className="divide-y divide-white/10">
+              {paginateJaga().map((item) => (
+                <div key={item.id} className="p-6 hover:bg-white/5 transition-colors">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center mb-2">
+                        <Calendar className="w-4 h-4 text-emerald-400 mr-2" />
+                        <span className="text-white font-semibold">{item.tanggal}</span>
+                        <span className="mx-2 text-gray-400">•</span>
+                        <span className="text-blue-300">{item.shift}</span>
+                      </div>
+                      <div className="flex items-center mb-2">
+                        <MapPin className="w-4 h-4 text-purple-400 mr-2" />
+                        <span className="text-gray-300">{item.lokasi}</span>
+                        <span className="mx-2 text-gray-400">•</span>
+                        <span className="text-gray-300">{item.jam}</span>
+                      </div>
+                      <p className="text-gray-400 text-sm">{item.keterangan}</p>
+                    </div>
+                    <div className="text-right ml-6">
+                      <div className="mb-2">{getStatusBadge(item.status)}</div>
+                      <div className="text-white font-bold text-lg">{formatCurrency(item.tarif + item.bonus)}</div>
+                      <div className="text-xs text-gray-400">
+                        Tarif: {formatCurrency(item.tarif)} + Bonus: {formatCurrency(item.bonus)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <PaginationControls 
+              currentPage={currentPageJaga}
+              totalPages={totalPagesJaga}
+              onPageChange={setCurrentPageJaga}
+              type="jaga"
+            />
+          </div>
+        )}
+
+        {activeTab === 'tindakan' && (
+          <div className="bg-white/5 backdrop-blur-2xl rounded-3xl border border-white/10 overflow-hidden">
+            <div className="p-6 border-b border-white/10">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Activity className="w-6 h-6 text-purple-400 mr-3" />
+                  <h3 className="text-xl font-bold text-white">Tindakan Medis</h3>
+                </div>
+                <div className="text-sm text-gray-400">
+                  {jaspelTindakanData.length} total tindakan
+                </div>
+              </div>
+            </div>
+            
+            <div className="divide-y divide-white/10">
+              {paginateTindakan().map((item) => (
+                <div key={item.id} className="p-6 hover:bg-white/5 transition-colors">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center mb-2">
+                        <FileText className="w-4 h-4 text-emerald-400 mr-2" />
+                        <span className="text-white font-semibold">{item.tindakan}</span>
+                      </div>
+                      <div className="flex items-center mb-2">
+                        <Target className="w-4 h-4 text-blue-400 mr-2" />
+                        <span className="text-blue-300">{item.jenis}</span>
+                        <span className="mx-2 text-gray-400">•</span>
+                        <span className="text-gray-300">{item.durasi}</span>
+                        <span className="mx-2 text-gray-400">•</span>
+                        <span className="text-gray-300">{item.tanggal}</span>
+                      </div>
+                      <div className="flex items-center mb-2">
+                        <Users className="w-4 h-4 text-purple-400 mr-2" />
+                        <span className="text-gray-300 text-sm">Tim: {item.tim.join(', ')}</span>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        {getComplexityBadge(item.complexity)}
+                        {getStatusBadge(item.status)}
+                      </div>
+                    </div>
+                    <div className="text-right ml-6">
+                      <div className="text-white font-bold text-xl">{formatCurrency(item.tarif)}</div>
+                      <div className="text-xs text-gray-400 mt-1">Fee tindakan</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <PaginationControls 
+              currentPage={currentPageTindakan}
+              totalPages={totalPagesTindakan}
+              onPageChange={setCurrentPageTindakan}
+              type="tindakan"
+            />
+          </div>
+        )}
+
+        {/* Footer Info */}
+        <div className="mt-8 text-center">
+          <p className="text-gray-500 text-sm">
+            JASPEL • Jasa Pelayanan Medis • Dashboard Dokter
+          </p>
+        </div>
+
       </div>
     </div>
   );

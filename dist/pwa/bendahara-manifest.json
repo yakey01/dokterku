@@ -1,0 +1,136 @@
+{
+  "name": "Dokterku Bendahara Dashboard",
+  "short_name": "Bendahara",
+  "description": "Dashboard bendahara untuk validasi transaksi dan manajemen keuangan Dokterku",
+  "start_url": "/bendahara",
+  "scope": "/bendahara",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#fbbf23",
+  "background_color": "#fffbeb",
+  "lang": "id",
+  "dir": "ltr",
+  "categories": ["finance", "healthcare", "productivity"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/pwa/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/pwa/icon-96x96.png",
+      "sizes": "96x96", 
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/pwa/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/pwa/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/pwa/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/pwa/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/pwa/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/pwa/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Antrian Validasi",
+      "short_name": "Validasi",
+      "description": "Akses langsung ke antrian validasi transaksi",
+      "url": "/bendahara?tab=validation",
+      "icons": [
+        {
+          "src": "/pwa/shortcut-validation.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Dashboard Keuangan",
+      "short_name": "Dashboard",
+      "description": "Lihat ringkasan keuangan dan statistik",
+      "url": "/bendahara?tab=dashboard",
+      "icons": [
+        {
+          "src": "/pwa/shortcut-dashboard.png",
+          "sizes": "96x96", 
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Laporan",
+      "short_name": "Reports",
+      "description": "Generate dan lihat laporan keuangan",
+      "url": "/bendahara/laporan-keuangan",
+      "icons": [
+        {
+          "src": "/pwa/shortcut-reports.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/pwa/screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Desktop dashboard view"
+    },
+    {
+      "src": "/pwa/screenshot-mobile.png", 
+      "sizes": "375x812",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Mobile dashboard view"
+    }
+  ],
+  "related_applications": [],
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+dokterku",
+      "url": "/bendahara?action=%s"
+    }
+  ]
+}

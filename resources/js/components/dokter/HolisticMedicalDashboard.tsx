@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, DollarSign, User, Home, TrendingUp, Award, Target, Brain, Heart, Zap, Shield, Star, Crown, Flame, Coffee, Moon, Sun } from 'lucide-react';
+import { Calendar, Clock, DollarSign, Award, Brain, Star, Crown, Flame, Moon, Sun } from 'lucide-react';
 import { JadwalJaga } from './JadwalJaga';
 import CreativeAttendanceDashboard from './Presensi';
+import JaspelComponent from './Jaspel';
+import ProfileComponent from './Profil';
 import doctorApi from '../../utils/doctorApi';
 
 interface HolisticMedicalDashboardProps {
@@ -158,9 +160,12 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
       try {
         setLoading({ dashboard: true, error: null });
         
+        console.log('HolisticMedicalDashboard: Starting dashboard data fetch...');
         const dashboardData = await doctorApi.getDashboard();
         
         if (dashboardData) {
+          console.log('HolisticMedicalDashboard: Dashboard data received:', dashboardData);
+          
           // Calculate jaspel growth percentage
           const currentJaspel = dashboardData.jaspel_summary?.current_month || 0;
           const previousJaspel = dashboardData.jaspel_summary?.last_month || 0;
@@ -196,10 +201,20 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
               thisMonth: dashboardData.patient_count?.this_month || 0,
             },
           });
+          
+          console.log('HolisticMedicalDashboard: Dashboard metrics updated successfully');
         }
       } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-        setLoading({ dashboard: false, error: 'Failed to load dashboard data' });
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+        console.error('HolisticMedicalDashboard: Error fetching dashboard data:', error);
+        console.error('HolisticMedicalDashboard: Error details:', {
+          message: errorMessage,
+          type: error?.constructor?.name,
+          stack: error instanceof Error ? error.stack : undefined
+        });
+        
+        setLoading({ dashboard: false, error: `Failed to load dashboard data: ${errorMessage}` });
+        
         // Set fallback data on error
         setDashboardMetrics({
           jaspel: {
@@ -219,6 +234,8 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
             thisMonth: 0,
           },
         });
+        
+        console.log('HolisticMedicalDashboard: Fallback data set due to error');
       } finally {
         setLoading({ dashboard: false, error: null });
       }
@@ -227,7 +244,7 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
     fetchDashboardData();
   }, []);
 
-  const formatTime = (date) => {
+  const formatTime = (date: Date): string => {
     return date.toLocaleTimeString('id-ID', { 
       hour: '2-digit', 
       minute: '2-digit'
@@ -253,6 +270,18 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
         return (
           <div className="w-full">
             <CreativeAttendanceDashboard userData={userData} />
+          </div>
+        );
+      case 'jaspel':
+        return (
+          <div className="w-full">
+            <JaspelComponent />
+          </div>
+        );
+      case 'profile':
+        return (
+          <div className="w-full">
+            <ProfileComponent />
           </div>
         );
       default:
@@ -577,24 +606,66 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
           </div>
         </button>
         
-        {/* Star - Inactive */}
-        <button className="relative group transition-all duration-500 ease-out">
-          <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/0 to-yellow-500/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-          <div className="relative p-3 rounded-2xl transition-all duration-500 group-hover:bg-purple-600/20 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-yellow-500/20">
+        {/* DollarSign - Jaspel Button */}
+        <button 
+          onClick={() => setActiveTab('jaspel')}
+          className={`relative group transition-all duration-500 ease-out ${
+            activeTab === 'jaspel' 
+              ? 'bg-gradient-to-r from-cyan-500/40 to-purple-500/40 backdrop-blur-xl border border-cyan-300/30 p-3 rounded-2xl shadow-2xl shadow-purple-500/30 scale-115' 
+              : ''
+          }`}
+        >
+          {activeTab === 'jaspel' && (
+            <>
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gradient-to-r from-cyan-400 to-purple-400 rounded-full animate-pulse"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/30 to-purple-500/30 rounded-2xl blur-lg scale-150 opacity-60"></div>
+            </>
+          )}
+          <div className={`${activeTab === 'jaspel' ? '' : 'absolute inset-0 bg-gradient-to-br from-emerald-500/0 to-emerald-500/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500'}`}></div>
+          <div className={`relative ${activeTab === 'jaspel' ? '' : 'p-3 rounded-2xl transition-all duration-500 group-hover:bg-purple-600/20 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-emerald-500/20'}`}>
             <div className="flex flex-col items-center">
-              <Star className="w-5 h-5 transition-colors duration-500 text-gray-400 group-hover:text-yellow-400 mb-1" />
-              <span className="text-xs transition-colors duration-500 text-gray-400 group-hover:text-yellow-400 font-medium">Rewards</span>
+              <DollarSign className={`w-5 h-5 mb-1 ${
+                activeTab === 'jaspel' 
+                  ? 'text-white' 
+                  : 'transition-colors duration-500 text-gray-400 group-hover:text-emerald-400'
+              }`} />
+              <span className={`text-xs font-medium ${
+                activeTab === 'jaspel' 
+                  ? 'text-white' 
+                  : 'transition-colors duration-500 text-gray-400 group-hover:text-emerald-400'
+              }`}>Jaspel</span>
             </div>
           </div>
         </button>
         
-        {/* Brain - Inactive */}
-        <button className="relative group transition-all duration-500 ease-out">
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 to-purple-500/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-          <div className="relative p-3 rounded-2xl transition-all duration-500 group-hover:bg-purple-600/20 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-purple-500/20">
+        {/* Brain - Profile Button */}
+        <button 
+          onClick={() => setActiveTab('profile')}
+          className={`relative group transition-all duration-500 ease-out ${
+            activeTab === 'profile' 
+              ? 'bg-gradient-to-r from-cyan-500/40 to-purple-500/40 backdrop-blur-xl border border-cyan-300/30 p-3 rounded-2xl shadow-2xl shadow-purple-500/30 scale-115' 
+              : ''
+          }`}
+        >
+          {activeTab === 'profile' && (
+            <>
+              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gradient-to-r from-cyan-400 to-purple-400 rounded-full animate-pulse"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/30 to-purple-500/30 rounded-2xl blur-lg scale-150 opacity-60"></div>
+            </>
+          )}
+          <div className={`${activeTab === 'profile' ? '' : 'absolute inset-0 bg-gradient-to-br from-purple-500/0 to-purple-500/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500'}`}></div>
+          <div className={`relative ${activeTab === 'profile' ? '' : 'p-3 rounded-2xl transition-all duration-500 group-hover:bg-purple-600/20 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-purple-500/20'}`}>
             <div className="flex flex-col items-center">
-              <Brain className="w-5 h-5 transition-colors duration-500 text-gray-400 group-hover:text-purple-400 mb-1" />
-              <span className="text-xs transition-colors duration-500 text-gray-400 group-hover:text-purple-400 font-medium">Profile</span>
+              <Brain className={`w-5 h-5 mb-1 ${
+                activeTab === 'profile' 
+                  ? 'text-white' 
+                  : 'transition-colors duration-500 text-gray-400 group-hover:text-purple-400'
+              }`} />
+              <span className={`text-xs font-medium ${
+                activeTab === 'profile' 
+                  ? 'text-white' 
+                  : 'transition-colors duration-500 text-gray-400 group-hover:text-purple-400'
+              }`}>Profile</span>
             </div>
           </div>
         </button>
@@ -617,7 +688,7 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
         )}
 
         {/* Tab Content */}
-        <div className={`relative z-10 ${(activeTab === 'missions' || activeTab === 'presensi') ? 'w-full' : 'max-w-sm mx-auto md:max-w-md lg:max-w-lg xl:max-w-xl'}`}>
+        <div className={`relative z-10 ${(activeTab === 'missions' || activeTab === 'presensi' || activeTab === 'jaspel' || activeTab === 'profile') ? 'w-full' : 'max-w-sm mx-auto md:max-w-md lg:max-w-lg xl:max-w-xl'}`}>
           {renderTabContent()}
         </div>
 

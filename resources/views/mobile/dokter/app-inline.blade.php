@@ -9,33 +9,108 @@
     <meta name="api-token" content="{{ $token ?? '' }}">
     <title>KLINIK DOKTERKU - {{ auth()->user()->name ?? 'Dokter' }}</title>
     
-    <!-- FORCE NEW BUNDLE -->
+    <!-- 🚀 DYNAMIC BUNDLE LOADING WITH TDZ PROTECTION -->
     <script>
-        // Force remove old script
-        document.querySelectorAll('script[src*="BecotfJC"]').forEach(s => s.remove());
+        // Enhanced bundle loading with manifest-based resolution
+        async function loadDokterBundle() {
+            try {
+                console.log('🔍 Loading dokter bundle manifest...');
+                
+                // Clean up old scripts
+                document.querySelectorAll('script[src*="dokter-mobile-app"]').forEach(s => {
+                    console.log('🧹 Removing old script:', s.src);
+                    s.remove();
+                });
+                
+                // Fetch current manifest to get actual file names
+                const manifest = await fetch('/build/manifest.json?_=' + Date.now())
+                    .then(res => res.ok ? res.json() : null)
+                    .catch(() => null);
+                
+                let jsFile, cssFiles;
+                
+                if (manifest && manifest['resources/js/dokter-mobile-app.tsx']) {
+                    const entry = manifest['resources/js/dokter-mobile-app.tsx'];
+                    jsFile = '/build/' + entry.file;
+                    cssFiles = entry.css || [];
+                    console.log('✅ Manifest loaded:', { jsFile, cssFiles });
+                } else {
+                    // Fallback to current known file
+                    jsFile = '/build/assets/js/dokter-mobile-app-CvOO7H1f.js';
+                    cssFiles = ['assets/css/dokter-mobile-app-Bj_ExP9V.css', 'assets/css/app-BSR2ULlx.css'];
+                    console.warn('⚠️ Using fallback file paths');
+                }
+                
+                // Load CSS first
+                cssFiles.forEach(cssFile => {
+                    const existing = document.querySelector(`link[href*="${cssFile.split('/').pop().split('-')[0]}"]`);
+                    if (!existing) {
+                        const link = document.createElement('link');
+                        link.rel = 'stylesheet';
+                        link.href = '/build/' + cssFile + '?_=' + Date.now();
+                        document.head.appendChild(link);
+                        console.log('📄 CSS loaded:', link.href);
+                    }
+                });
+                
+                // Load JS with enhanced error handling
+                const script = document.createElement('script');
+                script.type = 'module';
+                script.src = jsFile + '?_=' + Date.now();
+                
+                script.onload = function() {
+                    console.log('✅ Dokter bundle loaded successfully:', jsFile);
+                    // Hide loading immediately
+                    const loading = document.getElementById('loading');
+                    if (loading) {
+                        loading.style.transition = 'opacity 0.3s ease-out';
+                        loading.style.opacity = '0';
+                        setTimeout(() => loading.style.display = 'none', 300);
+                    }
+                };
+                
+                script.onerror = function(error) {
+                    console.error('❌ Failed to load dokter bundle:', jsFile, error);
+                    showCriticalError('Script loading failed', 'Could not load ' + jsFile);
+                };
+                
+                document.head.appendChild(script);
+                
+            } catch (error) {
+                console.error('🚨 Bundle loading error:', error);
+                showCriticalError('Bundle loading failed', error.message);
+            }
+        }
         
-        // Force load new bundle
-        var script = document.createElement('script');
-        script.type = 'module';
-        script.src = '/build/assets/dokter-mobile-app-DXixV-6x.js?_=' + Date.now();
-        script.onload = function() {
-            console.log('✅ NEW BUNDLE LOADED: DXixV-6x');
-        };
-        document.head.appendChild(script);
+        function showCriticalError(title, message) {
+            const container = document.getElementById('dokter-app') || document.body;
+            container.innerHTML = `
+                <div style="min-height: 100vh; background: linear-gradient(135deg, #0f172a 0%, #581c87 50%, #0f172a 100%); color: white; display: flex; align-items: center; justify-content: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px;">
+                    <div style="background: rgba(30, 41, 59, 0.9); border: 2px solid #8b5cf6; border-radius: 16px; padding: 40px; max-width: 500px; text-align: center; backdrop-filter: blur(10px);">
+                        <div style="font-size: 48px; margin-bottom: 20px;">🚨</div>
+                        <h1 style="margin: 0 0 20px 0; font-size: 24px; color: #ef4444;">${title}</h1>
+                        <p style="margin: 0 0 30px 0; color: #d1d5db; line-height: 1.6;">${message}</p>
+                        <button onclick="location.reload()" style="background: linear-gradient(to right, #06b6d4, #8b5cf6); border: none; color: white; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: bold;">🔄 Reload Page</button>
+                    </div>
+                </div>
+            `;
+        }
         
-        // Load CSS
-        var link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = '/build/assets/css/dokter-mobile-app-CmQfbHE1.css?_=' + Date.now();
-        document.head.appendChild(link);
+        // Initialize with delay to prevent TDZ issues
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                setTimeout(loadDokterBundle, 100);
+            });
+        } else {
+            setTimeout(loadDokterBundle, 100);
+        }
     </script>
     
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Using built-in system fonts -->
     
     <style>
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
             margin: 0;
             padding: 0;
             background: #f8fafc;

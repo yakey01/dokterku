@@ -16,6 +16,7 @@ use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\ViewField;
+use Filament\Forms\Components\Toggle;
 use Filament\Support\Exceptions\Halt;
 
 class WorkLocationResource extends Resource
@@ -528,7 +529,35 @@ class WorkLocationResource extends Resource
                 Tables\Columns\ToggleColumn::make('is_active')
                     ->label('✅ Aktif')
                     ->onColor('success')
-                    ->offColor('danger'),
+                    ->offColor('danger')
+                    ->disabled(fn ($record) => $record->trashed())
+                    ->tooltip(fn ($record) => $record->trashed() ? 'Cannot toggle status of deleted location' : 'Click to toggle active status')
+                    ->updateStateUsing(function ($record, $state) {
+                        // Prevent updates to soft-deleted records
+                        if ($record->trashed()) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('⚠️ Cannot Update Deleted Location')
+                                ->body('This location has been deleted. Please restore it first to change the status.')
+                                ->warning()
+                                ->duration(5000)
+                                ->send();
+                                
+                            return $record->is_active; // Return original state
+                        }
+                        
+                        // Update the record normally for non-deleted records
+                        $record->update(['is_active' => $state]);
+                        
+                        // Send success notification
+                        \Filament\Notifications\Notification::make()
+                            ->title($state ? '✅ Location Activated' : '❌ Location Deactivated')
+                            ->body('Status updated successfully.')
+                            ->color($state ? 'success' : 'warning')
+                            ->duration(3000)
+                            ->send();
+                            
+                        return $state;
+                    }),
 
                 Tables\Columns\TextColumn::make('contact_person')
                     ->label('👤 Penanggung Jawab')
@@ -546,9 +575,50 @@ class WorkLocationResource extends Resource
                     ->sortable()
                     ->placeholder('Aktif')
                     ->toggleable(isToggledHiddenByDefault: false)
-                    ->color(fn ($record) => $record->deleted_at ? 'danger' : 'success'),
+                    ->color(fn ($record) => $record->deleted_at ? 'danger' : 'success')
+                    ->badge(fn ($record) => $record->deleted_at ? 'Deleted' : 'Active')
+                    ->tooltip(fn ($record) => $record->deleted_at 
+                        ? 'Location deleted on ' . $record->deleted_at->format('M j, Y g:i A')
+                        : 'Location is active and available'),
+
+                Tables\Columns\TextColumn::make('record_status')
+                    ->label('📊 Status')
+                    ->formatStateUsing(function ($record) {
+                        if ($record->trashed()) {
+                            return '🗑️ Deleted';
+                        }
+                        
+                        return $record->is_active ? '✅ Active' : '❌ Inactive';
+                    })
+                    ->color(function ($record) {
+                        if ($record->trashed()) {
+                            return 'danger';
+                        }
+                        
+                        return $record->is_active ? 'success' : 'warning';
+                    })
+                    ->badge()
+                    ->sortable(false)
+                    ->toggleable(),
             ])
             ->filters([
+                Tables\Filters\Filter::make('trashed')
+                    ->label('Record Status')
+                    ->toggle()
+                    ->query(fn (Builder $query): Builder => $query->onlyTrashed())
+                    ->indicator('Deleted Records Only'),
+
+                Tables\Filters\TernaryFilter::make('record_state')
+                    ->label('Record State')
+                    ->placeholder('All Records')
+                    ->trueLabel('Active Records Only')
+                    ->falseLabel('Deleted Records Only')
+                    ->queries(
+                        true: fn (Builder $query) => $query->whereNull('deleted_at'),
+                        false: fn (Builder $query) => $query->onlyTrashed(),
+                        blank: fn (Builder $query) => $query->withTrashed(),
+                    ),
+
                 Tables\Filters\SelectFilter::make('location_type')
                     ->label('Jenis Lokasi')
                     ->options([
@@ -663,6 +733,54 @@ class WorkLocationResource extends Resource
                             ->send();
                     }),
 
+                Action::make('location_status')
+                    ->label(fn ($record) => $record->trashed() ? '🗑️ Deleted Location' : (
+                        $record->is_active ? '✅ Active Location' : '❌ Inactive Location'
+                    ))
+                    ->icon(fn ($record) => $record->trashed() ? 'heroicon-o-trash' : (
+                        $record->is_active ? 'heroicon-o-check-circle' : 'heroicon-o-x-circle'
+                    ))
+                    ->color(fn ($record) => $record->trashed() ? 'danger' : (
+                        $record->is_active ? 'success' : 'warning'
+                    ))
+                    ->modalContent(function ($record) {
+                        $status = $record->trashed() ? 'deleted' : ($record->is_active ? 'active' : 'inactive');
+                        $icon = match($status) {
+                            'deleted' => '🗑️',
+                            'active' => '✅',
+                            'inactive' => '❌',
+                        };
+                        $color = match($status) {
+                            'deleted' => 'text-red-700 bg-red-100',
+                            'active' => 'text-green-700 bg-green-100',
+                            'inactive' => 'text-yellow-700 bg-yellow-100',
+                        };
+                        
+                        $statusText = match($status) {
+                            'deleted' => 'This location has been soft-deleted. It is no longer available for assignments but data is preserved for historical purposes.',
+                            'active' => 'This location is active and available for employee assignments and attendance tracking.',
+                            'inactive' => 'This location is inactive. It cannot be used for new assignments but existing data is preserved.',
+                        };
+                        
+                        $actions = match($status) {
+                            'deleted' => 'You can restore this location using the restore action, or permanently delete it using force delete.',
+                            'active' => 'You can deactivate this location or delete it if no longer needed.',
+                            'inactive' => 'You can activate this location to make it available for assignments again.',
+                        };
+                        
+                        return view('filament.components.location-status-info', [
+                            'record' => $record,
+                            'status' => $status,
+                            'icon' => $icon,
+                            'color' => $color,
+                            'statusText' => $statusText,
+                            'actions' => $actions
+                        ]);
+                    })
+                    ->modalHeading(fn ($record) => 'Location Status: ' . $record->name)
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Close'),
+
                 Action::make('deletion_preview')
                     ->label('🔍 Preview Deletion')
                     ->icon('heroicon-o-eye')
@@ -678,38 +796,190 @@ class WorkLocationResource extends Resource
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Close'),
 
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\ViewAction::make()
+                    ->color(fn ($record) => $record->trashed() ? 'gray' : 'info'),
+                    
+                Tables\Actions\EditAction::make()
+                    ->visible(fn ($record) => !$record->trashed())
+                    ->tooltip(fn ($record) => $record->trashed() ? 'Cannot edit deleted location' : 'Edit location'),
                 
                 Tables\Actions\DeleteAction::make()
                     ->label('🗑️ Safe Delete')
                     ->modalHeading('Safe Work Location Deletion')
                     ->modalDescription('This will safely delete the work location with proper dependency handling.')
                     ->form([
-                        Forms\Components\Alert::make('deletion_warning')
-                            ->warning()
-                            ->title('Deletion Impact Assessment')
-                            ->body(function ($record) {
+                        Forms\Components\Placeholder::make('deletion_warning')
+                            ->label('🚨 Deletion Impact Assessment')
+                            ->content(function ($record) {
                                 $service = app(WorkLocationDeletionService::class);
                                 $preview = $service->getDeletePreview($record);
+                                $dependencies = $preview['dependencies'];
+                                $recommendations = $preview['recommendations'];
+                                $impact = $preview['estimated_impact'];
                                 
-                                $message = "Location: {$record->name}";
+                                // Build comprehensive warning content with HTML styling
+                                $html = '<div class="deletion-impact-assessment space-y-4 p-4 rounded-lg border">';
                                 
-                                if (!empty($preview['dependencies']['blocking_dependencies'])) {
-                                    $message .= "\n\n⛔ BLOCKING ISSUES:\n" . implode("\n", $preview['dependencies']['blocking_dependencies']);
+                                // Location header
+                                $html .= '<div class="location-header border-b border-gray-200 pb-3">';
+                                $html .= '<h3 class="text-lg font-semibold text-gray-800 flex items-center">';
+                                $html .= '<span class="mr-2">📍</span>' . htmlspecialchars($record->name);
+                                $html .= '</h3>';
+                                $html .= '<div class="text-sm text-gray-600 mt-1">';
+                                $html .= '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800 mr-2">';
+                                $html .= match($record->location_type) {
+                                    'main_office' => '🏢 Kantor Pusat',
+                                    'branch_office' => '🏪 Kantor Cabang', 
+                                    'project_site' => '🚧 Lokasi Proyek',
+                                    'mobile_location' => '📱 Lokasi Mobile',
+                                    'client_office' => '🤝 Kantor Klien',
+                                    default => $record->location_type
+                                };
+                                $html .= '</span>';
+                                if ($record->unit_kerja) {
+                                    $html .= '<span class="text-gray-500">Unit: ' . htmlspecialchars($record->unit_kerja) . '</span>';
+                                }
+                                $html .= '</div>';
+                                $html .= '</div>';
+                                
+                                // Impact severity indicator
+                                $severityColors = [
+                                    'low' => 'bg-green-100 text-green-800 border-green-200',
+                                    'medium' => 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                                    'high' => 'bg-orange-100 text-orange-800 border-orange-200',
+                                    'critical' => 'bg-red-100 text-red-800 border-red-200'
+                                ];
+                                $severityIcons = [
+                                    'low' => '✅',
+                                    'medium' => '⚠️',
+                                    'high' => '🔶',
+                                    'critical' => '🚨'
+                                ];
+                                
+                                $severity = $impact['severity'];
+                                $severityClass = $severityColors[$severity] ?? $severityColors['medium'];
+                                $severityIcon = $severityIcons[$severity] ?? '⚠️';
+                                
+                                $html .= '<div class="impact-severity mb-4">';
+                                $html .= '<div class="inline-flex items-center px-3 py-2 rounded-lg border ' . $severityClass . '">';
+                                $html .= '<span class="mr-2">' . $severityIcon . '</span>';
+                                $html .= '<span class="font-medium">Impact Severity: ' . ucfirst($severity) . '</span>';
+                                $html .= '</div>';
+                                $html .= '</div>';
+                                
+                                // Blocking Dependencies (Critical Issues)
+                                if (!empty($dependencies['blocking_dependencies'])) {
+                                    $html .= '<div class="blocking-dependencies bg-red-50 border border-red-200 rounded-lg p-4 mb-4">';
+                                    $html .= '<div class="flex items-center mb-3">';
+                                    $html .= '<span class="text-red-600 mr-2">⛔</span>';
+                                    $html .= '<h4 class="font-semibold text-red-800">Blocking Issues (Deletion Not Allowed)</h4>';
+                                    $html .= '</div>';
+                                    $html .= '<ul class="space-y-1 text-sm text-red-700">';
+                                    foreach ($dependencies['blocking_dependencies'] as $dependency) {
+                                        $html .= '<li class="flex items-start">';
+                                        $html .= '<span class="text-red-500 mr-2 mt-0.5">•</span>';
+                                        $html .= htmlspecialchars($dependency);
+                                        $html .= '</li>';
+                                    }
+                                    $html .= '</ul>';
+                                    $html .= '</div>';
                                 }
                                 
-                                if (!empty($preview['dependencies']['warnings'])) {
-                                    $message .= "\n\n⚠️  WARNINGS:\n" . implode("\n", $preview['dependencies']['warnings']);
+                                // Warnings (Non-blocking Issues)
+                                if (!empty($dependencies['warnings'])) {
+                                    $html .= '<div class="warnings bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">';
+                                    $html .= '<div class="flex items-center mb-3">';
+                                    $html .= '<span class="text-yellow-600 mr-2">⚠️</span>';
+                                    $html .= '<h4 class="font-semibold text-yellow-800">Warnings (Will Be Handled)</h4>';
+                                    $html .= '</div>';
+                                    $html .= '<ul class="space-y-1 text-sm text-yellow-700">';
+                                    foreach ($dependencies['warnings'] as $warning) {
+                                        $html .= '<li class="flex items-start">';
+                                        $html .= '<span class="text-yellow-500 mr-2 mt-0.5">•</span>';
+                                        $html .= htmlspecialchars($warning);
+                                        $html .= '</li>';
+                                    }
+                                    $html .= '</ul>';
+                                    $html .= '</div>';
                                 }
                                 
-                                if ($preview['dependencies']['can_delete']) {
-                                    $message .= "\n\n✅ This location can be safely deleted.";
+                                // Recommendations
+                                if (!empty($recommendations)) {
+                                    $html .= '<div class="recommendations bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">';
+                                    $html .= '<div class="flex items-center mb-3">';
+                                    $html .= '<span class="text-blue-600 mr-2">💡</span>';
+                                    $html .= '<h4 class="font-semibold text-blue-800">Recommendations</h4>';
+                                    $html .= '</div>';
+                                    foreach ($recommendations as $rec) {
+                                        $recIcon = match($rec['type']) {
+                                            'error' => '<span class="text-red-500">❌</span>',
+                                            'warning' => '<span class="text-yellow-500">⚠️</span>',
+                                            'success' => '<span class="text-green-500">✅</span>',
+                                            default => '<span class="text-blue-500">ℹ️</span>'
+                                        };
+                                        $html .= '<div class="flex items-start mb-2 text-sm">';
+                                        $html .= '<span class="mr-2 mt-0.5">' . $recIcon . '</span>';
+                                        $html .= '<span class="text-gray-700">' . htmlspecialchars($rec['message']) . '</span>';
+                                        $html .= '</div>';
+                                    }
+                                    $html .= '</div>';
+                                }
+                                
+                                // Affected Users Details
+                                if ($dependencies['assigned_users_count'] > 0) {
+                                    $html .= '<div class="affected-users bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">';
+                                    $html .= '<div class="flex items-center mb-3">';
+                                    $html .= '<span class="text-gray-600 mr-2">👥</span>';
+                                    $html .= '<h4 class="font-semibold text-gray-800">Affected Users (' . $dependencies['assigned_users_count'] . ')</h4>';
+                                    $html .= '</div>';
+                                    
+                                    if (!empty($dependencies['assigned_users'])) {
+                                        $html .= '<div class="grid grid-cols-1 gap-2 max-h-32 overflow-y-auto">';
+                                        foreach (array_slice($dependencies['assigned_users'], 0, 5) as $user) {
+                                            $html .= '<div class="flex items-center justify-between p-2 bg-white rounded border text-sm">';
+                                            $html .= '<div>';
+                                            $html .= '<span class="font-medium text-gray-800">' . htmlspecialchars($user['name']) . '</span>';
+                                            $html .= '<span class="text-gray-500 ml-2">(' . htmlspecialchars($user['role']) . ')</span>';
+                                            $html .= '</div>';
+                                            $html .= '<span class="text-xs text-gray-500">' . htmlspecialchars($user['email']) . '</span>';
+                                            $html .= '</div>';
+                                        }
+                                        if ($dependencies['assigned_users_count'] > 5) {
+                                            $html .= '<div class="text-center text-sm text-gray-500 py-2">';
+                                            $html .= '+ ' . ($dependencies['assigned_users_count'] - 5) . ' more users...';
+                                            $html .= '</div>';
+                                        }
+                                        $html .= '</div>';
+                                    }
+                                    $html .= '</div>';
+                                }
+                                
+                                // Final Status
+                                if ($dependencies['can_delete']) {
+                                    $html .= '<div class="final-status bg-green-50 border border-green-200 rounded-lg p-4">';
+                                    $html .= '<div class="flex items-center">';
+                                    $html .= '<span class="text-green-600 mr-2">✅</span>';
+                                    $html .= '<span class="font-semibold text-green-800">This location can be safely deleted</span>';
+                                    $html .= '</div>';
+                                    $html .= '<div class="text-sm text-green-700 mt-2">';
+                                    $html .= 'All users will be automatically reassigned to alternative locations.';
+                                    $html .= '</div>';
+                                    $html .= '</div>';
                                 } else {
-                                    $message .= "\n\n❌ This location cannot be deleted due to blocking dependencies.";
+                                    $html .= '<div class="final-status bg-red-50 border border-red-200 rounded-lg p-4">';
+                                    $html .= '<div class="flex items-center">';
+                                    $html .= '<span class="text-red-600 mr-2">❌</span>';
+                                    $html .= '<span class="font-semibold text-red-800">This location cannot be deleted</span>';
+                                    $html .= '</div>';
+                                    $html .= '<div class="text-sm text-red-700 mt-2">';
+                                    $html .= 'Please resolve the blocking dependencies before attempting deletion.';
+                                    $html .= '</div>';
+                                    $html .= '</div>';
                                 }
                                 
-                                return $message;
+                                $html .= '</div>';
+                                
+                                return new \Illuminate\Support\HtmlString($html);
                             }),
                             
                         Forms\Components\Toggle::make('reassign_users')
@@ -821,10 +1091,31 @@ class WorkLocationResource extends Resource
                         ->icon('heroicon-o-trash')
                         ->color('danger')
                         ->form([
-                            Forms\Components\Alert::make('bulk_warning')
-                                ->warning()
-                                ->title('Bulk Deletion Warning')
-                                ->body('You are about to delete multiple work locations. Each will be processed safely with dependency checking.'),
+                            Forms\Components\Placeholder::make('bulk_warning')
+                                ->label('⚠️ Bulk Deletion Warning')
+                                ->content(new \Illuminate\Support\HtmlString('<div class="bulk-deletion-warning bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                    <div class="flex items-center mb-3">
+                                        <span class="text-yellow-600 mr-2 text-lg">⚠️</span>
+                                        <h4 class="font-semibold text-yellow-800">Bulk Deletion Warning</h4>
+                                    </div>
+                                    <div class="text-sm text-yellow-700 space-y-2">
+                                        <p>You are about to delete multiple work locations. Each will be processed safely with dependency checking.</p>
+                                        <div class="mt-3 p-3 bg-yellow-100 rounded border">
+                                            <div class="flex items-start space-x-2">
+                                                <span class="text-yellow-600 mt-0.5">💡</span>
+                                                <div class="text-xs text-yellow-800">
+                                                    <div class="font-medium mb-1">Safety Features:</div>
+                                                    <ul class="list-disc list-inside space-y-1">
+                                                        <li>Dependency checking for each location</li>
+                                                        <li>Automatic user reassignment</li>
+                                                        <li>Historical data preservation</li>
+                                                        <li>Detailed operation logging</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>')),
                                 
                             Forms\Components\Toggle::make('reassign_users')
                                 ->label('Automatically reassign users')
@@ -939,6 +1230,11 @@ class WorkLocationResource extends Resource
             ->defaultSort('name')
             ->striped()
             ->poll('60s')
+            ->recordClasses(fn ($record) => $record->trashed() 
+                ? 'bg-red-50 border-l-4 border-red-500 opacity-75' 
+                : ($record->is_active ? '' : 'bg-yellow-50 border-l-4 border-yellow-500')
+            )
+            ->recordUrl(null) // Disable row click to prevent confusion with deleted records
             ->emptyStateHeading('📍 Belum Ada Lokasi Kerja')
             ->emptyStateDescription('Tambahkan lokasi kerja pertama untuk mengaktifkan validasi geofencing.')
             ->emptyStateIcon('heroicon-o-map-pin')

@@ -61,9 +61,14 @@
      MINIMAL TYPOGRAPHY SYSTEM
      ================================ */
   
-  /* Clean Font Stack */
-  --font-family-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-family-mono: ui-monospace, "SF Mono", Monaco, Consolas, monospace;
+  /* Medical Professional Font Stack - Optimized for Healthcare Interfaces */
+  --font-family-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-family-mono: ui-monospace, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  
+  /* Specialized Medical Interface Fonts */
+  --font-medical-primary: var(--font-family-sans);
+  --font-medical-display: "SF Pro Display", -apple-system, system-ui, BlinkMacSystemFont, sans-serif;
+  --font-medical-code: var(--font-family-mono);
 
   /* Refined Font Weights */
   --font-weight-normal: 400;

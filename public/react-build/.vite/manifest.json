@@ -1,0 +1,30 @@
+{
+  "_user-C68mRo6X.js": {
+    "file": "user-C68mRo6X.js",
+    "name": "user"
+  },
+  "resources/react/paramedis-dashboard/main.jsx": {
+    "file": "paramedis-dashboard-5Qg1B7rJ.js",
+    "name": "paramedis-dashboard",
+    "src": "resources/react/paramedis-dashboard/main.jsx",
+    "isEntry": true,
+    "imports": [
+      "_user-C68mRo6X.js"
+    ],
+    "css": [
+      "paramedis-dashboard-BWH7YePY.css"
+    ]
+  },
+  "resources/react/paramedis-jaspel/main.jsx": {
+    "file": "paramedis-jaspel-D7VgJaht.js",
+    "name": "paramedis-jaspel",
+    "src": "resources/react/paramedis-jaspel/main.jsx",
+    "isEntry": true,
+    "imports": [
+      "_user-C68mRo6X.js"
+    ],
+    "css": [
+      "paramedis-jaspel-pIMxggWM.css"
+    ]
+  }
+}

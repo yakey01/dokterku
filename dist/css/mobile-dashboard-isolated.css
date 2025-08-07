@@ -1,0 +1,499 @@
+/* 🌟 World-Class Mobile Dashboard - Isolated TailwindCSS 
+   Scope: .mobile-dashboard-scope
+   Purpose: Prevent conflicts with FilamentPHP styling
+   Design: Apple iOS + Google Material Design inspiration
+*/
+
+.mobile-dashboard-scope {
+  /* CSS Reset within scope */
+  * {
+    box-sizing: border-box;
+  }
+
+  /* 🎨 Design System Variables */
+  --mobile-primary: 102 126 234;
+  --mobile-secondary: 118 75 162;
+  --mobile-success: 16 185 129;
+  --mobile-warning: 251 189 35;
+  --mobile-error: 239 68 68;
+  --mobile-info: 59 130 246;
+  
+  /* Elevation shadows */
+  --mobile-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --mobile-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --mobile-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --mobile-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --mobile-shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  
+  /* Spacing system */
+  --mobile-space-1: 0.25rem;
+  --mobile-space-2: 0.5rem;
+  --mobile-space-3: 0.75rem;
+  --mobile-space-4: 1rem;
+  --mobile-space-5: 1.25rem;
+  --mobile-space-6: 1.5rem;
+  --mobile-space-8: 2rem;
+  --mobile-space-10: 2.5rem;
+  --mobile-space-12: 3rem;
+  --mobile-space-16: 4rem;
+  
+  /* Typography */
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 🔘 World-Class Button System */
+.mobile-dashboard-scope .mobile-btn {
+  /* Base button styles */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--mobile-space-2);
+  padding: var(--mobile-space-3) var(--mobile-space-6);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
+  text-decoration: none;
+  border: 1px solid transparent;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+  min-height: 44px; /* Touch target */
+}
+
+.mobile-dashboard-scope .mobile-btn:focus {
+  outline: 2px solid rgb(var(--mobile-primary) / 0.5);
+  outline-offset: 2px;
+}
+
+.mobile-dashboard-scope .mobile-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Button Sizes */
+.mobile-dashboard-scope .mobile-btn-sm {
+  padding: var(--mobile-space-2) var(--mobile-space-4);
+  font-size: 0.875rem;
+  min-height: 36px;
+}
+
+.mobile-dashboard-scope .mobile-btn-lg {
+  padding: var(--mobile-space-4) var(--mobile-space-8);
+  font-size: 1.125rem;
+  min-height: 56px;
+  border-radius: 1rem;
+}
+
+.mobile-dashboard-scope .mobile-btn-xl {
+  padding: var(--mobile-space-5) var(--mobile-space-10);
+  font-size: 1.25rem;
+  min-height: 64px;
+  border-radius: 1.25rem;
+}
+
+/* Button Variants */
+.mobile-dashboard-scope .mobile-btn-primary {
+  background: linear-gradient(135deg, rgb(var(--mobile-primary)), rgb(var(--mobile-secondary)));
+  color: white;
+  box-shadow: var(--mobile-shadow-md);
+}
+
+.mobile-dashboard-scope .mobile-btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--mobile-shadow-lg);
+}
+
+.mobile-dashboard-scope .mobile-btn-primary:active {
+  transform: translateY(-1px);
+  box-shadow: var(--mobile-shadow-md);
+}
+
+.mobile-dashboard-scope .mobile-btn-success {
+  background: linear-gradient(135deg, rgb(var(--mobile-success)), rgb(16 150 109));
+  color: white;
+  box-shadow: var(--mobile-shadow-md);
+}
+
+.mobile-dashboard-scope .mobile-btn-success:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px rgb(var(--mobile-success) / 0.4);
+}
+
+.mobile-dashboard-scope .mobile-btn-error {
+  background: linear-gradient(135deg, rgb(var(--mobile-error)), rgb(220 38 38));
+  color: white;
+  box-shadow: var(--mobile-shadow-md);
+}
+
+.mobile-dashboard-scope .mobile-btn-error:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px rgb(var(--mobile-error) / 0.4);
+}
+
+.mobile-dashboard-scope .mobile-btn-warning {
+  background: linear-gradient(135deg, rgb(var(--mobile-warning)), rgb(245 158 11));
+  color: white;
+  box-shadow: var(--mobile-shadow-md);
+}
+
+.mobile-dashboard-scope .mobile-btn-outline {
+  background: transparent;
+  border-color: rgb(var(--mobile-primary) / 0.3);
+  color: rgb(var(--mobile-primary));
+}
+
+.mobile-dashboard-scope .mobile-btn-outline:hover:not(:disabled) {
+  background: rgb(var(--mobile-primary) / 0.1);
+  border-color: rgb(var(--mobile-primary));
+}
+
+.mobile-dashboard-scope .mobile-btn-ghost {
+  background: transparent;
+  color: rgb(var(--mobile-primary));
+}
+
+.mobile-dashboard-scope .mobile-btn-ghost:hover:not(:disabled) {
+  background: rgb(var(--mobile-primary) / 0.1);
+}
+
+/* Ripple Effect */
+.mobile-dashboard-scope .mobile-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle, rgba(255,255,255,0.2) 1px, transparent 1px);
+  opacity: 0;
+  transform: scale(0);
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.mobile-dashboard-scope .mobile-btn:active::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Full Width */
+.mobile-dashboard-scope .mobile-btn-block {
+  width: 100%;
+}
+
+/* 📱 Cards */
+.mobile-dashboard-scope .mobile-card {
+  background: white;
+  border-radius: 1rem;
+  box-shadow: var(--mobile-shadow-md);
+  overflow: hidden;
+  border: 1px solid rgb(0 0 0 / 0.05);
+}
+
+.mobile-dashboard-scope .mobile-card-body {
+  padding: var(--mobile-space-6);
+}
+
+.mobile-dashboard-scope .mobile-card-header {
+  padding: var(--mobile-space-4) var(--mobile-space-6);
+  border-bottom: 1px solid rgb(0 0 0 / 0.1);
+  background: rgb(0 0 0 / 0.02);
+}
+
+/* 🔍 Input Fields */
+.mobile-dashboard-scope .mobile-input {
+  width: 100%;
+  padding: var(--mobile-space-3) var(--mobile-space-4);
+  font-size: 1rem;
+  line-height: 1.5;
+  color: rgb(17 24 39);
+  background: white;
+  border: 1px solid rgb(209 213 219);
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.mobile-dashboard-scope .mobile-input:focus {
+  outline: none;
+  border-color: rgb(var(--mobile-primary));
+  box-shadow: 0 0 0 3px rgb(var(--mobile-primary) / 0.1);
+}
+
+/* 📊 Stats */
+.mobile-dashboard-scope .mobile-stat {
+  text-align: center;
+  padding: var(--mobile-space-6);
+}
+
+.mobile-dashboard-scope .mobile-stat-value {
+  font-size: 3rem;
+  font-weight: 300;
+  color: rgb(17 24 39);
+  line-height: 1;
+  margin-bottom: var(--mobile-space-2);
+}
+
+.mobile-dashboard-scope .mobile-stat-desc {
+  font-size: 1rem;
+  font-weight: 500;
+  color: rgb(107 114 128);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* 🚨 Alerts */
+.mobile-dashboard-scope .mobile-alert {
+  padding: var(--mobile-space-4);
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--mobile-space-3);
+}
+
+.mobile-dashboard-scope .mobile-alert-success {
+  background: rgb(var(--mobile-success) / 0.1);
+  color: rgb(21 128 61);
+  border: 1px solid rgb(var(--mobile-success) / 0.2);
+}
+
+.mobile-dashboard-scope .mobile-alert-error {
+  background: rgb(var(--mobile-error) / 0.1);
+  color: rgb(153 27 27);
+  border: 1px solid rgb(var(--mobile-error) / 0.2);
+}
+
+.mobile-dashboard-scope .mobile-alert-warning {
+  background: rgb(var(--mobile-warning) / 0.1);
+  color: rgb(146 64 14);
+  border: 1px solid rgb(var(--mobile-warning) / 0.2);
+}
+
+.mobile-dashboard-scope .mobile-alert-info {
+  background: rgb(var(--mobile-info) / 0.1);
+  color: rgb(30 58 138);
+  border: 1px solid rgb(var(--mobile-info) / 0.2);
+}
+
+/* 🔄 Loading Spinner */
+.mobile-dashboard-scope .mobile-loading {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgb(255 255 255 / 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: mobile-spin 1s ease-in-out infinite;
+}
+
+@keyframes mobile-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 📐 Layout Utilities */
+.mobile-dashboard-scope .mobile-container {
+  max-width: 375px;
+  margin: 0 auto;
+  padding: var(--mobile-space-6);
+  background: #ffffff;
+  min-height: 100vh;
+}
+
+.mobile-dashboard-scope .mobile-grid {
+  display: grid;
+  gap: var(--mobile-space-4);
+}
+
+.mobile-dashboard-scope .mobile-grid-cols-1 {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.mobile-dashboard-scope .mobile-grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.mobile-dashboard-scope .mobile-flex {
+  display: flex;
+}
+
+.mobile-dashboard-scope .mobile-items-center {
+  align-items: center;
+}
+
+.mobile-dashboard-scope .mobile-justify-center {
+  justify-content: center;
+}
+
+.mobile-dashboard-scope .mobile-space-y-4 > * + * {
+  margin-top: var(--mobile-space-4);
+}
+
+.mobile-dashboard-scope .mobile-space-y-6 > * + * {
+  margin-top: var(--mobile-space-6);
+}
+
+.mobile-dashboard-scope .mobile-mb-4 {
+  margin-bottom: var(--mobile-space-4);
+}
+
+.mobile-dashboard-scope .mobile-mb-6 {
+  margin-bottom: var(--mobile-space-6);
+}
+
+.mobile-dashboard-scope .mobile-mb-8 {
+  margin-bottom: var(--mobile-space-8);
+}
+
+/* 📱 Typography */
+.mobile-dashboard-scope .mobile-text-xs {
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+
+.mobile-dashboard-scope .mobile-text-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.mobile-dashboard-scope .mobile-text-base {
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+.mobile-dashboard-scope .mobile-text-lg {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+
+.mobile-dashboard-scope .mobile-text-xl {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
+.mobile-dashboard-scope .mobile-text-2xl {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
+.mobile-dashboard-scope .mobile-text-3xl {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+}
+
+.mobile-dashboard-scope .mobile-text-4xl {
+  font-size: 2.25rem;
+  line-height: 2.5rem;
+}
+
+.mobile-dashboard-scope .mobile-font-light {
+  font-weight: 300;
+}
+
+.mobile-dashboard-scope .mobile-font-normal {
+  font-weight: 400;
+}
+
+.mobile-dashboard-scope .mobile-font-medium {
+  font-weight: 500;
+}
+
+.mobile-dashboard-scope .mobile-font-semibold {
+  font-weight: 600;
+}
+
+.mobile-dashboard-scope .mobile-font-bold {
+  font-weight: 700;
+}
+
+.mobile-dashboard-scope .mobile-text-center {
+  text-align: center;
+}
+
+.mobile-dashboard-scope .mobile-text-left {
+  text-align: left;
+}
+
+/* 🎨 Colors */
+.mobile-dashboard-scope .mobile-text-gray-500 {
+  color: rgb(107 114 128);
+}
+
+.mobile-dashboard-scope .mobile-text-gray-600 {
+  color: rgb(75 85 99);
+}
+
+.mobile-dashboard-scope .mobile-text-gray-700 {
+  color: rgb(55 65 81);
+}
+
+.mobile-dashboard-scope .mobile-text-gray-900 {
+  color: rgb(17 24 39);
+}
+
+.mobile-dashboard-scope .mobile-text-black {
+  color: rgb(0 0 0);
+}
+
+.mobile-dashboard-scope .mobile-text-white {
+  color: rgb(255 255 255);
+}
+
+.mobile-dashboard-scope .mobile-text-primary {
+  color: rgb(var(--mobile-primary));
+}
+
+.mobile-dashboard-scope .mobile-text-success {
+  color: rgb(var(--mobile-success));
+}
+
+.mobile-dashboard-scope .mobile-text-error {
+  color: rgb(var(--mobile-error));
+}
+
+/* 📱 Responsive */
+@media (max-width: 480px) {
+  .mobile-dashboard-scope .mobile-container {
+    padding: var(--mobile-space-4);
+  }
+  
+  .mobile-dashboard-scope .mobile-stat-value {
+    font-size: 2.5rem;
+  }
+  
+  .mobile-dashboard-scope .mobile-btn-lg {
+    padding: var(--mobile-space-3) var(--mobile-space-6);
+    min-height: 48px;
+  }
+  
+  .mobile-dashboard-scope .mobile-btn-xl {
+    padding: var(--mobile-space-4) var(--mobile-space-8);
+    min-height: 56px;
+  }
+}
+
+/* 🌗 Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .mobile-dashboard-scope.mobile-dark {
+    --mobile-bg: 17 24 39;
+    --mobile-surface: 31 41 55;
+    --mobile-text: 249 250 251;
+  }
+  
+  .mobile-dashboard-scope.mobile-dark .mobile-container {
+    background: rgb(var(--mobile-bg));
+    color: rgb(var(--mobile-text));
+  }
+  
+  .mobile-dashboard-scope.mobile-dark .mobile-card {
+    background: rgb(var(--mobile-surface));
+    border-color: rgb(55 65 81);
+  }
+}

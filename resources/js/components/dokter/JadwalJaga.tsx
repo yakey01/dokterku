@@ -600,7 +600,7 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
           jam_pulang: "06:00"
         }
       }
-    ];
+    ].filter(mission => mission.shift_template?.nama_shift !== "Sore");
   };
 
   useEffect(() => {

@@ -157,3 +157,9 @@ test-*.html
 # Configuration overrides
 config/database.php.local
 config/app.php.local
+
+# Build automation
+sync-manifests.php
+validate-build.php
+build.sh
+build-automation.php

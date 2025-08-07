@@ -1,0 +1,48 @@
+{
+  "name": "dokterku-resizeobserver-validation",
+  "version": "1.0.0",
+  "description": "Comprehensive validation suite for ResizeObserver error fixes in medical dashboard",
+  "main": "test-resizeobserver-automation.js",
+  "scripts": {
+    "test": "node test-resizeobserver-automation.js",
+    "test:manual": "echo 'Open public/test-resizeobserver-validation.html in browser for manual testing'",
+    "test:install": "npm install puppeteer --save-dev",
+    "validate": "npm run test && echo 'Validation completed - check results files'"
+  },
+  "keywords": [
+    "resizeobserver",
+    "validation",
+    "medical-dashboard",
+    "testing",
+    "performance",
+    "browser-compatibility"
+  ],
+  "author": "DokterKu Development Team",
+  "license": "MIT",
+  "devDependencies": {
+    "puppeteer": "^21.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dokterku/medical-dashboard"
+  },
+  "bugs": {
+    "url": "https://github.com/dokterku/medical-dashboard/issues"
+  },
+  "homepage": "https://dokterku.com",
+  "testConfig": {
+    "browsers": ["chromium", "firefox", "webkit"],
+    "timeout": 30000,
+    "retries": 2,
+    "verbose": true
+  },
+  "validationTargets": {
+    "errorSuppression": "100%",
+    "performanceImprovement": ">10%",
+    "browserCompatibility": ">90%",
+    "medicalDashboardIntegration": "100%"
+  }
+}

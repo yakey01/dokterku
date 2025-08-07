@@ -7,6 +7,7 @@ use App\Models\JadwalJaga;
 use App\Models\WorkLocation;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class AttendanceValidationService
 {
@@ -25,6 +26,13 @@ class AttendanceValidationService
             ->first();
         
         if (!$jadwalJaga) {
+            \Log::warning('Schedule validation failed - no schedule found', [
+                'user_id' => $user->id,
+                'date' => $date->format('Y-m-d'),
+                'user_role' => $user->role ?? 'unknown',
+                'user_name' => $user->name
+            ]);
+            
             return [
                 'valid' => false,
                 'message' => 'Anda tidak memiliki jadwal jaga hari ini. Hubungi admin untuk informasi lebih lanjut.',
@@ -32,8 +40,16 @@ class AttendanceValidationService
             ];
         }
         
-        // Check status with case insensitive comparison
+        // Check status with case insensitive comparison and debug logging
         if (strtolower($jadwalJaga->status_jaga) !== 'aktif') {
+            \Log::warning('Schedule validation failed - inactive status', [
+                'user_id' => $user->id,
+                'date' => $date->format('Y-m-d'),
+                'jadwal_jaga_id' => $jadwalJaga->id,
+                'status_jaga' => $jadwalJaga->status_jaga,
+                'status_lowercase' => strtolower($jadwalJaga->status_jaga)
+            ]);
+            
             return [
                 'valid' => false,
                 'message' => "Jadwal jaga Anda hari ini berstatus '{$jadwalJaga->status_jaga}'. Hubungi admin untuk informasi lebih lanjut.",
@@ -51,7 +67,7 @@ class AttendanceValidationService
     }
     
     /**
-     * Validate user's work location and geofencing
+     * Validate user's work location and geofencing with enhanced diagnostics
      */
     public function validateWorkLocation(User $user, float $latitude, float $longitude, ?float $accuracy = null): array
     {
@@ -66,6 +82,13 @@ class AttendanceValidationService
             ->where('is_active', true)
             ->first();
         
+        \Log::info('Work location validation debug', [
+            'user_id' => $user->id,
+            'user_work_location_id' => $user->work_location_id,
+            'work_location_found' => $workLocation ? $workLocation->id : 'none',
+            'work_location_active' => $workLocation ? $workLocation->is_active : 'n/a'
+        ]);
+        
         if (!$workLocation) {
             // Double-check by loading fresh user data
             $freshUser = User::find($user->id);
@@ -79,6 +102,13 @@ class AttendanceValidationService
                 if (!$location) {
                     // Log for debugging
                     \Log::warning('User has no work location assigned', [
+                        'user_id' => $user->id,
+                        'user_name' => $user->name,
+                        'work_location_id' => $user->work_location_id,
+                        'location_id' => $user->location_id
+                    ]);
+                    
+                    \Log::warning('Work location validation failed - no location assigned', [
                         'user_id' => $user->id,
                         'user_name' => $user->name,
                         'work_location_id' => $user->work_location_id,
@@ -508,7 +538,7 @@ class AttendanceValidationService
     }
 
     /**
-     * Comprehensive validation for check-in
+     * Comprehensive validation for check-in with enhanced GPS diagnostics
      */
     public function validateCheckin(User $user, float $latitude, float $longitude, ?float $accuracy = null, Carbon $date = null): array
     {
@@ -529,8 +559,8 @@ class AttendanceValidationService
         
         $jadwalJaga = $scheduleValidation['jadwal_jaga'];
         
-        // 2. Validate work location
-        $locationValidation = $this->validateWorkLocation($user, $latitude, $longitude, $accuracy);
+        // 2. Validate work location with admin override support
+        $locationValidation = $this->validateWorkLocationWithOverride($user, $latitude, $longitude, $accuracy);
         $validationResults['location'] = $locationValidation;
         
         if (!$locationValidation['valid']) {
@@ -573,7 +603,199 @@ class AttendanceValidationService
             'code' => $isLate ? 'VALID_BUT_LATE' : 'VALID',
             'jadwal_jaga' => $jadwalJaga,
             'work_location' => $locationValidation['work_location'] ?? $locationValidation['location'] ?? null,
-            'validations' => $validationResults
+            'validations' => $validationResults,
+            'gps_diagnostics' => $locationValidation['gps_diagnostics'] ?? null,
         ];
+    }
+
+    /**
+     * Get GPS troubleshooting tips based on diagnostic information
+     */
+    private function getGPSTroubleshootingTips(array $gpsDiagnostics): array
+    {
+        $tips = [];
+        
+        $locationAnalysis = $gpsDiagnostics['location_analysis'] ?? [];
+        $coordinates = $gpsDiagnostics['coordinates'] ?? [];
+        
+        // Check for VPN/proxy issues
+        $vpnAnalysis = $locationAnalysis['potential_vpn_proxy'] ?? [];
+        if (($vpnAnalysis['risk_level'] ?? 'low') !== 'low') {
+            $tips[] = [
+                'type' => 'vpn_warning',
+                'title' => '🔧 Matikan VPN/Proxy',
+                'description' => 'Terdeteksi kemungkinan penggunaan VPN atau proxy. Matikan semua koneksi VPN dan coba lagi.',
+                'priority' => 'high'
+            ];
+        }
+        
+        // Check for coordinate quality issues
+        $coordinateQuality = $locationAnalysis['coordinate_quality'] ?? [];
+        if (($coordinateQuality['quality'] ?? 'good') !== 'good') {
+            $tips[] = [
+                'type' => 'gps_quality',
+                'title' => '📍 Perbaiki Sinyal GPS',
+                'description' => 'Kualitas GPS tidak optimal. Pindah ke area terbuka dan pastikan location services aktif.',
+                'priority' => 'medium'
+            ];
+        }
+        
+        // Check for accuracy issues
+        $accuracy = $coordinates['accuracy_meters'] ?? null;
+        if ($accuracy && $accuracy > 50) {
+            $tips[] = [
+                'type' => 'gps_accuracy',
+                'title' => '🎯 Tingkatkan Akurasi GPS',
+                'description' => sprintf('Akurasi GPS saat ini: %.0f meter. Tunggu beberapa saat untuk GPS lebih akurat.', $accuracy),
+                'priority' => 'medium'
+            ];
+        }
+        
+        // Check for zero coordinates
+        if ($locationAnalysis['is_zero_coordinates'] ?? false) {
+            $tips[] = [
+                'type' => 'location_permission',
+                'title' => '⚠️ Aktifkan Izin Lokasi',
+                'description' => 'Koordinat tidak terdeteksi. Pastikan browser/aplikasi memiliki izin akses lokasi.',
+                'priority' => 'critical'
+            ];
+        }
+        
+        // Region-specific tips
+        $region = $locationAnalysis['estimated_region'] ?? [];
+        if (($region['is_far_from_expected_areas'] ?? false)) {
+            $tips[] = [
+                'type' => 'location_verification',
+                'title' => '🌍 Verifikasi Lokasi',
+                'description' => 'Lokasi Anda terdeteksi sangat jauh dari area kerja yang diharapkan. Hubungi admin jika ini adalah kesalahan.',
+                'priority' => 'high'
+            ];
+        }
+        
+        // Default troubleshooting tips if no specific issues
+        if (empty($tips)) {
+            $tips[] = [
+                'type' => 'general',
+                'title' => '📱 Tips Umum GPS',
+                'description' => 'Pastikan GPS aktif, di area terbuka, dan tunggu beberapa detik untuk akurasi yang lebih baik.',
+                'priority' => 'low'
+            ];
+        }
+        
+        return $tips;
+    }
+
+    /**
+     * Create admin override for GPS validation (for testing/troubleshooting)
+     */
+    public function createAdminGPSOverride(User $admin, User $targetUser, float $latitude, float $longitude, string $reason): array
+    {
+        // Only allow admin users to create overrides
+        if (!$admin->hasRole(['admin', 'super-admin'])) {
+            return [
+                'success' => false,
+                'message' => 'Only administrators can create GPS validation overrides.',
+                'code' => 'INSUFFICIENT_PERMISSIONS'
+            ];
+        }
+        
+        $overrideData = [
+            'admin_id' => $admin->id,
+            'admin_name' => $admin->name,
+            'target_user_id' => $targetUser->id,
+            'target_user_name' => $targetUser->name,
+            'coordinates' => [
+                'latitude' => $latitude,
+                'longitude' => $longitude,
+            ],
+            'reason' => $reason,
+            'created_at' => now()->toISOString(),
+            'expires_at' => now()->addHours(24)->toISOString(), // Override expires in 24 hours
+        ];
+        
+        // Store override in cache
+        $cacheKey = "gps_override_{$targetUser->id}_" . now()->format('Y-m-d');
+        Cache::put($cacheKey, $overrideData, now()->addHours(24));
+        
+        // Log the override creation
+        Log::warning('Admin GPS validation override created', [
+            'admin_id' => $admin->id,
+            'target_user_id' => $targetUser->id,
+            'reason' => $reason,
+            'coordinates' => ['lat' => $latitude, 'lon' => $longitude],
+        ]);
+        
+        return [
+            'success' => true,
+            'message' => 'GPS validation override created successfully.',
+            'code' => 'OVERRIDE_CREATED',
+            'override_data' => $overrideData
+        ];
+    }
+    
+    /**
+     * Check if user has active admin GPS override
+     */
+    public function hasActiveGPSOverride(User $user, Carbon $date = null): array
+    {
+        $date = $date ?? Carbon::today();
+        $cacheKey = "gps_override_{$user->id}_" . $date->format('Y-m-d');
+        
+        $override = Cache::get($cacheKey);
+        
+        if (!$override) {
+            return [
+                'has_override' => false,
+                'override_data' => null
+            ];
+        }
+        
+        // Check if override is still valid
+        $expiresAt = Carbon::parse($override['expires_at']);
+        if ($expiresAt->isPast()) {
+            Cache::forget($cacheKey);
+            return [
+                'has_override' => false,
+                'override_data' => null
+            ];
+        }
+        
+        return [
+            'has_override' => true,
+            'override_data' => $override
+        ];
+    }
+
+    /**
+     * Enhanced work location validation with admin override support
+     */
+    public function validateWorkLocationWithOverride(User $user, float $latitude, float $longitude, ?float $accuracy = null): array
+    {
+        // Check for active admin override first
+        $overrideCheck = $this->hasActiveGPSOverride($user);
+        
+        if ($overrideCheck['has_override']) {
+            $overrideData = $overrideCheck['override_data'];
+            
+            Log::info('GPS validation bypassed due to admin override', [
+                'user_id' => $user->id,
+                'admin_id' => $overrideData['admin_id'],
+                'reason' => $overrideData['reason'],
+            ]);
+            
+            return [
+                'valid' => true,
+                'message' => 'GPS validation bypassed by admin override: ' . $overrideData['reason'],
+                'code' => 'ADMIN_OVERRIDE_ACTIVE',
+                'override_info' => [
+                    'admin_name' => $overrideData['admin_name'],
+                    'reason' => $overrideData['reason'],
+                    'expires_at' => $overrideData['expires_at'],
+                ]
+            ];
+        }
+        
+        // Proceed with normal validation if no override
+        return $this->validateWorkLocation($user, $latitude, $longitude, $accuracy);
     }
 }

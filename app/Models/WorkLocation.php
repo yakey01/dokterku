@@ -328,17 +328,51 @@ class WorkLocation extends Model
         parent::boot();
 
         static::deleting(function ($workLocation) {
-            // When soft deleting, also deactivate the location
+            // For force deletion, we don't need to update is_active
+            // For soft deletion, we'll let the deletion service handle status management
+            // This prevents conflicts with ToggleColumn updates during deletion
+            if ($workLocation->isForceDeleting()) {
+                // Log force deletion for audit purposes
+                \Log::info('WorkLocation force deleted', [
+                    'id' => $workLocation->id,
+                    'name' => $workLocation->name,
+                    'deleted_by' => auth()->id()
+                ]);
+            }
+        });
+
+        static::deleted(function ($workLocation) {
+            // After soft deletion is complete, ensure is_active is false
+            // Use updateQuietly to avoid triggering additional events
             if (!$workLocation->isForceDeleting()) {
-                $workLocation->is_active = false;
-                $workLocation->save();
+                $workLocation->updateQuietly(['is_active' => false]);
+                
+                \Log::info('WorkLocation soft deleted and deactivated', [
+                    'id' => $workLocation->id,
+                    'name' => $workLocation->name,
+                    'deleted_by' => auth()->id()
+                ]);
             }
         });
 
         static::restoring(function ($workLocation) {
             // When restoring, reactivate the location
             $workLocation->is_active = true;
-            $workLocation->save();
+            
+            \Log::info('WorkLocation restored and reactivated', [
+                'id' => $workLocation->id,
+                'name' => $workLocation->name,
+                'restored_by' => auth()->id()
+            ]);
+        });
+
+        static::restored(function ($workLocation) {
+            // Ensure restoration is logged and confirmed
+            \Log::info('WorkLocation restoration completed', [
+                'id' => $workLocation->id,
+                'name' => $workLocation->name,
+                'is_active' => $workLocation->is_active
+            ]);
         });
     }
 

@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Klinik Dokterku - {{ auth()->user()->name ?? 'Non Paramedis' }}</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        /* Using built-in system fonts */
         
         :root {
             --primary-blue: #1e40af;
@@ -32,7 +32,7 @@
         }
         
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
             background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 35%, var(--accent-yellow) 100%);
             min-height: 100vh;
             display: flex;

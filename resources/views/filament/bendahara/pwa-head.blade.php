@@ -53,11 +53,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
 {{-- Security headers for PWA --}}
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' fonts.bunny.net fonts.googleapis.com; img-src 'self' data: blob: ui-avatars.com; font-src 'self' data: fonts.bunny.net fonts.gstatic.com; connect-src 'self' ws: wss:;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: ui-avatars.com; font-src 'self' data:; connect-src 'self' ws: wss:;">
 
 {{-- Performance hints --}}
-<link rel="dns-prefetch" href="//fonts.googleapis.com">
-<link rel="preconnect" href="//fonts.gstatic.com" crossorigin>
+{{-- Using built-in system fonts instead of external fonts --}}
 
 {{-- Touch and interaction optimizations --}}
 <style>

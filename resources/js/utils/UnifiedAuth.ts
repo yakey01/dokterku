@@ -266,16 +266,29 @@ class UnifiedAuth {
           errorData = { message: `HTTP ${response.status}: ${response.statusText}` };
         }
         
-        const errorMessage = errorData.message || errorData.error || `Request failed: ${response.status}`;
+        // Enhanced error parsing for better user feedback
+        let errorMessage = errorData.message || errorData.error || `Request failed: ${response.status}`;
+        
+        // Include error code for better error handling downstream
+        if (errorData.code) {
+          errorMessage = `${errorData.code}: ${errorMessage}`;
+        }
+        
         console.error('🔥 API Request failed:', {
           url,
           status: response.status,
           statusText: response.statusText,
           error: errorMessage,
+          errorCode: errorData.code,
+          errorDetails: errorData,
           retryCount
         });
         
-        throw new Error(errorMessage);
+        const error = new Error(errorMessage);
+        // Preserve additional error data for downstream handling
+        (error as any).code = errorData.code;
+        (error as any).details = errorData;
+        throw error;
       }
 
       return response.json();
@@ -290,7 +303,6 @@ class UnifiedAuth {
       throw error;
     }
   }
-}
 
   /**
    * Check if error is retryable
@@ -330,19 +342,75 @@ class UnifiedAuth {
   }
 }
 
-// Create singleton instance
-const unifiedAuth = UnifiedAuth.getInstance();
+// Create singleton instance using lazy initialization to prevent TDZ violations
+let unifiedAuthInstance: UnifiedAuth | null = null;
 
-// Auto-initialize when DOM is ready
-if (typeof document !== 'undefined') {
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      unifiedAuth.initializeFromMetaTag();
-    });
-  } else {
-    // DOM already loaded
-    unifiedAuth.initializeFromMetaTag();
+// Safe getter for singleton instance with TDZ protection
+const getUnifiedAuthInstance = (): UnifiedAuth => {
+  if (!unifiedAuthInstance) {
+    unifiedAuthInstance = UnifiedAuth.getInstance();
   }
+  return unifiedAuthInstance;
+};
+
+// Auto-initialize when DOM is ready with comprehensive safety checks
+if (typeof document !== 'undefined' && typeof window !== 'undefined') {
+  // Ensure we're in a browser environment with safe initialization
+  const safeInitialize = () => {
+    try {
+      // Use lazy getter to avoid TDZ issues
+      const unifiedAuth = getUnifiedAuthInstance();
+      if (unifiedAuth && typeof unifiedAuth.initializeFromMetaTag === 'function') {
+        unifiedAuth.initializeFromMetaTag();
+        console.log('✅ UnifiedAuth initialized successfully');
+      } else {
+        console.warn('⚠️ UnifiedAuth instance not ready, deferring initialization');
+        throw new Error('UnifiedAuth instance not ready');
+      }
+    } catch (error) {
+      console.warn('⚠️ UnifiedAuth initialization deferred due to error:', error);
+      // Progressive retry with exponential backoff
+      let retryCount = 0;
+      const maxRetries = 3;
+      const retryInitialization = () => {
+        retryCount++;
+        const delay = Math.min(100 * Math.pow(2, retryCount - 1), 1000);
+        
+        setTimeout(() => {
+          try {
+            const unifiedAuth = getUnifiedAuthInstance();
+            if (unifiedAuth && typeof unifiedAuth.initializeFromMetaTag === 'function') {
+              unifiedAuth.initializeFromMetaTag();
+              console.log(`✅ UnifiedAuth initialized successfully on retry ${retryCount}`);
+            } else if (retryCount < maxRetries) {
+              retryInitialization();
+            } else {
+              console.error('❌ UnifiedAuth initialization failed after all retries');
+            }
+          } catch (retryError) {
+            if (retryCount < maxRetries) {
+              console.warn(`⚠️ UnifiedAuth retry ${retryCount} failed, trying again...`, retryError);
+              retryInitialization();
+            } else {
+              console.error('❌ UnifiedAuth initialization failed after all retries:', retryError);
+            }
+          }
+        }, delay);
+      };
+      
+      retryInitialization();
+    }
+  };
+  
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', safeInitialize);
+  } else {
+    // DOM already loaded - defer to next tick to avoid temporal dead zone
+    setTimeout(safeInitialize, 0);
+  }
+} else {
+  console.warn('⚠️ Browser environment not detected - UnifiedAuth initialization skipped');
 }
 
-export default unifiedAuth;
+// Export the safe getter function instead of direct instance
+export default getUnifiedAuthInstance;

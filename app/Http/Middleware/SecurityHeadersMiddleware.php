@@ -28,7 +28,7 @@ class SecurityHeadersMiddleware
             // Disable CSP for admin routes and login to avoid blocking functionality
             $response->headers->remove('Content-Security-Policy');
         } else {
-            $response->headers->set('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.bunny.net; img-src 'self' data: https:; font-src 'self' https://fonts.bunny.net data:; connect-src 'self' https:; form-action 'self';");
+            $response->headers->set('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; form-action 'self';");
         }
         
         // Remove server information

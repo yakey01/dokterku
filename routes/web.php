@@ -26,6 +26,11 @@ Route::get('/test-welcome-login', function () {
     return view('test-welcome-login');
 });
 
+// Test route for Presensi component
+Route::get('/test-presensi', function () {
+    return view('test-presensi');
+});
+
 // Test route for Dokter component (bypass auth)
 Route::get('/test-dokter-component', function () {
     $userData = [
@@ -37,6 +42,16 @@ Route::get('/test-dokter-component', function () {
     $token = 'test-token-123';
     
     return view('mobile.dokter.app', compact('token', 'userData'));
+});
+
+// Direct test for Presensi component only
+Route::get('/test-presensi-direct', function () {
+    return view('test-presensi-direct');
+});
+
+// Test dokter app without authentication
+Route::get('/test-dokter-noauth', function () {
+    return view('mobile.dokter.app-noauth');
 });
 
 // Main Welcome Login with Animation - GUARANTEED TO SHOW

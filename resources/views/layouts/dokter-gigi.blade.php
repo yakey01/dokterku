@@ -7,9 +7,7 @@
 
     <title>{{ config('app.name', 'Dokterku') }} - Dokter Gigi Dashboard</title>
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
+    <!-- Optimized System Fonts - Medical Professional Interface -->
     
     <!-- Heroicons for icons -->
     <script src="https://unpkg.com/heroicons@2.0.16/outline/index.js" type="module"></script>

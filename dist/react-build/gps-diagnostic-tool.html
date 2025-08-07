@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPS Location Diagnostic Tool - Dokterku</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .diagnostic-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            font-size: 16px;
+        }
+        
+        .diagnostic-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .section-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .info-label {
+            font-weight: 500;
+            color: #5a6c7d;
+        }
+        
+        .info-value {
+            font-family: 'Monaco', 'Menlo', monospace;
+            background: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            width: 100%;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status {
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-weight: 500;
+        }
+        
+        .status.loading {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .distance-check {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 6px;
+            border: 2px dashed #dee2e6;
+        }
+        
+        .distance-good {
+            border-color: #28a745;
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .distance-bad {
+            border-color: #dc3545;
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .coordinates-map {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #6c757d;
+        }
+        
+        @media (max-width: 768px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .diagnostic-container {
+                padding: 20px;
+                margin: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="diagnostic-container">
+        <div class="header">
+            <h1>🛡️ GPS Location Diagnostic Tool</h1>
+            <p>Diagnose GPS location issues for Dokterku attendance system</p>
+        </div>
+        
+        <div class="diagnostic-section">
+            <div class="section-title">🎯 Work Location Information</div>
+            <div class="info-grid">
+                <span class="info-label">Location Name:</span>
+                <span class="info-value" id="work-name">Cabang Bandung</span>
+                
+                <span class="info-label">Expected Latitude:</span>
+                <span class="info-value" id="work-lat">-6.91750000</span>
+                
+                <span class="info-label">Expected Longitude:</span>
+                <span class="info-value" id="work-lng">107.61910000</span>
+                
+                <span class="info-label">Allowed Radius:</span>
+                <span class="info-value" id="work-radius">150 meters</span>
+            </div>
+        </div>
+        
+        <div class="diagnostic-section">
+            <div class="section-title">📍 Your Current GPS Location</div>
+            <button class="btn" onclick="getCurrentLocation()">Get My GPS Location</button>
+            
+            <div id="location-status" class="status" style="display: none;"></div>
+            
+            <div id="location-info" style="display: none;">
+                <div class="info-grid">
+                    <span class="info-label">Your Latitude:</span>
+                    <span class="info-value" id="user-lat">--</span>
+                    
+                    <span class="info-label">Your Longitude:</span>
+                    <span class="info-value" id="user-lng">--</span>
+                    
+                    <span class="info-label">GPS Accuracy:</span>
+                    <span class="info-value" id="user-accuracy">--</span>
+                    
+                    <span class="info-label">Timestamp:</span>
+                    <span class="info-value" id="location-time">--</span>
+                </div>
+                
+                <div id="distance-result" class="distance-check">
+                    <strong>Distance Calculation:</strong>
+                    <div id="distance-text">Click "Get My GPS Location" to calculate</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="diagnostic-section">
+            <div class="section-title">🔧 Browser Information</div>
+            <div class="info-grid">
+                <span class="info-label">User Agent:</span>
+                <span class="info-value" id="user-agent">--</span>
+                
+                <span class="info-label">Geolocation Support:</span>
+                <span class="info-value" id="geo-support">--</span>
+                
+                <span class="info-label">HTTPS Status:</span>
+                <span class="info-value" id="https-status">--</span>
+                
+                <span class="info-label">Current Time:</span>
+                <span class="info-value" id="current-time">--</span>
+            </div>
+        </div>
+        
+        <div class="diagnostic-section">
+            <div class="section-title">📋 Troubleshooting Guide</div>
+            <div id="troubleshooting-guide">
+                <p><strong>If you see location errors:</strong></p>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>✅ Ensure location services are enabled in your browser</li>
+                    <li>✅ Check if you're using a VPN (disable temporarily)</li>
+                    <li>✅ Try refreshing the page and allowing location access</li>
+                    <li>✅ Use Chrome or Safari for best GPS accuracy</li>
+                    <li>✅ Ensure you're physically in the Bandung area</li>
+                </ul>
+                
+                <p style="margin-top: 15px;"><strong>Expected coordinates for Bandung area:</strong></p>
+                <div class="coordinates-map">
+                    Latitude should be around <strong>-6.9xx</strong> (negative, between -6.8 and -7.0)<br>
+                    Longitude should be around <strong>107.6xx</strong> (positive, between 107.5 and 107.8)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize browser info
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('user-agent').textContent = navigator.userAgent.substring(0, 80) + '...';
+            document.getElementById('geo-support').textContent = 'geolocation' in navigator ? 'Supported' : 'Not Supported';
+            document.getElementById('https-status').textContent = location.protocol === 'https:' ? 'Secure (HTTPS)' : 'Not Secure (HTTP)';
+            document.getElementById('current-time').textContent = new Date().toLocaleString();
+            
+            // Update time every second
+            setInterval(() => {
+                document.getElementById('current-time').textContent = new Date().toLocaleString();
+            }, 1000);
+        });
+        
+        function getCurrentLocation() {
+            const statusDiv = document.getElementById('location-status');
+            const locationInfo = document.getElementById('location-info');
+            const distanceResult = document.getElementById('distance-result');
+            const distanceText = document.getElementById('distance-text');
+            
+            // Show loading status
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'status loading';
+            statusDiv.innerHTML = '🔄 Getting your GPS location...';
+            
+            // Hide previous results
+            locationInfo.style.display = 'none';
+            
+            if (!('geolocation' in navigator)) {
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = '❌ Geolocation not supported by this browser';
+                return;
+            }
+            
+            const options = {
+                enableHighAccuracy: true,
+                timeout: 15000,
+                maximumAge: 0
+            };
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const userLat = position.coords.latitude;
+                    const userLng = position.coords.longitude;
+                    const accuracy = position.coords.accuracy;
+                    
+                    // Work location coordinates
+                    const workLat = -6.91750000;
+                    const workLng = 107.61910000;
+                    const allowedRadius = 150;
+                    
+                    // Update UI
+                    document.getElementById('user-lat').textContent = userLat.toFixed(8);
+                    document.getElementById('user-lng').textContent = userLng.toFixed(8);
+                    document.getElementById('user-accuracy').textContent = accuracy.toFixed(2) + ' meters';
+                    document.getElementById('location-time').textContent = new Date(position.timestamp).toLocaleString();
+                    
+                    // Calculate distance
+                    const distance = calculateDistance(workLat, workLng, userLat, userLng);
+                    
+                    // Show results
+                    locationInfo.style.display = 'block';
+                    statusDiv.className = 'status success';
+                    statusDiv.innerHTML = '✅ GPS location obtained successfully!';
+                    
+                    // Update distance result
+                    if (distance <= allowedRadius) {
+                        distanceResult.className = 'distance-check distance-good';
+                        distanceText.innerHTML = `
+                            ✅ <strong>WITHIN GEOFENCE</strong><br>
+                            Distance: ${distance.toFixed(2)} meters<br>
+                            Status: You are within the allowed ${allowedRadius}m radius
+                        `;
+                    } else {
+                        distanceResult.className = 'distance-check distance-bad';
+                        const kmDistance = (distance / 1000).toFixed(2);
+                        distanceText.innerHTML = `
+                            ❌ <strong>OUTSIDE GEOFENCE</strong><br>
+                            Distance: ${distance.toFixed(2)} meters (${kmDistance} km)<br>
+                            Allowed: ${allowedRadius} meters<br>
+                            Exceeds by: ${(distance - allowedRadius).toFixed(2)} meters<br><br>
+                            <strong>⚠️ Issue Detected:</strong> Your GPS coordinates indicate you are ${kmDistance} km away from the Bandung work location.
+                        `;
+                        
+                        // Add coordinate analysis
+                        if (userLat < -7.5 && userLng > 110) {
+                            distanceText.innerHTML += `<br><br><strong>📍 Location Analysis:</strong> Your coordinates suggest you are in East Java area. The work location is in Bandung, West Java.`;
+                        }
+                    }
+                },
+                function(error) {
+                    let errorMsg = '';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMsg = 'Location access denied. Please allow location access and try again.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMsg = 'Location information unavailable. Check your GPS settings.';
+                            break;
+                        case error.TIMEOUT:
+                            errorMsg = 'Location request timed out. Try again.';
+                            break;
+                        default:
+                            errorMsg = 'Unknown location error occurred.';
+                            break;
+                    }
+                    
+                    statusDiv.className = 'status error';
+                    statusDiv.innerHTML = `❌ ${errorMsg}`;
+                },
+                options
+            );
+        }
+        
+        function calculateDistance(lat1, lng1, lat2, lng2) {
+            const R = 6371000; // Earth's radius in meters
+            const dLat = toRadians(lat2 - lat1);
+            const dLng = toRadians(lng2 - lng1);
+            
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
+                    Math.sin(dLng/2) * Math.sin(dLng/2);
+            
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+        
+        function toRadians(degrees) {
+            return degrees * (Math.PI/180);
+        }
+    </script>
+</body>
+</html>

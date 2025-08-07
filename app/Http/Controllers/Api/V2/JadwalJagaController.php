@@ -564,26 +564,73 @@ class JadwalJagaController extends BaseApiController
      */
     public function validateCheckin(Request $request): JsonResponse
     {
+        // Debug logging for troubleshooting validation errors
+        \Log::info('Doctor check-in validation request', [
+            'request_data' => $request->all(),
+            'user_id' => auth('sanctum')->id(),
+            'ip' => $request->ip(),
+            'user_agent' => $request->userAgent()
+        ]);
+        
         $validator = Validator::make($request->all(), [
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
-            'accuracy' => 'nullable|numeric|min:0',
+            'accuracy' => 'nullable|numeric|min:0|max:1000', // Max 1000m GPS accuracy
             'date' => 'nullable|date_format:Y-m-d',
+        ], [
+            'latitude.required' => 'Latitude is required for location validation',
+            'latitude.numeric' => 'Latitude must be a valid number',
+            'latitude.between' => 'Latitude must be between -90 and 90 degrees',
+            'longitude.required' => 'Longitude is required for location validation',
+            'longitude.numeric' => 'Longitude must be a valid number', 
+            'longitude.between' => 'Longitude must be between -180 and 180 degrees',
+            'accuracy.numeric' => 'GPS accuracy must be a valid number',
+            'accuracy.max' => 'GPS accuracy cannot exceed 1000 meters',
+            'date.date_format' => 'Date must be in Y-m-d format (e.g., 2025-08-06)'
         ]);
 
         if ($validator->fails()) {
+            \Log::warning('Doctor check-in validation failed - Input validation', [
+                'user_id' => auth('sanctum')->id(),
+                'validation_errors' => $validator->errors()->toArray(),
+                'request_data' => $request->all()
+            ]);
             return $this->validationErrorResponse($validator->errors());
         }
 
         $user = $this->getAuthenticatedUser();
+        
+        if (!$user) {
+            \Log::warning('Doctor check-in validation failed - no authenticated user');
+            return $this->unauthorizedResponse('User authentication required');
+        }
+        
         $date = $request->get('date') ? Carbon::parse($request->get('date')) : Carbon::today();
         $latitude = (float) $request->latitude;
         $longitude = (float) $request->longitude;
         $accuracy = $request->accuracy ? (float) $request->accuracy : null;
+        
+        // Additional validation for coordinate sanity
+        if (abs($latitude) < 0.001 && abs($longitude) < 0.001) {
+            \Log::warning('Doctor check-in validation failed - suspicious coordinates', [
+                'user_id' => $user->id,
+                'latitude' => $latitude,
+                'longitude' => $longitude
+            ]);
+            return $this->errorResponse('Invalid GPS coordinates detected. Please ensure location services are enabled.', 400);
+        }
 
-        // Use AttendanceValidationService for comprehensive validation
+        // Use enhanced AttendanceValidationService for comprehensive validation with GPS diagnostics
         $validation = app(\App\Services\AttendanceValidationService::class)
             ->validateCheckin($user, $latitude, $longitude, $accuracy, $date);
+        
+        // Log validation result for debugging
+        \Log::info('Doctor check-in validation result', [
+            'user_id' => $user->id,
+            'validation_valid' => $validation['valid'],
+            'validation_code' => $validation['code'] ?? 'unknown',
+            'validation_message' => $validation['message'] ?? 'no message'
+        ]);
 
         // Check if user has already checked in today
         $todayAttendance = \App\Models\Attendance::getTodayAttendance($user->id);
@@ -640,18 +687,81 @@ class JadwalJagaController extends BaseApiController
                 'radius_meters' => $workLocation->radius_meters,
                 'distance_from_user' => $workLocation->calculateDistance($latitude, $longitude),
                 'within_geofence' => $workLocation->isWithinGeofence($latitude, $longitude, $accuracy),
+                'gps_diagnostics' => $validation['gps_diagnostics'] ?? null,
+                'troubleshooting_tips' => $validation['data']['troubleshooting_tips'] ?? [],
             ];
+        }
+        
+        // Add admin override information if present
+        if (isset($validation['override_info'])) {
+            $response['admin_override'] = $validation['override_info'];
         }
 
         $httpStatus = $validation['valid'] ? 200 : 400;
-        $message = $validation['valid'] 
-            ? ($attendanceStatus['can_check_in'] ? 'Validation successful - ready for check-in' : 'Validation successful but check-in not allowed')
-            : 'Validation failed';
+        
+        // Enhanced success/error messaging
+        if ($validation['valid']) {
+            $message = $attendanceStatus['can_check_in'] 
+                ? 'Validation successful - ready for check-in' 
+                : 'Validation successful but check-in not allowed';
+            
+            // Add override information to success message if applicable
+            if (isset($validation['override_info'])) {
+                $message .= ' (Admin override active)';
+            }
+        } else {
+            $message = 'GPS validation failed';
+            
+            // Add helpful troubleshooting context
+            $troubleshootingTips = $validation['data']['troubleshooting_tips'] ?? [];
+            $highPriorityTips = array_filter($troubleshootingTips, fn($tip) => ($tip['priority'] ?? 'low') === 'critical' || ($tip['priority'] ?? 'low') === 'high');
+            
+            if (!empty($highPriorityTips)) {
+                $firstTip = reset($highPriorityTips);
+                $message .= ' - ' . ($firstTip['title'] ?? 'Check troubleshooting tips');
+            }
+        }
+        
+        // Enhanced error logging for 400 responses with GPS diagnostics
+        if (!$validation['valid']) {
+            $diagnostics = $validation['gps_diagnostics'] ?? null;
+            
+            \Log::error('Doctor check-in validation failed - comprehensive analysis', [
+                'user_id' => $user->id,
+                'user_name' => $user->name,
+                'validation_code' => $validation['code'] ?? 'unknown',
+                'validation_message' => $validation['message'] ?? 'no message',
+                'coordinates' => [
+                    'latitude' => $latitude,
+                    'longitude' => $longitude,
+                    'accuracy' => $accuracy,
+                ],
+                'date' => $date->format('Y-m-d'),
+                'user_data' => [
+                    'work_location_id' => $user->work_location_id,
+                    'location_id' => $user->location_id,
+                    'role' => $user->role ?? 'unknown',
+                ],
+                'gps_diagnostics' => $diagnostics ? [
+                    'coordinate_quality' => $diagnostics['location_analysis']['coordinate_quality'] ?? null,
+                    'vpn_risk_level' => $diagnostics['location_analysis']['potential_vpn_proxy']['risk_level'] ?? 'unknown',
+                    'estimated_region' => $diagnostics['location_analysis']['estimated_region']['region'] ?? 'unknown',
+                    'distance_from_work' => $diagnostics['work_location_analysis']['distance_meters'] ?? null,
+                ] : null,
+                'troubleshooting_available' => !empty($validation['data']['troubleshooting_tips'] ?? []),
+            ]);
+        }
 
         return response()->json([
             'success' => $validation['valid'],
             'message' => $message,
             'data' => $response,
+            'meta' => [
+                'validation_timestamp' => now()->toISOString(),
+                'has_troubleshooting_tips' => !empty($validation['data']['troubleshooting_tips'] ?? []),
+                'gps_diagnostics_available' => isset($validation['gps_diagnostics']),
+                'admin_override_active' => isset($validation['override_info']),
+            ],
         ], $httpStatus);
     }
 

@@ -482,16 +482,68 @@ if (window.matchMedia('(min-width: 1024px)').matches) {
 - [ ] Check responsive breakpoints
 - [ ] Test with screen readers
 
+## ⚠️ Critical Container Constraints / Batasan Container Kritis
+
+### Container Width Management in Gaming-Style Dashboards
+
+**Problem**: HolisticMedicalDashboard applies restrictive container width constraints that can severely limit component layout:
+```tsx
+// PROBLEMATIC: Restricts width for non-listed tabs
+<div className={`${
+  (activeTab === 'missions' || activeTab === 'presensi' || activeTab === 'jaspel' || activeTab === 'profile') 
+    ? 'w-full' 
+    : 'max-w-sm mx-auto md:max-w-md lg:max-w-lg xl:max-w-xl'
+}`}>
+```
+
+**Issue Analysis**:
+- Default constraint: `max-w-sm` (384px) on mobile severely limits layout
+- Components not listed in condition get squeezed into narrow container
+- Gaming-style components need full width for proper visual impact
+- Responsive breakpoints become ineffective with restrictive parent containers
+
+**Solution Strategy**:
+1. **Add New Components to Full-Width Condition**:
+   ```tsx
+   // CORRECT: Include all major feature components
+   (activeTab === 'missions' || activeTab === 'presensi' || activeTab === 'jaspel' || activeTab === 'profile' || activeTab === 'newComponent')
+   ```
+
+2. **Component-Level Container Awareness**:
+   ```tsx
+   // Components should assume full-width parent and self-constrain if needed
+   <div className="w-full max-w-none"> {/* Override parent constraints */}
+     <div className="px-4 md:px-6 lg:px-8"> {/* Self-managed padding */}
+       {/* Component content */}
+     </div>
+   </div>
+   ```
+
+3. **Best Practices for Gaming-Style Components**:
+   - Always design for full viewport width
+   - Use internal padding/margins for content spacing
+   - Implement responsive breakpoints within component
+   - Test with restrictive parent containers during development
+
+### Container Constraint Debugging Checklist
+- [ ] Check parent container width classes in dashboard
+- [ ] Verify component is included in full-width condition
+- [ ] Test component layout at 384px width (max-w-sm)
+- [ ] Validate responsive breakpoints work within constraints
+- [ ] Ensure gaming aesthetics maintain impact at all sizes
+
 ## 🚀 Best Practices / Praktik Terbaik
 
 1. **Always test on real devices** - Emulators don't catch everything
-2. **Optimize images** - Use WebP with fallbacks
-3. **Minimize JavaScript** - Essential features only on mobile
-4. **Use CSS Grid and Flexbox** - Modern layout techniques
-5. **Implement Progressive Enhancement** - Basic functionality first
-6. **Cache strategically** - Offline learning capability
-7. **Monitor performance** - Use Lighthouse regularly
-8. **Gather user feedback** - Students know what works
+2. **Check container constraints first** - Parent containers can override component responsive design
+3. **Design for full-width assumption** - Gaming components should expect full viewport width
+4. **Optimize images** - Use WebP with fallbacks
+5. **Minimize JavaScript** - Essential features only on mobile
+6. **Use CSS Grid and Flexbox** - Modern layout techniques
+7. **Implement Progressive Enhancement** - Basic functionality first
+8. **Cache strategically** - Offline learning capability
+9. **Monitor performance** - Use Lighthouse regularly
+10. **Gather user feedback** - Students know what works
 
 ## 📚 Resources / Sumber Daya
 

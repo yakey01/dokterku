@@ -1,17 +1,13 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
-import react from '@vitejs/plugin-react';
 import path from 'path';
 
 export default defineConfig({
     plugins: [
-        react({
-            jsxRuntime: 'automatic',
-            fastRefresh: true,
-        }),
         laravel({
             input: [
                 'resources/css/app.css',
+                'resources/css/map-styles.css',
                 'resources/js/app.js',
                 'resources/js/paramedis-mobile-app.tsx',
                 'resources/js/dokter-mobile-app.tsx',
@@ -19,6 +15,8 @@ export default defineConfig({
                 'resources/js/welcome-login-app.tsx',
                 'resources/js/welcome-login-new.tsx',
                 'resources/js/widget-animations.js',
+                'resources/js/leaflet-utilities.ts',
+                'resources/js/test-presensi.tsx',
                 'resources/css/petugas-table-ux.css',
                 'resources/css/filament/admin/theme.css',
                 'resources/css/filament/bendahara/theme.css',
@@ -34,17 +32,25 @@ export default defineConfig({
     server: {
         host: '127.0.0.1',
         port: 5173,
+        strictPort: true,
         hmr: {
             host: '127.0.0.1',
             port: 5173,
+            protocol: 'ws',
         },
         cors: true,
-        origin: 'http://127.0.0.1:8000',
     },
     resolve: {
         alias: {
             '@': path.resolve(__dirname, 'resources/js'),
         },
+        extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json'],
+    },
+    esbuild: {
+        jsxFactory: 'React.createElement',
+        jsxFragment: 'React.Fragment',
+        jsxImportSource: 'react',
+        jsx: 'automatic',
     },
     build: {
         rollupOptions: {
@@ -56,7 +62,44 @@ export default defineConfig({
                     }
                     return `assets/${extType}/[name]-[hash][extname]`;
                 },
+                entryFileNames: `assets/js/[name]-[hash].js`,
+                chunkFileNames: `assets/js/[name]-[hash].js`,
+                manualChunks: undefined,
+                sourcemapFileNames: 'assets/js/[name]-[hash].js.map',
+            },
+            onwarn(warning, warn) {
+                if (warning.code === 'CIRCULAR_DEPENDENCY') {
+                    console.warn('🔄 Circular dependency detected:', warning.message);
+                    return;
+                }
+                if (warning.code === 'THIS_IS_UNDEFINED') {
+                    console.warn('⚠️ TDZ issue detected (handled by esbuild):', warning.message);
+                    return;
+                }
+                warn(warning);
             },
         },
+        sourcemap: process.env.NODE_ENV === 'development',
+        minify: process.env.NODE_ENV === 'production' ? 'esbuild' : false,
+        esbuild: {
+            keepNames: true,
+            minifyIdentifiers: process.env.NODE_ENV === 'production',
+            target: 'esnext',
+            sourcemap: process.env.NODE_ENV === 'development',
+            jsxFactory: 'React.createElement',
+            jsxFragment: 'React.Fragment',
+            jsxImportSource: 'react',
+            jsx: 'automatic',
+        },
+        assetsInclude: ['**/*.tsx', '**/*.ts', '**/*.jsx'],
+        define: {
+            __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+            __BUILD_HASH__: JSON.stringify(Date.now().toString(36)),
+            __DEV_MODE__: JSON.stringify(process.env.NODE_ENV === 'development'),
+            __SOURCE_MAP_ENABLED__: JSON.stringify(true),
+        },
+        chunkSizeWarningLimit: 1600,
+        manifest: true,
+        reportCompressedSize: true,
     },
 });

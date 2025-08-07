@@ -6,6 +6,7 @@ use App\Http\Controllers\Paramedis\AttendanceController;
 use App\Models\WorkLocation;
 use App\Http\Controllers\Auth\UnifiedAuthController;
 use App\Http\Controllers\Api\DokterStatsController;
+use App\Http\Controllers\Api\V2\HospitalLocationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -145,6 +146,11 @@ Route::prefix('v2')->group(function () {
     Route::get('/locations/work-locations', [\App\Http\Controllers\Api\V2\WorkLocationController::class, 'v2Locations']);
     Route::post('/locations/validate-position', [\App\Http\Controllers\Api\V2\WorkLocationController::class, 'validatePosition']);
 
+    // Hospital location (public for map display)
+    Route::get('/hospital/location', [HospitalLocationController::class, 'getLocation']);
+    Route::get('/hospital/locations', [HospitalLocationController::class, 'getAllLocations']);
+    Route::get('/hospital/location/{id}', [HospitalLocationController::class, 'getLocationById']);
+
     // System information (public)
     Route::prefix('system')->group(function () {
         Route::get('/health', function () {
@@ -230,6 +236,36 @@ Route::prefix('v2')->group(function () {
             Route::get('/today', [App\Http\Controllers\Api\V2\Attendance\AttendanceController::class, 'today']);
             Route::get('/history', [App\Http\Controllers\Api\V2\Attendance\AttendanceController::class, 'history']);
             Route::get('/statistics', [App\Http\Controllers\Api\V2\Attendance\AttendanceController::class, 'statistics']);
+        });
+
+        // GPS Diagnostics and Validation endpoints
+        Route::prefix('gps')->middleware([App\Http\Middleware\Api\ApiRateLimitMiddleware::class . ':gps'])->group(function () {
+            Route::post('/diagnostics', [App\Http\Controllers\Api\V2\GPSDiagnosticsController::class, 'getDiagnostics']);
+            Route::post('/test-coordinates', [App\Http\Controllers\Api\V2\GPSDiagnosticsController::class, 'testCoordinates']);
+            Route::get('/troubleshooting-guide', [App\Http\Controllers\Api\V2\GPSDiagnosticsController::class, 'getTroubleshootingGuide']);
+            Route::get('/system-status', [App\Http\Controllers\Api\V2\GPSDiagnosticsController::class, 'getSystemStatus']);
+            
+            // Debug endpoints for mobile app compatibility
+            Route::post('/debug', [App\Http\Controllers\Api\V2\GPSDiagnosticsController::class, 'submitDebugData']);
+            Route::get('/debug/history', [App\Http\Controllers\Api\V2\GPSDiagnosticsController::class, 'getDebugHistory']);
+        });
+
+        // Admin GPS Management endpoints (admin only)
+        Route::prefix('admin/gps')->middleware(['role:admin,super-admin'])->group(function () {
+            Route::get('/diagnostics/{user_id}', [App\Http\Controllers\Admin\GPSValidationController::class, 'getDiagnostics']);
+            Route::post('/create-override', [App\Http\Controllers\Admin\GPSValidationController::class, 'createOverride']);
+            Route::get('/validation-logs', [App\Http\Controllers\Admin\GPSValidationController::class, 'getValidationLogs']);
+            Route::post('/generate-report', [App\Http\Controllers\Admin\GPSValidationController::class, 'generateReport']);
+            Route::post('/test-coordinates', [App\Http\Controllers\Admin\GPSValidationController::class, 'testCoordinates']);
+        });
+
+        // Jadwal Jaga endpoints with enhanced GPS validation
+        Route::prefix('jadwal-jaga')->group(function () {
+            Route::get('/today', [App\Http\Controllers\Api\V2\JadwalJagaController::class, 'today']);
+            Route::get('/week', [App\Http\Controllers\Api\V2\JadwalJagaController::class, 'week']);
+            Route::get('/current', [App\Http\Controllers\Api\V2\JadwalJagaController::class, 'current']);
+            Route::post('/validate-checkin', [App\Http\Controllers\Api\V2\JadwalJagaController::class, 'validateCheckin']);
+            Route::get('/duration', [App\Http\Controllers\Api\V2\JadwalJagaController::class, 'duration']);
         });
 
         // Jaspel endpoints

@@ -25,28 +25,63 @@ class DebugLogger {
   
   private isDevelopmentMode(): boolean {
     try {
-      // Multiple ways to detect development mode
-      return (
-        // Vite development mode
-        import.meta.env?.DEV === true ||
-        // Node environment check
-        process?.env?.NODE_ENV === 'development' ||
-        // Laravel development mode
-        window.location.hostname === 'localhost' ||
-        window.location.hostname === '127.0.0.1' ||
-        window.location.hostname.includes('local') ||
-        window.location.port !== '' ||
-        // Development domains
-        window.location.hostname.includes('dev') ||
-        window.location.hostname.includes('staging') ||
-        window.location.hostname.includes('test') ||
-        // Custom debug flag (for manual testing)
-        localStorage.getItem('debug_mode') === 'true' ||
-        // URL parameter (for manual testing)
-        new URLSearchParams(window.location.search).has('debug') ||
-        // Laravel APP_DEBUG equivalent check
-        document.querySelector('meta[name="app-debug"]')?.getAttribute('content') === 'true'
-      );
+      // Multiple ways to detect development mode with safer property access
+      const checks: boolean[] = [];
+      
+      // Vite development mode (safe access)
+      try {
+        if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.DEV === true) {
+          checks.push(true);
+        }
+      } catch {}
+      
+      // Node environment check (safe access)
+      try {
+        if (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development') {
+          checks.push(true);
+        }
+      } catch {}
+      
+      // Browser-based development detection
+      if (typeof window !== 'undefined' && window.location) {
+        const hostname = window.location.hostname;
+        const port = window.location.port;
+        
+        if (hostname === 'localhost' || 
+            hostname === '127.0.0.1' || 
+            hostname.includes('local') || 
+            port !== '' || 
+            hostname.includes('dev') || 
+            hostname.includes('staging') || 
+            hostname.includes('test')) {
+          checks.push(true);
+        }
+      }
+      
+      // Storage and URL checks (safe access)
+      try {
+        if (typeof localStorage !== 'undefined' && localStorage.getItem('debug_mode') === 'true') {
+          checks.push(true);
+        }
+      } catch {}
+      
+      try {
+        if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('debug')) {
+          checks.push(true);
+        }
+      } catch {}
+      
+      // Laravel APP_DEBUG check (safe access)
+      try {
+        if (typeof document !== 'undefined') {
+          const debugMeta = document.querySelector('meta[name="app-debug"]');
+          if (debugMeta && debugMeta.getAttribute('content') === 'true') {
+            checks.push(true);
+          }
+        }
+      } catch {}
+      
+      return checks.length > 0;
     } catch (error) {
       // If any error occurs in detection, assume production (safe mode)
       return false;

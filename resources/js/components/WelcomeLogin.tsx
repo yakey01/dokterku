@@ -1,277 +1,47 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Eye, EyeOff, Lock, User, Stethoscope, Heart, Shield, Star, ChevronRight, CheckCircle, Activity, Zap } from 'lucide-react';
-
-// LoginSuccessAnimation class embedded
-class LoginSuccessAnimation {
-  constructor() {
-    this.isAnimating = false;
-    this.particles = [];
-    this.canvas = null;
-    this.ctx = null;
-  }
-
-  initCanvas() {
-    this.canvas = document.createElement('canvas');
-    this.canvas.style.position = 'fixed';
-    this.canvas.style.top = '0';
-    this.canvas.style.left = '0';
-    this.canvas.style.width = '100%';
-    this.canvas.style.height = '100%';
-    this.canvas.style.pointerEvents = 'none';
-    this.canvas.style.zIndex = '9999';
-    
-    this.canvas.width = window.innerWidth;
-    this.canvas.height = window.innerHeight;
-    
-    this.ctx = this.canvas.getContext('2d');
-    document.body.appendChild(this.canvas);
-    
-    return this.canvas;
-  }
-
-  createParticles(centerX, centerY, count = 50) {
-    this.particles = [];
-    
-    for (let i = 0; i < count; i++) {
-      this.particles.push({
-        x: centerX,
-        y: centerY,
-        vx: (Math.random() - 0.5) * 15,
-        vy: (Math.random() - 0.5) * 15,
-        life: 1,
-        decay: Math.random() * 0.015 + 0.01,
-        size: Math.random() * 4 + 2,
-        color: this.getRandomColor(),
-        rotation: Math.random() * Math.PI * 2,
-        rotationSpeed: (Math.random() - 0.5) * 0.2
-      });
-    }
-  }
-
-  getRandomColor() {
-    const colors = ['#00f5ff', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#ef4444'];
-    return colors[Math.floor(Math.random() * colors.length)];
-  }
-
-  animateParticles() {
-    if (!this.ctx || this.particles.length === 0) return;
-
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-    for (let i = this.particles.length - 1; i >= 0; i--) {
-      const particle = this.particles[i];
-      
-      particle.x += particle.vx;
-      particle.y += particle.vy;
-      particle.vy += 0.3;
-      particle.life -= particle.decay;
-      particle.rotation += particle.rotationSpeed;
-
-      if (particle.life <= 0) {
-        this.particles.splice(i, 1);
-        continue;
-      }
-
-      this.ctx.save();
-      this.ctx.globalAlpha = particle.life;
-      this.ctx.translate(particle.x, particle.y);
-      this.ctx.rotate(particle.rotation);
-      
-      this.drawStar(particle.size, particle.color);
-      
-      this.ctx.restore();
-    }
-
-    if (this.particles.length > 0) {
-      requestAnimationFrame(() => this.animateParticles());
-    } else {
-      if (this.canvas && document.body.contains(this.canvas)) {
-        document.body.removeChild(this.canvas);
-      }
-    }
-  }
-
-  drawStar(size, color) {
-    this.ctx.fillStyle = color;
-    this.ctx.beginPath();
-    
-    for (let i = 0; i < 5; i++) {
-      const angle = (i * Math.PI * 2) / 5;
-      const x = Math.cos(angle) * size;
-      const y = Math.sin(angle) * size;
-      
-      if (i === 0) {
-        this.ctx.moveTo(x, y);
-      } else {
-        this.ctx.lineTo(x, y);
-      }
-    }
-    
-    this.ctx.closePath();
-    this.ctx.fill();
-  }
-
-  createRippleEffect(element) {
-    const ripple = document.createElement('div');
-    ripple.style.position = 'absolute';
-    ripple.style.borderRadius = '50%';
-    ripple.style.background = 'radial-gradient(circle, rgba(139,92,246,0.3) 0%, rgba(139,92,246,0) 70%)';
-    ripple.style.transform = 'scale(0)';
-    ripple.style.animation = 'rippleAnimation 1s ease-out forwards';
-    ripple.style.pointerEvents = 'none';
-    ripple.style.zIndex = '1000';
-
-    const rect = element.getBoundingClientRect();
-    const size = Math.max(rect.width, rect.height) * 2;
-    ripple.style.width = size + 'px';
-    ripple.style.height = size + 'px';
-    ripple.style.left = (rect.left + rect.width / 2 - size / 2) + 'px';
-    ripple.style.top = (rect.top + rect.height / 2 - size / 2) + 'px';
-
-    document.body.appendChild(ripple);
-
-    setTimeout(() => {
-      if (document.body.contains(ripple)) {
-        document.body.removeChild(ripple);
-      }
-    }, 1000);
-  }
-
-  showSuccessMessage(message = 'Login Berhasil!', duration = 3000) {
-    const successDiv = document.createElement('div');
-    successDiv.innerHTML = `
-      <div style="
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%) scale(0);
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 16px 24px;
-        border-radius: 20px;
-        font-size: clamp(14px, 4vw, 18px);
-        font-weight: bold;
-        text-align: center;
-        z-index: 10000;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-        animation: successMessageAnimation 3s ease forwards;
-        border: 2px solid rgba(255,255,255,0.2);
-      ">
-        <div style="margin-bottom: 10px; font-size: 24px;">🎉</div>
-        ${message}
-      </div>
-    `;
-    
-    document.body.appendChild(successDiv);
-    
-    setTimeout(() => {
-      if (document.body.contains(successDiv)) {
-        document.body.removeChild(successDiv);
-      }
-    }, duration);
-  }
-
-  slideOutLoginForm(formElement, direction = 'left') {
-    const translateX = direction === 'left' ? '-100%' : '100%';
-    
-    formElement.style.transition = 'transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.8s ease';
-    formElement.style.transform = `translateX(${translateX})`;
-    formElement.style.opacity = '0';
-  }
-
-  playLoginSuccessAnimation(options = {}) {
-    if (this.isAnimating) {
-      console.warn('🚫 Animation already in progress, skipping');
-      return;
-    }
-    
-    console.log('🎬 Starting playLoginSuccessAnimation with options:', options);
-    this.isAnimating = true;
-    
-    const {
-      loginButton = null,
-      loginForm = null,
-      showParticles = true,
-      showRipple = true,
-      showSuccessMessage = true,
-      successMessage = 'Login Berhasil!',
-      slideDirection = 'left',
-      onComplete = null
-    } = options;
-
-    if (showRipple && loginButton) {
-      console.log('💫 Creating ripple effect...');
-      this.createRippleEffect(loginButton);
-    }
-
-    if (showParticles && loginButton) {
-      console.log('✨ Creating particles...');
-      const rect = loginButton.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      
-      console.log('🎯 Button position:', { centerX, centerY, rect });
-      
-      this.initCanvas();
-      this.createParticles(centerX, centerY, 30);
-      this.animateParticles();
-    }
-
-    if (showSuccessMessage) {
-      console.log('💬 Scheduling success message...');
-      setTimeout(() => {
-        console.log('💬 Showing success message now');
-        this.showSuccessMessage(successMessage);
-      }, 500);
-    }
-
-    if (loginForm) {
-      console.log('📱 Scheduling form slide out...');
-      setTimeout(() => {
-        console.log('📱 Sliding form out now');
-        this.slideOutLoginForm(loginForm, slideDirection);
-      }, 1500);
-    }
-
-    setTimeout(() => {
-      console.log('🏁 Animation sequence complete');
-      this.isAnimating = false;
-      if (onComplete) {
-        onComplete();
-      }
-    }, 4000);
-  }
-
-  cleanup() {
-    if (this.canvas && document.body.contains(this.canvas)) {
-      document.body.removeChild(this.canvas);
-    }
-    this.particles = [];
-    this.isAnimating = false;
-  }
-}
+import { LoginSuccessAnimation } from '../utils/LoginSuccessAnimation';
 
 interface WelcomeLoginProps {
   onLogin?: () => void;
 }
 
-const WelcomeLogin: React.FC<WelcomeLoginProps> = ({ onLogin }) => {
+const WelcomeLogin = ({ onLogin }: WelcomeLoginProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [currentTime, setCurrentTime] = useState(new Date());
   const [loginSuccess, setLoginSuccess] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [particles, setParticles] = useState<Array<{id: number, top: string, left: string, delay: string}>>([]);
   
-  const loginButtonRef = useRef(null);
-  const loginFormRef = useRef(null);
-  const animationRef = useRef(null);
+  const loginButtonRef = useRef<HTMLButtonElement>(null);
+  const loginFormRef = useRef<HTMLDivElement>(null);
+  const animationRef = useRef<LoginSuccessAnimation | null>(null);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
+    // Check if mobile on mount
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    // Generate particles
+    const generateParticles = () => {
+      const particleCount = isMobile ? 8 : 15;
+      const newParticles = Array.from({ length: particleCount }, (_, i) => ({
+        id: i,
+        top: `${Math.random() * 100}%`,
+        left: `${Math.random() * 100}%`,
+        delay: `${i * 200}ms`
+      }));
+      setParticles(newParticles);
+    };
+    
+    generateParticles();
+    
     // Initialize animation class
     animationRef.current = new LoginSuccessAnimation();
 
@@ -283,15 +53,6 @@ const WelcomeLogin: React.FC<WelcomeLoginProps> = ({ onLogin }) => {
       meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover';
       document.head.appendChild(meta);
     }
-
-    // Handle mobile keyboard
-    const handleFocus = () => {
-      document.body.classList.add('keyboard-open');
-    };
-
-    const handleBlur = () => {
-      document.body.classList.remove('keyboard-open');
-    };
 
     // Inject CSS for animations
     const style = document.createElement('style');
@@ -328,7 +89,7 @@ const WelcomeLogin: React.FC<WelcomeLoginProps> = ({ onLogin }) => {
     document.head.appendChild(style);
 
     return () => {
-      clearInterval(timer);
+      window.removeEventListener('resize', checkMobile);
       if (animationRef.current) {
         animationRef.current.cleanup();
       }
@@ -336,7 +97,7 @@ const WelcomeLogin: React.FC<WelcomeLoginProps> = ({ onLogin }) => {
         document.head.removeChild(style);
       }
     };
-  }, []);
+  }, [isMobile]);
 
   const handleLogin = async () => {
     setIsLoading(true);
@@ -388,12 +149,12 @@ const WelcomeLogin: React.FC<WelcomeLoginProps> = ({ onLogin }) => {
                 onLogin();
               }
               // The server will handle the redirect based on role
-              window.location.href = response.url || '/dokter/mobile-app';
+              window.location.href = (response as any).url || '/dokter/mobile-app';
             }
           });
         } else {
           // Fallback redirect without animation
-          window.location.href = response.url || '/dokter/mobile-app';
+          window.location.href = (response as any).url || '/dokter/mobile-app';
         }
       } else {
         const data = await response.json();
@@ -405,22 +166,6 @@ const WelcomeLogin: React.FC<WelcomeLoginProps> = ({ onLogin }) => {
       setIsLoading(false);
       alert('An error occurred during login. Please try again.');
     }
-  };
-
-  const formatTime = (date) => {
-    return date.toLocaleTimeString('id-ID', { 
-      hour: '2-digit', 
-      minute: '2-digit'
-    });
-  };
-
-  const formatDate = (date) => {
-    return date.toLocaleDateString('id-ID', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
   };
 
   return (
@@ -435,34 +180,18 @@ const WelcomeLogin: React.FC<WelcomeLoginProps> = ({ onLogin }) => {
           <div className="absolute bottom-40 left-5 w-40 h-40 bg-pink-400/10 rounded-full blur-2xl animate-pulse"></div>
           
           {/* Gaming particles - reduced on mobile for performance */}
-          {Array.from({ length: window.innerWidth < 768 ? 8 : 15 }).map((_, i) => (
+          {particles.map((particle) => (
             <div
-              key={i}
+              key={particle.id}
               className="absolute w-1 h-1 bg-cyan-400/30 rounded-full animate-ping"
               style={{
-                top: `${Math.random() * 100}%`,
-                left: `${Math.random() * 100}%`,
-                animationDelay: `${i * 200}ms`,
+                top: particle.top,
+                left: particle.left,
+                animationDelay: particle.delay,
                 animationDuration: '3s'
               }}
             />
           ))}
-        </div>
-
-        {/* Status Bar - Mobile optimized */}
-        <div className="flex justify-between items-center pt-safe pb-2 text-white text-xs sm:text-sm font-semibold relative z-10">
-          <span className="select-none">{formatTime(currentTime)}</span>
-          <div className="flex items-center space-x-1">
-            <div className="flex space-x-1">
-              <div className="w-1 h-3 bg-white rounded-full"></div>
-              <div className="w-1 h-3 bg-white rounded-full"></div>
-              <div className="w-1 h-3 bg-white rounded-full"></div>
-              <div className="w-1 h-3 bg-gray-500 rounded-full"></div>
-            </div>
-            <div className="w-6 h-3 border border-white rounded-sm relative">
-              <div className="w-4 h-2 bg-green-500 rounded-sm absolute top-0.5 left-0.5"></div>
-            </div>
-          </div>
         </div>
 
         {/* Main Content - Responsive padding */}
@@ -496,9 +225,6 @@ const WelcomeLogin: React.FC<WelcomeLoginProps> = ({ onLogin }) => {
               <p className="text-purple-200 text-base sm:text-lg lg:text-xl font-medium mb-2">
                 Sahabat Menuju Sehat
               </p>
-              <p className="text-gray-400 text-xs sm:text-sm lg:text-base">
-                {formatDate(currentTime)}
-              </p>
             </div>
           </div>
 
@@ -508,21 +234,21 @@ const WelcomeLogin: React.FC<WelcomeLoginProps> = ({ onLogin }) => {
               <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/5 to-purple-400/5 animate-pulse"></div>
               <Heart className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-red-400 mx-auto mb-1 sm:mb-2" />
               <div className="text-sm sm:text-base lg:text-lg font-bold text-white">24/7</div>
-              <div className="text-[10px] sm:text-xs lg:text-sm text-gray-300">Service</div>
+              <div className="text-xs sm:text-xs lg:text-sm text-gray-300">Service</div>
             </div>
             
             <div className="bg-gradient-to-br from-slate-800/40 via-slate-700/40 to-slate-800/40 backdrop-blur-xl rounded-lg sm:rounded-xl p-2 sm:p-3 lg:p-4 border border-purple-400/20 text-center relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-purple-400/5 to-pink-400/5 animate-pulse"></div>
               <Shield className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-green-400 mx-auto mb-1 sm:mb-2" />
               <div className="text-sm sm:text-base lg:text-lg font-bold text-white">100%</div>
-              <div className="text-[10px] sm:text-xs lg:text-sm text-gray-300">Trusted</div>
+              <div className="text-xs sm:text-xs lg:text-sm text-gray-300">Trusted</div>
             </div>
             
             <div className="bg-gradient-to-br from-slate-800/40 via-slate-700/40 to-slate-800/40 backdrop-blur-xl rounded-lg sm:rounded-xl p-2 sm:p-3 lg:p-4 border border-pink-400/20 text-center relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-pink-400/5 to-cyan-400/5 animate-pulse"></div>
               <Star className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-yellow-400 mx-auto mb-1 sm:mb-2" />
               <div className="text-sm sm:text-base lg:text-lg font-bold text-white">4.9</div>
-              <div className="text-[10px] sm:text-xs lg:text-sm text-gray-300">Rating</div>
+              <div className="text-xs sm:text-xs lg:text-sm text-gray-300">Rating</div>
             </div>
           </div>
 
@@ -578,7 +304,8 @@ const WelcomeLogin: React.FC<WelcomeLoginProps> = ({ onLogin }) => {
                   ref={loginButtonRef}
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 hover:from-cyan-600 hover:via-purple-600 hover:to-pink-600 text-white font-bold py-3 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg shadow-purple-500/30 disabled:opacity-70 relative overflow-hidden group touch-manipulation min-h-[44px] sm:min-h-[48px] lg:min-h-[52px] text-base sm:text-lg"
+                  className="w-full bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 hover:from-cyan-600 hover:via-purple-600 hover:to-pink-600 text-white font-bold py-3 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg shadow-purple-500/30 disabled:opacity-70 relative overflow-hidden group touch-manipulation text-base sm:text-lg"
+                  style={{ minHeight: '44px' }}
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-white/10 via-white/5 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   
@@ -612,7 +339,7 @@ const WelcomeLogin: React.FC<WelcomeLoginProps> = ({ onLogin }) => {
                   <div className="h-px bg-gradient-to-r from-transparent via-gray-500 to-transparent flex-1"></div>
                 </div>
 
-                <button className="w-full bg-white/10 hover:bg-white/15 border border-white/20 text-white py-3 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 touch-manipulation min-h-[44px] text-sm sm:text-base">
+                <button className="w-full bg-white/10 hover:bg-white/15 border border-white/20 text-white py-3 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 touch-manipulation text-sm sm:text-base" style={{ minHeight: '44px' }}>
                   <Shield className="w-5 h-5 text-blue-400" />
                   <span>Login sebagai Tamu</span>
                 </button>
@@ -625,7 +352,7 @@ const WelcomeLogin: React.FC<WelcomeLoginProps> = ({ onLogin }) => {
             <p className="text-gray-400 text-xs sm:text-sm lg:text-base mb-2">
               Butuh bantuan? Hubungi admin
             </p>
-            <div className="flex items-center justify-center space-x-4 text-[10px] sm:text-xs lg:text-sm text-gray-500">
+            <div className="flex items-center justify-center space-x-4 text-xs sm:text-xs lg:text-sm text-gray-500">
               <span>© 2025 Klinik Dokterku</span>
               <div className="w-1 h-1 bg-gray-500 rounded-full"></div>
               <span>v2.1.0</span>
