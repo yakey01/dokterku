@@ -301,7 +301,7 @@ class JadwalJagaResource extends Resource
                                 }
                                 
                                 // Exclude staff already scheduled for this SAME shift
-                                $excludeUserIds = JadwalJaga::where('tanggal_jaga', $tanggal)
+                                $excludeUserIds = JadwalJaga::whereDate('tanggal_jaga', $tanggal)
                                     ->where('shift_template_id', $shiftId)
                                     ->pluck('pegawai_id');
                                 
@@ -315,7 +315,7 @@ class JadwalJagaResource extends Resource
                                     
                                     // Check other shifts on same day
                                     $otherShifts = JadwalJaga::where('pegawai_id', $userId)
-                                        ->where('tanggal_jaga', $tanggal)
+                                        ->whereDate('tanggal_jaga', $tanggal)
                                         ->with('shiftTemplate')
                                         ->get();
                                     
@@ -338,6 +338,27 @@ class JadwalJagaResource extends Resource
                                 return $options;
                             })
                             ->placeholder('Pilih pegawai yang akan ditambahkan...')
+                            ->rules([
+                                function (callable $get) {
+                                    return function (string $attribute, $value, \Closure $fail) use ($get) {
+                                        $tanggal = $get('tanggal_jaga');
+                                        $shiftId = $get('shift_template_id');
+                                        
+                                        if ($value && $tanggal && $shiftId) {
+                                            $exists = \App\Models\JadwalJaga::whereDate('tanggal_jaga', $tanggal)
+                                                ->where('shift_template_id', $shiftId)
+                                                ->where('pegawai_id', $value)
+                                                ->exists();
+                                                
+                                            if ($exists) {
+                                                $pegawai = \App\Models\User::find($value);
+                                                $shiftTemplate = \App\Models\ShiftTemplate::find($shiftId);
+                                                $fail("⚠️ Pegawai {$pegawai->name} sudah memiliki jadwal jaga untuk shift {$shiftTemplate->nama_shift} pada tanggal " . \Carbon\Carbon::parse($tanggal)->format('d/m/Y') . ".");
+                                            }
+                                        }
+                                    };
+                                }
+                            ])
                             ->helperText(function (callable $get) {
                                 $tanggal = $get('tanggal_jaga');
                                 $shiftId = $get('shift_template_id');

@@ -774,10 +774,12 @@
         
         function handleLocationError(error) {
             let errorMessage = '❌ Gagal mendeteksi lokasi GPS';
+            let showPermissionGuide = false;
             
             switch(error.code) {
                 case error.PERMISSION_DENIED:
                     errorMessage = '❌ Permission GPS ditolak.\nSilakan aktifkan GPS dan izinkan akses lokasi di browser.';
+                    showPermissionGuide = true;
                     break;
                 case error.POSITION_UNAVAILABLE:
                     errorMessage = '📡 GPS tidak tersedia.\nPastikan GPS aktif dan anda berada di area terbuka.';
@@ -791,11 +793,198 @@
             }
             
             // GPS Error logged (console logging disabled for performance)
-            showLocationError(errorMessage);
+            showLocationError(errorMessage, showPermissionGuide);
         }
         
-        function showLocationError(message) {
-            alert(message);
+        function showLocationError(message, showPermissionGuide = false) {
+            if (showPermissionGuide) {
+                // Show detailed permission guide modal
+                const modal = document.createElement('div');
+                modal.className = 'gps-permission-modal';
+                modal.innerHTML = `
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>🔒 GPS Permission Required</h3>
+                            <button onclick="this.closest('.gps-permission-modal').remove()" class="close-btn">✕</button>
+                        </div>
+                        <div class="modal-body">
+                            <p><strong>Untuk mengaktifkan GPS:</strong></p>
+                            <ol>
+                                <li>Klik ikon kunci/info di address bar browser</li>
+                                <li>Ubah permission lokasi dari "Block" ke "Allow"</li>
+                                <li>Refresh halaman dan coba lagi</li>
+                            </ol>
+                            <div class="browser-guide">
+                                <details>
+                                    <summary>📱 Mobile Browser</summary>
+                                    <ul>
+                                        <li><strong>Chrome Mobile:</strong> Settings → Site Settings → Location → Allow</li>
+                                        <li><strong>Safari Mobile:</strong> Settings → Safari → Location → Allow</li>
+                                        <li><strong>Firefox Mobile:</strong> Settings → Privacy & Security → Location → Allow</li>
+                                    </ul>
+                                </details>
+                                <details>
+                                    <summary>💻 Desktop Browser</summary>
+                                    <ul>
+                                        <li><strong>Chrome:</strong> Klik ikon kunci → Location → Allow</li>
+                                        <li><strong>Firefox:</strong> Klik ikon perisai → Location → Allow</li>
+                                        <li><strong>Safari:</strong> Safari → Preferences → Websites → Location → Allow</li>
+                                    </ul>
+                                </details>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button onclick="this.closest('.gps-permission-modal').remove(); detectLocation();" class="retry-btn">
+                                🔄 Coba Lagi
+                            </button>
+                            <button onclick="this.closest('.gps-permission-modal').remove()" class="cancel-btn">
+                                Batal
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                // Add styles
+                const style = document.createElement('style');
+                style.textContent = `
+                    .gps-permission-modal {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: rgba(0, 0, 0, 0.5);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        z-index: 10000;
+                        backdrop-filter: blur(5px);
+                    }
+                    
+                    .modal-content {
+                        background: white;
+                        border-radius: 12px;
+                        max-width: 500px;
+                        width: 90%;
+                        max-height: 80vh;
+                        overflow-y: auto;
+                        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                    }
+                    
+                    .modal-header {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding: 20px 24px;
+                        border-bottom: 1px solid #e5e7eb;
+                    }
+                    
+                    .modal-header h3 {
+                        margin: 0;
+                        color: #1f2937;
+                        font-size: 18px;
+                        font-weight: 600;
+                    }
+                    
+                    .close-btn {
+                        background: none;
+                        border: none;
+                        font-size: 20px;
+                        cursor: pointer;
+                        color: #6b7280;
+                        padding: 4px;
+                    }
+                    
+                    .modal-body {
+                        padding: 24px;
+                    }
+                    
+                    .modal-body ol {
+                        margin: 12px 0;
+                        padding-left: 20px;
+                    }
+                    
+                    .modal-body li {
+                        margin: 8px 0;
+                        color: #374151;
+                    }
+                    
+                    .browser-guide details {
+                        margin: 12px 0;
+                        border: 1px solid #e5e7eb;
+                        border-radius: 6px;
+                        overflow: hidden;
+                    }
+                    
+                    .browser-guide summary {
+                        padding: 12px;
+                        background: #f9fafb;
+                        cursor: pointer;
+                        font-weight: 500;
+                        color: #374151;
+                    }
+                    
+                    .browser-guide ul {
+                        margin: 0;
+                        padding: 12px 20px;
+                        background: white;
+                    }
+                    
+                    .browser-guide li {
+                        margin: 6px 0;
+                        color: #6b7280;
+                        font-size: 14px;
+                    }
+                    
+                    .modal-footer {
+                        display: flex;
+                        gap: 12px;
+                        padding: 20px 24px;
+                        border-top: 1px solid #e5e7eb;
+                        justify-content: flex-end;
+                    }
+                    
+                    .retry-btn, .cancel-btn {
+                        padding: 8px 16px;
+                        border: none;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        font-weight: 500;
+                        transition: all 0.2s;
+                    }
+                    
+                    .retry-btn {
+                        background: #3b82f6;
+                        color: white;
+                    }
+                    
+                    .retry-btn:hover {
+                        background: #2563eb;
+                    }
+                    
+                    .cancel-btn {
+                        background: #6b7280;
+                        color: white;
+                    }
+                    
+                    .cancel-btn:hover {
+                        background: #4b5563;
+                    }
+                `;
+                
+                document.head.appendChild(style);
+                document.body.appendChild(modal);
+                
+                // Auto-remove after 15 seconds
+                setTimeout(() => {
+                    if (modal.parentNode) {
+                        modal.remove();
+                        style.remove();
+                    }
+                }, 15000);
+            } else {
+                alert(message);
+            }
             
             // Update UI to show error state
             const permissionAlert = document.getElementById('gpsPermissionAlert');

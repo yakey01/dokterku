@@ -98,7 +98,7 @@ class WorkLocationResource extends Resource
                     ->description('Pilih lokasi pada peta OSM dengan GPS detection')
                     ->schema([
                         ViewField::make('osm_map')
-                            ->view('filament.forms.components.leaflet-osm-map')
+                            ->view('filament.forms.components.simple-leaflet-map')
                             ->label('📍 Pilih Lokasi pada Peta OSM')
                             ->columnSpanFull()
                             ->dehydrated(false), // Don't save this field to database

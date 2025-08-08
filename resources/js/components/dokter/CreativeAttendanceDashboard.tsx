@@ -22,6 +22,11 @@ const CreativeAttendanceDashboard = () => {
   const [showFaceCamera, setShowFaceCamera] = useState(false);
   const [faceVerified, setFaceVerified] = useState(false);
   const [currentLocation, setCurrentLocation] = useState('Getting location...');
+  const [userData, setUserData] = useState<{
+    name: string;
+    email: string;
+    role: string;
+  } | null>(null);
 
   // Stats data
   const [attendanceStats] = useState({
@@ -53,6 +58,34 @@ const CreativeAttendanceDashboard = () => {
     }, 2000);
 
     return () => clearInterval(timer);
+  }, []);
+
+  // Load user data
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const token = localStorage.getItem('auth_token') || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        
+        const response = await fetch('/api/v2/dashboards/dokter/', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'X-CSRF-TOKEN': token || '',
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data?.user) {
+            setUserData(data.data.user);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      }
+    };
+
+    loadUserData();
   }, []);
 
   const formatTime = (date) => {
@@ -461,7 +494,9 @@ const CreativeAttendanceDashboard = () => {
           <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
             Creative Attendance
           </h1>
-          <p className="text-gray-300">Dr. Naning Paramedis</p>
+          <p className="text-gray-300">
+            {userData?.name || 'Loading...'}
+          </p>
         </div>
 
         {/* Tab Navigation */}

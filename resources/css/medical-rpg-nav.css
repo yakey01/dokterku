@@ -3,7 +3,7 @@
 /* Root navigation container with safe area support */
 .medical-rpg-nav {
   /* Force system font without emoji fallback */
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif !important;
   
   /* Disable font substitution */
   -webkit-font-smoothing: antialiased;
@@ -102,7 +102,7 @@
 @supports (-webkit-touch-callout: none) {
   .medical-rpg-nav {
     /* iOS-specific font stack */
-    font-family: -apple-system, "SF Pro Display", "SF Pro Text", system-ui, sans-serif !important;
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif !important;
   }
   
   .medical-rpg-nav svg {

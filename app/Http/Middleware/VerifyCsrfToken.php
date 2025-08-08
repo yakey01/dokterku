@@ -15,6 +15,9 @@ class VerifyCsrfToken extends Middleware
         'livewire/update',
         'livewire/upload-file',
         'livewire/message/*',
+        'api/v2/dashboards/dokter/*',
+        'api/v2/dashboards/dokter/checkin',
+        'api/v2/dashboards/dokter/checkout',
         // Removed login and unified-login to enforce CSRF protection
     ];
     

@@ -9,6 +9,13 @@
     <meta name="api-token" content="{{ $token ?? (auth()->user()?->createToken('mobile-app')?->plainTextToken ?? '') }}">
     <meta name="user-id" content="{{ auth()->id() ?? '' }}">
     <meta name="user-name" content="{{ auth()->user()?->name ?? '' }}">
+    
+    <!-- ULTRA AGGRESSIVE CACHE PREVENTION -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="build-time" content="{{ time() }}">
+    <meta name="cache-bust" content="{{ md5(time() . rand()) }}">
     <meta name="debug-auth" content="{{ json_encode([
         'authenticated' => auth()->check(),
         'user_id' => auth()->id(),
@@ -35,8 +42,115 @@
     <!-- DEBUG MONITOR: Ultimate debugging (temporary) -->
     <!-- <script src="/debug-monitor.js"></script> -->
     
-    <!-- Vite Assets -->
+    <!-- Vite Assets with Cache Busting -->
     @vite(['resources/js/dokter-mobile-app.tsx'])
+    
+    <!-- FORCE NEW VERSION LOAD -->
+    <script>
+        // Force load new version by appending timestamp
+        (function() {
+            'use strict';
+            
+            const timestamp = '{{ time() }}';
+            const version = '{{ md5(time() . rand()) }}';
+            
+            console.log('🚀 FORCE NEW VERSION LOAD');
+            console.log('🕐 Timestamp:', timestamp);
+            console.log('🆔 Version:', version);
+            
+            // Override any cached scripts
+            const scripts = document.querySelectorAll('script[src*="Presensi"]');
+            scripts.forEach(script => {
+                const oldSrc = script.src;
+                const newSrc = oldSrc + (oldSrc.includes('?') ? '&' : '?') + 'v=' + version + '&t=' + timestamp;
+                console.log('🔄 Replacing script:', oldSrc, '→', newSrc);
+                script.src = newSrc;
+            });
+            
+            // Force reload if we detect old file
+            if (window.location.href.includes('Presensi-CC_Uxjrv')) {
+                console.log('🚨 OLD FILE DETECTED - FORCE RELOAD');
+                window.location.reload(true);
+            }
+        })();
+    </script>
+    
+    <!-- ULTRA AGGRESSIVE CACHE BUSTING -->
+    <script>
+        // Force immediate cache clear and reload
+        (function() {
+            'use strict';
+            
+            console.log('🚀 ULTRA AGGRESSIVE CACHE BUSTING INITIATED');
+            console.log('🕐 Build Time:', '{{ time() }}');
+            console.log('🆔 Session ID:', '{{ session()->getId() }}');
+            
+            // Clear all possible caches
+            if ('caches' in window) {
+                caches.keys().then(function(names) {
+                    console.log('🗑️ Clearing caches:', names);
+                    return Promise.all(names.map(function(name) {
+                        return caches.delete(name);
+                    }));
+                }).then(function() {
+                    console.log('✅ All caches cleared');
+                });
+            }
+            
+            // Clear localStorage except auth tokens
+            try {
+                const keysToKeep = ['auth_token', 'csrf_token', 'user_preferences'];
+                const keysToRemove = Object.keys(localStorage).filter(key => !keysToKeep.includes(key));
+                keysToRemove.forEach(key => {
+                    localStorage.removeItem(key);
+                    console.log('🗑️ Removed localStorage:', key);
+                });
+            } catch (e) {
+                console.warn('⚠️ localStorage clear failed:', e);
+            }
+            
+            // Clear sessionStorage
+            try {
+                sessionStorage.clear();
+                console.log('✅ sessionStorage cleared');
+            } catch (e) {
+                console.warn('⚠️ sessionStorage clear failed:', e);
+            }
+            
+            // Force reload if old version detected
+            const currentUrl = window.location.href;
+            const hasForceReload = currentUrl.includes('force-reload');
+            const hasCacheBust = currentUrl.includes('cache-bust');
+            
+            if (!hasForceReload || !hasCacheBust) {
+                console.log('🔄 Force reloading with cache busting...');
+                const separator = currentUrl.includes('?') ? '&' : '?';
+                const newUrl = currentUrl + separator + 'force-reload=' + Date.now() + '&cache-bust=' + Math.random() + '&v={{ time() }}';
+                window.location.href = newUrl;
+            } else {
+                console.log('✅ Cache busting parameters detected');
+            }
+        })();
+    </script>
+    
+    <!-- Force Cache Busting -->
+    <script>
+        // Force reload if old version detected
+        if (window.location.search.includes('force-reload')) {
+            console.log('🔄 Force reload detected');
+        } else {
+            // Check if we need to force reload
+            const lastBuildTime = '{{ time() }}';
+            const currentTime = Date.now();
+            const timeDiff = currentTime - (lastBuildTime * 1000);
+            
+            // If more than 5 minutes old, force reload
+            if (timeDiff > 300000) {
+                console.log('🔄 Detected old build, forcing reload');
+                window.location.href = window.location.href + (window.location.href.includes('?') ? '&' : '?') + 'force-reload=' + Date.now();
+            }
+        }
+    </script>
     
     <style>
         /* Dark mode initialization script */

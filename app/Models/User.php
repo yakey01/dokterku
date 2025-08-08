@@ -274,7 +274,7 @@ class User extends Authenticatable implements FilamentUser
 
     public function jadwalJagas(): HasMany
     {
-        return $this->hasMany(JadwalJaga::class);
+        return $this->hasMany(JadwalJaga::class, 'pegawai_id');
     }
     
     // Relationship to dokter if user is a dokter

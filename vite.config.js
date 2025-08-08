@@ -15,7 +15,7 @@ export default defineConfig({
                 'resources/js/welcome-login-app.tsx',
                 'resources/js/welcome-login-new.tsx',
                 'resources/js/widget-animations.js',
-                'resources/js/leaflet-utilities.ts',
+                // 'resources/js/leaflet-utilities.ts', // Removed - using simple map component instead
                 'resources/js/test-presensi.tsx',
                 'resources/css/petugas-table-ux.css',
                 'resources/css/filament/admin/theme.css',

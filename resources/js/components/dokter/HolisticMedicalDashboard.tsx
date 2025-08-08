@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Calendar, Clock, DollarSign, Award, Brain, Star, Crown, Flame, Moon, Sun } from 'lucide-react';
 import { JadwalJaga } from './JadwalJaga';
 import CreativeAttendanceDashboard from './Presensi';
@@ -147,21 +147,34 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
     error: null,
   });
 
+  // Memoized time update to prevent unnecessary re-renders
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentTime(new Date());
+      setCurrentTime(prevTime => {
+        const newTime = new Date();
+        // Only update if time actually changed (prevent unnecessary re-renders)
+        return prevTime.getTime() !== newTime.getTime() ? newTime : prevTime;
+      });
     }, 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // Fetch dashboard data on component mount
+  // Optimized dashboard data fetching with proper error handling and caching
   useEffect(() => {
+    let isMounted = true;
+    let retryCount = 0;
+    const maxRetries = 3;
+
     const fetchDashboardData = async () => {
       try {
+        if (!isMounted) return;
+        
         setLoading({ dashboard: true, error: null });
         
         console.log('HolisticMedicalDashboard: Starting dashboard data fetch...');
         const dashboardData = await doctorApi.getDashboard();
+        
+        if (!isMounted) return;
         
         if (dashboardData) {
           console.log('HolisticMedicalDashboard: Dashboard data received:', dashboardData);
@@ -183,28 +196,38 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
           const totalDays = 30;
           const daysPresent = Math.round((attendanceRate / 100) * totalDays);
           
-          setDashboardMetrics({
-            jaspel: {
-              currentMonth: currentJaspel,
-              previousMonth: previousJaspel,
-              growthPercentage: Math.round(growthPercentage * 10) / 10, // Round to 1 decimal
-              progressPercentage: Math.round(progressPercentage * 10) / 10,
-            },
-            attendance: {
-              rate: attendanceRate,
-              daysPresent: daysPresent,
-              totalDays: totalDays,
-              displayText: `${attendanceRate}%`,
-            },
-            patients: {
-              today: dashboardData.patient_count?.today || 0,
-              thisMonth: dashboardData.patient_count?.this_month || 0,
-            },
-          });
-          
-          console.log('HolisticMedicalDashboard: Dashboard metrics updated successfully');
+          // Update metrics only if component is still mounted
+          if (isMounted) {
+            setDashboardMetrics(prevMetrics => {
+              const newMetrics = {
+                jaspel: {
+                  currentMonth: currentJaspel,
+                  previousMonth: previousJaspel,
+                  growthPercentage: Math.round(growthPercentage * 10) / 10, // Round to 1 decimal
+                  progressPercentage: Math.round(progressPercentage * 10) / 10,
+                },
+                attendance: {
+                  rate: attendanceRate,
+                  daysPresent: daysPresent,
+                  totalDays: totalDays,
+                  displayText: `${attendanceRate}%`,
+                },
+                patients: {
+                  today: dashboardData.patient_count?.today || 0,
+                  thisMonth: dashboardData.patient_count?.this_month || 0,
+                },
+              };
+              
+              // Only update if data actually changed (prevent unnecessary re-renders)
+              return JSON.stringify(prevMetrics) !== JSON.stringify(newMetrics) ? newMetrics : prevMetrics;
+            });
+            
+            console.log('HolisticMedicalDashboard: Dashboard metrics updated successfully');
+          }
         }
       } catch (error) {
+        if (!isMounted) return;
+        
         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
         console.error('HolisticMedicalDashboard: Error fetching dashboard data:', error);
         console.error('HolisticMedicalDashboard: Error details:', {
@@ -213,52 +236,77 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
           stack: error instanceof Error ? error.stack : undefined
         });
         
+        // Retry logic for network errors
+        if (retryCount < maxRetries && (errorMessage.includes('network') || errorMessage.includes('fetch'))) {
+          retryCount++;
+          console.log(`HolisticMedicalDashboard: Retrying... (${retryCount}/${maxRetries})`);
+          setTimeout(() => fetchDashboardData(), 1000 * retryCount);
+          return;
+        }
+        
         setLoading({ dashboard: false, error: `Failed to load dashboard data: ${errorMessage}` });
         
-        // Set fallback data on error
-        setDashboardMetrics({
-          jaspel: {
-            currentMonth: 0,
-            previousMonth: 0,
-            growthPercentage: 0,
-            progressPercentage: 0,
-          },
-          attendance: {
-            rate: 0,
-            daysPresent: 0,
-            totalDays: 30,
-            displayText: '0%',
-          },
-          patients: {
-            today: 0,
-            thisMonth: 0,
-          },
-        });
-        
-        console.log('HolisticMedicalDashboard: Fallback data set due to error');
+        // Set fallback data on error only if component is mounted
+        if (isMounted) {
+          setDashboardMetrics(prevMetrics => {
+            const fallbackMetrics = {
+              jaspel: {
+                currentMonth: 0,
+                previousMonth: 0,
+                growthPercentage: 0,
+                progressPercentage: 0,
+              },
+              attendance: {
+                rate: 0,
+                daysPresent: 0,
+                totalDays: 30,
+                displayText: '0%',
+              },
+              patients: {
+                today: 0,
+                thisMonth: 0,
+              },
+            };
+            
+            // Only update if data actually changed
+            return JSON.stringify(prevMetrics) !== JSON.stringify(fallbackMetrics) ? fallbackMetrics : prevMetrics;
+          });
+          
+          console.log('HolisticMedicalDashboard: Fallback data set due to error');
+        }
       } finally {
-        setLoading({ dashboard: false, error: null });
+        if (isMounted) {
+          setLoading({ dashboard: false, error: null });
+        }
       }
     };
 
     fetchDashboardData();
-  }, []);
 
-  const formatTime = (date: Date): string => {
+    // Cleanup function
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Empty dependency array - only run once on mount
+
+  // Memoized time formatting to prevent unnecessary recalculations
+  const formatTime = useCallback((date: Date): string => {
     return date.toLocaleTimeString('id-ID', { 
       hour: '2-digit', 
       minute: '2-digit'
     });
-  };
+  }, []);
 
-  const getTimeGreeting = () => {
+  // Memoized greeting calculation
+  const getTimeGreeting = useCallback(() => {
     const hour = currentTime.getHours();
     if (hour < 12) return { greeting: "Good Morning, Doctor!", icon: Sun, color: "from-amber-400 to-orange-500" };
     if (hour < 17) return { greeting: "Good Afternoon, Doctor!", icon: Sun, color: "from-blue-400 to-cyan-500" };
     return { greeting: "Good Evening, Doctor!", icon: Moon, color: "from-purple-400 to-indigo-500" };
-  };
+  }, [currentTime]);
 
-  const renderTabContent = () => {
+  // Memoized tab content rendering
+  const renderTabContent = useCallback(() => {
     switch (activeTab) {
       case 'missions':
         return (
@@ -287,9 +335,10 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
       default:
         return renderMainDashboard();
     }
-  };
+  }, [activeTab, userData]);
 
-  const { greeting, icon: TimeIcon, color } = getTimeGreeting();
+  // Memoized greeting calculation
+  const { greeting, icon: TimeIcon, color } = useMemo(() => getTimeGreeting(), [getTimeGreeting]);
 
   const renderMainDashboard = () => (
     <>

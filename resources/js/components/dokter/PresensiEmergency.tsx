@@ -339,7 +339,7 @@ const CreativeAttendanceDashboardEmergency = () => {
 
         // TEMPORARY FIX: Use test endpoint that bypasses authentication issues
         // This will show real jadwal jaga data including today's schedule
-        const scheduleResponse = await fetch('/api/v2/dashboards/dokter/jadwal-jaga-test', {
+        const scheduleResponse = await fetch('/api/v2/dashboards/dokter/jadwal-jaga', {
           method: 'GET',
           headers: {
             'Accept': 'application/json',

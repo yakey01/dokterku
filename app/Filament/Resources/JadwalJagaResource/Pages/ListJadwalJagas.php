@@ -288,6 +288,7 @@ class ListJadwalJagas extends ListRecords
 
                     $created = 0;
                     $skipped = 0;
+                    $duplicateCount = 0;
                     $missingUsers = [];
                     
                     // First pass: Validate and collect missing user accounts
@@ -321,23 +322,38 @@ class ListJadwalJagas extends ListRecords
                         }
 
                         // Check if already exists to prevent duplicates
-                        $exists = \App\Models\JadwalJaga::where('tanggal_jaga', $data['tanggal_jaga'])
+                        $existingJadwal = \App\Models\JadwalJaga::whereDate('tanggal_jaga', $data['tanggal_jaga'])
                             ->where('shift_template_id', $data['shift_template_id'])
                             ->where('pegawai_id', $staffInfo['user']->id)
-                            ->exists();
+                            ->first();
 
-                        if (!$exists) {
-                            \App\Models\JadwalJaga::create([
-                                'tanggal_jaga' => $data['tanggal_jaga'],
-                                'shift_template_id' => $data['shift_template_id'],
-                                'pegawai_id' => $staffInfo['user']->id,
-                                'unit_kerja' => $staffInfo['unit_kerja'],
-                                'unit_instalasi' => $staffInfo['unit_kerja'], // Keep for backward compatibility
-                                'peran' => $staffInfo['peran'],
-                                'status_jaga' => 'Aktif',
-                                'keterangan' => 'Bulk schedule - ' . $staffInfo['name'] . ' (' . $data['jenis_tugas'] . ') - ' . now()->format('d/m/Y H:i'),
-                            ]);
-                            $created++;
+                        if (!$existingJadwal) {
+                            try {
+                                \App\Models\JadwalJaga::create([
+                                    'tanggal_jaga' => $data['tanggal_jaga'],
+                                    'shift_template_id' => $data['shift_template_id'],
+                                    'pegawai_id' => $staffInfo['user']->id,
+                                    'unit_kerja' => $staffInfo['unit_kerja'],
+                                    'unit_instalasi' => $staffInfo['unit_kerja'], // Keep for backward compatibility
+                                    'peran' => $staffInfo['peran'],
+                                    'status_jaga' => 'Aktif',
+                                    'keterangan' => 'Bulk schedule - ' . $staffInfo['name'] . ' (' . $data['jenis_tugas'] . ') - ' . now()->format('d/m/Y H:i'),
+                                ]);
+                                $created++;
+                            } catch (\Illuminate\Database\QueryException $e) {
+                                if ($e->getCode() == 23000) { // Integrity constraint violation
+                                    $duplicateCount++;
+                                    \Log::warning('Duplicate jadwal jaga detected', [
+                                        'pegawai' => $staffInfo['name'],
+                                        'tanggal' => $data['tanggal_jaga'],
+                                        'shift_template_id' => $data['shift_template_id']
+                                    ]);
+                                } else {
+                                    throw $e; // Re-throw if it's not a duplicate error
+                                }
+                            }
+                        } else {
+                            $duplicateCount++;
                         }
                     }
 
@@ -345,6 +361,9 @@ class ListJadwalJagas extends ListRecords
                         $message = $created . ' pegawai berhasil dijadwalkan.';
                         if ($skipped > 0) {
                             $message .= ' ' . $skipped . ' pegawai dilewati (belum memiliki akun User).';
+                        }
+                        if ($duplicateCount > 0) {
+                            $message .= ' ' . $duplicateCount . ' pegawai dilewati (jadwal sudah ada).';
                         }
                         
                         \Filament\Notifications\Notification::make()
@@ -356,6 +375,9 @@ class ListJadwalJagas extends ListRecords
                         $message = 'Tidak ada pegawai yang bisa dijadwalkan.';
                         if ($skipped > 0) {
                             $message .= ' ' . $skipped . ' pegawai dilewati karena belum memiliki akun User.';
+                        }
+                        if ($duplicateCount > 0) {
+                            $message .= ' ' . $duplicateCount . ' pegawai dilewati (jadwal sudah ada).';
                         }
                         
                         \Filament\Notifications\Notification::make()

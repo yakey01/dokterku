@@ -215,11 +215,39 @@ class JadwalJaga extends Model
             "schedule_cache_{$userId}",
             "attendance_status_{$userId}"
         ];
+        
+        // Clear jadwal jaga cache for all months/years
+        $currentYear = now()->year;
+        $currentMonth = now()->month;
+        
+        // Clear current month/year
+        $cacheKeys[] = "jadwal_jaga_{$userId}_{$currentMonth}_{$currentYear}";
+        
+        // Clear previous month
+        $prevMonth = $currentMonth - 1;
+        $prevYear = $currentYear;
+        if ($prevMonth < 1) {
+            $prevMonth = 12;
+            $prevYear = $currentYear - 1;
+        }
+        $cacheKeys[] = "jadwal_jaga_{$userId}_{$prevMonth}_{$prevYear}";
+        
+        // Clear next month
+        $nextMonth = $currentMonth + 1;
+        $nextYear = $currentYear;
+        if ($nextMonth > 12) {
+            $nextMonth = 1;
+            $nextYear = $currentYear + 1;
+        }
+        $cacheKeys[] = "jadwal_jaga_{$userId}_{$nextMonth}_{$nextYear}";
 
         foreach ($cacheKeys as $key) {
             Cache::forget($key);
         }
 
-        \Log::info("🗑️ Cleared dashboard cache for user {$userId} due to schedule change");
+        \Log::info("🗑️ Cleared dashboard cache for user {$userId} due to schedule change", [
+            'cleared_keys' => $cacheKeys,
+            'schedule_id' => 'unknown'
+        ]);
     }
 }

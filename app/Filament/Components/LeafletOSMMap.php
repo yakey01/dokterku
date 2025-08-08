@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 
 class LeafletOSMMap extends Field
 {
-    protected string $view = 'filament.forms.components.leaflet-osm-map';
+    protected string $view = 'filament.forms.components.simple-leaflet-map';
     
     protected array $defaultLocation = ['lat' => -7.89946200, 'lng' => 111.96239900];
     protected int $zoom = 15;

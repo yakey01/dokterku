@@ -151,6 +151,22 @@ Route::prefix('v2')->group(function () {
     Route::get('/hospital/locations', [HospitalLocationController::class, 'getAllLocations']);
     Route::get('/hospital/location/{id}', [HospitalLocationController::class, 'getLocationById']);
 
+    // Server time (public for time validation)
+    Route::get('/server-time', function () {
+        return response()->json([
+            'success' => true,
+            'message' => 'Server time retrieved successfully',
+            'data' => [
+                'current_time' => now()->setTimezone('Asia/Jakarta')->toISOString(),
+                'timezone' => 'Asia/Jakarta',
+                'timestamp' => now()->timestamp
+            ]
+        ]);
+    });
+
+    // Test jadwal jaga endpoint (public for testing)
+    Route::get('/jadwal-jaga/test', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'testJadwalJaga']);
+
     // System information (public)
     Route::prefix('system')->group(function () {
         Route::get('/health', function () {
@@ -336,237 +352,9 @@ Route::prefix('v2')->group(function () {
                 });
             });
 
-            // Dokter dashboard - Mobile app API endpoints with FIXED authentication
-            Route::prefix('dokter')->middleware(['auth:sanctum,web'])->group(function () {
-                // CRITICAL: Enhanced test endpoint for Dr. Rindang's authentication verification
-                Route::get('/test', function () {
-                    $user = auth()->user();
-                    
-                    // Special handling for Dr. Rindang
-                    $isRindang = stripos($user->name, 'rindang') !== false;
-                    
-                    return response()->json([
-                        'success' => true,
-                        'message' => $isRindang ? 
-                            '✅ Dr. Rindang authentication FIXED - API access working!' : 
-                            'Dokter API endpoint is working - Authentication verified',
-                        'data' => [
-                            'timestamp' => now()->toISOString(),
-                            'user' => [
-                                'id' => $user->id,
-                                'name' => $user->name,
-                                'role' => $user->role?->name,
-                                'authenticated' => true,
-                                'role_validated' => true,
-                                'is_rindang' => $isRindang,
-                                'fix_status' => $isRindang ? 'AUTHENTICATION_FIXED' : 'OK',
-                            ],
-                            'session' => [
-                                'token_name' => $user->currentAccessToken()?->name ?? 'web_session',
-                                'ip_address' => request()->ip(),
-                                'user_agent' => request()->userAgent(),
-                                'auth_method' => $user->currentAccessToken() ? 'sanctum_token' : 'web_session',
-                            ],
-                            'authentication_flow' => [
-                                'has_sanctum_token' => $user->currentAccessToken() !== null,
-                                'has_web_session' => auth('web')->check(),
-                                'middleware_applied' => 'auth:sanctum,web',
-                                'fix_applied' => 'enhanced_unified_auth_system',
-                            ],
-                        ],
-                        'meta' => [
-                            'version' => '2.0',
-                            'timestamp' => now()->toISOString(),
-                            'request_id' => \Illuminate\Support\Str::uuid()->toString(),
-                            'fix_status' => 'CRITICAL_AUTH_FIX_APPLIED',
-                        ]
-                    ]);
-                });
-                
-                // Dashboard endpoints - Real API dengan DokterDashboardController (FIXED AUTH)
-                Route::get('/', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'index']);
-                Route::get('/jadwal-jaga', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'getJadwalJaga']);
-                Route::get('/jaspel', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'getJaspel']);
-                Route::get('/tindakan', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'getTindakan']);
-                Route::get('/presensi', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'getPresensi']);
-                Route::get('/attendance', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'getAttendance']);
-                Route::get('/patients', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'getPatients']);
-                Route::get('/test', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'test']);
-                
-                // Schedule endpoints
-                Route::get('/schedules', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'schedules']);
-                Route::get('/weekly-schedules', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'getWeeklySchedule']);
-                Route::get('/igd-schedules', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'getIgdSchedules']);
-                
-                // Work location endpoints
-                Route::post('/refresh-work-location', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'refreshWorkLocation']);
-                Route::get('/work-location/status', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'getWorkLocationStatus']);
-                Route::post('/work-location/check-and-assign', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'checkAndAssignWorkLocation']);
-                
-                // Attendance endpoints
-                Route::get('/attendance/status', function () {
-                    $user = auth()->user();
-                    $today = \Carbon\Carbon::today();
-                    $attendance = \App\Models\Attendance::where('user_id', $user->id)
-                        ->where('date', $today)
-                        ->first();
-                    
-                    return response()->json([
-                        'success' => true,
-                        'message' => 'Attendance status retrieved',
-                        'data' => [
-                            'status' => $attendance ? 
-                                ($attendance->time_out ? 'checked_out' : 'checked_in') : 
-                                'not_checked_in',
-                            'check_in_time' => $attendance?->time_in?->format('H:i'),
-                            'check_out_time' => $attendance?->time_out?->format('H:i'),
-                            'work_duration' => $attendance?->formatted_work_duration,
-                        ],
-                        'meta' => [
-                            'version' => '2.0',
-                            'timestamp' => now()->toISOString(),
-                            'request_id' => \Illuminate\Support\Str::uuid()->toString(),
-                        ]
-                    ]);
-                });
-                
-                Route::get('/attendance/today-history', function () {
-                    $user = auth()->user();
-                    $today = \Carbon\Carbon::today();
-                    $attendance = \App\Models\Attendance::where('user_id', $user->id)
-                        ->where('date', $today)
-                        ->first();
-                    
-                    $history = [];
-                    if ($attendance) {
-                        if ($attendance->time_in) {
-                            $history[] = [
-                                'time' => $attendance->time_in->format('H:i'),
-                                'action' => 'Check In',
-                                'subtitle' => 'Masuk kerja'
-                            ];
-                        }
-                        if ($attendance->time_out) {
-                            $history[] = [
-                                'time' => $attendance->time_out->format('H:i'),
-                                'action' => 'Check Out',
-                                'subtitle' => 'Selesai kerja'
-                            ];
-                        }
-                    }
-                    
-                    return response()->json([
-                        'success' => true,
-                        'message' => 'Today attendance history retrieved',
-                        'data' => [
-                            'has_activity' => !empty($history),
-                            'history' => $history
-                        ],
-                        'meta' => [
-                            'version' => '2.0',
-                            'timestamp' => now()->toISOString(),
-                            'request_id' => \Illuminate\Support\Str::uuid()->toString(),
-                        ]
-                    ]);
-                });
-                
-                // Patient endpoints (placeholder)
-                Route::get('/patients', function () {
-                    return response()->json([
-                        'success' => true,
-                        'message' => 'Patient data will be available soon',
-                        'data' => [
-                            'patients_today' => 12,
-                            'upcoming_appointments' => []
-                        ],
-                        'meta' => [
-                            'version' => '2.0',
-                            'timestamp' => now()->toISOString(),
-                            'request_id' => \Illuminate\Support\Str::uuid()->toString(),
-                        ]
-                    ]);
-                });
-                
-                // CRITICAL: Dr. Rindang auth test endpoint
-                Route::get('/auth-test-rindang', function () {
-                    $user = auth()->user();
-                    $isRindang = stripos($user->name, 'rindang') !== false;
-                    
-                    // Get dokter data
-                    $dokter = \App\Models\Dokter::where('user_id', $user->id)->first();
-                    
-                    // Get jadwal jaga for validation
-                    $todaySchedule = \App\Models\JadwalJaga::where('pegawai_id', $user->id)
-                        ->whereDate('tanggal_jaga', now())
-                        ->first();
-                        
-                    return response()->json([
-                        'success' => true,
-                        'message' => $isRindang ? 
-                            '✅ Dr. Rindang - Authentication and Data Access WORKING!' : 
-                            'Dokter authentication test successful',
-                        'data' => [
-                            'user_verified' => true,
-                            'user' => [
-                                'id' => $user->id,
-                                'name' => $user->name,
-                                'email' => $user->email,
-                                'is_rindang' => $isRindang,
-                            ],
-                            'dokter_data' => $dokter ? [
-                                'id' => $dokter->id,
-                                'nama_lengkap' => $dokter->nama_lengkap,
-                                'nik' => $dokter->nik,
-                                'jenis_pegawai' => $dokter->jenis_pegawai,
-                                'unit_kerja' => $dokter->unit_kerja,
-                                'aktif' => $dokter->aktif,
-                            ] : null,
-                            'schedule_access' => $todaySchedule ? [
-                                'has_schedule_today' => true,
-                                'tanggal_jaga' => $todaySchedule->tanggal_jaga,
-                                'unit_kerja' => $todaySchedule->unit_kerja,
-                                'status_jaga' => $todaySchedule->status_jaga,
-                            ] : [
-                                'has_schedule_today' => false,
-                                'message' => 'No schedule for today',
-                            ],
-                            'fix_confirmation' => [
-                                'authentication' => 'FIXED',
-                                'api_access' => 'WORKING',
-                                'database_access' => 'WORKING',
-                                'schedule_access' => 'WORKING',
-                                'timestamp' => now()->toISOString(),
-                            ]
-                        ],
-                        'meta' => [
-                            'version' => '2.0',
-                            'timestamp' => now()->toISOString(),
-                            'request_id' => \Illuminate\Support\Str::uuid()->toString(),
-                            'fix_status' => 'DR_RINDANG_AUTH_FIXED',
-                        ]
-                    ]);
-                });
-                
-                // Tindakan endpoints (placeholder)
-                Route::get('/tindakan', function () {
-                    return response()->json([
-                        'success' => true,
-                        'message' => 'Tindakan data will be available soon',
-                        'data' => [
-                            'tindakan_today' => 8,
-                            'recent_tindakan' => []
-                        ],
-                        'meta' => [
-                            'version' => '2.0',
-                            'timestamp' => now()->toISOString(),
-                            'request_id' => \Illuminate\Support\Str::uuid()->toString(),
-                        ]
-                    ]);
-                });
-                
-                // Jaspel endpoints - WORLD-CLASS implementation using DokterDashboardController
-                // Route removed - handled by line 319
-            });
+            // REMOVED: Dokter dashboard routes moved to routes/api/v2.php for session-based authentication
+            // The routes in routes/api/v2.php use ['web'] middleware for session authentication
+            // instead of ['auth:sanctum'] which requires token authentication
 
             // Non-Paramedis dashboard - Enhanced with proper authentication and role validation
             Route::prefix('nonparamedis')->middleware(['enhanced.role:non_paramedis'])->group(function () {
@@ -743,6 +531,9 @@ Route::get('/health', function () {
         'service' => 'Dokterku Enhanced API',
     ]);
 })->name('api.health');
+
+// Include API v2 routes
+require __DIR__.'/api/v2.php';
 
 // Enhanced V1 API Routes
 Route::prefix('v1')->name('api.v1.')->group(function () {

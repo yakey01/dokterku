@@ -14,24 +14,15 @@
         system-ui,
         -apple-system,
         'Segoe UI',
-        'Roboto',
-        'Helvetica Neue',
-        'Arial',
-        'Noto Sans',
-        'Liberation Sans',
         sans-serif,
         'Apple Color Emoji',
         'Segoe UI Emoji',
-        'Segoe UI Symbol',
-        'Noto Color Emoji';
+        'Segoe UI Symbol';
 
     /* Medical data and charts - Monospace for precise alignment */
     --font-medical-mono: 
         'SF Mono',
         'Monaco',
-        'Inconsolata',
-        'Roboto Mono',
-        'Ubuntu Mono',
         'Consolas',
         'Courier New',
         monospace;
@@ -49,8 +40,6 @@
         system-ui,
         -apple-system,
         'Segoe UI',
-        'Helvetica Neue',
-        'Arial',
         sans-serif;
 
     /* Font weights for medical interface hierarchy */

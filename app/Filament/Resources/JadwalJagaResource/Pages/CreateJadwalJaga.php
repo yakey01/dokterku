@@ -53,7 +53,52 @@ class CreateJadwalJaga extends CreateRecord
             'peran' => ['required', 'string'],
             'status_jaga' => ['required', 'string'],
             'keterangan' => ['nullable', 'string'],
-            'jam_jaga_custom' => ['nullable', 'date_format:H:i']
+            'jam_jaga_custom' => ['nullable', 'date_format:H:i'],
+            // Custom validation to prevent duplicates
+            'pegawai_id' => [
+                'required', 
+                'exists:users,id',
+                function (string $attribute, $value, \Closure $fail) {
+                    $tanggalJaga = request()->input('tanggal_jaga');
+                    $shiftTemplateId = request()->input('shift_template_id');
+                    
+                    if ($tanggalJaga && $shiftTemplateId && $value) {
+                        $exists = \App\Models\JadwalJaga::whereDate('tanggal_jaga', $tanggalJaga)
+                            ->where('shift_template_id', $shiftTemplateId)
+                            ->where('pegawai_id', $value)
+                            ->exists();
+                            
+                        if ($exists) {
+                            $pegawai = \App\Models\User::find($value);
+                            $shiftTemplate = \App\Models\ShiftTemplate::find($shiftTemplateId);
+                            $fail("Pegawai {$pegawai->name} sudah memiliki jadwal jaga untuk shift {$shiftTemplate->nama_shift} pada tanggal " . \Carbon\Carbon::parse($tanggalJaga)->format('d/m/Y') . ".");
+                        }
+                    }
+                }
+            ]
         ];
+    }
+    
+    protected function handleRecordCreation(array $data): \Illuminate\Database\Eloquent\Model
+    {
+        try {
+            return parent::handleRecordCreation($data);
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ($e->getCode() == 23000) { // Integrity constraint violation
+                $pegawai = \App\Models\User::find($data['pegawai_id']);
+                $shiftTemplate = \App\Models\ShiftTemplate::find($data['shift_template_id']);
+                $tanggal = \Carbon\Carbon::parse($data['tanggal_jaga'])->format('d/m/Y');
+                
+                \Filament\Notifications\Notification::make()
+                    ->danger()
+                    ->title('Jadwal Jaga Sudah Ada')
+                    ->body("Pegawai {$pegawai->name} sudah memiliki jadwal jaga untuk shift {$shiftTemplate->nama_shift} pada tanggal {$tanggal}.")
+                    ->send();
+                    
+                throw new \Exception("Jadwal jaga sudah ada untuk pegawai ini pada tanggal dan shift yang sama.");
+            }
+            
+            throw $e;
+        }
     }
 }

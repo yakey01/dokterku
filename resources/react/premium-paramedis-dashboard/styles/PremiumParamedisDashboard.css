@@ -52,7 +52,7 @@
 }
 
 .premium-dashboard {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   background: linear-gradient(135deg, #F0F4FF 0%, #E8F2FF 50%, #DDE7FF 100%);
   min-height: 100vh;
   overflow: hidden;

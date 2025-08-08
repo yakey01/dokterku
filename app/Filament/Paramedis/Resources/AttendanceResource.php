@@ -5,7 +5,7 @@ namespace App\Filament\Paramedis\Resources;
 use App\Filament\Paramedis\Resources\AttendanceResource\Pages;
 use App\Models\Attendance;
 use App\Services\GeolocationService;
-use Dotswan\MapPicker\Fields\Map;
+use Filament\Forms\Components\ViewField;
 use Filament\Forms;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Section;
@@ -90,57 +90,11 @@ class AttendanceResource extends Resource
 
                 Section::make('Lokasi Check-in')
                     ->schema([
-                        Map::make('location')
-                            ->label('Pilih Lokasi Check-in')
+                        ViewField::make('location_map')
+                            ->view('filament.forms.components.simple-leaflet-map')
+                            ->label('📍 Pilih Lokasi Check-in')
                             ->columnSpanFull()
-                            ->defaultLocation(latitude: -7.89946200, longitude: 111.96239900)
-                            ->afterStateUpdated(function (Map $component, $state) {
-                                $component->getContainer()->getComponent('latitude')
-                                    ->state($state['lat'] ?? null);
-                                $component->getContainer()->getComponent('longitude')
-                                    ->state($state['lng'] ?? null);
-                            })
-                            ->afterStateHydrated(function (Map $component, $state) {
-                                $latitude = $component->getContainer()->getComponent('latitude')->getState();
-                                $longitude = $component->getContainer()->getComponent('longitude')->getState();
-                                
-                                if ($latitude && $longitude) {
-                                    $component->state([
-                                        'lat' => (float) $latitude,
-                                        'lng' => (float) $longitude,
-                                    ]);
-                                }
-                            })
-                            ->liveLocation()
-                            ->showMarker()
-                            ->markerColor("#22c55eff")
-                            ->showFullscreenControl()
-                            ->showZoomControl()
-                            ->draggable()
-                            ->tilesUrl("https://tile.openstreetmap.de/tiles/osmde/{z}/{x}/{y}.png")
-                            ->zoom(15)
-                            ->detectRetina()
-                            ->showMyLocationButton()
-                            ->extraTileControl([])
-                            ->extraControl([
-                                'zoomDelta' => 1,
-                                'zoomSnap' => 2,
-                            ])
-                            ->afterStateUpdated(function ($state, Forms\Set $set) {
-                                if (is_array($state) && isset($state['lat'], $state['lng'])) {
-                                    $set('latitude', $state['lat']);
-                                    $set('longitude', $state['lng']);
-                                }
-                            })
-                            ->afterStateHydrated(function ($state, Forms\Set $set, Forms\Get $get) {
-                                if ($get('latitude') && $get('longitude')) {
-                                    $set('location', [
-                                        'lat' => (float) $get('latitude'),
-                                        'lng' => (float) $get('longitude'),
-                                    ]);
-                                }
-                            })
-                            ->reactive(),
+                            ->dehydrated(false),
 
                         Grid::make(2)
                             ->schema([

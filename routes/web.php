@@ -54,6 +54,11 @@ Route::get('/test-dokter-noauth', function () {
     return view('mobile.dokter.app-noauth');
 });
 
+// Simple dokter API test page
+Route::get('/test-simple-dokter', function () {
+    return view('test-simple-dokter');
+})->middleware(['web', 'auth']);
+
 // Main Welcome Login with Animation - GUARANTEED TO SHOW
 Route::get('/welcome-login', function () {
     return view('welcome-login-app');
@@ -94,6 +99,189 @@ Route::get('/paramedis/new-dashboard-card', function () {
 Route::get('/new-dashboard-links', function () {
     return view('new-dashboard-links');
 })->middleware(['auth']);
+
+// Dokter API routes for session authentication
+Route::prefix('api/v2/dashboards/dokter')->middleware(['web', 'auth'])->group(function () {
+    // Main dashboard endpoints - FIXED: Added missing routes
+    Route::get('/', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'index']);
+    Route::get('/jadwal-jaga', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'getJadwalJaga']);
+    Route::get('/work-location/status', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'getWorkLocationStatus']);
+    
+    // Profile management
+    Route::post('/update-profile', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'updateProfile']);
+    
+    // Auth test endpoint
+    Route::get('/auth-test', function () {
+        return response()->json([
+            'success' => true,
+            'message' => 'Web session authentication working',
+            'data' => [
+                'timestamp' => now()->toISOString(),
+                'request_method' => request()->method(),
+                'request_url' => request()->url(),
+                'user' => auth()->check() ? auth()->user()->only(['id', 'name', 'email']) : null,
+            ]
+        ]);
+    });
+    
+    // Check-in/out endpoints
+    Route::post('/checkin', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'checkIn']);
+    Route::post('/checkout', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'checkOut']);
+    
+    // TEMPORARY TEST ENDPOINTS - Bypass authentication for debugging
+    
+        // Test endpoint for jadwal jaga - HARDCODED VERSION
+    Route::get('/jadwal-jaga-test', function () {
+        // Force user 13 for testing
+        $user = \App\Models\User::find(13);
+        if (!$user) {
+            return response()->json(['error' => 'User 13 not found'], 404);
+        }
+        
+        // Get today's jadwal jaga for user 13
+        $today = \Carbon\Carbon::today();
+        $jadwalJaga = \App\Models\JadwalJaga::where('pegawai_id', 13)
+            ->whereDate('tanggal_jaga', $today)
+            ->with('shiftTemplate')
+            ->get();
+            
+        // Debug: Log the data
+        \Log::info('Jadwal Jaga Test Endpoint Debug', [
+            'user_id' => 13,
+            'today' => $today->format('Y-m-d'),
+            'jadwal_count' => $jadwalJaga->count(),
+            'jadwal_data' => $jadwalJaga->map(function($j) {
+                return [
+                    'id' => $j->id,
+                    'tanggal_jaga' => $j->tanggal_jaga->format('Y-m-d'),
+                    'status_jaga' => $j->status_jaga,
+                    'shift_template_id' => $j->shift_template_id,
+                    'shift_template_name' => $j->shiftTemplate ? $j->shiftTemplate->nama_shift : 'NULL'
+                ];
+            })
+        ]);
+
+        // Create hardcoded calendar events for testing
+        $calendarEvents = [
+            [
+                'id' => 109,
+                'title' => 'TES 2',
+                'start' => '2025-08-08',
+                'end' => '2025-08-08',
+                'color' => '#10b981',
+                'description' => 'Dokter Jaga',
+                'tanggal_jaga' => '2025-08-08',
+                'status_jaga' => 'Aktif',
+                'shift_template' => [
+                    'id' => 6,
+                    'nama_shift' => 'TES 2',
+                    'jam_masuk' => '17:45',
+                    'jam_pulang' => '18:00',
+                    'jam_masuk_format' => '17:45',
+                    'jam_pulang_format' => '18:00',
+                    'durasi_jam' => 8,
+                    'warna' => '#3b82f6',
+                ],
+                'unit_kerja' => 'Dokter Jaga',
+                'shift_info' => [
+                    'id' => 6,
+                    'nama_shift' => 'TES 2',
+                    'jam_masuk' => '17:45',
+                    'jam_pulang' => '18:00',
+                    'durasi_jam' => 8,
+                    'warna' => '#3b82f6',
+                    'unit_kerja' => 'Dokter Jaga',
+                    'status' => 'Aktif',
+                    'peran' => 'Dokter Jaga',
+                    'employee_name' => $user->name,
+                    'keterangan' => 'Test jadwal jaga'
+                ]
+            ],
+            [
+                'id' => 110,
+                'title' => 'Tes 3',
+                'start' => '2025-08-08',
+                'end' => '2025-08-08',
+                'color' => '#10b981',
+                'description' => 'Dokter Jaga',
+                'tanggal_jaga' => '2025-08-08',
+                'status_jaga' => 'Aktif',
+                'shift_template' => [
+                    'id' => 7,
+                    'nama_shift' => 'Tes 3',
+                    'jam_masuk' => '18:30',
+                    'jam_pulang' => '19:00',
+                    'jam_masuk_format' => '18:30',
+                    'jam_pulang_format' => '19:00',
+                    'durasi_jam' => 8,
+                    'warna' => '#3b82f6',
+                ],
+                'unit_kerja' => 'Dokter Jaga',
+                'shift_info' => [
+                    'id' => 7,
+                    'nama_shift' => 'Tes 3',
+                    'jam_masuk' => '18:30',
+                    'jam_pulang' => '19:00',
+                    'durasi_jam' => 8,
+                    'warna' => '#3b82f6',
+                    'unit_kerja' => 'Dokter Jaga',
+                    'status' => 'Aktif',
+                    'peran' => 'Dokter Jaga',
+                    'employee_name' => $user->name,
+                    'keterangan' => 'Test jadwal jaga'
+                ]
+            ]
+        ];
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Test jadwal jaga data for user 13',
+            'data' => [
+                'calendar_events' => $calendarEvents,
+                'weekly_schedule' => [],
+                'today' => [],
+                'currentShift' => null,
+                'schedule_stats' => [
+                    'completed' => 0,
+                    'upcoming' => count($calendarEvents),
+                    'total_hours' => 0,
+                    'total_shifts' => count($calendarEvents),
+                    'current_month' => $today->month,
+                    'current_year' => $today->year,
+                    'month_name' => $today->format('F Y')
+                ],
+                'month' => $today->month,
+                'year' => $today->year,
+                'cache_info' => [
+                    'cached_at' => now()->toISOString(),
+                    'cache_ttl' => 60,
+                    'is_refresh' => false
+                ]
+            ]
+        ]);
+    });
+     
+     // Test endpoint for work location
+     Route::get('/work-location-test', function () {
+         // Return default work location for testing
+         return response()->json([
+             'success' => true,
+             'message' => 'Test work location data for user 13',
+             'data' => [
+                 'work_location' => [
+                     'id' => 1,
+                     'name' => 'Klinik Dokterku',
+                     'address' => 'Mojo Kediri',
+                     'latitude' => -7.8231,
+                     'longitude' => 112.0178,
+                     'radius' => 100,
+                     'is_active' => true,
+                     'unit_kerja' => 'Dokter Jaga'
+                 ]
+             ]
+         ]);
+     });
+ });
 
 // Test endpoint for debugging Bita Jaspel data
 Route::get('/debug-bita-jaspel', function () {
@@ -1363,20 +1551,85 @@ Route::middleware(['auth'])->group(function () {
                 'initials' => strtoupper(substr($displayName ?? 'DA', 0, 2))
             ];
             
-            // AGGRESSIVE CACHE BUSTING HEADERS
+            // ULTRA AGGRESSIVE CACHE BUSTING HEADERS
             return response()
                 ->view('mobile.dokter.app', compact('token', 'userData'))
-                ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+                ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0, post-check=0, pre-check=0')
                 ->header('Pragma', 'no-cache')
                 ->header('Expires', 'Mon, 01 Jan 1990 00:00:00 GMT')
                 ->header('Last-Modified', gmdate('D, d M Y H:i:s') . ' GMT')
-                ->header('ETag', '"' . md5(time()) . '"');
+                ->header('ETag', '"' . md5(time() . rand()) . '"')
+                ->header('X-Build-Time', time())
+                ->header('X-Cache-Bust', md5(time()));
         })->name('mobile-app')->middleware('throttle:1000,1');
         
         // EMERGENCY BYPASS ROUTE - Force new bundle loading (DISABLED - file not found)
         // Route::get('/mobile-app-v2', function () {
         //     // Route disabled - app-emergency.blade.php not found
         // })->name('mobile-app-v2')->middleware('throttle:1000,1');
+        
+        // EMERGENCY BYPASS ROUTE - Force new version
+        Route::get('/mobile-app-emergency', function () {
+            $user = auth()->user();
+            $token = $user->createToken('mobile-app-emergency-' . now()->timestamp)->plainTextToken;
+            
+            $hour = now()->hour;
+            $greeting = $hour < 12 ? 'Selamat Pagi' : ($hour < 17 ? 'Selamat Siang' : 'Selamat Malam');
+            
+            $dokter = \App\Models\Dokter::where('user_id', $user->id)->first();
+            $displayName = $dokter ? $dokter->nama_lengkap : $user->name;
+            
+            $userData = [
+                'name' => $displayName,
+                'email' => $user->email,
+                'greeting' => $greeting,
+                'initials' => strtoupper(substr($displayName ?? 'DA', 0, 2))
+            ];
+            
+            // ULTRA AGGRESSIVE CACHE BUSTING HEADERS
+            return response()
+                ->view('mobile.dokter.app-emergency', compact('token', 'userData'))
+                ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0, post-check=0, pre-check=0')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', 'Mon, 01 Jan 1990 00:00:00 GMT')
+                ->header('Last-Modified', gmdate('D, d M Y H:i:s') . ' GMT')
+                ->header('ETag', '"' . md5(time() . rand()) . '"')
+                ->header('X-Build-Time', time())
+                ->header('X-Cache-Bust', md5(time()))
+                ->header('X-Emergency-Mode', 'true');
+        })->name('mobile-app-emergency')->middleware('throttle:1000,1');
+        
+        // CREATIVE EMERGENCY ROUTE - Using new entry point
+        Route::get('/mobile-app-creative', function () {
+            $user = auth()->user();
+            $token = $user->createToken('mobile-app-creative-' . now()->timestamp)->plainTextToken;
+            
+            $hour = now()->hour;
+            $greeting = $hour < 12 ? 'Selamat Pagi' : ($hour < 17 ? 'Selamat Siang' : 'Selamat Malam');
+            
+            $dokter = \App\Models\Dokter::where('user_id', $user->id)->first();
+            $displayName = $dokter ? $dokter->nama_lengkap : $user->name;
+            
+            $userData = [
+                'name' => $displayName,
+                'email' => $user->email,
+                'greeting' => $greeting,
+                'initials' => strtoupper(substr($displayName ?? 'DA', 0, 2))
+            ];
+            
+            // CREATIVE CACHE BUSTING HEADERS
+            return response()
+                ->view('mobile.dokter.app-creative', compact('token', 'userData'))
+                ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0, post-check=0, pre-check=0')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', 'Mon, 01 Jan 1990 00:00:00 GMT')
+                ->header('Last-Modified', gmdate('D, d M Y H:i:s') . ' GMT')
+                ->header('ETag', '"' . md5(time() . rand()) . '"')
+                ->header('X-Build-Time', time())
+                ->header('X-Cache-Bust', md5(time()))
+                ->header('X-Creative-Mode', 'true')
+                ->header('X-Emergency-Version', '2.0');
+        })->name('mobile-app-creative')->middleware('throttle:1000,1');
         
         // API endpoint for doctor weekly schedules (for dashboard)
         Route::get('/api/weekly-schedules', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'getWeeklySchedule'])

@@ -41,17 +41,33 @@ const ProfileComponent = () => {
   const [isIpad, setIsIpad] = useState(false);
   const [orientation, setOrientation] = useState('portrait');
   const [profileData, setProfileData] = useState({
-    name: 'Dr. Naning Paramedis',
-    email: 'naning.paramedis@hospital.com',
-    phone: '+62 812-3456-7890',
-    address: 'Jl. Ahmad Yani No. 123, Kediri, Jawa Timur',
-    birthDate: '15 Maret 1990',
-    gender: 'Perempuan',
-    specialization: 'Dokter Umum',
-    licenseNumber: 'STR.12345678901',
-    hospital: 'RS. Kediri Medical Center',
-    experience: '5 tahun',
-    bio: 'Dokter umum yang berpengalaman dalam pelayanan medis komprehensif dengan fokus pada pencegahan dan pengobatan berbagai kondisi kesehatan.'
+    name: 'Loading...',
+    email: 'loading@example.com',
+    phone: '',
+    address: '',
+    birthDate: '',
+    gender: 'Tidak ditentukan',
+    nik: '',
+    nomor_sip: '',
+    jabatan: 'Dokter',
+    spesialisasi: '',
+    tanggal_bergabung: '',
+    status_akun: '',
+    bio: ''
+  });
+
+  const [editData, setEditData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    birthDate: '',
+    gender: '',
+    bio: '',
+    nik: '',
+    nomor_sip: '',
+    jabatan: '',
+    spesialisasi: ''
   });
 
   useEffect(() => {
@@ -70,6 +86,65 @@ const ProfileComponent = () => {
       window.removeEventListener('resize', checkDevice);
       window.removeEventListener('orientationchange', checkDevice);
     };
+  }, []);
+
+  // Load user data
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const token = localStorage.getItem('auth_token') || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        
+        const response = await fetch('/api/v2/dashboards/dokter/', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'X-CSRF-TOKEN': token || '',
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data?.user) {
+            const user = data.data.user;
+            setProfileData(prev => ({
+              ...prev,
+              name: user.name || prev.name,
+              email: user.email || prev.email,
+              phone: user.phone || prev.phone,
+              address: user.address || prev.address,
+              birthDate: user.date_of_birth || prev.birthDate,
+              gender: user.gender || prev.gender,
+              bio: user.bio || prev.bio,
+              nik: user.nik || prev.nik,
+              nomor_sip: user.nomor_sip || prev.nomor_sip,
+              jabatan: user.jabatan || prev.jabatan,
+              spesialisasi: user.spesialisasi || prev.spesialisasi,
+              tanggal_bergabung: user.tanggal_bergabung || prev.tanggal_bergabung,
+              status_akun: user.status_akun || prev.status_akun
+            }));
+            
+            // Set edit data for form
+            setEditData({
+              name: user.name || '',
+              email: user.email || '',
+              phone: user.phone || '',
+              address: user.address || '',
+              birthDate: user.date_of_birth || '',
+              gender: user.gender === 'Laki-laki' ? 'male' : user.gender === 'Perempuan' ? 'female' : '',
+              bio: user.bio || '',
+              nik: user.nik || '',
+              nomor_sip: user.nomor_sip || '',
+              jabatan: user.jabatan || '',
+              spesialisasi: user.spesialisasi || ''
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error loading user data:', error);
+      }
+    };
+
+    loadUserData();
   }, []);
 
   const achievements = [
@@ -173,7 +248,7 @@ const ProfileComponent = () => {
     { label: "Pengalaman", value: "5 Tahun", icon: TrendingUp, color: "text-orange-400" }
   ];
 
-  const getRarityColor = (rarity) => {
+  const getRarityColor = (rarity: string) => {
     switch (rarity) {
       case 'Silver': return 'text-gray-300 bg-gray-400/20 border-gray-400/50';
       case 'Gold': return 'text-yellow-400 bg-yellow-400/20 border-yellow-400/50';
@@ -183,14 +258,62 @@ const ProfileComponent = () => {
     }
   };
 
-  const handleSave = () => {
-    setIsEditing(false);
-    // Here you would typically save to backend
+  const handleSave = async () => {
+    try {
+      const token = localStorage.getItem('auth_token') || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      
+      const response = await fetch('/api/v2/dashboards/dokter/update-profile', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-CSRF-TOKEN': token || '',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(editData)
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          // Update profile data with new values
+          setProfileData(prev => ({
+            ...prev,
+            name: editData.name || prev.name,
+            email: editData.email || prev.email,
+            phone: editData.phone || prev.phone,
+            address: editData.address || prev.address,
+            birthDate: editData.birthDate || prev.birthDate,
+            gender: editData.gender || prev.gender,
+            bio: editData.bio || prev.bio,
+            nik: editData.nik || prev.nik,
+            nomor_sip: editData.nomor_sip || prev.nomor_sip,
+            jabatan: editData.jabatan || prev.jabatan,
+            spesialisasi: editData.spesialisasi || prev.spesialisasi
+          }));
+          setIsEditing(false);
+        }
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error);
+    }
   };
 
   const handleCancel = () => {
     setIsEditing(false);
-    // Here you would reset form data
+    // Reset edit data to current profile data
+    setEditData({
+      name: profileData.name,
+      email: profileData.email,
+      phone: profileData.phone,
+      address: profileData.address,
+      birthDate: profileData.birthDate,
+      gender: profileData.gender,
+      bio: profileData.bio,
+      nik: profileData.nik,
+      nomor_sip: profileData.nomor_sip,
+      jabatan: profileData.jabatan,
+      spesialisasi: profileData.spesialisasi
+    });
   };
 
   return (
@@ -286,10 +409,13 @@ const ProfileComponent = () => {
                           {profileData.name}
                         </h2>
                         <p className={`text-purple-300 mb-2 ${isIpad ? 'text-lg' : 'text-base'}`}>
-                          {profileData.specialization}
+                          {profileData.jabatan === 'dokter_umum' ? 'Dokter Umum' : 
+                           profileData.jabatan === 'dokter_gigi' ? 'Dokter Gigi' : 
+                           profileData.jabatan === 'dokter_spesialis' ? 'Dokter Spesialis' : 
+                           profileData.jabatan}
                         </p>
                         <p className={`text-gray-400 ${isIpad ? 'text-base' : 'text-sm'}`}>
-                          {profileData.hospital}
+                          {profileData.spesialisasi || 'Tidak ditentukan'}
                         </p>
                       </div>
                       <button
@@ -366,10 +492,13 @@ const ProfileComponent = () => {
                   
                   <div className="space-y-4">
                     {[
-                      { icon: Award, label: 'License Number', value: profileData.licenseNumber },
-                      { icon: Building, label: 'Hospital', value: profileData.hospital },
-                      { icon: Clock, label: 'Experience', value: profileData.experience },
-                      { icon: Target, label: 'Specialization', value: profileData.specialization }
+                      { icon: Award, label: 'NIK', value: profileData.nik || 'Tidak ditentukan' },
+                      { icon: Building, label: 'Nomor SIP', value: profileData.nomor_sip || 'Tidak ditentukan' },
+                      { icon: Clock, label: 'Tanggal Bergabung', value: profileData.tanggal_bergabung || 'Tidak ditentukan' },
+                      { icon: Target, label: 'Jabatan', value: profileData.jabatan === 'dokter_umum' ? 'Dokter Umum' : 
+                                                           profileData.jabatan === 'dokter_gigi' ? 'Dokter Gigi' : 
+                                                           profileData.jabatan === 'dokter_spesialis' ? 'Dokter Spesialis' : 
+                                                           profileData.jabatan }
                     ].map((item, index) => {
                       const Icon = item.icon;
                       return (
@@ -595,7 +724,8 @@ const ProfileComponent = () => {
                       <label className={`block text-gray-300 mb-2 ${isIpad ? 'text-sm' : 'text-xs sm:text-sm'}`}>Full Name</label>
                       <input
                         type="text"
-                        value={profileData.name}
+                        value={editData.name}
+                        onChange={(e) => setEditData(prev => ({ ...prev, name: e.target.value }))}
                         className={`w-full bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 hover:border-white/30 focus:border-purple-400/50 transition-colors ${isIpad ? 'px-4 py-3' : 'px-3 py-2 sm:px-4 sm:py-3'}`}
                         placeholder="Enter full name"
                       />
@@ -604,9 +734,64 @@ const ProfileComponent = () => {
                       <label className={`block text-gray-300 mb-2 ${isIpad ? 'text-sm' : 'text-xs sm:text-sm'}`}>Email</label>
                       <input
                         type="email"
-                        value={profileData.email}
+                        value={editData.email}
+                        onChange={(e) => setEditData(prev => ({ ...prev, email: e.target.value }))}
                         className={`w-full bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 hover:border-white/30 focus:border-purple-400/50 transition-colors ${isIpad ? 'px-4 py-3' : 'px-3 py-2 sm:px-4 sm:py-3'}`}
                         placeholder="Enter email"
+                      />
+                    </div>
+                    <div>
+                      <label className={`block text-gray-300 mb-2 ${isIpad ? 'text-sm' : 'text-xs sm:text-sm'}`}>Phone</label>
+                      <input
+                        type="tel"
+                        value={editData.phone}
+                        onChange={(e) => setEditData(prev => ({ ...prev, phone: e.target.value }))}
+                        className={`w-full bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 hover:border-white/30 focus:border-purple-400/50 transition-colors ${isIpad ? 'px-4 py-3' : 'px-3 py-2 sm:px-4 sm:py-3'}`}
+                        placeholder="Enter phone number"
+                      />
+                    </div>
+                    <div>
+                      <label className={`block text-gray-300 mb-2 ${isIpad ? 'text-sm' : 'text-xs sm:text-sm'}`}>Gender</label>
+                      <select
+                        value={editData.gender}
+                        onChange={(e) => setEditData(prev => ({ ...prev, gender: e.target.value }))}
+                        className={`w-full bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 hover:border-white/30 focus:border-purple-400/50 transition-colors ${isIpad ? 'px-4 py-3' : 'px-3 py-2 sm:px-4 sm:py-3'}`}
+                      >
+                        <option value="">Select Gender</option>
+                        <option value="male">Laki-laki</option>
+                        <option value="female">Perempuan</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className={`block text-gray-300 mb-2 ${isIpad ? 'text-sm' : 'text-xs sm:text-sm'}`}>Address</label>
+                      <textarea
+                        value={editData.address}
+                        onChange={(e) => setEditData(prev => ({ ...prev, address: e.target.value }))}
+                        rows={3}
+                        className={`w-full bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 hover:border-white/30 focus:border-purple-400/50 transition-colors ${isIpad ? 'px-4 py-3' : 'px-3 py-2 sm:px-4 sm:py-3'}`}
+                        placeholder="Enter address"
+                      />
+                    </div>
+                    <div>
+                      <label className={`block text-gray-300 mb-2 ${isIpad ? 'text-sm' : 'text-xs sm:text-sm'}`}>Birth Date</label>
+                      <input
+                        type="date"
+                        value={editData.birthDate}
+                        onChange={(e) => setEditData(prev => ({ ...prev, birthDate: e.target.value }))}
+                        className={`w-full bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 hover:border-white/30 focus:border-purple-400/50 transition-colors ${isIpad ? 'px-4 py-3' : 'px-3 py-2 sm:px-4 sm:py-3'}`}
+                      />
+                    </div>
+                    <div>
+                      <label className={`block text-gray-300 mb-2 ${isIpad ? 'text-sm' : 'text-xs sm:text-sm'}`}>Bio</label>
+                      <textarea
+                        value={editData.bio}
+                        onChange={(e) => setEditData(prev => ({ ...prev, bio: e.target.value }))}
+                        rows={4}
+                        className={`w-full bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 hover:border-white/30 focus:border-purple-400/50 transition-colors ${isIpad ? 'px-4 py-3' : 'px-3 py-2 sm:px-4 sm:py-3'}`}
+                        placeholder="Enter bio"
                       />
                     </div>
                   </div>

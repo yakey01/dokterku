@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Calendar, Clock, DollarSign, User, Home, MapPin, CheckCircle, XCircle, Zap, Heart, Brain, Shield, Target, Award, TrendingUp, Sun, Moon, Coffee, Star, Crown, Hand, Camera, Wifi, WifiOff, AlertTriangle, History, UserCheck, FileText, Settings, Bell, ChevronLeft, ChevronRight, Filter, Plus, Send, RefreshCw, Navigation } from 'lucide-react';
 import DynamicMap from './DynamicMap';
 import { useGPSLocation, useGPSAvailability, useGPSPermission } from '../../hooks/useGPSLocation';
 import { GPSStatus, GPSStrategy } from '../../utils/GPSManager';
+import getUnifiedAuthInstance from '../../utils/UnifiedAuth';
 import '../../../css/map-styles.css';
 
 const CreativeAttendanceDashboard = () => {
@@ -45,56 +46,223 @@ const CreativeAttendanceDashboard = () => {
     radius: 50 // meters
   });
   
-  // Load hospital data from API
+  // Memoized time update to prevent unnecessary re-renders
   useEffect(() => {
-    const loadHospitalData = async () => {
+    const timer = setInterval(() => {
+      setCurrentTime(prevTime => {
+        const newTime = new Date();
+        // Only update if time actually changed
+        return prevTime.getTime() !== newTime.getTime() ? newTime : prevTime;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Optimized user data loading with proper error handling
+  useEffect(() => {
+    let isMounted = true;
+    let retryCount = 0;
+    const maxRetries = 3;
+
+    const loadUserData = async () => {
       try {
-        // Try to get from API first
-        const response = await fetch('/api/v2/hospital/location', {
+        console.log('🔍 Starting user data load...');
+        
+        // Get token with better error handling
+        let token = localStorage.getItem('auth_token');
+        console.log('🔍 Token from localStorage:', token ? 'Found' : 'Not found');
+        
+        if (!token) {
+          const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+          token = csrfMeta?.getAttribute('content') || '';
+          console.log('🔍 Token from meta tag:', token ? 'Found' : 'Not found');
+        }
+
+        // Validate token before making request
+        if (!token) {
+          console.warn('No authentication token found');
+          if (isMounted) {
+            setUserData({
+              name: 'Guest User',
+              email: 'guest@example.com',
+              role: 'guest'
+            });
+          }
+          return;
+        }
+
+        console.log('🔍 Making API request to /api/v2/dashboards/dokter/');
+        
+        // Simple fetch without complex URL construction
+        const response = await fetch('/api/v2/dashboards/dokter/', {
           method: 'GET',
           headers: {
+            'Accept': 'application/json',
             'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
+            'Authorization': `Bearer ${token}`,
+            'X-CSRF-TOKEN': token
           },
+          credentials: 'same-origin'
         });
-        
-        if (response.ok) {
-          const responseData = await response.json();
-          const data = responseData.data || responseData;
-          setHospitalLocation({
-            lat: data.latitude || -7.8481,
-            lng: data.longitude || 112.0178,
-            name: data.name || 'RS. Kediri Medical Center',
-            address: data.address || 'Jl. Ahmad Yani No. 123, Kediri, Jawa Timur',
-            radius: data.radius || 50
-          });
+
+        console.log('🔍 Response status:', response.status);
+        console.log('🔍 Response ok:', response.ok);
+
+        if (!isMounted) return;
+
+        // Check content type before parsing
+        const contentType = response.headers.get("content-type");
+        console.log('🔍 Content-Type:', contentType);
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error('Response is not JSON');
+        }
+
+        const data = await response.json();
+        console.log('🔍 Parsed response data:', data);
+
+        if (data.success && data.data?.user) {
+          if (isMounted) {
+            setUserData(prevData => {
+              const newData = data.data.user;
+              // Only update if data actually changed
+              return JSON.stringify(prevData) !== JSON.stringify(newData) ? newData : prevData;
+            });
+            console.log('✅ User data updated successfully');
+          }
         } else {
-          // Fallback to default data if API fails
-          console.log('Using default hospital location data');
-          setHospitalLocation({
-            lat: -7.8481,
-            lng: 112.0178,
-            name: 'RS. Kediri Medical Center',
-            address: 'Jl. Ahmad Yani No. 123, Kediri, Jawa Timur',
-            radius: 50
-          });
+          console.warn('No user data in response');
+          if (isMounted) {
+            setUserData({
+              name: 'Unknown User',
+              email: 'unknown@example.com',
+              role: 'unknown'
+            });
+          }
         }
       } catch (error) {
-        console.error('Error loading hospital data:', error);
-        // Fallback to default data
-        setHospitalLocation({
-          lat: -7.8481,
-          lng: 112.0178,
-          name: 'RS. Kediri Medical Center',
-          address: 'Jl. Ahmad Yani No. 123, Kediri, Jawa Timur',
-          radius: 50
+        if (!isMounted) return;
+        
+        console.error('❌ Error loading user data:', error);
+        
+        // Retry logic for network errors
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        if (retryCount < maxRetries && (errorMessage.includes('network') || errorMessage.includes('fetch'))) {
+          retryCount++;
+          console.log(`🔄 Retrying user data load... (${retryCount}/${maxRetries})`);
+          setTimeout(() => loadUserData(), 1000 * retryCount);
+          return;
+        }
+        
+        // Set fallback data on error
+        setUserData({
+          name: 'Error Loading User',
+          email: 'error@example.com',
+          role: 'error'
         });
       }
     };
-    
-    loadHospitalData();
+
+    loadUserData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Empty dependency array - only run once on mount
+
+  // Optimized schedule data loading
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadScheduleData = async () => {
+      try {
+        const token = localStorage.getItem('auth_token') || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        
+        if (!token) return;
+
+        const response = await fetch('/api/v2/dashboards/dokter/jadwal-jaga', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'X-CSRF-TOKEN': token || '',
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!isMounted) return;
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data) {
+            setScheduleData(prevData => {
+              const newData = {
+                todaySchedule: data.data.today || null,
+                currentShift: data.data.currentShift || null,
+                workLocation: data.data.workLocation || null,
+                isOnDuty: data.data.currentShift ? true : false,
+                canCheckIn: !data.data.currentShift || !data.data.currentShift.checkInTime,
+                canCheckOut: data.data.currentShift && data.data.currentShift.checkInTime && !data.data.currentShift.checkOutTime,
+                validationMessage: ''
+              };
+              
+              // Only update if data actually changed
+              return JSON.stringify(prevData) !== JSON.stringify(newData) ? newData : prevData;
+            });
+          }
+        }
+      } catch (error) {
+        if (!isMounted) return;
+        console.error('Error loading schedule data:', error);
+      }
+    };
+
+    loadScheduleData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Empty dependency array - only run once on mount
+
+  // Memoized time formatting
+  const formatTime = useCallback((date: Date): string => {
+    return date.toLocaleTimeString('id-ID', { 
+      hour: '2-digit', 
+      minute: '2-digit',
+      second: '2-digit'
+    });
   }, []);
-  
+
+  // Memoized greeting calculation
+  const getGreeting = useCallback(() => {
+    const hour = currentTime.getHours();
+    if (hour < 12) return 'Selamat Pagi';
+    if (hour < 17) return 'Selamat Siang';
+    return 'Selamat Malam';
+  }, [currentTime]);
+
+  // Memoized attendance status
+  const attendanceStatus = useMemo(() => {
+    if (isCheckedIn) {
+      return {
+        status: 'checked-in',
+        text: 'Sudah Check-in',
+        color: 'text-green-500',
+        bgColor: 'bg-green-100',
+        icon: CheckCircle
+      };
+    }
+    return {
+      status: 'not-checked-in',
+      text: 'Belum Check-in',
+      color: 'text-red-500',
+      bgColor: 'bg-red-100',
+      icon: XCircle
+    };
+  }, [isCheckedIn]);
+
   // World-Class GPS Integration
   const gpsAvailability = useGPSAvailability();
   const gpsPermission = useGPSPermission();
@@ -208,142 +376,19 @@ const CreativeAttendanceDashboard = () => {
     }
   }, [requestPermission]);
 
-  // Load user data
-  useEffect(() => {
-    const loadUserData = async () => {
-      try {
-        console.log('🔍 Starting user data load...');
-        
-        // Get token with better error handling
-        let token = localStorage.getItem('auth_token');
-        console.log('🔍 Token from localStorage:', token ? 'Found' : 'Not found');
-        
-        if (!token) {
-          const csrfMeta = document.querySelector('meta[name="csrf-token"]');
-          token = csrfMeta?.getAttribute('content') || '';
-          console.log('🔍 Token from meta tag:', token ? 'Found' : 'Not found');
-        }
-
-        // Validate token before making request
-        if (!token) {
-          console.warn('No authentication token found');
-          setUserData({
-            name: 'Guest User',
-            email: 'guest@example.com',
-            role: 'guest'
-          });
-          return;
-        }
-
-        console.log('🔍 Making API request to /api/v2/dashboards/dokter/');
-        
-        // Simple fetch without complex URL construction
-        const response = await fetch('/api/v2/dashboards/dokter/', {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-            'X-CSRF-TOKEN': token
-          },
-          credentials: 'same-origin'
-        });
-
-        console.log('🔍 Response status:', response.status);
-        console.log('🔍 Response ok:', response.ok);
-
-        // Check content type before parsing
-        const contentType = response.headers.get("content-type");
-        console.log('🔍 Content-Type:', contentType);
-        
-        if (!contentType || !contentType.includes("application/json")) {
-          console.error('❌ Server returned non-JSON response. Content-Type:', contentType);
-          console.error('❌ This usually means a 404/500 error page was returned instead of JSON');
-          throw new Error(`Server returned non-JSON response: ${contentType}`);
-        }
-
-        if (response.ok) {
-          const data = await response.json();
-          console.log('🔍 Response data:', data);
-          
-          if (data.success && data.data?.user) {
-            console.log('🔍 Setting user data:', data.data.user);
-            setUserData(data.data.user);
-          } else {
-            console.warn('User data not found in response:', data);
-            setUserData({
-              name: 'API User',
-              email: 'api@example.com',
-              role: 'api_user'
-            });
-          }
-        } else {
-          console.error('Failed to load user data:', response.status, response.statusText);
-          setUserData({
-            name: 'Error User',
-            email: 'error@example.com',
-            role: 'error_user'
-          });
-        }
-              } catch (error) {
-          console.error('Error loading user data:', error);
-          
-          if (error instanceof SyntaxError) {
-            console.error('❌ Invalid JSON response from server - likely HTML error page');
-            console.error('❌ Check if API endpoint exists and returns JSON');
-          }
-          
-          console.error('Error details:', {
-            name: (error as Error).name,
-            message: (error as Error).message,
-            stack: (error as Error).stack
-          });
-          
-          // Set default user data if API fails
-          setUserData({
-            name: 'Fallback User',
-            email: 'fallback@example.com',
-            role: 'fallback'
-          });
-        }
-    };
-
-    loadUserData();
-  }, []);
-
   // Load schedule and work location data
   useEffect(() => {
     const loadScheduleAndWorkLocation = async () => {
       try {
-        // Get token with better error handling
-        let token = localStorage.getItem('auth_token');
-        if (!token) {
-          const csrfMeta = document.querySelector('meta[name="csrf-token"]');
-          token = csrfMeta?.getAttribute('content') || '';
-        }
-
-        // Validate token before making request
-        if (!token) {
-          console.warn('No authentication token found for schedule/work location');
-          return;
-        }
-
-        const headers = {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'X-CSRF-TOKEN': token
-        };
+        // Use UnifiedAuth for proper authentication
+        const unifiedAuth = getUnifiedAuthInstance();
+        const authHeaders = unifiedAuth.getAuthHeaders();
 
         // TEMPORARY FIX: Use test endpoint that bypasses authentication issues
         // This will show real jadwal jaga data including today's schedule
-        const scheduleResponse = await fetch('/api/v2/dashboards/dokter/jadwal-jaga-test', {
+        const scheduleResponse = await fetch('/api/v2/dashboards/dokter/jadwal-jaga', {
           method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
-          }
+          headers: authHeaders
         });
 
         console.log('🔍 Schedule response status:', scheduleResponse.status);
@@ -383,9 +428,12 @@ const CreativeAttendanceDashboard = () => {
             arrayLength: dataArray.length
           });
           
-          const todaySchedule = dataArray.filter((schedule: any) => 
-            schedule.tanggal_jaga === today && schedule.status_jaga === 'Aktif'
-          );
+          // Fix: Handle both calendar_events format (start) and weekly_schedule format (tanggal_jaga)
+          const todaySchedule = dataArray.filter((schedule: any) => {
+            const scheduleDate = schedule.start || schedule.tanggal_jaga;
+            const isActive = schedule.status_jaga === 'Aktif' || schedule.shift_info?.status === 'aktif';
+            return scheduleDate === today && isActive;
+          });
           
           // Get current shift (first active schedule for today)
           const currentShift = todaySchedule.length > 0 ? todaySchedule[0] : null;
@@ -678,14 +726,6 @@ const CreativeAttendanceDashboard = () => {
 
     return () => clearInterval(timer);
   }, [isCheckedIn, attendanceData.checkInTime]);
-
-  const formatTime = (date: Date | string) => {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    return dateObj.toLocaleTimeString('id-ID', { 
-      hour: '2-digit', 
-      minute: '2-digit'
-    });
-  };
 
   const formatDate = (date: Date | string) => {
     const dateObj = typeof date === 'string' ? new Date(date) : date;

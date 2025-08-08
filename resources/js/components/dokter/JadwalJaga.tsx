@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { debug, api, transform, performance, state, prodError } from '../../utils/debugLogger';
+import getUnifiedAuthInstance from '../../utils/UnifiedAuth';
 import { 
   Calendar, 
   Clock, 
@@ -71,7 +72,7 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
   const [isIpad, setIsIpad] = useState(false);
   const [orientation, setOrientation] = useState('portrait');
   const [lastFetch, setLastFetch] = useState<number>(0);
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
@@ -84,45 +85,33 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
       if (!isRefresh) setLoading(true);
       setError(null);
         
-        // Get token from multiple sources
-        const token = userData?.token || 
-                      localStorage.getItem('auth_token') || 
-                      document.querySelector('meta[name="api-token"]')?.getAttribute('content') ||
-                      '';
+        // Use web session authentication (no Sanctum token needed)
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
         
-        debug.log('Token check:', { 
-          hasUserDataToken: !!userData?.token,
-          hasLocalStorageToken: !!localStorage.getItem('auth_token'),
-          hasMetaToken: !!document.querySelector('meta[name="api-token"]')?.getAttribute('content'),
-          tokenLength: token?.length || 0
-        });
-        
-        if (!token) {
-          debug.warn('No authentication token available - using fallback data');
-          setError('Authentication required');
-          const fallbackData = getFallbackMissions();
-          debug.log('Setting fallback missions:', `${fallbackData.length} missions`);
-          setMissions(fallbackData);
-          setLoading(false);
-          return;
-        }
-
-        debug.log('Making API call to /api/v2/dashboards/dokter/jadwal-jaga');
+        // Use real API endpoint for jadwal jaga data with web session auth
+        debug.log('Making API call to /api/v2/dashboards/dokter/jadwal-jaga with web session auth');
         const cacheBuster = isRefresh ? `?refresh=${Date.now()}` : '';
         const response = await fetch(`/api/v2/dashboards/dokter/jadwal-jaga${cacheBuster}`, {
+          method: 'GET',
           headers: {
-            'Authorization': `Bearer ${token}`,
             'Accept': 'application/json',
             'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-            'Cache-Control': isRefresh ? 'no-cache' : 'default'
-          }
+            'X-CSRF-TOKEN': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          credentials: 'same-origin' // Important for web session auth
         });
 
         api('jadwal-jaga', { status: response.status, ok: response.ok });
 
         if (!response.ok) {
-          throw new Error(`API Error: ${response.status}`);
+          if (response.status === 401) {
+            throw new Error('Authentication required. Please login again.');
+          } else if (response.status === 404) {
+            throw new Error('API endpoint not found. Please check configuration.');
+          } else {
+            throw new Error(`API Error: ${response.status} - ${response.statusText}`);
+          }
         }
 
         const data = await response.json();
@@ -130,8 +119,15 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
           hasData: !!data.data,
           calendarEventsCount: data.data?.calendar_events?.length || 0,
           weeklyScheduleCount: data.data?.weekly_schedule?.length || 0,
-          hasScheduleStats: !!data.data?.schedule_stats
+          hasScheduleStats: !!data.data?.schedule_stats,
+          success: data.success,
+          message: data.message
         });
+        
+        // Check if API response is successful
+        if (!data.success) {
+          throw new Error(data.message || 'API returned unsuccessful response');
+        }
         
         // NEW: Extract schedule statistics from API
         if (data.data?.schedule_stats) {
@@ -167,16 +163,27 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
           afterDeduplication: apiSchedules.length,
           duplicatesRemoved: combinedSchedules.length - apiSchedules.length
         });
+        
         const transformedMissions = transformApiData(apiSchedules);
         transform('missions', { count: transformedMissions.length });
         
-        // Use API data with improved fallback logic
+        // IMPORTANT: Only use fallback if there's a clear authentication issue
         if (transformedMissions.length === 0) {
-          debug.warn('No API schedules found - checking user authentication');
-          // Only use fallback if there's a clear authentication issue
-          const fallbackData = getFallbackMissions();
-          setMissions(fallbackData);
-          debug.log('Using fallback data for demonstration');
+          debug.warn('No API schedules found - checking if this is expected');
+          
+          // Check if user has any schedules in database
+          const hasSchedules = data.data?.schedule_stats?.total_shifts > 0;
+          
+          if (hasSchedules) {
+            debug.log('User has schedules but none returned - this might be a data issue');
+            setError('Schedules exist but cannot be displayed. Please contact administrator.');
+          } else {
+            debug.log('No schedules found for user - this is expected if user has no assignments');
+            setError('No schedules assigned. Please contact administrator for duty assignments.');
+          }
+          
+          // Don't use fallback data - show empty state instead
+          setMissions([]);
         } else {
           debug.log(`Using real API schedule data - ${transformedMissions.length} schedules loaded`);
           debug.log('Schedule cards that will be displayed:', transformedMissions.map(m => ({
@@ -195,19 +202,22 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
           setMissions(transformedMissions);
         }
         debug.log('JadwalJaga: Data loaded successfully');
-      } catch (err) {
-        // Use prodError for critical API failures
-        prodError('Failed to fetch jadwal jaga:', err);
-        debug.error('Failed to fetch jadwal jaga:', err);
-        setError('Failed to load schedule data');
-        // Fallback to demo data
-        setMissions(getFallbackMissions());
-        debug.log('Using fallback missions');
-      } finally {
-        setLoading(false);
-        debug.log('JadwalJaga: Loading complete');
-        setLastFetch(Date.now());
-      }
+    } catch (err) {
+      // Use prodError for critical API failures
+      prodError('Failed to fetch jadwal jaga:', err);
+      debug.error('Failed to fetch jadwal jaga:', err);
+      
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      setError(`Failed to load schedule data: ${errorMessage}`);
+      
+      // Don't use fallback data - show error state instead
+      setMissions([]);
+      debug.log('Showing error state instead of fallback data');
+    } finally {
+      setLoading(false);
+      debug.log('JadwalJaga: Loading complete');
+      setLastFetch(Date.now());
+    }
   };
 
   // Initial data fetch
@@ -215,7 +225,7 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
     fetchJadwalJaga();
   }, []);
 
-  // Auto-refresh every 30 seconds to catch new schedules (temporarily reduced for testing)
+  // Auto-refresh every 60 seconds to catch new schedules (optimized for performance)
   useEffect(() => {
     const refreshInterval = setInterval(() => {
       debug.log('Auto-refresh: Fetching latest schedule data...');
@@ -223,7 +233,7 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
         debug.error('Auto-refresh failed:', err);
         // Don't show prod error for auto-refresh failures to avoid spam
       });
-    }, 30000); // 30 seconds for testing (was 2 minutes)
+    }, 60000); // 60 seconds (optimized from 30 seconds to reduce server load)
 
     return () => clearInterval(refreshInterval);
   }, []);
@@ -231,7 +241,72 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
   // Manual refresh function for external use
   const refreshSchedules = async () => {
     debug.log('Manual refresh triggered');
+    setLoading(true);
     await fetchJadwalJaga(true);
+  };
+
+  // Force refresh function for immediate updates
+  const forceRefresh = async () => {
+    debug.log('Force refresh triggered');
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const token = userData?.token || 
+                    localStorage.getItem('auth_token') || 
+                    document.querySelector('meta[name="api-token"]')?.getAttribute('content') ||
+                    '';
+      
+      const response = await fetch(`/api/v2/dashboards/dokter/jadwal-jaga?refresh=${Date.now()}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      debug.log('Force refresh data received:', data);
+      
+      // Update missions with new data
+      const weeklySchedules = data.data?.weekly_schedule || [];
+      const calendarEvents = data.data?.calendar_events || [];
+      const combinedSchedules = [...weeklySchedules, ...calendarEvents];
+      const seenIds = new Set();
+      const apiSchedules = combinedSchedules.filter(schedule => {
+        const id = schedule.id;
+        if (seenIds.has(id)) return false;
+        seenIds.add(id);
+        return true;
+      });
+      
+      const transformedMissions = transformApiData(apiSchedules);
+      setMissions(transformedMissions);
+      
+      // Update stats
+      if (data.data?.schedule_stats) {
+        const stats = data.data.schedule_stats;
+        setCompletedShifts(stats.completed || 0);
+        setUpcomingShifts(stats.upcoming || 0);
+        setTotalHours(stats.total_hours || 0);
+        setTotalShifts(stats.total_shifts || 0);
+      }
+      
+      debug.log('Force refresh completed successfully');
+    } catch (err) {
+      debug.error('Force refresh failed:', err);
+      setError('Gagal memperbarui jadwal');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Enhanced transform API data to Mission format with better relationship handling
@@ -298,7 +373,7 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
         
         mission = {
           id: schedule.id || index + 1,
-          title: "Dokter Jaga",
+          title: schedule.title || shiftInfo.nama_shift || "Dokter Jaga",
           subtitle: getShiftSubtitle(shiftInfo.nama_shift),
           date: new Date(schedule.start).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
           full_date: schedule.start,
@@ -355,7 +430,7 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
         
         mission = {
           id: schedule.id || index + 1,
-          title: "Dokter Jaga",
+          title: shiftTemplate.nama_shift || "Dokter Jaga",
           subtitle: getShiftSubtitle(shiftTemplate.nama_shift),
           date: new Date(scheduleDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
           full_date: scheduleDate,
@@ -722,10 +797,10 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
                 Medical Mission Central
               </h1>
               <button
-                onClick={refreshSchedules}
+                onClick={forceRefresh}
                 disabled={loading}
                 className="ml-4 p-2 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 transition-all duration-300 disabled:opacity-50"
-                title="Refresh schedules"
+                title="Force refresh schedules (immediate update)"
               >
                 <Loader2 className={`w-5 h-5 text-cyan-400 ${loading ? 'animate-spin' : ''}`} />
               </button>
@@ -868,10 +943,10 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
                           {/* Compact Title */}
                           <div className="flex-1">
                             <h3 className={`font-semibold text-white mb-1 ${isIpad ? 'text-base' : 'text-sm'}`}>
-                              Dokter Jaga
+                              {mission.shift_template?.nama_shift || mission.title || 'Dokter Jaga'}
                             </h3>
                             <p className={`text-gray-300 font-medium ${isIpad ? 'text-sm' : 'text-xs'}`}>
-                              {mission.shift_template?.nama_shift || 'Pagi'}
+                              {mission.subtitle || 'Shift Jaga'}
                             </p>
                           </div>
                         </div>
@@ -901,12 +976,24 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
             </div>
             
             {/* Empty State */}
-            {currentMissions.length === 0 && (
+            {currentMissions.length === 0 && !loading && (
               <div className="text-center py-12">
                 <div className="bg-white/5 backdrop-blur-2xl rounded-2xl p-8 border border-white/10 max-w-md mx-auto">
                   <Shield className="h-16 w-16 mx-auto mb-4 text-purple-400" />
-                  <h3 className="text-xl font-bold text-white mb-2">No Schedules</h3>
-                  <p className="text-gray-400 text-sm">No medical schedules available for this page</p>
+                  <h3 className="text-xl font-bold text-white mb-2">
+                    {error ? 'Error Loading Schedules' : 'No Schedules Available'}
+                  </h3>
+                  <p className="text-gray-400 text-sm mb-4">
+                    {error || 'No medical schedules available for this page'}
+                  </p>
+                  {error && (
+                    <button
+                      onClick={forceRefresh}
+                      className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors duration-200"
+                    >
+                      Try Again
+                    </button>
+                  )}
                 </div>
               </div>
             )}

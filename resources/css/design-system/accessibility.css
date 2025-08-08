@@ -507,17 +507,17 @@
   margin-right: var(--space-2);
 }
 
-/* Language-specific fonts */
+/* Language-specific fonts - Using built-in system fonts */
 :lang(ar) {
-  font-family: 'Noto Sans Arabic', var(--font-sans);
+  font-family: system-ui, -apple-system, 'Segoe UI', 'Arial Unicode MS', sans-serif;
 }
 
 :lang(zh) {
-  font-family: 'Noto Sans SC', var(--font-sans);
+  font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
 }
 
 :lang(ja) {
-  font-family: 'Noto Sans JP', var(--font-sans);
+  font-family: system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Yu Gothic', sans-serif;
 }
 
 /* ================================

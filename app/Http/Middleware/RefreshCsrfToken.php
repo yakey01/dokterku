@@ -22,6 +22,15 @@ class RefreshCsrfToken
             session()->migrate(true);
         }
         
+        // Ensure session is started and CSRF token exists
+        if (!session()->isStarted()) {
+            session()->start();
+        }
+        
+        if (!session()->token()) {
+            session()->regenerateToken();
+        }
+        
         $response = $next($request);
 
         // Add CSRF token to all responses for Filament panels and dokter routes

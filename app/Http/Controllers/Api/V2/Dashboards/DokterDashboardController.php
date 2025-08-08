@@ -25,17 +25,20 @@ class DokterDashboardController extends Controller
     {
         try {
             $user = Auth::user();
+            
+            // Handle missing user gracefully
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not authenticated',
+                    'data' => null
+                ], 401);
+            }
+            
+            // Try to find dokter record, but don't fail if it doesn't exist
             $dokter = Dokter::where('user_id', $user->id)
                 ->where('aktif', true)
                 ->first();
-            
-            if (!$dokter) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Data dokter tidak ditemukan',
-                    'data' => null
-                ], 404);
-            }
 
             // Cache dashboard stats untuk 5 menit
             $cacheKey = "dokter_dashboard_stats_{$user->id}";
@@ -44,17 +47,24 @@ class DokterDashboardController extends Controller
                 $thisMonth = Carbon::now()->startOfMonth();
                 $thisWeek = Carbon::now()->startOfWeek();
 
-                // Hitung stats real
-                $patientsToday = Tindakan::where('dokter_id', $dokter->id)
-                    ->whereDate('tanggal_tindakan', $today)
-                    ->distinct('pasien_id')
-                    ->count();
+                // Calculate stats - handle case where dokter record doesn't exist
+                $patientsToday = 0;
+                $tindakanToday = 0;
+                
+                if ($dokter) {
+                    // Only calculate if dokter record exists
+                    $patientsToday = Tindakan::where('dokter_id', $dokter->id)
+                        ->whereDate('tanggal_tindakan', $today)
+                        ->distinct('pasien_id')
+                        ->count();
 
-                $tindakanToday = Tindakan::where('dokter_id', $dokter->id)
-                    ->whereDate('tanggal_tindakan', $today)
-                    ->count();
+                    $tindakanToday = Tindakan::where('dokter_id', $dokter->id)
+                        ->whereDate('tanggal_tindakan', $today)
+                        ->count();
+                }
 
                 // WORLD-CLASS: Use Jaspel model for consistent calculation with Jaspel page
+                // This uses user_id so it works even without dokter record
                 $jaspelMonth = \App\Models\Jaspel::where('user_id', $user->id)
                     ->whereMonth('tanggal', $thisMonth->month)
                     ->whereYear('tanggal', $thisMonth->year)
@@ -85,8 +95,12 @@ class DokterDashboardController extends Controller
                 ];
             });
 
-            // Performance metrics
-            $performanceStats = $this->getPerformanceStats($dokter);
+            // Performance metrics - handle null dokter
+            $performanceStats = $dokter ? $this->getPerformanceStats($dokter) : [
+                'average_response_time' => 0,
+                'patient_satisfaction' => 0,
+                'treatment_success_rate' => 0
+            ];
             
             // Next schedule
             $nextSchedule = $this->getNextSchedule($user);
@@ -97,19 +111,35 @@ class DokterDashboardController extends Controller
                 'data' => [
                     'user' => [
                         'id' => $user->id,
-                        'name' => $user->name,
-                        'email' => $user->email,
-                        'jenis_pegawai' => $dokter->jenis_pegawai,
-                        'unit_kerja' => $dokter->unit_kerja ?? 'Tidak ditentukan',
-                        'avatar' => null,
-                        'initials' => strtoupper(substr($user->name, 0, 2))
+                        'name' => $dokter ? $dokter->nama_lengkap : $user->name,
+                        'email' => $dokter ? $dokter->email : $user->email,
+                        'phone' => $dokter ? $dokter->no_telepon : $user->phone,
+                        'address' => $dokter ? $dokter->alamat : $user->address,
+                        'date_of_birth' => $dokter ? $dokter->tanggal_lahir?->format('d F Y') : $user->date_of_birth?->format('d F Y'),
+                        'gender' => $this->formatGender($dokter ? $dokter->jenis_kelamin : $user->gender),
+                        'bio' => $dokter ? $dokter->keterangan : $user->bio,
+                        'nik' => $dokter ? $dokter->nik : null,
+                        'nomor_sip' => $dokter ? $dokter->nomor_sip : null,
+                        'jabatan' => $dokter ? $dokter->jabatan : 'Dokter',
+                        'spesialisasi' => $dokter ? $dokter->spesialisasi : null,
+                        'tanggal_bergabung' => $dokter ? $dokter->tanggal_bergabung?->format('d F Y') : null,
+                        'status_akun' => $dokter ? $dokter->status_akun : null,
+                        'avatar' => $dokter ? $dokter->foto : $user->profile_photo_path,
+                        'initials' => strtoupper(substr($dokter ? $dokter->nama_lengkap : $user->name, 0, 2))
                     ],
-                    'dokter' => [
+                    'dokter' => $dokter ? [
                         'id' => $dokter->id,
                         'nama_lengkap' => $dokter->nama_lengkap ?? $user->name,
                         'nik' => $dokter->nik,
                         'jenis_pegawai' => $dokter->jenis_pegawai,
                         'unit_kerja' => $dokter->unit_kerja,
+                        'status' => 'Aktif'
+                    ] : [
+                        'id' => null,
+                        'nama_lengkap' => $user->name,
+                        'nik' => null,
+                        'jenis_pegawai' => 'Dokter',
+                        'unit_kerja' => 'Tidak ditentukan',
                         'status' => 'Aktif'
                     ],
                     'stats' => $stats,
@@ -142,186 +172,271 @@ class DokterDashboardController extends Controller
     {
         try {
             $user = Auth::user();
+            
+            \Log::info('JadwalJaga API called', [
+                'user_id' => $user ? $user->id : 'null',
+                'user_name' => $user ? $user->name : 'null',
+                'request_url' => $request->url(),
+                'request_method' => $request->method(),
+                'headers' => $request->headers->all()
+            ]);
+            
+            if (!$user) {
+                \Log::warning('JadwalJaga API: User not authenticated');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User tidak terautentikasi'
+                ], 401);
+            }
+            
             $month = $request->get('month', Carbon::now()->month);
             $year = $request->get('year', Carbon::now()->year);
+            $today = Carbon::today();
+            
+            // Check if this is a refresh request
+            $isRefresh = $request->has('refresh') || $request->header('Cache-Control') === 'no-cache';
+            
+            // Cache key for jadwal jaga with short TTL for quick refresh
+            $cacheKey = "jadwal_jaga_{$user->id}_{$month}_{$year}";
+            $cacheTTL = $isRefresh ? 10 : 60; // 10 seconds for refresh, 60 seconds for normal
+            
+            // Clear cache if refresh requested
+            if ($isRefresh) {
+                Cache::forget($cacheKey);
+                \Log::info("🔄 Cleared jadwal jaga cache for user {$user->id} due to refresh request");
+            }
+            
+            // Use cache for jadwal jaga data
+            $jadwalData = Cache::remember($cacheKey, $cacheTTL, function () use ($user, $month, $year, $today, $cacheTTL, $isRefresh) {
+                // Enhanced query with proper relationships
+                $jadwalJaga = JadwalJaga::where('pegawai_id', $user->id)
+                    ->whereMonth('tanggal_jaga', $month)
+                    ->whereYear('tanggal_jaga', $year)
+                    ->with(['shiftTemplate', 'pegawai'])
+                    ->orderBy('tanggal_jaga')
+                    ->get();
 
-            // Enhanced query with proper relationships
-            $jadwalJaga = JadwalJaga::where('pegawai_id', $user->id)
-                ->whereMonth('tanggal_jaga', $month)
-                ->whereYear('tanggal_jaga', $year)
-                ->with(['shiftTemplate', 'pegawai'])
-                ->orderBy('tanggal_jaga')
-                ->get();
+                \Log::info('JadwalJaga query result', [
+                    'user_id' => $user->id,
+                    'month' => $month,
+                    'year' => $year,
+                    'jadwal_count' => $jadwalJaga->count(),
+                    'jadwal_ids' => $jadwalJaga->pluck('id')->toArray()
+                ]);
 
-            // Format untuk calendar dengan proper shift template data
-            $calendarEvents = $jadwalJaga->map(function ($jadwal) use ($user) {
-                $shiftTemplate = $jadwal->shiftTemplate;
-                
-                return [
-                    'id' => $jadwal->id,
-                    'title' => $shiftTemplate ? $shiftTemplate->nama_shift : 'Shift Jaga',
-                    'start' => $jadwal->tanggal_jaga->format('Y-m-d'),
-                    'end' => $jadwal->tanggal_jaga->format('Y-m-d'),
-                    'color' => $jadwal->color,
-                    'description' => $jadwal->unit_kerja ?? 'Unit Kerja',
-                    'shift_info' => [
-                        'id' => $shiftTemplate ? $shiftTemplate->id : null,
-                        'nama_shift' => $shiftTemplate ? $shiftTemplate->nama_shift : 'Shift',
-                        'jam_masuk' => $shiftTemplate ? $shiftTemplate->jam_masuk : '08:00',
-                        'jam_pulang' => $shiftTemplate ? $shiftTemplate->jam_pulang : '16:00',
-                        'durasi_jam' => $shiftTemplate ? $shiftTemplate->durasi_jam : 8,
-                        'warna' => $shiftTemplate ? $shiftTemplate->warna : '#3b82f6',
-                        'unit_kerja' => $jadwal->unit_kerja ?? 'Unit Kerja',
-                        'status' => $jadwal->status_jaga ?? 'aktif',
-                        'peran' => $jadwal->peran ?? 'Dokter Jaga',
-                        'employee_name' => $user->name,
-                        'keterangan' => $jadwal->keterangan
-                    ]
-                ];
-            });
-
-            // Enhanced weekly schedule with full relationship data
-            $weeklySchedule = JadwalJaga::where('pegawai_id', $user->id)
-                ->whereBetween('tanggal_jaga', [
-                    Carbon::now()->startOfWeek(),
-                    Carbon::now()->endOfWeek()
-                ])
-                ->with(['shiftTemplate', 'pegawai'])
-                ->orderBy('tanggal_jaga')
-                ->get()
-                ->map(function ($jadwal) use ($user) {
+                // Format untuk calendar dengan proper shift template data
+                $calendarEvents = $jadwalJaga->map(function ($jadwal) use ($user) {
                     $shiftTemplate = $jadwal->shiftTemplate;
                     
                     return [
                         'id' => $jadwal->id,
-                        'tanggal_jaga' => $jadwal->tanggal_jaga->format('Y-m-d'),
-                        'tanggal_formatted' => $jadwal->tanggal_jaga->format('l, d F Y'),
-                        'unit_kerja' => $jadwal->unit_kerja,
-                        'peran' => $jadwal->peran,
-                        'status_jaga' => $jadwal->status_jaga,
-                        'keterangan' => $jadwal->keterangan,
-                        'employee_name' => $user->name,
-                        'shift_template' => $shiftTemplate ? [
-                            'id' => $shiftTemplate->id,
-                            'nama_shift' => $shiftTemplate->nama_shift,
-                            'jam_masuk' => $shiftTemplate->jam_masuk,
-                            'jam_pulang' => $shiftTemplate->jam_pulang,
-                            'durasi_jam' => $shiftTemplate->durasi_jam,
-                            'warna' => $shiftTemplate->warna ?? '#3b82f6'
-                        ] : null
+                        'title' => $shiftTemplate ? $shiftTemplate->nama_shift : 'Shift Jaga',
+                        'start' => $jadwal->tanggal_jaga->format('Y-m-d'),
+                        'end' => $jadwal->tanggal_jaga->format('Y-m-d'),
+                        'color' => $jadwal->color,
+                        'description' => $jadwal->unit_kerja ?? 'Unit Kerja',
+                        'shift_info' => [
+                            'id' => $shiftTemplate ? $shiftTemplate->id : null,
+                            'nama_shift' => $shiftTemplate ? $shiftTemplate->nama_shift : 'Shift',
+                            'jam_masuk' => $shiftTemplate ? $shiftTemplate->jam_masuk_format : '08:00',
+                            'jam_pulang' => $shiftTemplate ? $shiftTemplate->jam_pulang_format : '16:00',
+                            'durasi_jam' => $shiftTemplate ? $shiftTemplate->durasi_jam : 8,
+                            'warna' => $shiftTemplate ? $shiftTemplate->warna : '#3b82f6',
+                            'unit_kerja' => $jadwal->unit_kerja ?? 'Unit Kerja',
+                            'status' => $jadwal->status_jaga ?? 'aktif',
+                            'peran' => $jadwal->peran ?? 'Dokter Jaga',
+                            'employee_name' => $user->name,
+                            'keterangan' => $jadwal->keterangan
+                        ]
                     ];
                 });
 
-            // ENHANCED: Calculate schedule card statistics
-            $now = Carbon::now();
-            $todayDate = $now->toDateString();
-            $currentTime = $now->format('H:i:s');
-            
-            // All schedules for the requested month/year with shift templates
-            $allSchedules = JadwalJaga::where('pegawai_id', $user->id)
-                ->whereMonth('tanggal_jaga', $month)
-                ->whereYear('tanggal_jaga', $year)
-                ->with(['shiftTemplate'])
-                ->get();
-            
-            // Completed shifts (past dates OR today's shifts that have ended)
-            $completedShifts = $allSchedules->filter(function ($jadwal) use ($todayDate, $currentTime) {
-                $shiftDate = $jadwal->tanggal_jaga->format('Y-m-d');
+                // Enhanced weekly schedule with full relationship data
+                $weeklySchedule = JadwalJaga::where('pegawai_id', $user->id)
+                    ->whereBetween('tanggal_jaga', [
+                        Carbon::now()->startOfWeek(),
+                        Carbon::now()->endOfWeek()
+                    ])
+                    ->with(['shiftTemplate', 'pegawai'])
+                    ->orderBy('tanggal_jaga')
+                    ->get()
+                    ->map(function ($jadwal) use ($user) {
+                        $shiftTemplate = $jadwal->shiftTemplate;
+                        
+                        return [
+                            'id' => $jadwal->id,
+                            'tanggal_jaga' => $jadwal->tanggal_jaga->format('Y-m-d'),
+                            'tanggal_formatted' => $jadwal->tanggal_jaga->format('l, d F Y'),
+                            'unit_kerja' => $jadwal->unit_kerja,
+                            'peran' => $jadwal->peran,
+                            'status_jaga' => $jadwal->status_jaga,
+                            'keterangan' => $jadwal->keterangan,
+                            'employee_name' => $user->name,
+                            'shift_template' => $shiftTemplate ? [
+                                'id' => $shiftTemplate->id,
+                                'nama_shift' => $shiftTemplate->nama_shift,
+                                'jam_masuk' => $shiftTemplate->jam_masuk_format,
+                                'jam_pulang' => $shiftTemplate->jam_pulang_format,
+                                'durasi_jam' => $shiftTemplate->durasi_jam,
+                                'warna' => $shiftTemplate->warna ?? '#3b82f6'
+                            ] : null
+                        ];
+                    });
+
+                // FIXED: Get today's schedule specifically for attendance validation
+                $todaySchedule = JadwalJaga::where('pegawai_id', $user->id)
+                    ->whereDate('tanggal_jaga', $today)
+                    ->with(['shiftTemplate', 'pegawai'])
+                    ->get()
+                    ->map(function ($jadwal) {
+                        $shiftTemplate = $jadwal->shiftTemplate;
+                        
+                        return [
+                            'id' => $jadwal->id,
+                            'tanggal_jaga' => $jadwal->tanggal_jaga->format('Y-m-d'),
+                            'tanggal_formatted' => $jadwal->tanggal_jaga->format('d/m/Y'),
+                            'pegawai_id' => $jadwal->pegawai_id,
+                            'employee_name' => $jadwal->pegawai->name ?? $user->name,
+                            'shift_template_id' => $jadwal->shift_template_id,
+                            'unit_kerja' => $jadwal->unit_kerja,
+                            'unit_instalasi' => $jadwal->unit_instalasi,
+                            'peran' => $jadwal->peran,
+                            'status_jaga' => $jadwal->status_jaga,
+                            'keterangan' => $jadwal->keterangan,
+                            'shift_template' => $shiftTemplate ? [
+                                'id' => $shiftTemplate->id,
+                                'nama_shift' => $shiftTemplate->nama_shift,
+                                'jam_masuk' => $shiftTemplate->jam_masuk_format,
+                                'jam_pulang' => $shiftTemplate->jam_pulang_format,
+                                'durasi_jam' => $shiftTemplate->durasi_jam,
+                                'warna' => $shiftTemplate->warna ?? '#3b82f6'
+                            ] : null
+                        ];
+                    });
+
+                // Get current active shift for today
+                $currentShift = $todaySchedule->where('status_jaga', 'Aktif')->first();
+
+                // ENHANCED: Calculate schedule card statistics
+                $now = Carbon::now();
+                $todayDate = $now->toDateString();
+                $currentTime = $now->format('H:i:s');
                 
-                // Past dates are automatically completed
-                if ($shiftDate < $todayDate) {
-                    return true;
-                }
+                // All schedules for the requested month/year with shift templates
+                $allSchedules = JadwalJaga::where('pegawai_id', $user->id)
+                    ->whereMonth('tanggal_jaga', $month)
+                    ->whereYear('tanggal_jaga', $year)
+                    ->with(['shiftTemplate'])
+                    ->get();
                 
-                // For today's shifts, check if shift has ended based on shift template
-                if ($shiftDate === $todayDate && $jadwal->shiftTemplate && $jadwal->shiftTemplate->jam_pulang) {
-                    $shiftEndTime = $jadwal->shiftTemplate->jam_pulang;
-                    return $currentTime >= $shiftEndTime;
-                }
-                
-                return false;
-            });
-            
-            // Upcoming shifts (future dates OR today's shifts that haven't started/ended)
-            $upcomingShifts = $allSchedules->filter(function ($jadwal) use ($todayDate, $currentTime) {
-                $shiftDate = $jadwal->tanggal_jaga->format('Y-m-d');
-                
-                // Future dates are upcoming
-                if ($shiftDate > $todayDate) {
-                    return true;
-                }
-                
-                // For today's shifts, check if shift hasn't ended yet
-                if ($shiftDate === $todayDate && $jadwal->shiftTemplate && $jadwal->shiftTemplate->jam_pulang) {
-                    $shiftEndTime = $jadwal->shiftTemplate->jam_pulang;
-                    return $currentTime < $shiftEndTime;
-                }
-                
-                return false;
-            });
-            
-            // Calculate total hours from completed shifts
-            $totalHours = $completedShifts->sum(function ($jadwal) {
-                if ($jadwal->shiftTemplate && $jadwal->shiftTemplate->durasi_jam) {
-                    return $jadwal->shiftTemplate->durasi_jam;
-                }
-                // Fallback: calculate from jam_masuk and jam_pulang
-                if ($jadwal->shiftTemplate && $jadwal->shiftTemplate->jam_masuk && $jadwal->shiftTemplate->jam_pulang) {
-                    $startTime = Carbon::parse($jadwal->shiftTemplate->jam_masuk);
-                    $endTime = Carbon::parse($jadwal->shiftTemplate->jam_pulang);
+                // Completed shifts (past dates OR today's shifts that have ended)
+                $completedShifts = $allSchedules->filter(function ($jadwal) use ($todayDate, $currentTime) {
+                    $shiftDate = $jadwal->tanggal_jaga->format('Y-m-d');
                     
-                    // Handle overnight shifts
-                    if ($endTime->lt($startTime)) {
-                        $endTime->addDay();
+                    // Past dates are automatically completed
+                    if ($shiftDate < $todayDate) {
+                        return true;
                     }
                     
-                    return $startTime->diffInHours($endTime);
-                }
-                // Default 8 hours if no template data
-                return 8;
+                    // For today's shifts, check if shift has ended based on shift template
+                    if ($shiftDate === $todayDate && $jadwal->shiftTemplate && $jadwal->shiftTemplate->jam_pulang) {
+                        $shiftEndTime = $jadwal->shiftTemplate->jam_pulang;
+                        return $currentTime >= $shiftEndTime;
+                    }
+                    
+                    return false;
+                });
+                
+                // Upcoming shifts (future dates OR today's shifts that haven't started/ended)
+                $upcomingShifts = $allSchedules->filter(function ($jadwal) use ($todayDate, $currentTime) {
+                    $shiftDate = $jadwal->tanggal_jaga->format('Y-m-d');
+                    
+                    // Future dates are upcoming
+                    if ($shiftDate > $todayDate) {
+                        return true;
+                    }
+                    
+                    // For today's shifts, check if shift hasn't ended yet
+                    if ($shiftDate === $todayDate && $jadwal->shiftTemplate && $jadwal->shiftTemplate->jam_pulang) {
+                        $shiftEndTime = $jadwal->shiftTemplate->jam_pulang;
+                        return $currentTime < $shiftEndTime;
+                    }
+                    
+                    return false;
+                });
+                
+                // Calculate total hours from completed shifts
+                $totalHours = $completedShifts->sum(function ($jadwal) {
+                    if ($jadwal->shiftTemplate && $jadwal->shiftTemplate->durasi_jam) {
+                        return $jadwal->shiftTemplate->durasi_jam;
+                    }
+                    // Fallback: calculate from jam_masuk and jam_pulang
+                    if ($jadwal->shiftTemplate && $jadwal->shiftTemplate->jam_masuk && $jadwal->shiftTemplate->jam_pulang) {
+                        $startTime = Carbon::parse($jadwal->shiftTemplate->jam_masuk);
+                        $endTime = Carbon::parse($jadwal->shiftTemplate->jam_pulang);
+                        
+                        // Handle overnight shifts
+                        if ($endTime->lt($startTime)) {
+                            $endTime->addDay();
+                        }
+                        
+                        return $startTime->diffInHours($endTime);
+                    }
+                    // Default 8 hours if no template data
+                    return 8;
+                });
+
+                // Schedule card statistics
+                $scheduleStats = [
+                    'completed' => $completedShifts->count(),
+                    'upcoming' => $upcomingShifts->count(),
+                    'total_hours' => $totalHours,
+                    'total_shifts' => $allSchedules->count(),
+                    'current_month' => $month,
+                    'current_year' => $year,
+                    'month_name' => Carbon::create($year, $month, 1)->format('F Y')
+                ];
+
+                return [
+                    'calendar_events' => $calendarEvents,
+                    'weekly_schedule' => $weeklySchedule,
+                    'today' => $todaySchedule,
+                    'currentShift' => $currentShift,
+                    'schedule_stats' => $scheduleStats,
+                    'month' => $month,
+                    'year' => $year,
+                    'cache_info' => [
+                        'cached_at' => now()->toISOString(),
+                        'cache_ttl' => $cacheTTL,
+                        'is_refresh' => $isRefresh
+                    ]
+                ];
             });
 
-            // Schedule card statistics
-            $scheduleStats = [
-                'completed' => $completedShifts->count(),
-                'upcoming' => $upcomingShifts->count(),
-                'total_hours' => $totalHours,
-                'total_shifts' => $allSchedules->count(),
-                'current_month' => $month,
-                'current_year' => $year,
-                'month_name' => Carbon::create($year, $month, 1)->format('F Y')
-            ];
+            \Log::info('JadwalJaga API response', [
+                'user_id' => $user->id,
+                'calendar_events_count' => count($jadwalData['calendar_events'] ?? []),
+                'weekly_schedule_count' => count($jadwalData['weekly_schedule'] ?? []),
+                'today_count' => count($jadwalData['today'] ?? []),
+                'schedule_stats' => $jadwalData['schedule_stats'] ?? null
+            ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Jadwal jaga berhasil dimuat',
-                'data' => [
-                    'calendar_events' => $calendarEvents,
-                    'weekly_schedule' => $weeklySchedule,
-                    'schedule_stats' => $scheduleStats,
-                    'month' => $month,
-                    'year' => $year,
-                    'total_shifts' => $jadwalJaga->count(),
-                    'next_shift' => $this->getNextSchedule($user),
-                    'user_info' => [
-                        'id' => $user->id,
-                        'name' => $user->name,
-                        'role' => $user->role?->name ?? 'dokter'
-                    ]
-                ]
+                'data' => $jadwalData
             ]);
 
         } catch (\Exception $e) {
-            \Log::error('DokterDashboardController::getJadwalJaga error', [
-                'user_id' => Auth::id(),
+            \Log::error('Error in getJadwalJaga', [
+                'user_id' => $user->id ?? 'unknown',
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal memuat jadwal jaga: ' . $e->getMessage(),
-                'data' => null
+                'message' => 'Gagal memuat jadwal jaga: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -561,6 +676,14 @@ class DokterDashboardController extends Controller
     {
         try {
             $user = Auth::user();
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User tidak terautentikasi'
+                ], 401);
+            }
+            
             $today = Carbon::today();
             
             // Presensi hari ini
@@ -627,7 +750,81 @@ class DokterDashboardController extends Controller
         try {
             $user = Auth::user();
             $today = Carbon::today();
+            $currentTime = Carbon::now()->setTimezone('Asia/Jakarta');
             
+            // VALIDASI JADWAL JAGA - Cek apakah dokter memiliki jadwal jaga hari ini
+            $jadwalJaga = JadwalJaga::where('pegawai_id', $user->id)
+                ->whereDate('tanggal_jaga', $today)
+                ->where('status_jaga', 'Aktif')
+                ->with('shiftTemplate')
+                ->first();
+
+            if (!$jadwalJaga) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki jadwal jaga hari ini. Hubungi admin untuk informasi lebih lanjut.',
+                    'code' => 'NO_SCHEDULE'
+                ], 422);
+            }
+
+            // VALIDASI WAKTU JAGA - Cek apakah saat ini dalam jam jaga dengan buffer
+            $shiftTemplate = $jadwalJaga->shiftTemplate;
+            if ($shiftTemplate) {
+                $startTime = Carbon::parse($shiftTemplate->jam_masuk)->setTimezone('Asia/Jakarta');
+                $endTime = Carbon::parse($shiftTemplate->jam_pulang)->setTimezone('Asia/Jakarta');
+                $currentTimeOnly = $currentTime->format('H:i:s');
+                
+                // Add buffer for short shifts (5 minutes before and after)
+                $bufferMinutes = 5;
+                $startTimeWithBuffer = $startTime->copy()->subMinutes($bufferMinutes);
+                $endTimeWithBuffer = $endTime->copy()->addMinutes($bufferMinutes);
+                
+                // Handle overnight shifts (end time < start time)
+                if ($endTime->format('H:i:s') < $startTime->format('H:i:s')) {
+                    // For overnight shifts, check if current time is after start OR before end
+                    if ($currentTimeOnly < $startTimeWithBuffer->format('H:i:s') && $currentTimeOnly > $endTimeWithBuffer->format('H:i:s')) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => sprintf(
+                                'Saat ini bukan jam jaga Anda. Jadwal jaga: %s - %s, Waktu saat ini: %s',
+                                $startTime->format('H:i'),
+                                $endTime->format('H:i'),
+                                $currentTime->format('H:i:s')
+                            ),
+                            'code' => 'OUTSIDE_SHIFT_HOURS',
+                            'debug_info' => [
+                                'current_time' => $currentTime->toISOString(),
+                                'shift_start' => $startTime->toISOString(),
+                                'shift_end' => $endTime->toISOString(),
+                                'timezone' => $currentTime->timezone->getName(),
+                                'buffer_minutes' => $bufferMinutes
+                            ]
+                        ], 422);
+                    }
+                } else {
+                    // For regular shifts, check if current time is within shift hours with buffer
+                    if ($currentTimeOnly < $startTimeWithBuffer->format('H:i:s') || $currentTimeOnly > $endTimeWithBuffer->format('H:i:s')) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => sprintf(
+                                'Saat ini bukan jam jaga Anda. Jadwal jaga: %s - %s, Waktu saat ini: %s',
+                                $startTime->format('H:i'),
+                                $endTime->format('H:i'),
+                                $currentTime->format('H:i:s')
+                            ),
+                            'code' => 'OUTSIDE_SHIFT_HOURS',
+                            'debug_info' => [
+                                'current_time' => $currentTime->toISOString(),
+                                'shift_start' => $startTime->toISOString(),
+                                'shift_end' => $endTime->toISOString(),
+                                'timezone' => $currentTime->timezone->getName(),
+                                'buffer_minutes' => $bufferMinutes
+                            ]
+                        ], 422);
+                    }
+                }
+            }
+
             // Cek apakah sudah check-in hari ini
             $attendance = Attendance::where('user_id', $user->id)
                 ->whereDate('date', $today)
@@ -640,25 +837,52 @@ class DokterDashboardController extends Controller
                 ], 422);
             }
 
-            // Buat record attendance
+            // Buat record attendance dengan jadwal jaga ID
+            $latitude = $request->get('latitude');
+            $longitude = $request->get('longitude');
+            $location = $request->get('location');
+            
+            // Format latlon_in as "latitude,longitude"
+            $latlonIn = null;
+            if ($latitude && $longitude) {
+                $latlonIn = $latitude . ',' . $longitude;
+            }
+            
             $attendance = Attendance::updateOrCreate([
                 'user_id' => $user->id,
                 'date' => $today
             ], [
-                'time_in' => Carbon::now(),
-                'location_in' => $request->get('location'),
-                'latitude_in' => $request->get('latitude'),
-                'longitude_in' => $request->get('longitude'),
-                'status' => 'on_time'
+                'time_in' => $currentTime,
+                'latlon_in' => $latlonIn,
+                'location_name_in' => $location,
+                'latitude' => $latitude,
+                'longitude' => $longitude,
+                'accuracy' => $request->get('accuracy'),
+                'jadwal_jaga_id' => $jadwalJaga->id, // Link ke jadwal jaga
+                'status' => 'present'
             ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Check-in berhasil',
-                'data' => $attendance
+                'data' => [
+                    'attendance' => $attendance,
+                    'schedule' => [
+                        'id' => $jadwalJaga->id,
+                        'shift_name' => $shiftTemplate ? $shiftTemplate->nama_shift : 'Shift',
+                        'start_time' => $shiftTemplate ? $shiftTemplate->jam_masuk : '08:00',
+                        'end_time' => $shiftTemplate ? $shiftTemplate->jam_pulang : '16:00',
+                        'unit_kerja' => $jadwalJaga->unit_kerja
+                    ]
+                ]
             ]);
 
         } catch (\Exception $e) {
+            \Log::error('Check-in error for user ' . $user->id, [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal check-in: ' . $e->getMessage()
@@ -671,11 +895,14 @@ class DokterDashboardController extends Controller
         try {
             $user = Auth::user();
             $today = Carbon::today();
+            $currentTime = Carbon::now();
             
+            // Cek apakah sudah check-in hari ini
             $attendance = Attendance::where('user_id', $user->id)
                 ->whereDate('date', $today)
                 ->whereNotNull('time_in')
                 ->whereNull('time_out')
+                ->with('jadwalJaga.shiftTemplate')
                 ->first();
 
             if (!$attendance) {
@@ -685,8 +912,41 @@ class DokterDashboardController extends Controller
                 ], 422);
             }
 
+            // VALIDASI JADWAL JAGA - Cek apakah ada jadwal jaga yang terkait
+            if ($attendance->jadwal_jaga_id) {
+                $jadwalJaga = $attendance->jadwalJaga;
+                $shiftTemplate = $jadwalJaga->shiftTemplate;
+                
+                if ($shiftTemplate) {
+                    $startTime = Carbon::parse($shiftTemplate->jam_masuk);
+                    $endTime = Carbon::parse($shiftTemplate->jam_pulang);
+                    $currentTimeOnly = $currentTime->format('H:i:s');
+                    
+                    // Handle overnight shifts (end time < start time)
+                    if ($endTime->format('H:i:s') < $startTime->format('H:i:s')) {
+                        // For overnight shifts, check if current time is after start OR before end
+                        if ($currentTimeOnly < $startTime->format('H:i:s') && $currentTimeOnly > $endTime->format('H:i:s')) {
+                            return response()->json([
+                                'success' => false,
+                                'message' => 'Saat ini bukan jam jaga Anda. Jadwal jaga: ' . $startTime->format('H:i') . ' - ' . $endTime->format('H:i'),
+                                'code' => 'OUTSIDE_SHIFT_HOURS'
+                            ], 422);
+                        }
+                    } else {
+                        // For regular shifts, check if current time is within shift hours
+                        if ($currentTimeOnly < $startTime->format('H:i:s') || $currentTimeOnly > $endTime->format('H:i:s')) {
+                            return response()->json([
+                                'success' => false,
+                                'message' => 'Saat ini bukan jam jaga Anda. Jadwal jaga: ' . $startTime->format('H:i') . ' - ' . $endTime->format('H:i'),
+                                'code' => 'OUTSIDE_SHIFT_HOURS'
+                            ], 422);
+                        }
+                    }
+                }
+            }
+
             $attendance->update([
-                'time_out' => Carbon::now(),
+                'time_out' => $currentTime,
                 'location_out' => $request->get('location'),
                 'latitude_out' => $request->get('latitude'),
                 'longitude_out' => $request->get('longitude')
@@ -695,10 +955,24 @@ class DokterDashboardController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Check-out berhasil',
-                'data' => $attendance
+                'data' => [
+                    'attendance' => $attendance,
+                    'schedule' => $attendance->jadwalJaga ? [
+                        'id' => $attendance->jadwalJaga->id,
+                        'shift_name' => $shiftTemplate ? $shiftTemplate->nama_shift : 'Shift',
+                        'start_time' => $shiftTemplate ? $shiftTemplate->jam_masuk : '08:00',
+                        'end_time' => $shiftTemplate ? $shiftTemplate->jam_pulang : '16:00',
+                        'unit_kerja' => $attendance->jadwalJaga->unit_kerja
+                    ] : null
+                ]
             ]);
 
         } catch (\Exception $e) {
+            \Log::error('Check-out error for user ' . $user->id, [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal check-out: ' . $e->getMessage()
@@ -1089,7 +1363,7 @@ class DokterDashboardController extends Controller
                 ->join('pegawais', 'jadwal_jagas.pegawai_id', '=', 'pegawais.user_id')
                 ->where('jadwal_jagas.pegawai_id', $user->id)
                 ->where('pegawais.jenis_pegawai', 'Dokter')
-                ->where('jadwal_jagas.unit_kerja', 'Dokter Jaga') // INCLUDE only Dokter Jaga
+                // NOTE: unit_kerja filter removed to show ALL schedules (Dokter Jaga, Pelayanan, Pendaftaran)
                 ->whereBetween('jadwal_jagas.tanggal_jaga', [
                     $startDate->format('Y-m-d'),
                     $endDate->format('Y-m-d')
@@ -1265,6 +1539,151 @@ class DokterDashboardController extends Controller
     }
 
     /**
+     * Update user profile
+     */
+    public function updateProfile(Request $request)
+    {
+        try {
+            $user = Auth::user();
+            
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not authenticated'
+                ], 401);
+            }
+
+            $validated = $request->validate([
+                'name' => 'sometimes|string|max:255',
+                'email' => 'sometimes|email|unique:users,email,' . $user->id,
+                'phone' => 'sometimes|string|max:20',
+                'address' => 'sometimes|string|max:500',
+                'date_of_birth' => 'sometimes|date',
+                'gender' => 'sometimes|in:male,female',
+                'bio' => 'sometimes|string|max:1000',
+                'nik' => 'sometimes|string|max:255',
+                'nomor_sip' => 'sometimes|string|max:255',
+                'jabatan' => 'sometimes|string|max:255',
+                'spesialisasi' => 'sometimes|string|max:255'
+            ]);
+
+            // Update user profile
+            $user->update($validated);
+
+            // Update dokter profile if user is a dokter
+            $dokter = Dokter::where('user_id', $user->id)->first();
+            if ($dokter) {
+                $dokterData = [];
+                
+                if (isset($validated['name'])) {
+                    $dokterData['nama_lengkap'] = $validated['name'];
+                }
+                
+                if (isset($validated['email'])) {
+                    $dokterData['email'] = $validated['email'];
+                }
+                
+                if (isset($validated['phone'])) {
+                    $dokterData['no_telepon'] = $validated['phone'];
+                }
+                
+                if (isset($validated['address'])) {
+                    $dokterData['alamat'] = $validated['address'];
+                }
+                
+                if (isset($validated['date_of_birth'])) {
+                    $dokterData['tanggal_lahir'] = $validated['date_of_birth'];
+                }
+                
+                if (isset($validated['gender'])) {
+                    // Convert gender format from male/female to Laki-laki/Perempuan for dokter table
+                    $dokterData['jenis_kelamin'] = $validated['gender'] === 'male' ? 'Laki-laki' : 'Perempuan';
+                }
+                
+                if (isset($validated['bio'])) {
+                    $dokterData['keterangan'] = $validated['bio'];
+                }
+                
+                if (isset($validated['nik'])) {
+                    $dokterData['nik'] = $validated['nik'];
+                }
+                
+                if (isset($validated['nomor_sip'])) {
+                    $dokterData['nomor_sip'] = $validated['nomor_sip'];
+                }
+                
+                if (isset($validated['jabatan'])) {
+                    $dokterData['jabatan'] = $validated['jabatan'];
+                }
+                
+                if (isset($validated['spesialisasi'])) {
+                    $dokterData['spesialisasi'] = $validated['spesialisasi'];
+                }
+                
+                if (!empty($dokterData)) {
+                    $dokter->update($dokterData);
+                }
+            }
+
+            // Refresh user and dokter data
+            $user->refresh();
+            $dokter = $dokter ? $dokter->fresh() : null;
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile updated successfully',
+                'data' => [
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $dokter ? $dokter->nama_lengkap : $user->name,
+                        'email' => $dokter ? $dokter->email : $user->email,
+                        'phone' => $dokter ? $dokter->no_telepon : $user->phone,
+                        'address' => $dokter ? $dokter->alamat : $user->address,
+                        'date_of_birth' => $dokter ? $dokter->tanggal_lahir?->format('d F Y') : $user->date_of_birth?->format('d F Y'),
+                        'gender' => $this->formatGender($dokter ? $dokter->jenis_kelamin : $user->gender),
+                        'bio' => $dokter ? $dokter->keterangan : $user->bio,
+                        'nik' => $dokter ? $dokter->nik : null,
+                        'nomor_sip' => $dokter ? $dokter->nomor_sip : null,
+                        'jabatan' => $dokter ? $dokter->jabatan : 'Dokter',
+                        'spesialisasi' => $dokter ? $dokter->spesialisasi : null,
+                        'tanggal_bergabung' => $dokter ? $dokter->tanggal_bergabung?->format('d F Y') : null,
+                        'status_akun' => $dokter ? $dokter->status_akun : null
+                    ]
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update profile: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Format gender from database format to display format
+     */
+    private function formatGender($gender)
+    {
+        if (!$gender) {
+            return 'Tidak ditentukan';
+        }
+        
+        switch (strtolower($gender)) {
+            case 'male':
+                return 'Laki-laki';
+            case 'female':
+                return 'Perempuan';
+            case 'laki-laki':
+                return 'Laki-laki';
+            case 'perempuan':
+                return 'Perempuan';
+            default:
+                return $gender;
+        }
+    }
+
+    /**
      * Check and auto-assign work location if available
      */
     public function checkAndAssignWorkLocation(Request $request)
@@ -1393,6 +1812,404 @@ class DokterDashboardController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to check/assign work location: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Debug endpoint untuk memeriksa data jadwal jaga
+     */
+    public function debugSchedule(Request $request)
+    {
+        try {
+            $user = Auth::user();
+            $today = Carbon::today();
+            
+            // Debug: Cek data user
+            $userData = [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role ? $user->role->name : 'no role',
+                'created_at' => $user->created_at
+            ];
+            
+            // Debug: Cek jadwal jaga hari ini
+            $jadwalJaga = JadwalJaga::where('pegawai_id', $user->id)
+                ->whereDate('tanggal_jaga', $today)
+                ->with(['shiftTemplate', 'pegawai'])
+                ->get();
+            
+            $jadwalData = $jadwalJaga->map(function ($jadwal) {
+                return [
+                    'id' => $jadwal->id,
+                    'tanggal_jaga' => $jadwal->tanggal_jaga->format('Y-m-d'),
+                    'pegawai_id' => $jadwal->pegawai_id,
+                    'shift_template_id' => $jadwal->shift_template_id,
+                    'unit_kerja' => $jadwal->unit_kerja,
+                    'unit_instalasi' => $jadwal->unit_instalasi,
+                    'peran' => $jadwal->peran,
+                    'status_jaga' => $jadwal->status_jaga,
+                    'keterangan' => $jadwal->keterangan,
+                    'shift_template' => $jadwal->shiftTemplate ? [
+                        'id' => $jadwal->shiftTemplate->id,
+                        'nama_shift' => $jadwal->shiftTemplate->nama_shift,
+                        'jam_masuk' => $jadwal->shiftTemplate->jam_masuk,
+                        'jam_pulang' => $jadwal->shiftTemplate->jam_pulang,
+                        'durasi_jam' => $jadwal->shiftTemplate->durasi_jam
+                    ] : null,
+                    'pegawai' => $jadwal->pegawai ? [
+                        'id' => $jadwal->pegawai->id,
+                        'name' => $jadwal->pegawai->name,
+                        'email' => $jadwal->pegawai->email
+                    ] : null
+                ];
+            });
+            
+            // Debug: Cek jadwal jaga aktif
+            $activeJadwal = JadwalJaga::where('pegawai_id', $user->id)
+                ->whereDate('tanggal_jaga', $today)
+                ->where('status_jaga', 'Aktif')
+                ->with(['shiftTemplate'])
+                ->first();
+            
+            $activeJadwalData = null;
+            if ($activeJadwal) {
+                $activeJadwalData = [
+                    'id' => $activeJadwal->id,
+                    'tanggal_jaga' => $activeJadwal->tanggal_jaga->format('Y-m-d'),
+                    'status_jaga' => $activeJadwal->status_jaga,
+                    'shift_template' => $activeJadwal->shiftTemplate ? [
+                        'id' => $activeJadwal->shiftTemplate->id,
+                        'nama_shift' => $activeJadwal->shiftTemplate->nama_shift,
+                        'jam_masuk' => $activeJadwal->shiftTemplate->jam_masuk,
+                        'jam_pulang' => $activeJadwal->shiftTemplate->jam_pulang
+                    ] : null
+                ];
+            }
+            
+            // Debug: Cek attendance hari ini
+            $attendance = Attendance::where('user_id', $user->id)
+                ->whereDate('date', $today)
+                ->first();
+            
+            $attendanceData = null;
+            if ($attendance) {
+                $attendanceData = [
+                    'id' => $attendance->id,
+                    'time_in' => $attendance->time_in?->format('H:i:s'),
+                    'time_out' => $attendance->time_out?->format('H:i:s'),
+                    'status' => $attendance->status,
+                    'jadwal_jaga_id' => $attendance->jadwal_jaga_id
+                ];
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Debug data berhasil dimuat',
+                'data' => [
+                    'user' => $userData,
+                    'today' => $today->format('Y-m-d'),
+                    'current_time' => Carbon::now()->format('Y-m-d H:i:s'),
+                    'all_schedules_today' => $jadwalData,
+                    'active_schedule_today' => $activeJadwalData,
+                    'attendance_today' => $attendanceData,
+                    'debug_info' => [
+                        'total_schedules' => $jadwalJaga->count(),
+                        'active_schedules' => $jadwalJaga->where('status_jaga', 'Aktif')->count(),
+                        'has_active_schedule' => $activeJadwal ? true : false,
+                        'has_attendance' => $attendance ? true : false
+                    ]
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Debug schedule error', [
+                'user_id' => $user->id ?? 'unknown',
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Debug error: ' . $e->getMessage(),
+                'data' => null
+            ], 500);
+        }
+    }
+
+    /**
+     * Test endpoint for authentication debugging
+     */
+    
+    /**
+     * Get server time for frontend validation
+     */
+    public function getServerTime(Request $request)
+    {
+        try {
+            $currentTime = Carbon::now()->setTimezone('Asia/Jakarta');
+            
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'current_time' => $currentTime->toISOString(),
+                    'current_time_formatted' => $currentTime->format('H:i:s'),
+                    'timezone' => $currentTime->timezone->getName(),
+                    'date' => $currentTime->toDateString(),
+                    'timestamp' => $currentTime->timestamp
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Test endpoint for jadwal jaga without authentication
+     */
+    public function testJadwalJaga(Request $request)
+    {
+        try {
+            $userId = $request->get('user_id', 13); // Default to user 13 who has jadwal jaga
+            $month = $request->get('month', Carbon::now()->month);
+            $year = $request->get('year', Carbon::now()->year);
+            $today = Carbon::today();
+            
+            // Check if this is a refresh request
+            $isRefresh = $request->has('refresh') || $request->header('Cache-Control') === 'no-cache';
+            
+            // Cache key for jadwal jaga with short TTL for quick refresh
+            $cacheKey = "jadwal_jaga_test_{$userId}_{$month}_{$year}";
+            $cacheTTL = $isRefresh ? 10 : 60; // 10 seconds for refresh, 60 seconds for normal
+            
+            // Clear cache if refresh requested
+            if ($isRefresh) {
+                Cache::forget($cacheKey);
+                \Log::info("🔄 Cleared test jadwal jaga cache for user {$userId} due to refresh request");
+            }
+            
+            // Use cache for jadwal jaga data
+            $jadwalData = Cache::remember($cacheKey, $cacheTTL, function () use ($userId, $month, $year, $today, $cacheTTL, $isRefresh) {
+                // Enhanced query with proper relationships
+                $jadwalJaga = JadwalJaga::where('pegawai_id', $userId)
+                    ->whereMonth('tanggal_jaga', $month)
+                    ->whereYear('tanggal_jaga', $year)
+                    ->with(['shiftTemplate', 'pegawai'])
+                    ->orderBy('tanggal_jaga')
+                    ->get();
+
+                // Format untuk calendar dengan proper shift template data
+                $calendarEvents = $jadwalJaga->map(function ($jadwal) {
+                    $shiftTemplate = $jadwal->shiftTemplate;
+                    $user = $jadwal->pegawai;
+                    
+                    return [
+                        'id' => $jadwal->id,
+                        'title' => $shiftTemplate ? $shiftTemplate->nama_shift : 'Shift Jaga',
+                        'start' => $jadwal->tanggal_jaga->format('Y-m-d'),
+                        'end' => $jadwal->tanggal_jaga->format('Y-m-d'),
+                        'color' => $jadwal->color,
+                        'description' => $jadwal->unit_kerja ?? 'Unit Kerja',
+                        'shift_info' => [
+                            'id' => $shiftTemplate ? $shiftTemplate->id : null,
+                            'nama_shift' => $shiftTemplate ? $shiftTemplate->nama_shift : 'Shift',
+                            'jam_masuk' => $shiftTemplate ? $shiftTemplate->jam_masuk_format : '08:00',
+                            'jam_pulang' => $shiftTemplate ? $shiftTemplate->jam_pulang_format : '16:00',
+                            'durasi_jam' => $shiftTemplate ? $shiftTemplate->durasi_jam : 8,
+                            'warna' => $shiftTemplate ? $shiftTemplate->warna : '#3b82f6',
+                            'unit_kerja' => $jadwal->unit_kerja ?? 'Unit Kerja',
+                            'status' => $jadwal->status_jaga ?? 'aktif',
+                            'peran' => $jadwal->peran ?? 'Dokter Jaga',
+                            'employee_name' => $user ? $user->name : 'Unknown',
+                            'keterangan' => $jadwal->keterangan
+                        ]
+                    ];
+                });
+
+                // Enhanced weekly schedule with full relationship data
+                $weeklySchedule = JadwalJaga::where('pegawai_id', $userId)
+                    ->whereBetween('tanggal_jaga', [
+                        Carbon::now()->startOfWeek(),
+                        Carbon::now()->endOfWeek()
+                    ])
+                    ->with(['shiftTemplate', 'pegawai'])
+                    ->orderBy('tanggal_jaga')
+                    ->get()
+                    ->map(function ($jadwal) {
+                        $shiftTemplate = $jadwal->shiftTemplate;
+                        $user = $jadwal->pegawai;
+                        
+                        return [
+                            'id' => $jadwal->id,
+                            'tanggal_jaga' => $jadwal->tanggal_jaga->format('Y-m-d'),
+                            'tanggal_formatted' => $jadwal->tanggal_jaga->format('l, d F Y'),
+                            'unit_kerja' => $jadwal->unit_kerja,
+                            'peran' => $jadwal->peran,
+                            'status_jaga' => $jadwal->status_jaga,
+                            'keterangan' => $jadwal->keterangan,
+                            'employee_name' => $user ? $user->name : 'Unknown',
+                            'shift_template' => $shiftTemplate ? [
+                                'id' => $shiftTemplate->id,
+                                'nama_shift' => $shiftTemplate->nama_shift,
+                                'jam_masuk' => $shiftTemplate->jam_masuk_format,
+                                'jam_pulang' => $shiftTemplate->jam_pulang_format,
+                                'durasi_jam' => $shiftTemplate->durasi_jam,
+                                'warna' => $shiftTemplate->warna ?? '#3b82f6'
+                            ] : null
+                        ];
+                    });
+
+                // FIXED: Get today's schedule specifically for attendance validation
+                $todaySchedule = JadwalJaga::where('pegawai_id', $userId)
+                    ->whereDate('tanggal_jaga', $today)
+                    ->with(['shiftTemplate', 'pegawai'])
+                    ->get()
+                    ->map(function ($jadwal) {
+                        $shiftTemplate = $jadwal->shiftTemplate;
+                        $user = $jadwal->pegawai;
+                        
+                        return [
+                            'id' => $jadwal->id,
+                            'tanggal_jaga' => $jadwal->tanggal_jaga->format('Y-m-d'),
+                            'tanggal_formatted' => $jadwal->tanggal_jaga->format('d/m/Y'),
+                            'pegawai_id' => $jadwal->pegawai_id,
+                            'employee_name' => $user ? $user->name : 'Unknown',
+                            'shift_template_id' => $jadwal->shift_template_id,
+                            'unit_kerja' => $jadwal->unit_kerja,
+                            'unit_instalasi' => $jadwal->unit_instalasi,
+                            'peran' => $jadwal->peran,
+                            'status_jaga' => $jadwal->status_jaga,
+                            'keterangan' => $jadwal->keterangan,
+                            'shift_template' => $shiftTemplate ? [
+                                'id' => $shiftTemplate->id,
+                                'nama_shift' => $shiftTemplate->nama_shift,
+                                'jam_masuk' => $shiftTemplate->jam_masuk_format,
+                                'jam_pulang' => $shiftTemplate->jam_pulang_format,
+                                'durasi_jam' => $shiftTemplate->durasi_jam,
+                                'warna' => $shiftTemplate->warna ?? '#3b82f6'
+                            ] : null
+                        ];
+                    });
+
+                // Get current active shift for today
+                $currentShift = $todaySchedule->where('status_jaga', 'Aktif')->first();
+
+                // ENHANCED: Calculate schedule card statistics
+                $now = Carbon::now();
+                $todayDate = $now->toDateString();
+                $currentTime = $now->format('H:i:s');
+                
+                // All schedules for the requested month/year with shift templates
+                $allSchedules = JadwalJaga::where('pegawai_id', $userId)
+                    ->whereMonth('tanggal_jaga', $month)
+                    ->whereYear('tanggal_jaga', $year)
+                    ->with(['shiftTemplate'])
+                    ->get();
+                
+                // Completed shifts (past dates OR today's shifts that have ended)
+                $completedShifts = $allSchedules->filter(function ($jadwal) use ($todayDate, $currentTime) {
+                    $shiftDate = $jadwal->tanggal_jaga->format('Y-m-d');
+                    
+                    // Past dates are automatically completed
+                    if ($shiftDate < $todayDate) {
+                        return true;
+                    }
+                    
+                    // For today's shifts, check if shift has ended based on shift template
+                    if ($shiftDate === $todayDate && $jadwal->shiftTemplate && $jadwal->shiftTemplate->jam_pulang) {
+                        $shiftEndTime = $jadwal->shiftTemplate->jam_pulang;
+                        return $currentTime >= $shiftEndTime;
+                    }
+                    
+                    return false;
+                });
+                
+                // Upcoming shifts (future dates OR today's shifts that haven't started/ended)
+                $upcomingShifts = $allSchedules->filter(function ($jadwal) use ($todayDate, $currentTime) {
+                    $shiftDate = $jadwal->tanggal_jaga->format('Y-m-d');
+                    
+                    // Future dates are upcoming
+                    if ($shiftDate > $todayDate) {
+                        return true;
+                    }
+                    
+                    // For today's shifts, check if shift hasn't ended yet
+                    if ($shiftDate === $todayDate && $jadwal->shiftTemplate && $jadwal->shiftTemplate->jam_pulang) {
+                        $shiftEndTime = $jadwal->shiftTemplate->jam_pulang;
+                        return $currentTime < $shiftEndTime;
+                    }
+                    
+                    return false;
+                });
+                
+                // Calculate total hours from completed shifts
+                $totalHours = $completedShifts->sum(function ($jadwal) {
+                    if ($jadwal->shiftTemplate && $jadwal->shiftTemplate->durasi_jam) {
+                        return $jadwal->shiftTemplate->durasi_jam;
+                    }
+                    // Fallback: calculate from jam_masuk and jam_pulang
+                    if ($jadwal->shiftTemplate && $jadwal->shiftTemplate->jam_masuk && $jadwal->shiftTemplate->jam_pulang) {
+                        $startTime = Carbon::parse($jadwal->shiftTemplate->jam_masuk);
+                        $endTime = Carbon::parse($jadwal->shiftTemplate->jam_pulang);
+                        
+                        // Handle overnight shifts
+                        if ($endTime->lt($startTime)) {
+                            $endTime->addDay();
+                        }
+                        
+                        return $startTime->diffInHours($endTime);
+                    }
+                    // Default 8 hours if no template data
+                    return 8;
+                });
+
+                // Schedule card statistics
+                $scheduleStats = [
+                    'completed' => $completedShifts->count(),
+                    'upcoming' => $upcomingShifts->count(),
+                    'total_hours' => $totalHours,
+                    'total_shifts' => $allSchedules->count(),
+                    'current_month' => $month,
+                    'current_year' => $year,
+                    'month_name' => Carbon::create($year, $month, 1)->format('F Y')
+                ];
+
+                return [
+                    'calendar_events' => $calendarEvents,
+                    'weekly_schedule' => $weeklySchedule,
+                    'today' => $todaySchedule,
+                    'currentShift' => $currentShift,
+                    'schedule_stats' => $scheduleStats,
+                    'month' => $month,
+                    'year' => $year,
+                    'cache_info' => [
+                        'cached_at' => now()->toISOString(),
+                        'cache_ttl' => $cacheTTL,
+                        'is_refresh' => $isRefresh
+                    ]
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Test jadwal jaga berhasil dimuat',
+                'data' => $jadwalData
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error in testJadwalJaga', [
+                'user_id' => $request->get('user_id', 13),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memuat test jadwal jaga: ' . $e->getMessage()
             ], 500);
         }
     }
