@@ -5,7 +5,7 @@ import { useGPSLocation, useGPSAvailability, useGPSPermission } from '../../hook
 import { GPSStatus, GPSStrategy } from '../../utils/GPSManager';
 import '../../../css/map-styles.css';
 
-const CreativeAttendanceDashboard = () => {
+const CreativeAttendanceDashboardEmergency = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isCheckedIn, setIsCheckedIn] = useState(false);
   const [activeTab, setActiveTab] = useState('checkin');
@@ -44,56 +44,6 @@ const CreativeAttendanceDashboard = () => {
     address: 'Loading...',
     radius: 50 // meters
   });
-  
-  // Load hospital data from API
-  useEffect(() => {
-    const loadHospitalData = async () => {
-      try {
-        // Try to get from API first
-        const response = await fetch('/api/v2/hospital/location', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-          },
-        });
-        
-        if (response.ok) {
-          const responseData = await response.json();
-          const data = responseData.data || responseData;
-          setHospitalLocation({
-            lat: data.latitude || -7.8481,
-            lng: data.longitude || 112.0178,
-            name: data.name || 'RS. Kediri Medical Center',
-            address: data.address || 'Jl. Ahmad Yani No. 123, Kediri, Jawa Timur',
-            radius: data.radius || 50
-          });
-        } else {
-          // Fallback to default data if API fails
-          console.log('Using default hospital location data');
-          setHospitalLocation({
-            lat: -7.8481,
-            lng: 112.0178,
-            name: 'RS. Kediri Medical Center',
-            address: 'Jl. Ahmad Yani No. 123, Kediri, Jawa Timur',
-            radius: 50
-          });
-        }
-      } catch (error) {
-        console.error('Error loading hospital data:', error);
-        // Fallback to default data
-        setHospitalLocation({
-          lat: -7.8481,
-          lng: 112.0178,
-          name: 'RS. Kediri Medical Center',
-          address: 'Jl. Ahmad Yani No. 123, Kediri, Jawa Timur',
-          radius: 50
-        });
-      }
-    };
-    
-    loadHospitalData();
-  }, []);
   
   // World-Class GPS Integration
   const gpsAvailability = useGPSAvailability();
@@ -207,6 +157,58 @@ const CreativeAttendanceDashboard = () => {
       alert('Izin GPS ditolak. Silakan aktifkan akses lokasi di pengaturan browser.');
     }
   }, [requestPermission]);
+  
+  // Load hospital data from API
+  useEffect(() => {
+    const loadHospitalData = async () => {
+      try {
+        // Try to get from API first
+        const response = await fetch('/api/v2/hospital/location', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+        });
+        
+        if (response.ok) {
+          const responseData = await response.json();
+          const data = responseData.data || responseData;
+          setHospitalLocation({
+            lat: data.latitude || -7.8481,
+            lng: data.longitude || 112.0178,
+            name: data.name || 'RS. Kediri Medical Center',
+            address: data.address || 'Jl. Ahmad Yani No. 123, Kediri, Jawa Timur',
+            radius: data.radius || 50
+          });
+        } else {
+          // Fallback to default data if API fails
+          console.log('Using default hospital location data');
+          setHospitalLocation({
+            lat: -7.8481,
+            lng: 112.0178,
+            name: 'RS. Kediri Medical Center',
+            address: 'Jl. Ahmad Yani No. 123, Kediri, Jawa Timur',
+            radius: 50
+          });
+        }
+      } catch (error) {
+        console.error('Error loading hospital data:', error);
+        // Fallback to default data
+        setHospitalLocation({
+          lat: -7.8481,
+          lng: 112.0178,
+          name: 'RS. Kediri Medical Center',
+          address: 'Jl. Ahmad Yani No. 123, Kediri, Jawa Timur',
+          radius: 50
+        });
+      }
+    };
+    
+    loadHospitalData();
+  }, []);
+  
+  // Old GPS implementation removed - now using world-class GPS Manager
 
   // Load user data
   useEffect(() => {
@@ -359,9 +361,7 @@ const CreativeAttendanceDashboard = () => {
 
         if (scheduleResponse.ok) {
           const scheduleData = await scheduleResponse.json();
-          
-          // Filter today's schedule from the response
-          const today = new Date().toISOString().split('T')[0];
+          console.log('🔍 Schedule API Response:', scheduleData);
           
           // Ensure scheduleData.data is an array before filtering
           let dataArray = [];
@@ -380,15 +380,25 @@ const CreativeAttendanceDashboard = () => {
             hasData: !!scheduleData.data,
             dataType: typeof scheduleData.data,
             isArray: Array.isArray(scheduleData.data),
+            hasWeeklySchedule: !!(scheduleData.data?.weekly_schedule),
+            hasCalendarEvents: !!(scheduleData.data?.calendar_events),
             arrayLength: dataArray.length
           });
           
-          const todaySchedule = dataArray.filter((schedule: any) => 
-            schedule.tanggal_jaga === today && schedule.status_jaga === 'Aktif'
-          );
+          // Filter today's schedule from the response
+          const today = new Date().toISOString().split('T')[0];
+          console.log('🔍 Today:', today);
+          
+          const todaySchedule = dataArray.filter((schedule: any) => {
+            console.log('🔍 Checking schedule:', schedule);
+            return schedule && schedule.tanggal_jaga === today && schedule.status_jaga === 'Aktif';
+          });
+          
+          console.log('🔍 Today Schedule:', todaySchedule);
           
           // Get current shift (first active schedule for today)
           const currentShift = todaySchedule.length > 0 ? todaySchedule[0] : null;
+          console.log('🔍 Current Shift:', currentShift);
           
           setScheduleData(prev => ({
             ...prev,
@@ -455,115 +465,57 @@ const CreativeAttendanceDashboard = () => {
   }, [scheduleData.todaySchedule, scheduleData.currentShift, scheduleData.workLocation, isCheckedIn]);
 
   // Validate current status based on schedule and work location
-  const validateCurrentStatus = async () => {
-    try {
-      // Get server time for accurate validation
-      let serverTime = null;
-      try {
-        const serverTimeResponse = await fetch('/api/v2/server-time', {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          },
-          credentials: 'same-origin'
-        });
-        
-        if (serverTimeResponse.ok) {
-          const serverTimeData = await serverTimeResponse.json();
-          serverTime = new Date(serverTimeData.data.current_time);
-        }
-      } catch (error) {
-        console.warn('Failed to get server time, using client time:', error);
+  const validateCurrentStatus = () => {
+    const now = new Date();
+    const currentTime = now.toTimeString().slice(0, 8); // HH:MM:SS format
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+
+    // Check if doctor is on duty today
+    const isOnDutyToday = scheduleData.todaySchedule && scheduleData.todaySchedule.length > 0;
+    
+    // Check if current time is within shift hours
+    let isWithinShiftHours = false;
+    if (scheduleData.currentShift && scheduleData.currentShift.shift_template) {
+      const shiftTemplate = scheduleData.currentShift.shift_template;
+      const startTime = shiftTemplate.jam_masuk; // Format: "08:00"
+      const endTime = shiftTemplate.jam_pulang; // Format: "16:00"
+      
+      // Parse shift times
+      const [startHour, startMinute] = startTime.split(':').map(Number);
+      const [endHour, endMinute] = endTime.split(':').map(Number);
+      
+      // Convert to minutes for easier comparison
+      const currentMinutes = currentHour * 60 + currentMinute;
+      const startMinutes = startHour * 60 + startMinute;
+      const endMinutes = endHour * 60 + endMinute;
+      
+      // Handle overnight shifts (end time < start time)
+      if (endMinutes < startMinutes) {
+        // For overnight shifts, check if current time is after start OR before end
+        isWithinShiftHours = currentMinutes >= startMinutes || currentMinutes <= endMinutes;
+      } else {
+        // For regular shifts, check if current time is within shift hours
+        isWithinShiftHours = currentMinutes >= startMinutes && currentMinutes <= endMinutes;
       }
-
-      // Use server time if available, otherwise use client time
-      const now = serverTime || new Date();
-      const currentTime = now.toTimeString().slice(0, 8); // HH:MM:SS format
-      const currentHour = now.getHours();
-      const currentMinute = now.getMinutes();
-
-      // Check if doctor is on duty today
-      const isOnDutyToday = scheduleData.todaySchedule && scheduleData.todaySchedule.length > 0;
-      
-      // Check if current time is within shift hours with buffer
-      let isWithinShiftHours = false;
-      if (scheduleData.currentShift && scheduleData.currentShift.shift_template) {
-        const shiftTemplate = scheduleData.currentShift.shift_template;
-        const startTime = shiftTemplate.jam_masuk; // Format: "08:00"
-        const endTime = shiftTemplate.jam_pulang; // Format: "16:00"
-        
-        // Parse shift times
-        const [startHour, startMinute] = startTime.split(':').map(Number);
-        const [endHour, endMinute] = endTime.split(':').map(Number);
-        
-        // Convert to minutes for easier comparison
-        const currentMinutes = currentHour * 60 + currentMinute;
-        const startMinutes = startHour * 60 + startMinute;
-        const endMinutes = endHour * 60 + endMinute;
-        
-        // Add buffer for short shifts (5 minutes before and after)
-        const bufferMinutes = 5;
-        const startMinutesWithBuffer = Math.max(0, startMinutes - bufferMinutes);
-        const endMinutesWithBuffer = endMinutes + bufferMinutes;
-        
-        // Handle overnight shifts (end time < start time)
-        if (endMinutes < startMinutes) {
-          // For overnight shifts, check if current time is after start OR before end
-          isWithinShiftHours = currentMinutes >= startMinutesWithBuffer || currentMinutes <= endMinutesWithBuffer;
-        } else {
-          // For regular shifts, check if current time is within shift hours with buffer
-          isWithinShiftHours = currentMinutes >= startMinutesWithBuffer && currentMinutes <= endMinutesWithBuffer;
-        }
-      }
-
-      // Check if work location is assigned
-      const hasWorkLocation = scheduleData.workLocation && scheduleData.workLocation.id;
-      
-      // Determine if can check in/out
-      const canCheckIn = isOnDutyToday && isWithinShiftHours && !isCheckedIn;
-      const canCheckOut = isCheckedIn;
-
-      // Comprehensive debug logging
-      console.log('🔍 Schedule Validation Debug:', {
-        currentTime: now.toISOString(),
-        currentTimeFormatted: currentTime,
-        serverTimeUsed: !!serverTime,
-        shiftStart: scheduleData.currentShift?.shift_template?.jam_masuk,
-        shiftEnd: scheduleData.currentShift?.shift_template?.jam_pulang,
-        isOnDutyToday,
-        isWithinShiftHours,
-        hasWorkLocation,
-        canCheckIn,
-        canCheckOut,
-        todaySchedule: scheduleData.todaySchedule?.length || 0,
-        workLocation: scheduleData.workLocation,
-        isCheckedIn: isCheckedIn,
-        currentShift: scheduleData.currentShift,
-        todayScheduleDetails: scheduleData.todaySchedule
-      });
-
-      setScheduleData(prev => ({
-        ...prev,
-        isOnDuty: isOnDutyToday && isWithinShiftHours,
-        canCheckIn,
-        canCheckOut,
-        validationMessage: getValidationMessage(isOnDutyToday, isWithinShiftHours, hasWorkLocation)
-      }));
-    } catch (error) {
-      console.error('Error in validateCurrentStatus:', error);
-      // Fallback to basic validation
-      const isOnDutyToday = scheduleData.todaySchedule && scheduleData.todaySchedule.length > 0;
-      const hasWorkLocation = scheduleData.workLocation && scheduleData.workLocation.id;
-      
-      setScheduleData(prev => ({
-        ...prev,
-        isOnDuty: isOnDutyToday,
-        canCheckIn: isOnDutyToday && !isCheckedIn,
-        canCheckOut: isCheckedIn,
-        validationMessage: 'Error validating schedule, please try again'
-      }));
     }
+
+    // Check if work location is assigned
+    const hasWorkLocation = scheduleData.workLocation && scheduleData.workLocation.id;
+    console.log('Work Location Data:', scheduleData.workLocation);
+    console.log('Has Work Location:', hasWorkLocation);
+
+    // Determine if can check in/out
+    const canCheckIn = isOnDutyToday && isWithinShiftHours && !isCheckedIn;
+    const canCheckOut = isCheckedIn;
+
+    setScheduleData(prev => ({
+      ...prev,
+      isOnDuty: isOnDutyToday && isWithinShiftHours,
+      canCheckIn,
+      canCheckOut,
+      validationMessage: getValidationMessage(isOnDutyToday, isWithinShiftHours, hasWorkLocation)
+    }));
   };
 
   // Get validation message
@@ -679,17 +631,15 @@ const CreativeAttendanceDashboard = () => {
     return () => clearInterval(timer);
   }, [isCheckedIn, attendanceData.checkInTime]);
 
-  const formatTime = (date: Date | string) => {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    return dateObj.toLocaleTimeString('id-ID', { 
+  const formatTime = (date) => {
+    return date.toLocaleTimeString('id-ID', { 
       hour: '2-digit', 
       minute: '2-digit'
     });
   };
 
-  const formatDate = (date: Date | string) => {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    return dateObj.toLocaleDateString('id-ID', {
+  const formatDate = (date) => {
+    return date.toLocaleDateString('id-ID', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
@@ -725,11 +675,11 @@ const CreativeAttendanceDashboard = () => {
   const endIndex = startIndex + itemsPerPage;
   const currentData = filteredData.slice(startIndex, endIndex);
 
-  const handlePageChange = (page: number) => {
+  const handlePageChange = (page) => {
     setCurrentPage(page);
   };
 
-  const handleFilterChange = (period: string) => {
+  const handleFilterChange = (period) => {
     setFilterPeriod(period);
     setCurrentPage(1);
   };
@@ -742,41 +692,22 @@ const CreativeAttendanceDashboard = () => {
     }
 
     try {
-      // Get current GPS location with better error handling
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        if (!navigator.geolocation) {
-          reject(new Error('Geolocation is not supported'));
-          return;
-        }
-
-        navigator.geolocation.getCurrentPosition(
-          resolve,
-          (error) => {
-            let errorMessage = 'GPS error occurred';
-            switch (error.code) {
-              case error.PERMISSION_DENIED:
-                errorMessage = 'GPS permission denied. Please enable location access.';
-                break;
-              case error.POSITION_UNAVAILABLE:
-                errorMessage = 'GPS position unavailable. Please check your location settings.';
-                break;
-              case error.TIMEOUT:
-                errorMessage = 'GPS timeout. Please try again.';
-                break;
-              default:
-                errorMessage = `GPS error: ${error.message}`;
-            }
-            reject(new Error(errorMessage));
-          },
-          {
-            enableHighAccuracy: true,
-            timeout: 15000,
-            maximumAge: 60000
-          }
-        );
-      });
-
-      const { latitude, longitude, accuracy } = position.coords;
+      // Get current GPS location using world-class GPS Manager
+      console.log('📍 Getting location for check-in...');
+      await getCurrentLocation();
+      
+      // Verify we have a valid location
+      if (!gpsLocation) {
+        alert('⚠️ Tidak dapat mendapatkan lokasi GPS. Silakan coba lagi atau aktifkan GPS.');
+        return;
+      }
+      
+      // Use the location from GPS Manager
+      const latitude = gpsLocation.latitude;
+      const longitude = gpsLocation.longitude;
+      const accuracy = gpsLocation.accuracy;
+      
+      console.log(`🌍 GPS Location obtained: Source=${gpsSource}, Confidence=${(gpsConfidence * 100).toFixed(0)}%`);
       
       // Validate distance to work location
       const distance = calculateDistance(latitude, longitude, hospitalLocation.lat, hospitalLocation.lng);
@@ -857,16 +788,22 @@ const CreativeAttendanceDashboard = () => {
     }
 
     try {
-      // Get current GPS location
-      const position = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 30000
-        });
-      });
+      // Get current GPS location using world-class GPS Manager
+      console.log('📍 Getting location for check-out...');
+      await getCurrentLocation();
+      
+      // Verify we have a valid location
+      if (!gpsLocation) {
+        alert('⚠️ Tidak dapat mendapatkan lokasi GPS. Silakan coba lagi atau aktifkan GPS.');
+        return;
+      }
 
-      const { latitude, longitude, accuracy } = position.coords;
+      // Use the location from GPS Manager
+      const latitude = gpsLocation.latitude;
+      const longitude = gpsLocation.longitude;
+      const accuracy = gpsLocation.accuracy;
+      
+      console.log(`🌍 GPS Location obtained for checkout: Source=${gpsSource}, Confidence=${(gpsConfidence * 100).toFixed(0)}%`);
       
       // Get authentication token for check-out
       let token = localStorage.getItem('auth_token');
@@ -1203,7 +1140,7 @@ const CreativeAttendanceDashboard = () => {
                     // Only update if we have valid coordinates (not loading state)
                     if (location.lat !== 0 && location.lng !== 0) {
                       setUserLocation(location);
-                      setGpsStatus('success');
+                      // GPS status is now managed by the hook
                       
                       // Calculate distance
                       const R = 6371e3; // Earth's radius in meters
@@ -1901,4 +1838,4 @@ const CreativeAttendanceDashboard = () => {
   );
 };
 
-export default CreativeAttendanceDashboard;
+export default CreativeAttendanceDashboardEmergency;
