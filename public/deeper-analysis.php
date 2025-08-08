@@ -11,9 +11,6 @@ use Carbon\Carbon;
 
 echo "<h2>Deeper Analysis - Why Tes 4 Still Not Appearing</h2>";
 
-// Start session
-session_start();
-
 // Find Yaya (user ID 13)
 $yaya = User::find(13);
 
@@ -108,96 +105,6 @@ if (Auth::check()) {
         echo "</table>";
     }
     
-    // Test API with different month parameters
-    echo "<h3>API Testing with Different Parameters:</h3>";
-    
-    // Test 1: Default API call (current month)
-    echo "<h4>Test 1: Default API Call (Current Month)</h4>";
-    $request1 = \Illuminate\Http\Request::create('/api/v2/dashboards/dokter/jadwal-jaga', 'GET');
-    $request1->headers->set('Accept', 'application/json');
-    $request1->headers->set('Content-Type', 'application/json');
-    $request1->headers->set('X-CSRF-TOKEN', csrf_token());
-    $request1->headers->set('X-Requested-With', 'XMLHttpRequest');
-    $request1->setLaravelSession(app('session.store'));
-    
-    $response1 = app()->handle($request1);
-    $data1 = json_decode($response1->getContent(), true);
-    
-    echo "<p>Status: " . $response1->getStatusCode() . "</p>";
-    echo "<p>Success: " . ($data1['success'] ? 'true' : 'false') . "</p>";
-    
-    if (isset($data1['data'])) {
-        $calendarEvents1 = $data1['data']['calendar_events'] ?? [];
-        $weeklySchedule1 = $data1['data']['weekly_schedule'] ?? [];
-        
-        echo "<p>Calendar Events: " . count($calendarEvents1) . "</p>";
-        echo "<p>Weekly Schedule: " . count($weeklySchedule1) . "</p>";
-        
-        // Check for tes 4
-        $tes4InCalendar1 = array_filter($calendarEvents1, function($event) {
-            return stripos($event['title'] ?? '', 'tes 4') !== false || 
-                   stripos($event['shift_info']['nama_shift'] ?? '', 'tes 4') !== false;
-        });
-        
-        $tes4InWeekly1 = array_filter($weeklySchedule1, function($schedule) {
-            return stripos($schedule['shift_template']['nama_shift'] ?? '', 'tes 4') !== false;
-        });
-        
-        echo "<p>Tes 4 in Calendar Events: " . count($tes4InCalendar1) . "</p>";
-        echo "<p>Tes 4 in Weekly Schedule: " . count($tes4InWeekly1) . "</p>";
-    }
-    
-    // Test 2: API call for August 2025 (where tes 4 exists)
-    echo "<h4>Test 2: API Call for August 2025 (Month 8)</h4>";
-    $request2 = \Illuminate\Http\Request::create('/api/v2/dashboards/dokter/jadwal-jaga?month=8&year=2025', 'GET');
-    $request2->headers->set('Accept', 'application/json');
-    $request2->headers->set('Content-Type', 'application/json');
-    $request2->headers->set('X-CSRF-TOKEN', csrf_token());
-    $request2->headers->set('X-Requested-With', 'XMLHttpRequest');
-    $request2->setLaravelSession(app('session.store'));
-    
-    $response2 = app()->handle($request2);
-    $data2 = json_decode($response2->getContent(), true);
-    
-    echo "<p>Status: " . $response2->getStatusCode() . "</p>";
-    echo "<p>Success: " . ($data2['success'] ? 'true' : 'false') . "</p>";
-    
-    if (isset($data2['data'])) {
-        $calendarEvents2 = $data2['data']['calendar_events'] ?? [];
-        $weeklySchedule2 = $data2['data']['weekly_schedule'] ?? [];
-        
-        echo "<p>Calendar Events: " . count($calendarEvents2) . "</p>";
-        echo "<p>Weekly Schedule: " . count($weeklySchedule2) . "</p>";
-        
-        // Check for tes 4
-        $tes4InCalendar2 = array_filter($calendarEvents2, function($event) {
-            return stripos($event['title'] ?? '', 'tes 4') !== false || 
-                   stripos($event['shift_info']['nama_shift'] ?? '', 'tes 4') !== false;
-        });
-        
-        $tes4InWeekly2 = array_filter($weeklySchedule2, function($schedule) {
-            return stripos($schedule['shift_template']['nama_shift'] ?? '', 'tes 4') !== false;
-        });
-        
-        echo "<p>Tes 4 in Calendar Events: " . count($tes4InCalendar2) . "</p>";
-        echo "<p>Tes 4 in Weekly Schedule: " . count($tes4InWeekly2) . "</p>";
-        
-        if (count($tes4InCalendar2) > 0) {
-            echo "<h5>Tes 4 Calendar Events Found:</h5>";
-            echo "<pre>" . json_encode($tes4InCalendar2, JSON_PRETTY_PRINT) . "</pre>";
-        }
-        
-        if (count($tes4InWeekly2) > 0) {
-            echo "<h5>Tes 4 Weekly Schedule Found:</h5>";
-            echo "<pre>" . json_encode($tes4InWeekly2, JSON_PRETTY_PRINT) . "</pre>";
-        }
-    }
-    
-    // Check if frontend is requesting the right month
-    echo "<h3>Frontend Month Request Analysis:</h3>";
-    echo "<p>Frontend might be requesting current month ($currentMonth) but tes 4 is in August (month 8)</p>";
-    echo "<p>If current month is not August, tes 4 won't appear in frontend</p>";
-    
     // Check all months where tes 4 exists
     echo "<h3>Months with Tes 4:</h3>";
     $tes4Jadwal = JadwalJaga::where('pegawai_id', 13)
@@ -224,6 +131,11 @@ if (Auth::check()) {
         }
         echo "</table>";
     }
+    
+    // Check if frontend is requesting the right month
+    echo "<h3>Frontend Month Request Analysis:</h3>";
+    echo "<p>Frontend might be requesting current month ($currentMonth) but tes 4 is in August (month 8)</p>";
+    echo "<p>If current month is not August, tes 4 won't appear in frontend</p>";
     
 } else {
     echo "<p>❌ Failed to login</p>";

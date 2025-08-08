@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Calendar, Clock, DollarSign, Award, Brain, Star, Crown, Flame, Moon, Sun } from 'lucide-react';
 import { JadwalJaga } from './JadwalJaga';
 import CreativeAttendanceDashboard from './Presensi';
 import JaspelComponent from './Jaspel';
 import ProfileComponent from './Profil';
 import doctorApi from '../../utils/doctorApi';
+import { performanceMonitor } from '../../utils/PerformanceMonitor';
 
 interface HolisticMedicalDashboardProps {
   userData?: {
@@ -147,6 +148,11 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
     error: null,
   });
 
+  // Ref to prevent duplicate API calls
+  const isDataFetchingRef = useRef(false);
+  const dataFetchedRef = useRef(false);
+  const mountedRef = useRef(true);
+
   // Memoized time update to prevent unnecessary re-renders
   useEffect(() => {
     const timer = setInterval(() => {
@@ -159,25 +165,49 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
     return () => clearInterval(timer);
   }, []);
 
-  // Optimized dashboard data fetching with proper error handling and caching
+  // Optimized dashboard data fetching with performance monitoring and duplicate prevention
   useEffect(() => {
     let isMounted = true;
     let retryCount = 0;
     const maxRetries = 3;
 
     const fetchDashboardData = async () => {
+      // Prevent duplicate API calls
+      if (isDataFetchingRef.current || dataFetchedRef.current) {
+        console.log('🚫 HolisticMedicalDashboard: Duplicate API call prevented');
+        return;
+      }
+
+      // Check if data already fetched successfully
+      if (dataFetchedRef.current && !loading.error) {
+        console.log('✅ HolisticMedicalDashboard: Data already fetched, skipping');
+        return;
+      }
+
+      isDataFetchingRef.current = true;
+
       try {
         if (!isMounted) return;
         
+        // Start performance monitoring
+        performanceMonitor.start('dashboard-data-fetch');
+        
         setLoading({ dashboard: true, error: null });
         
-        console.log('HolisticMedicalDashboard: Starting dashboard data fetch...');
+        console.log('🔄 HolisticMedicalDashboard: Starting dashboard data fetch...');
+        
+        // Track API call performance
+        performanceMonitor.start('api-call-dashboard');
         const dashboardData = await doctorApi.getDashboard();
+        performanceMonitor.end('api-call-dashboard');
         
         if (!isMounted) return;
         
         if (dashboardData) {
-          console.log('HolisticMedicalDashboard: Dashboard data received:', dashboardData);
+          console.log('✅ HolisticMedicalDashboard: Dashboard data received:', dashboardData);
+          
+          // Performance-monitored data processing
+          performanceMonitor.start('data-processing');
           
           // Calculate jaspel growth percentage
           const currentJaspel = dashboardData.jaspel_summary?.current_month || 0;
@@ -221,16 +251,25 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
               // Only update if data actually changed (prevent unnecessary re-renders)
               return JSON.stringify(prevMetrics) !== JSON.stringify(newMetrics) ? newMetrics : prevMetrics;
             });
-            
-            console.log('HolisticMedicalDashboard: Dashboard metrics updated successfully');
           }
+          
+          // End performance monitoring for data processing
+          performanceMonitor.end('data-processing');
+          
+          // Mark data as successfully fetched
+          dataFetchedRef.current = true;
+          
+          // End overall dashboard fetch monitoring
+          performanceMonitor.end('dashboard-data-fetch');
+          
+          console.log('✅ HolisticMedicalDashboard: Dashboard metrics updated successfully');
         }
       } catch (error) {
         if (!isMounted) return;
         
         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-        console.error('HolisticMedicalDashboard: Error fetching dashboard data:', error);
-        console.error('HolisticMedicalDashboard: Error details:', {
+        console.error('❌ HolisticMedicalDashboard: Error fetching dashboard data:', error);
+        console.error('🔍 HolisticMedicalDashboard: Error details:', {
           message: errorMessage,
           type: error?.constructor?.name,
           stack: error instanceof Error ? error.stack : undefined
@@ -239,7 +278,11 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
         // Retry logic for network errors
         if (retryCount < maxRetries && (errorMessage.includes('network') || errorMessage.includes('fetch'))) {
           retryCount++;
-          console.log(`HolisticMedicalDashboard: Retrying... (${retryCount}/${maxRetries})`);
+          console.log(`🔄 HolisticMedicalDashboard: Retrying... (${retryCount}/${maxRetries})`);
+          
+          // Reset fetching flag for retry
+          isDataFetchingRef.current = false;
+          
           setTimeout(() => fetchDashboardData(), 1000 * retryCount);
           return;
         }
@@ -272,16 +315,46 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
             return JSON.stringify(prevMetrics) !== JSON.stringify(fallbackMetrics) ? fallbackMetrics : prevMetrics;
           });
           
-          console.log('HolisticMedicalDashboard: Fallback data set due to error');
+          console.log('⚠️ HolisticMedicalDashboard: Fallback data set due to error');
         }
       } finally {
         if (isMounted) {
-          setLoading({ dashboard: false, error: null });
+          dashboardTracker.measureStateUpdate('loading-end', () => {
+            setLoading({ dashboard: false, error: null });
+          });
+          
+          // Generate performance report
+          setTimeout(() => {
+            dashboardTracker.generateDashboardReport();
+            
+            // Generate overall performance report
+            performanceMonitor.getReport();
+            if (report.recommendations.length > 0) {
+              console.group('🎯 Performance Recommendations');
+              report.recommendations.forEach(rec => console.log(`💡 ${rec}`));
+              console.groupEnd();
+            }
+          }, 100);
         }
+        
+        // Reset fetching flag
+        isDataFetchingRef.current = false;
       }
     };
 
-    fetchDashboardData();
+    // Only fetch data if not already fetching or fetched
+    console.log('📊 Dashboard useEffect check:', {
+      isDataFetching: isDataFetchingRef.current,
+      dataFetched: dataFetchedRef.current,
+      willFetch: !isDataFetchingRef.current && !dataFetchedRef.current
+    });
+    
+    if (!isDataFetchingRef.current && !dataFetchedRef.current) {
+      console.log('🚀 Initiating dashboard data fetch');
+      fetchDashboardData();
+    } else {
+      console.log('⏭️ Skipping dashboard fetch - already in progress or completed');
+    }
 
     // Cleanup function
     return () => {
@@ -307,35 +380,45 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
 
   // Memoized tab content rendering
   const renderTabContent = useCallback(() => {
+    const measureTabRender = dashboardTracker.measureComponentMount(`tab-${activeTab}`);
+    
+    let content;
     switch (activeTab) {
       case 'missions':
-        return (
+        content = (
           <div className="w-full">
             <JadwalJaga userData={userData} onNavigate={setActiveTab} />
           </div>
         );
+        break;
       case 'presensi':
-        return (
+        content = (
           <div className="w-full">
             <CreativeAttendanceDashboard userData={userData} />
           </div>
         );
+        break;
       case 'jaspel':
-        return (
+        content = (
           <div className="w-full">
             <JaspelComponent />
           </div>
         );
+        break;
       case 'profile':
-        return (
+        content = (
           <div className="w-full">
             <ProfileComponent />
           </div>
         );
+        break;
       default:
-        return renderMainDashboard();
+        content = renderMainDashboard();
     }
-  }, [activeTab, userData]);
+    
+    measureTabRender();
+    return content;
+  }, [activeTab, userData, dashboardTracker]);
 
   // Memoized greeting calculation
   const { greeting, icon: TimeIcon, color } = useMemo(() => getTimeGreeting(), [getTimeGreeting]);

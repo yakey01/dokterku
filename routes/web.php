@@ -1563,6 +1563,27 @@ Route::middleware(['auth'])->group(function () {
                 ->header('X-Cache-Bust', md5(time()));
         })->name('mobile-app')->middleware('throttle:1000,1');
         
+        // Simple mobile app route (no aggressive cache busting)
+        Route::get('/mobile-app-simple', function () {
+            $user = auth()->user();
+            $token = $user->createToken('mobile-app-dokter-simple-' . now()->timestamp)->plainTextToken;
+            
+            $hour = now()->hour;
+            $greeting = $hour < 12 ? 'Selamat Pagi' : ($hour < 17 ? 'Selamat Siang' : 'Selamat Malam');
+            
+            $dokter = \App\Models\Dokter::where('user_id', $user->id)->first();
+            $displayName = $dokter ? $dokter->nama_lengkap : $user->name;
+            
+            $userData = [
+                'name' => $displayName,
+                'email' => $user->email,
+                'greeting' => $greeting,
+                'initials' => strtoupper(substr($displayName ?? 'DA', 0, 2))
+            ];
+            
+            return view('mobile.dokter.app-simple', compact('token', 'userData'));
+        })->name('mobile-app-simple')->middleware('throttle:1000,1');
+        
         // EMERGENCY BYPASS ROUTE - Force new bundle loading (DISABLED - file not found)
         // Route::get('/mobile-app-v2', function () {
         //     // Route disabled - app-emergency.blade.php not found

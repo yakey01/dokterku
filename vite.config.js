@@ -11,6 +11,7 @@ export default defineConfig({
                 'resources/js/app.js',
                 'resources/js/paramedis-mobile-app.tsx',
                 'resources/js/dokter-mobile-app.tsx',
+                'resources/js/dokter-mobile-app-simple.tsx',
                 'resources/js/test-welcome-login.tsx',
                 'resources/js/welcome-login-app.tsx',
                 'resources/js/welcome-login-new.tsx',
