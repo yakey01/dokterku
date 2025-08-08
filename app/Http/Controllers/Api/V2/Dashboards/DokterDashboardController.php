@@ -1248,8 +1248,8 @@ class DokterDashboardController extends Controller
             
             $unitKerjaFilter = $unitKerjaMap[$category] ?? $unitKerjaMap['all'];
             
-            // For dokter, only include "Dokter Jaga" unit
-            $unitKerjaFilter = ['Dokter Jaga'];
+            // For dokter IGD schedules, follow category filter
+            // Already handled by unitKerjaMap above
             
             // SECURITY FIX: Only show schedules for the logged-in user
             $query = JadwalJaga::with(['pegawai', 'shiftTemplate'])
