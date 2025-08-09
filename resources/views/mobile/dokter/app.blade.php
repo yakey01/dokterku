@@ -75,81 +75,18 @@
         })();
     </script>
     
-    <!-- ULTRA AGGRESSIVE CACHE BUSTING -->
+    <!-- DISABLED: ULTRA AGGRESSIVE CACHE BUSTING -->
     <script>
-        // Force immediate cache clear and reload
-        (function() {
-            'use strict';
-            
-            console.log('🚀 ULTRA AGGRESSIVE CACHE BUSTING INITIATED');
-            console.log('🕐 Build Time:', '{{ time() }}');
-            console.log('🆔 Session ID:', '{{ session()->getId() }}');
-            
-            // Clear all possible caches
-            if ('caches' in window) {
-                caches.keys().then(function(names) {
-                    console.log('🗑️ Clearing caches:', names);
-                    return Promise.all(names.map(function(name) {
-                        return caches.delete(name);
-                    }));
-                }).then(function() {
-                    console.log('✅ All caches cleared');
-                });
-            }
-            
-            // Clear localStorage except auth tokens
-            try {
-                const keysToKeep = ['auth_token', 'csrf_token', 'user_preferences'];
-                const keysToRemove = Object.keys(localStorage).filter(key => !keysToKeep.includes(key));
-                keysToRemove.forEach(key => {
-                    localStorage.removeItem(key);
-                    console.log('🗑️ Removed localStorage:', key);
-                });
-            } catch (e) {
-                console.warn('⚠️ localStorage clear failed:', e);
-            }
-            
-            // Clear sessionStorage
-            try {
-                sessionStorage.clear();
-                console.log('✅ sessionStorage cleared');
-            } catch (e) {
-                console.warn('⚠️ sessionStorage clear failed:', e);
-            }
-            
-            // Force reload if old version detected
-            const currentUrl = window.location.href;
-            const hasForceReload = currentUrl.includes('force-reload');
-            const hasCacheBust = currentUrl.includes('cache-bust');
-            
-            if (!hasForceReload || !hasCacheBust) {
-                console.log('🔄 Force reloading with cache busting...');
-                const separator = currentUrl.includes('?') ? '&' : '?';
-                const newUrl = currentUrl + separator + 'force-reload=' + Date.now() + '&cache-bust=' + Math.random() + '&v={{ time() }}';
-                window.location.href = newUrl;
-            } else {
-                console.log('✅ Cache busting parameters detected');
-            }
-        })();
+        // Cache busting disabled to prevent infinite reloads
+        console.log('🚫 ULTRA AGGRESSIVE CACHE BUSTING DISABLED');
+        console.log('✅ Mobile app loading normally');
     </script>
     
-    <!-- Force Cache Busting -->
+    <!-- DISABLED: Force Cache Busting -->
     <script>
-        // Force reload if old version detected
-        if (window.location.search.includes('force-reload')) {
-            console.log('🔄 Force reload detected');
-        } else {
-            // Check if we need to force reload
-            const lastBuildTime = '{{ time() }}';
-            const currentTime = Date.now();
-            const timeDiff = currentTime - (lastBuildTime * 1000);
-            
-            // If more than 5 minutes old, force reload
-            if (timeDiff > 300000) {
-                console.log('🔄 Detected old build, forcing reload');
-                window.location.href = window.location.href + (window.location.href.includes('?') ? '&' : '?') + 'force-reload=' + Date.now();
-            }
-        }
+        // Force reload disabled to prevent infinite reloads
+        console.log('🚫 Force reload disabled');
+        console.log('✅ Mobile app loading normally');
     </script>
     
     <style>

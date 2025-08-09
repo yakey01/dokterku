@@ -144,7 +144,7 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
     },
   });
   const [loading, setLoading] = useState<LoadingState>({
-    dashboard: true,
+    dashboard: false,
     error: null,
   });
 
@@ -179,7 +179,7 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
       }
 
       // Check if data already fetched successfully
-      if (dataFetchedRef.current && !loading.error) {
+      if (dataFetchedRef.current) {
         console.log('✅ HolisticMedicalDashboard: Data already fetched, skipping');
         return;
       }
@@ -319,17 +319,12 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
         }
       } finally {
         if (isMounted) {
-          dashboardTracker.measureStateUpdate('loading-end', () => {
-            setLoading({ dashboard: false, error: null });
-          });
+          setLoading({ dashboard: false, error: null });
           
-          // Generate performance report
+          // Generate overall performance report
           setTimeout(() => {
-            dashboardTracker.generateDashboardReport();
-            
-            // Generate overall performance report
-            performanceMonitor.getReport();
-            if (report.recommendations.length > 0) {
+            const report = performanceMonitor.getReport();
+            if (report && report.recommendations && report.recommendations.length > 0) {
               console.group('🎯 Performance Recommendations');
               report.recommendations.forEach(rec => console.log(`💡 ${rec}`));
               console.groupEnd();
@@ -380,8 +375,6 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
 
   // Memoized tab content rendering
   const renderTabContent = useCallback(() => {
-    const measureTabRender = dashboardTracker.measureComponentMount(`tab-${activeTab}`);
-    
     let content;
     switch (activeTab) {
       case 'missions':
@@ -416,9 +409,8 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
         content = renderMainDashboard();
     }
     
-    measureTabRender();
     return content;
-  }, [activeTab, userData, dashboardTracker]);
+  }, [activeTab, userData]);
 
   // Memoized greeting calculation
   const { greeting, icon: TimeIcon, color } = useMemo(() => getTimeGreeting(), [getTimeGreeting]);

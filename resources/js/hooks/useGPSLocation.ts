@@ -63,6 +63,7 @@ export function useGPSLocation(options: UseGPSLocationOptions = {}): UseGPSLocat
   const watchIdRef = useRef<number | null>(null);
   const gpsManagerRef = useRef<typeof GPSManagerInstance>(GPSManagerInstance);
   const isMountedRef = useRef(true);
+  const lastAppliedConfigRef = useRef<{ cacheTimeout: number; fallbackLocationKey: string } | null>(null);
 
   /**
    * Initialize GPS Manager with configuration
@@ -73,11 +74,18 @@ export function useGPSLocation(options: UseGPSLocationOptions = {}): UseGPSLocat
 
     // Update configuration if provided
     if (fallbackLocation || cacheTimeout !== 300000) {
-      gpsManagerRef.current.updateConfig({
-        defaultLocation: fallbackLocation,
-        cacheExpiry: cacheTimeout,
-        enableLogging: process.env.NODE_ENV === 'development'
-      });
+      const fallbackKey = fallbackLocation ? `${fallbackLocation.lat},${fallbackLocation.lng}` : 'none';
+      const last = lastAppliedConfigRef.current;
+      const shouldUpdate = !last || last.cacheTimeout !== cacheTimeout || last.fallbackLocationKey !== fallbackKey;
+
+      if (shouldUpdate) {
+        gpsManagerRef.current.updateConfig({
+          defaultLocation: fallbackLocation,
+          cacheExpiry: cacheTimeout,
+          enableLogging: process.env.NODE_ENV === 'development'
+        });
+        lastAppliedConfigRef.current = { cacheTimeout, fallbackLocationKey: fallbackKey };
+      }
     }
 
     // Listen to status changes

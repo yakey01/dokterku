@@ -59,23 +59,17 @@ class ShiftTemplateResource extends Resource
                                     $masuk = \Carbon\Carbon::parse($jamMasuk);
                                     $pulang = \Carbon\Carbon::parse($jamPulang);
                                     
-                                    // Allow overnight shifts (jam pulang < jam masuk)
-                                    if ($pulang->lessThanOrEqualTo($masuk)) {
-                                        // This is overnight shift - validate it's reasonable
-                                        $duration = abs($pulang->addDay()->diffInHours($masuk));
-                                        if ($duration < 4) {
-                                            $fail('Shift terlalu pendek. Minimal durasi shift adalah 4 jam.');
-                                        } elseif ($duration > 16) {
-                                            $fail('Shift terlalu panjang. Maksimal durasi shift adalah 16 jam.');
-                                        }
-                                    } else {
-                                        // Normal shift - validate duration
-                                        $duration = abs($pulang->diffInHours($masuk));
-                                        if ($duration < 0.25) { // Allow 15 minutes minimum
-                                            $fail('Shift terlalu pendek. Minimal durasi shift adalah 15 menit.');
-                                        } elseif ($duration > 12) {
-                                            $fail('Shift terlalu panjang. Maksimal durasi shift adalah 12 jam.');
-                                        }
+                                    // Hitung durasi dalam menit untuk akurasi (termasuk kasus < 1 jam)
+                                    $isOvernight = $pulang->lessThanOrEqualTo($masuk);
+                                    $effectiveEnd = $isOvernight ? $pulang->copy()->addDay() : $pulang;
+                                    $durationMinutes = $effectiveEnd->diffInMinutes($masuk);
+
+                                    // Validasi durasi maksimal
+                                    // Normal shift: maks 12 jam (720 menit), Overnight: maks 16 jam (960 menit)
+                                    $maxMinutes = $isOvernight ? (16 * 60) : (12 * 60);
+                                    if ($durationMinutes > $maxMinutes) {
+                                        $fail('Shift terlalu panjang. Maksimal durasi shift adalah ' . ($isOvernight ? '16' : '12') . ' jam.');
+                                        return;
                                     }
                                 }
                             };
@@ -94,15 +88,18 @@ class ShiftTemplateResource extends Resource
                         $masuk = \Carbon\Carbon::parse($jamMasuk);
                         $pulang = \Carbon\Carbon::parse($jamPulang);
                         
-                        if ($pulang->lessThanOrEqualTo($masuk)) {
-                            // Overnight shift
-                            $duration = $pulang->addDay()->diffInHours($masuk);
-                            return "🌙 **Shift Malam** - Durasi: {$duration} jam (overnight shift)";
-                        } else {
-                            // Normal shift
-                            $duration = $pulang->diffInHours($masuk);
-                            return "☀️ **Shift Normal** - Durasi: {$duration} jam";
+                        $isOvernight = $pulang->lessThanOrEqualTo($masuk);
+                        $effectiveEnd = $isOvernight ? $pulang->copy()->addDay() : $pulang;
+                        $totalMinutes = $effectiveEnd->diffInMinutes($masuk);
+                        $hours = intdiv($totalMinutes, 60);
+                        $minutes = $totalMinutes % 60;
+                        $durasiTeks = trim(($hours > 0 ? $hours . ' jam' : '') . ($minutes > 0 ? ' ' . $minutes . ' menit' : ($hours === 0 ? '0 menit' : '')));
+
+                        if ($isOvernight) {
+                            return "🌙 **Shift Malam** - Durasi: {$durasiTeks} (overnight shift)";
                         }
+
+                        return "☀️ **Shift Normal** - Durasi: {$durasiTeks}";
                     })
                     ->visible(fn (callable $get) => $get('jam_masuk') && $get('jam_pulang')),
             ]);

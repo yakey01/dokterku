@@ -61,4 +61,84 @@ class EditJadwalJaga extends EditRecord
             'jam_jaga_custom' => ['nullable', 'date_format:H:i']
         ];
     }
+
+    /**
+     * Clear cache after updating a schedule
+     * This ensures the schedule updates appear immediately in the mobile app
+     */
+    protected function afterSave(): void
+    {
+        $record = $this->record;
+        
+        // Clear cache for both old and new dates (in case date was changed)
+        $oldTanggal = $record->getOriginal('tanggal_jaga');
+        $newTanggal = $record->tanggal_jaga;
+        
+        // Clear cache for new date
+        $tanggal = \Carbon\Carbon::parse($newTanggal);
+        $month = $tanggal->month;
+        $year = $tanggal->year;
+        
+        \Illuminate\Support\Facades\Cache::forget("jadwal_jaga_{$record->pegawai_id}_{$month}_{$year}");
+        
+        // If date changed, also clear cache for old date
+        if ($oldTanggal && $oldTanggal != $newTanggal) {
+            $oldDate = \Carbon\Carbon::parse($oldTanggal);
+            $oldMonth = $oldDate->month;
+            $oldYear = $oldDate->year;
+            \Illuminate\Support\Facades\Cache::forget("jadwal_jaga_{$record->pegawai_id}_{$oldMonth}_{$oldYear}");
+        }
+        
+        // Clear dashboard and other caches
+        \Illuminate\Support\Facades\Cache::forget("dokter_dashboard_stats_{$record->pegawai_id}");
+        \Illuminate\Support\Facades\Cache::forget("jadwal_jaga_weekly_{$record->pegawai_id}");
+        \Illuminate\Support\Facades\Cache::forget("jadwal_jaga_test_{$record->pegawai_id}_{$month}_{$year}");
+        
+        // If pegawai changed, clear cache for old pegawai too
+        $oldPegawaiId = $record->getOriginal('pegawai_id');
+        if ($oldPegawaiId && $oldPegawaiId != $record->pegawai_id) {
+            \Illuminate\Support\Facades\Cache::forget("jadwal_jaga_{$oldPegawaiId}_{$month}_{$year}");
+            \Illuminate\Support\Facades\Cache::forget("dokter_dashboard_stats_{$oldPegawaiId}");
+            \Illuminate\Support\Facades\Cache::forget("jadwal_jaga_weekly_{$oldPegawaiId}");
+        }
+        
+        // Log cache clearing for debugging
+        \Log::info("Cache cleared after updating jadwal jaga", [
+            'pegawai_id' => $record->pegawai_id,
+            'old_pegawai_id' => $oldPegawaiId,
+            'tanggal_jaga' => $newTanggal,
+            'old_tanggal' => $oldTanggal,
+            'caches_cleared' => true
+        ]);
+        
+        // Show success notification
+        \Filament\Notifications\Notification::make()
+            ->success()
+            ->title('Jadwal berhasil diperbarui')
+            ->body('Cache telah dibersihkan, perubahan akan segera muncul di aplikasi.')
+            ->send();
+    }
+
+    /**
+     * Clear cache after deleting a schedule
+     */
+    protected function afterDelete(): void
+    {
+        $record = $this->record;
+        
+        $tanggal = \Carbon\Carbon::parse($record->tanggal_jaga);
+        $month = $tanggal->month;
+        $year = $tanggal->year;
+        
+        // Clear all related caches
+        \Illuminate\Support\Facades\Cache::forget("jadwal_jaga_{$record->pegawai_id}_{$month}_{$year}");
+        \Illuminate\Support\Facades\Cache::forget("dokter_dashboard_stats_{$record->pegawai_id}");
+        \Illuminate\Support\Facades\Cache::forget("jadwal_jaga_weekly_{$record->pegawai_id}");
+        \Illuminate\Support\Facades\Cache::forget("jadwal_jaga_test_{$record->pegawai_id}_{$month}_{$year}");
+        
+        \Log::info("Cache cleared after deleting jadwal jaga", [
+            'pegawai_id' => $record->pegawai_id,
+            'tanggal_jaga' => $record->tanggal_jaga
+        ]);
+    }
 }

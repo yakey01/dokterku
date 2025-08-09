@@ -1317,9 +1317,10 @@ const CreativeAttendanceDashboardEmergency = () => {
                       const workingTime = new Date() - new Date(attendanceData.checkInTime);
                       const hours = workingTime / (1000 * 60 * 60);
                       
-                      if (hours < 4) return 'Semangat! Hari masih panjang untuk mencapai target 8 jam.';
-                      if (hours < 6) return 'Kerja bagus! Sudah setengah perjalanan menuju target harian.';
-                      if (hours < 8) return 'Hampir sampai target! Pertahankan semangat kerja Anda.';
+                      const targetHours = 8; // fixed target 8 jam (no fallback)
+                      if (hours < targetHours * 0.5) return `Semangat! Hari masih panjang untuk mencapai target ${targetHours} jam.`;
+                      if (hours < targetHours * 0.75) return 'Kerja bagus! Sudah setengah perjalanan menuju target harian.';
+                      if (hours < targetHours) return 'Hampir sampai target! Pertahankan semangat kerja Anda.';
                       if (hours < 9) return 'Target tercapai! Jam kerja tambahan akan dihitung sebagai overtime.';
                       return 'Luar biasa! Anda sudah bekerja melebihi jam standar hari ini.';
                     })()}

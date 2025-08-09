@@ -40,9 +40,9 @@ class DokterDashboardController extends Controller
                 ->where('aktif', true)
                 ->first();
 
-            // Cache dashboard stats untuk 5 menit
+            // Cache dashboard stats untuk 2 menit (reduced from 5 minutes)
             $cacheKey = "dokter_dashboard_stats_{$user->id}";
-            $stats = Cache::remember($cacheKey, 300, function () use ($dokter, $user) {
+            $stats = Cache::remember($cacheKey, 120, function () use ($dokter, $user) {
                 $today = Carbon::today();
                 $thisMonth = Carbon::now()->startOfMonth();
                 $thisWeek = Carbon::now()->startOfWeek();
@@ -189,16 +189,17 @@ class DokterDashboardController extends Controller
                 ], 401);
             }
             
-            $month = $request->get('month', Carbon::now()->month);
-            $year = $request->get('year', Carbon::now()->year);
-            $today = Carbon::today();
+            $nowJakarta = Carbon::now()->setTimezone('Asia/Jakarta');
+            $month = $request->get('month', $nowJakarta->month);
+            $year = $request->get('year', $nowJakarta->year);
+            $today = $nowJakarta->copy()->startOfDay();
             
             // Check if this is a refresh request
             $isRefresh = $request->has('refresh') || $request->header('Cache-Control') === 'no-cache';
             
             // Cache key for jadwal jaga with short TTL for quick refresh
             $cacheKey = "jadwal_jaga_{$user->id}_{$month}_{$year}";
-            $cacheTTL = $isRefresh ? 10 : 60; // 10 seconds for refresh, 60 seconds for normal
+            $cacheTTL = $isRefresh ? 3 : 10; // 3 seconds for refresh, 10 seconds for normal (faster updates)
             
             // Clear cache if refresh requested
             if ($isRefresh) {
@@ -206,22 +207,40 @@ class DokterDashboardController extends Controller
                 \Log::info("🔄 Cleared jadwal jaga cache for user {$user->id} due to refresh request");
             }
             
-            // Use cache for jadwal jaga data
-            $jadwalData = Cache::remember($cacheKey, $cacheTTL, function () use ($user, $month, $year, $today, $cacheTTL, $isRefresh) {
+            // Helper to compute fresh jadwal data (used for both refresh/no-refresh)
+            $computeJadwalData = function () use ($user, $month, $year, $today, $cacheTTL, $isRefresh, $nowJakarta) {
+                // Get the pegawai_id from the relationship
+                $pegawaiId = $user->pegawai_id ?: ($user->pegawai ? $user->pegawai->id : null);
+                
                 // Enhanced query with proper relationships
-                $jadwalJaga = JadwalJaga::where('pegawai_id', $user->id)
-                    ->whereMonth('tanggal_jaga', $month)
-                    ->whereYear('tanggal_jaga', $year)
-                    ->with(['shiftTemplate', 'pegawai'])
-                    ->orderBy('tanggal_jaga')
-                    ->get();
+                $jadwalJaga = collect();
+                
+                if ($pegawaiId) {
+                    // Query using the correct pegawai_id from pegawais table
+                    $jadwalJaga = JadwalJaga::where('pegawai_id', $pegawaiId)
+                        ->whereMonth('tanggal_jaga', $month)
+                        ->whereYear('tanggal_jaga', $year)
+                        ->with(['shiftTemplate', 'pegawai'])
+                        ->orderBy('tanggal_jaga')
+                        ->get();
+                } else {
+                    // Fallback: try querying with user_id (for backward compatibility)
+                    $jadwalJaga = JadwalJaga::where('pegawai_id', $user->id)
+                        ->whereMonth('tanggal_jaga', $month)
+                        ->whereYear('tanggal_jaga', $year)
+                        ->with(['shiftTemplate', 'pegawai'])
+                        ->orderBy('tanggal_jaga')
+                        ->get();
+                }
 
                 \Log::info('JadwalJaga query result', [
                     'user_id' => $user->id,
+                    'pegawai_id' => $pegawaiId,
                     'month' => $month,
                     'year' => $year,
                     'jadwal_count' => $jadwalJaga->count(),
-                    'jadwal_ids' => $jadwalJaga->pluck('id')->toArray()
+                    'jadwal_ids' => $jadwalJaga->pluck('id')->toArray(),
+                    'query_type' => $pegawaiId ? 'Using pegawai_id' : 'Using user_id fallback'
                 ]);
 
                 // Format untuk calendar dengan proper shift template data
@@ -252,7 +271,7 @@ class DokterDashboardController extends Controller
                 });
 
                 // Enhanced weekly schedule with full relationship data
-                $weeklySchedule = JadwalJaga::where('pegawai_id', $user->id)
+                $weeklySchedule = JadwalJaga::where('pegawai_id', $pegawaiId ?: $user->id)
                     ->whereBetween('tanggal_jaga', [
                         Carbon::now()->startOfWeek(),
                         Carbon::now()->endOfWeek()
@@ -284,11 +303,11 @@ class DokterDashboardController extends Controller
                     });
 
                 // FIXED: Get today's schedule specifically for attendance validation
-                $todaySchedule = JadwalJaga::where('pegawai_id', $user->id)
+                $todaySchedule = JadwalJaga::where('pegawai_id', $pegawaiId ?: $user->id)
                     ->whereDate('tanggal_jaga', $today)
                     ->with(['shiftTemplate', 'pegawai'])
                     ->get()
-                    ->map(function ($jadwal) {
+                    ->map(function ($jadwal) use ($user) {
                         $shiftTemplate = $jadwal->shiftTemplate;
                         
                         return [
@@ -318,12 +337,12 @@ class DokterDashboardController extends Controller
                 $currentShift = $todaySchedule->where('status_jaga', 'Aktif')->first();
 
                 // ENHANCED: Calculate schedule card statistics
-                $now = Carbon::now();
+                $now = $nowJakarta;
                 $todayDate = $now->toDateString();
                 $currentTime = $now->format('H:i:s');
                 
                 // All schedules for the requested month/year with shift templates
-                $allSchedules = JadwalJaga::where('pegawai_id', $user->id)
+                $allSchedules = JadwalJaga::where('pegawai_id', $pegawaiId ?: $user->id)
                     ->whereMonth('tanggal_jaga', $month)
                     ->whereYear('tanggal_jaga', $year)
                     ->with(['shiftTemplate'])
@@ -365,11 +384,25 @@ class DokterDashboardController extends Controller
                     return false;
                 });
                 
-                // Calculate total hours from completed shifts
-                $totalHours = $completedShifts->sum(function ($jadwal) {
+                // Calculate total hours from completed shifts (using actual attendance data)
+                $totalHours = $completedShifts->sum(function ($jadwal) use ($user) {
+                    // First, try to get actual hours from attendance records
+                    $attendance = \App\Models\Attendance::where('user_id', $user->id)
+                        ->whereDate('date', $jadwal->tanggal_jaga)
+                        ->first();
+                    
+                    if ($attendance && $attendance->time_in && $attendance->time_out) {
+                        // Use actual worked hours from attendance (check-out - check-in)
+                        $timeIn = Carbon::parse($attendance->time_in);
+                        $timeOut = Carbon::parse($attendance->time_out);
+                        return $timeOut->diffInHours($timeIn);
+                    }
+                    
+                    // If no attendance record, calculate from shift template
                     if ($jadwal->shiftTemplate && $jadwal->shiftTemplate->durasi_jam) {
                         return $jadwal->shiftTemplate->durasi_jam;
                     }
+                    
                     // Fallback: calculate from jam_masuk and jam_pulang
                     if ($jadwal->shiftTemplate && $jadwal->shiftTemplate->jam_masuk && $jadwal->shiftTemplate->jam_pulang) {
                         $startTime = Carbon::parse($jadwal->shiftTemplate->jam_masuk);
@@ -382,8 +415,9 @@ class DokterDashboardController extends Controller
                         
                         return $startTime->diffInHours($endTime);
                     }
-                    // Default 8 hours if no template data
-                    return 8;
+                    
+                    // Don't assume default hours - return 0 if no data available
+                    return 0;
                 });
 
                 // Schedule card statistics
@@ -411,7 +445,14 @@ class DokterDashboardController extends Controller
                         'is_refresh' => $isRefresh
                     ]
                 ];
-            });
+            };
+
+            // Use cache for jadwal jaga data, but bypass cache entirely when refresh is requested
+            if ($isRefresh) {
+                $jadwalData = $computeJadwalData();
+            } else {
+                $jadwalData = Cache::remember($cacheKey, $cacheTTL, $computeJadwalData);
+            }
 
             \Log::info('JadwalJaga API response', [
                 'user_id' => $user->id,
@@ -684,12 +725,21 @@ class DokterDashboardController extends Controller
                 ], 401);
             }
             
-            $today = Carbon::today();
+            $today = Carbon::today('Asia/Jakarta');
             
-            // Presensi hari ini
-            $attendanceToday = Attendance::where('user_id', $user->id)
+            // Presensi hari ini (multi-shift aware)
+            $todayRecords = Attendance::where('user_id', $user->id)
                 ->whereDate('date', $today)
-                ->first();
+                ->orderBy('time_in')
+                ->get();
+
+            $anyOpen = $todayRecords->contains(function ($a) {
+                return $a->time_in && !$a->time_out;
+            });
+            // Choose a representative record: prefer the open one, otherwise last of today
+            $attendanceToday = $todayRecords->firstWhere(function ($a) {
+                return $a->time_in && !$a->time_out;
+            }) ?? $todayRecords->last();
 
             // History presensi bulan ini
             $attendanceHistory = Attendance::where('user_id', $user->id)
@@ -712,13 +762,13 @@ class DokterDashboardController extends Controller
                 'message' => 'Data presensi berhasil dimuat',
                 'data' => [
                     'today' => $attendanceToday ? [
-                        'date' => $attendanceToday->date->format('Y-m-d'),
+                        'date' => optional($attendanceToday->date)->format('Y-m-d') ?? $today->format('Y-m-d'),
                         'time_in' => $attendanceToday->time_in?->format('H:i'),
                         'time_out' => $attendanceToday->time_out?->format('H:i'),
                         'status' => $attendanceToday->status,
                         'work_duration' => $attendanceToday->formatted_work_duration,
                         'can_check_in' => false,
-                        'can_check_out' => !$attendanceToday->time_out
+                        'can_check_out' => $anyOpen
                     ] : [
                         'date' => $today->format('Y-m-d'),
                         'time_in' => null,
@@ -728,6 +778,15 @@ class DokterDashboardController extends Controller
                         'can_check_in' => true,
                         'can_check_out' => false
                     ],
+                    'today_records' => $todayRecords->map(function ($a) {
+                        return [
+                            'id' => $a->id,
+                            'jadwal_jaga_id' => $a->jadwal_jaga_id,
+                            'time_in' => $a->time_in?->format('H:i'),
+                            'time_out' => $a->time_out?->format('H:i'),
+                            'status' => $a->status,
+                        ];
+                    })->values(),
                     'history' => $attendanceHistory,
                     'stats' => $attendanceStats
                 ]
@@ -749,17 +808,18 @@ class DokterDashboardController extends Controller
     {
         try {
             $user = Auth::user();
-            $today = Carbon::today();
             $currentTime = Carbon::now()->setTimezone('Asia/Jakarta');
-            
-            // VALIDASI JADWAL JAGA - Cek apakah dokter memiliki jadwal jaga hari ini
-            $jadwalJaga = JadwalJaga::where('pegawai_id', $user->id)
-                ->whereDate('tanggal_jaga', $today)
-                ->where('status_jaga', 'Aktif')
-                ->with('shiftTemplate')
-                ->first();
+            $todayJakarta = $currentTime->copy()->startOfDay();
+            $today = $todayJakarta->toDateString();
 
-            if (!$jadwalJaga) {
+            // Ambil SEMUA jadwal jaga hari ini (Aktif) lalu pilih yang paling relevan berdasarkan waktu sekarang
+            $jadwalList = JadwalJaga::where('pegawai_id', $user->id)
+                ->whereDate('tanggal_jaga', $todayJakarta)
+                // Do not filter by status_jaga; choose based on time to avoid stale/mis-set statuses
+                ->with('shiftTemplate')
+                ->get();
+
+            if ($jadwalList->isEmpty()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Anda tidak memiliki jadwal jaga hari ini. Hubungi admin untuk informasi lebih lanjut.',
@@ -767,80 +827,210 @@ class DokterDashboardController extends Controller
                 ], 422);
             }
 
-            // VALIDASI WAKTU JAGA - Cek apakah saat ini dalam jam jaga dengan buffer
-            $shiftTemplate = $jadwalJaga->shiftTemplate;
-            if ($shiftTemplate) {
-                $startTime = Carbon::parse($shiftTemplate->jam_masuk)->setTimezone('Asia/Jakarta');
-                $endTime = Carbon::parse($shiftTemplate->jam_pulang)->setTimezone('Asia/Jakarta');
-                $currentTimeOnly = $currentTime->format('H:i:s');
-                
-                // Add buffer for short shifts (5 minutes before and after)
-                $bufferMinutes = 5;
-                $startTimeWithBuffer = $startTime->copy()->subMinutes($bufferMinutes);
-                $endTimeWithBuffer = $endTime->copy()->addMinutes($bufferMinutes);
-                
-                // Handle overnight shifts (end time < start time)
-                if ($endTime->format('H:i:s') < $startTime->format('H:i:s')) {
-                    // For overnight shifts, check if current time is after start OR before end
-                    if ($currentTimeOnly < $startTimeWithBuffer->format('H:i:s') && $currentTimeOnly > $endTimeWithBuffer->format('H:i:s')) {
-                        return response()->json([
-                            'success' => false,
-                            'message' => sprintf(
-                                'Saat ini bukan jam jaga Anda. Jadwal jaga: %s - %s, Waktu saat ini: %s',
-                                $startTime->format('H:i'),
-                                $endTime->format('H:i'),
-                                $currentTime->format('H:i:s')
-                            ),
-                            'code' => 'OUTSIDE_SHIFT_HOURS',
-                            'debug_info' => [
-                                'current_time' => $currentTime->toISOString(),
-                                'shift_start' => $startTime->toISOString(),
-                                'shift_end' => $endTime->toISOString(),
-                                'timezone' => $currentTime->timezone->getName(),
-                                'buffer_minutes' => $bufferMinutes
-                            ]
-                        ], 422);
-                    }
-                } else {
-                    // For regular shifts, check if current time is within shift hours with buffer
-                    if ($currentTimeOnly < $startTimeWithBuffer->format('H:i:s') || $currentTimeOnly > $endTimeWithBuffer->format('H:i:s')) {
-                        return response()->json([
-                            'success' => false,
-                            'message' => sprintf(
-                                'Saat ini bukan jam jaga Anda. Jadwal jaga: %s - %s, Waktu saat ini: %s',
-                                $startTime->format('H:i'),
-                                $endTime->format('H:i'),
-                                $currentTime->format('H:i:s')
-                            ),
-                            'code' => 'OUTSIDE_SHIFT_HOURS',
-                            'debug_info' => [
-                                'current_time' => $currentTime->toISOString(),
-                                'shift_start' => $startTime->toISOString(),
-                                'shift_end' => $endTime->toISOString(),
-                                'timezone' => $currentTime->timezone->getName(),
-                                'buffer_minutes' => $bufferMinutes
-                            ]
-                        ], 422);
-                    }
+            // Tentukan shift yang sedang berlangsung (atau terdekat) dengan buffer
+            $selectedJadwal = null;
+            $selectedMeta = null;
+            foreach ($jadwalList as $item) {
+                $tpl = $item->shiftTemplate;
+                if (!$tpl) {
+                    continue;
+                }
+                $startTimeStr = $tpl->jam_masuk_format ?? '08:00';
+                $endTimeStr = $tpl->jam_pulang_format ?? '16:00';
+                $start = Carbon::parse($todayJakarta->toDateString() . ' ' . $startTimeStr, 'Asia/Jakarta');
+                $end = Carbon::parse($todayJakarta->toDateString() . ' ' . $endTimeStr, 'Asia/Jakarta');
+                // Overnight handling
+                if ($end->lt($start)) {
+                    $end->addDay();
+                }
+
+                // Buffer logic (≥60 menit untuk shift ≤30 menit)
+                $durationMinutes = $end->diffInMinutes($start);
+                $bufferMinutes = $durationMinutes <= 30 ? 60 : 30;
+                $startBuf = $start->copy()->subMinutes($bufferMinutes);
+                $endBuf = $end->copy()->addMinutes($bufferMinutes);
+
+                $isCurrent = $currentTime->between($startBuf, $endBuf, true);
+                $isUpcoming = !$isCurrent && $currentTime->lt($start);
+
+                $selectedMeta = [
+                    'start' => $start,
+                    'end' => $end,
+                    'start_buf' => $startBuf,
+                    'end_buf' => $endBuf,
+                    'duration' => $durationMinutes,
+                    'is_current' => $isCurrent,
+                    'is_upcoming' => $isUpcoming,
+                ];
+
+                // Prioritas: current → upcoming terdekat → terakhir lewat
+                if ($isCurrent) {
+                    $selectedJadwal = $item;
+                    break; // langsung pakai ini
                 }
             }
 
-            // Cek apakah sudah check-in hari ini
-            $attendance = Attendance::where('user_id', $user->id)
-                ->whereDate('date', $today)
-                ->first();
+            if (!$selectedJadwal) {
+                // Cari upcoming terdekat
+                $upcoming = $jadwalList->map(function ($item) use ($todayJakarta) {
+                    $tpl = $item->shiftTemplate;
+                    if (!$tpl) return null;
+                    $start = Carbon::parse($todayJakarta->toDateString() . ' ' . ($tpl->jam_masuk_format ?? '08:00'), 'Asia/Jakarta');
+                    $end = Carbon::parse($todayJakarta->toDateString() . ' ' . ($tpl->jam_pulang_format ?? '16:00'), 'Asia/Jakarta');
+                    if ($end->lt($start)) { $end->addDay(); }
+                    return [
+                        'item' => $item,
+                        'start' => $start,
+                        'end' => $end,
+                    ];
+                })->filter()->filter(function ($row) use ($currentTime) {
+                    return $currentTime->lt($row['start']);
+                })->sortBy('start')->first();
 
-            if ($attendance && $attendance->time_in) {
+                if ($upcoming) {
+                    $selectedJadwal = $upcoming['item'];
+                } else {
+                    // Ambil shift terakhir yang sudah lewat (terdekat ke sekarang)
+                    $past = $jadwalList->map(function ($item) use ($todayJakarta) {
+                        $tpl = $item->shiftTemplate;
+                        if (!$tpl) return null;
+                        $start = Carbon::parse($todayJakarta->toDateString() . ' ' . ($tpl->jam_masuk_format ?? '08:00'), 'Asia/Jakarta');
+                        return [ 'item' => $item, 'start' => $start ];
+                    })->filter()->sortByDesc('start')->first();
+                    $selectedJadwal = $past ? $past['item'] : $jadwalList->first();
+                }
+            }
+
+            // Jika tetap tidak ada jadwal valid yang memiliki shift template, kembalikan 422 dengan debug info
+            if (!$selectedJadwal || !$selectedJadwal->shiftTemplate) {
+                $debugSchedules = $jadwalList->map(function ($item) use ($todayJakarta) {
+                    $tpl = $item->shiftTemplate;
+                    return [
+                        'id' => $item->id,
+                        'tanggal_jaga' => optional($item->tanggal_jaga)->format('Y-m-d'),
+                        'shift_template' => $tpl ? [
+                            'id' => $tpl->id,
+                            'nama_shift' => $tpl->nama_shift,
+                            'jam_masuk' => $tpl->jam_masuk,
+                            'jam_pulang' => $tpl->jam_pulang,
+                        ] : null,
+                        'unit_kerja' => $item->unit_kerja,
+                        'status_jaga' => $item->status_jaga,
+                    ];
+                });
+
+                        return response()->json([
+                            'success' => false,
+                    'message' => 'Tidak ada shift valid untuk check-in hari ini',
+                    'code' => 'NO_VALID_SHIFT_TODAY',
+                    'data' => [
+                                'current_time' => $currentTime->toISOString(),
+                        'schedules' => $debugSchedules,
+                            ]
+                        ], 422);
+                    }
+
+            // VALIDASI MENGGUNAKAN AttendanceValidationService (hormati toleransi Work Location untuk early check-in/late check-out)
+            $latitude = (float) $request->input('latitude');
+            $longitude = (float) $request->input('longitude');
+            $location = $request->input('location_name') ?? $request->input('location');
+            $accuracy = $request->input('accuracy');
+
+            if (!is_numeric($latitude) || !is_numeric($longitude)) {
+                        return response()->json([
+                            'success' => false,
+                    'message' => 'Koordinat tidak valid',
+                    'code' => 'INVALID_COORDINATES'
+                        ], 422);
+                    }
+
+            /** @var \App\Services\AttendanceValidationService $validationService */
+            $validationService = app(\App\Services\AttendanceValidationService::class);
+            // 1) Validate work location (with override support)
+            $locationValidation = $validationService->validateWorkLocationWithOverride($user, $latitude, $longitude, $accuracy);
+            if (!$locationValidation['valid']) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Anda sudah check-in hari ini'
+                    'message' => $locationValidation['message'],
+                    'code' => $locationValidation['code'] ?? 'LOCATION_INVALID',
+                    'data' => $locationValidation['data'] ?? null,
+                ], 422);
+            }
+
+            // 2) Validate shift time against the SELECTED JADWAL (not the first of the day)
+            $jadwalJaga = $selectedJadwal;
+            $timeValidation = $validationService->validateShiftTime($jadwalJaga);
+            if (!$timeValidation['valid']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $timeValidation['message'],
+                    'code' => $timeValidation['code'] ?? 'TIME_INVALID',
+                    'data' => $timeValidation['data'] ?? null,
+                ], 422);
+            }
+
+            // 3) Validate shift-location compatibility
+            $workLocation = $locationValidation['work_location'] ?? $locationValidation['location'] ?? null;
+            if ($workLocation) {
+                $compatValidation = $validationService->validateShiftLocationCompatibility($jadwalJaga, $workLocation);
+                if (!$compatValidation['valid']) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => $compatValidation['message'],
+                        'code' => $compatValidation['code'] ?? 'COMPATIBILITY_INVALID',
+                        'data' => $compatValidation['data'] ?? null,
+                    ], 422);
+                }
+            }
+
+            // Multiple shifts per day support
+            // 1) Block if there is an open attendance (checked-in but not checked-out) for ANY recent day
+            // Check for unclosed attendance from today OR previous days (up to 7 days back)
+            $openAttendance = Attendance::where('user_id', $user->id)
+                ->whereDate('date', '>=', Carbon::now()->subDays(7)->startOfDay())
+                ->whereNotNull('time_in')
+                ->whereNull('time_out')
+                ->orderByDesc('date')
+                ->orderByDesc('time_in')
+                ->first();
+
+            if ($openAttendance) {
+                // Format date for better user message
+                $attendanceDate = Carbon::parse($openAttendance->date);
+                $dateStr = $attendanceDate->isToday() ? 'hari ini' : 
+                          ($attendanceDate->isYesterday() ? 'kemarin' : 
+                           $attendanceDate->format('d M Y'));
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => "Masih ada presensi yang belum check-out dari $dateStr. Silakan check-out terlebih dahulu atau hubungi admin.",
+                    'code' => 'OPEN_ATTENDANCE_EXISTS',
+                    'data' => [
+                        'open_attendance' => [
+                            'date' => $openAttendance->date->format('Y-m-d'),
+                            'time_in' => $openAttendance->time_in?->format('H:i'),
+                            'jadwal_jaga_id' => $openAttendance->jadwal_jaga_id,
+                        ]
+                    ]
+                ], 422);
+            }
+
+            // 2) Prevent duplicate check-in for the same shift (jadwal_jaga) on the same day
+            $attendanceForShift = Attendance::where('user_id', $user->id)
+                ->whereDate('date', $today)
+                ->where('jadwal_jaga_id', $jadwalJaga->id)
+                ->orderByDesc('time_in')
+                ->first();
+
+            if ($attendanceForShift && $attendanceForShift->time_in && !$attendanceForShift->time_out) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda sudah check-in untuk shift ini dan belum check-out',
+                    'code' => 'ALREADY_CHECKED_IN_OPEN',
                 ], 422);
             }
 
             // Buat record attendance dengan jadwal jaga ID
-            $latitude = $request->get('latitude');
-            $longitude = $request->get('longitude');
-            $location = $request->get('location');
             
             // Format latlon_in as "latitude,longitude"
             $latlonIn = null;
@@ -848,20 +1038,22 @@ class DokterDashboardController extends Controller
                 $latlonIn = $latitude . ',' . $longitude;
             }
             
-            $attendance = Attendance::updateOrCreate([
+            // 3) Create a new attendance row for this shift (allow multiple rows per day for multiple shifts)
+            $attendance = Attendance::create([
                 'user_id' => $user->id,
-                'date' => $today
-            ], [
+                'date' => $today,
                 'time_in' => $currentTime,
                 'latlon_in' => $latlonIn,
                 'location_name_in' => $location,
                 'latitude' => $latitude,
                 'longitude' => $longitude,
-                'accuracy' => $request->get('accuracy'),
+                'accuracy' => $accuracy,
                 'jadwal_jaga_id' => $jadwalJaga->id, // Link ke jadwal jaga
-                'status' => 'present'
+                'status' => ($validation['code'] ?? '') === 'VALID_BUT_LATE' ? 'late' : 'present',
+                'work_location_id' => $workLocation->id ?? null,
             ]);
 
+            $shiftTemplate = $jadwalJaga->shiftTemplate; // ensure available for response payload
             return response()->json([
                 'success' => true,
                 'message' => 'Check-in berhasil',
@@ -876,6 +1068,17 @@ class DokterDashboardController extends Controller
                     ]
                 ]
             ]);
+
+            // Ensure schedule caches are fresh for realtime UI updates
+            try {
+                $month = Carbon::now()->month;
+                $year = Carbon::now()->year;
+                $cacheKey = "jadwal_jaga_{$user->id}_{$month}_{$year}";
+                Cache::forget($cacheKey);
+                Cache::forget("dokter_dashboard_stats_{$user->id}");
+            } catch (\Throwable $t) {
+                // no-op on cache clear failure
+            }
 
         } catch (\Exception $e) {
             \Log::error('Check-in error for user ' . $user->id, [
@@ -894,67 +1097,160 @@ class DokterDashboardController extends Controller
     {
         try {
             $user = Auth::user();
-            $today = Carbon::today();
-            $currentTime = Carbon::now();
+            $today = Carbon::today('Asia/Jakarta');
+            $currentTime = Carbon::now('Asia/Jakarta');
             
-            // Cek apakah sudah check-in hari ini
+            // Cari attendance yang masih "open" (sudah check-in, belum check-out)
+            // Prioritas: hari ini dulu, kalau tidak ada cek kemarin atau hari sebelumnya (max 7 hari)
             $attendance = Attendance::where('user_id', $user->id)
-                ->whereDate('date', $today)
+                ->whereDate('date', '>=', Carbon::now()->subDays(7)->startOfDay())
                 ->whereNotNull('time_in')
                 ->whereNull('time_out')
+                ->orderByDesc('date')
+                ->orderByDesc('time_in')
                 ->with('jadwalJaga.shiftTemplate')
                 ->first();
 
             if (!$attendance) {
+                // Fallback diagnosa: apakah sudah check-out atau memang belum check-in
+                $attendanceToday = Attendance::where('user_id', $user->id)
+                    ->whereDate('date', $today)
+                    ->orderByDesc('time_in')
+                    ->first();
+                if ($attendanceToday && $attendanceToday->time_in && $attendanceToday->time_out) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Belum check-in atau sudah check-out'
+                        'message' => 'Anda sudah melakukan check-out hari ini.',
+                        'code' => 'ALREADY_CHECKED_OUT',
+                        'data' => [
+                            'time_in' => $attendanceToday->time_in?->format('H:i'),
+                            'time_out' => $attendanceToday->time_out?->format('H:i'),
+                        ]
+                    ], 422);
+                }
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda belum melakukan check-in hari ini.',
+                    'code' => 'NOT_CHECKED_IN'
                 ], 422);
             }
 
-            // VALIDASI JADWAL JAGA - Cek apakah ada jadwal jaga yang terkait
-            if ($attendance->jadwal_jaga_id) {
-                $jadwalJaga = $attendance->jadwalJaga;
-                $shiftTemplate = $jadwalJaga->shiftTemplate;
-                
-                if ($shiftTemplate) {
-                    $startTime = Carbon::parse($shiftTemplate->jam_masuk);
-                    $endTime = Carbon::parse($shiftTemplate->jam_pulang);
-                    $currentTimeOnly = $currentTime->format('H:i:s');
-                    
-                    // Handle overnight shifts (end time < start time)
-                    if ($endTime->format('H:i:s') < $startTime->format('H:i:s')) {
-                        // For overnight shifts, check if current time is after start OR before end
-                        if ($currentTimeOnly < $startTime->format('H:i:s') && $currentTimeOnly > $endTime->format('H:i:s')) {
+            // VALIDASI CHECKOUT
+            $latitudeInput = $request->input('latitude');
+            $longitudeInput = $request->input('longitude');
+            $accuracy = $request->input('accuracy');
+            $hasCoords = is_numeric($latitudeInput) && is_numeric($longitudeInput);
+
+            if ($hasCoords) {
+                $latitude = (float) $latitudeInput;
+                $longitude = (float) $longitudeInput;
+                /** @var \App\Services\AttendanceValidationService $validationService */
+                $validationService = app(\App\Services\AttendanceValidationService::class);
+                $validation = $validationService->validateCheckout($user, $latitude, $longitude, $accuracy, $today);
+                if (!$validation['valid']) {
                             return response()->json([
                                 'success' => false,
-                                'message' => 'Saat ini bukan jam jaga Anda. Jadwal jaga: ' . $startTime->format('H:i') . ' - ' . $endTime->format('H:i'),
-                                'code' => 'OUTSIDE_SHIFT_HOURS'
+                        'message' => $validation['message'],
+                        'code' => $validation['code'],
+                        'data' => $validation['data'] ?? null,
                             ], 422);
                         }
+
+                $attendance->update([
+                    'time_out' => $currentTime,
+                    'checkout_latitude' => $latitude,
+                    'checkout_longitude' => $longitude,
+                    'checkout_accuracy' => $accuracy,
+                    'latlon_out' => $latitude . ',' . $longitude,
+                    'location_name_out' => ($validation['work_location']->name ?? 'Location'),
+                ]);
                     } else {
-                        // For regular shifts, check if current time is within shift hours
-                        if ($currentTimeOnly < $startTime->format('H:i:s') || $currentTimeOnly > $endTime->format('H:i:s')) {
+                // Graceful fallback: allow checkout without GPS coordinates, but validate time window
+                $shiftTemplate = optional($attendance->jadwalJaga)->shiftTemplate;
+                if ($shiftTemplate) {
+                    $jamKeluar = $shiftTemplate->jam_pulang ?? $shiftTemplate->jam_keluar ?? null;
+                    if ($jamKeluar) {
+                        try {
+                            $shiftEnd = strlen((string) $jamKeluar) > 5
+                                ? Carbon::parse($jamKeluar)->setTimezone('Asia/Jakarta')
+                                : Carbon::createFromFormat('H:i', $jamKeluar, 'Asia/Jakarta');
+                        } catch (\Exception $e) {
+                            $shiftEnd = Carbon::parse($jamKeluar)->setTimezone('Asia/Jakarta');
+                        }
+                        $currentTimeOnly = Carbon::createFromFormat('H:i:s', $currentTime->copy()->setTimezone('Asia/Jakarta')->format('H:i:s'), 'Asia/Jakarta');
+                        $workLocation = $user->workLocation;
+                        $earlyDepartureToleranceMinutes = $workLocation->early_departure_tolerance_minutes ?? 15;
+                        $checkoutAfterShiftMinutes = $workLocation->checkout_after_shift_minutes ?? 60;
+                        $checkoutEarliestTime = $shiftEnd->copy()->subMinutes($earlyDepartureToleranceMinutes);
+                        $checkoutLatestTime = $shiftEnd->copy()->addMinutes($checkoutAfterShiftMinutes);
+                        if ($currentTimeOnly->lt($checkoutEarliestTime)) {
+                            $earlyMinutes = $checkoutEarliestTime->diffInMinutes($currentTimeOnly);
                             return response()->json([
                                 'success' => false,
-                                'message' => 'Saat ini bukan jam jaga Anda. Jadwal jaga: ' . $startTime->format('H:i') . ' - ' . $endTime->format('H:i'),
-                                'code' => 'OUTSIDE_SHIFT_HOURS'
+                                'message' => "Check-out terlalu awal. Anda dapat check-out mulai pukul {$checkoutEarliestTime->format('H:i')} ({$earlyMinutes} menit lagi).",
+                                'code' => 'CHECKOUT_TOO_EARLY',
                             ], 422);
                         }
+                        // Too late: still allow
                     }
                 }
-            }
-
             $attendance->update([
                 'time_out' => $currentTime,
-                'location_out' => $request->get('location'),
-                'latitude_out' => $request->get('latitude'),
-                'longitude_out' => $request->get('longitude')
-            ]);
+                    // leave checkout coordinates null
+                ]);
+            }
+
+            // Determine next shift today for READY_TO_CHECK_IN state
+            $state = 'ALL_DONE';
+            $nextShiftPayload = null;
+            try {
+                $todayDate = $today->toDateString();
+                $jadwalHariIni = \App\Models\JadwalJaga::where('pegawai_id', $user->id)
+                    ->whereDate('tanggal_jaga', $todayDate)
+                    ->with('shiftTemplate')
+                    ->get()
+                    ->filter(fn($j) => $j->shiftTemplate);
+
+                if ($attendance->jadwalJaga && $attendance->jadwalJaga->shiftTemplate) {
+                    $currentStartStr = $attendance->jadwalJaga->shiftTemplate->jam_masuk ?? '00:00';
+                    $currentStart = \Carbon\Carbon::parse($todayDate . ' ' . $currentStartStr, 'Asia/Jakarta');
+                    $next = $jadwalHariIni->filter(function ($j) use ($todayDate, $currentStart) {
+                        $tpl = $j->shiftTemplate;
+                        $start = \Carbon\Carbon::parse($todayDate . ' ' . ($tpl->jam_masuk ?? '00:00'), 'Asia/Jakarta');
+                        return $start->gt($currentStart);
+                    })->sortBy(function ($j) use ($todayDate) {
+                        return \Carbon\Carbon::parse($todayDate . ' ' . ($j->shiftTemplate->jam_masuk ?? '00:00'), 'Asia/Jakarta')->timestamp;
+                    })->first();
+
+                    if ($next) {
+                        // Compute check_in_available_at using work location tolerance
+                        $workLocation = $user->workLocation;
+                        $beforeMinutes = $workLocation?->checkin_before_shift_minutes;
+                        if ($beforeMinutes === null && is_array($workLocation?->tolerance_settings)) {
+                            $beforeMinutes = (int) ($workLocation->tolerance_settings['checkin_before_shift_minutes'] ?? 0);
+                        }
+                        $beforeMinutes = $beforeMinutes ?? 30;
+                        $nextStart = \Carbon\Carbon::parse($todayDate . ' ' . ($next->shiftTemplate->jam_masuk ?? '00:00'), 'Asia/Jakarta');
+                        $checkInAvailableAt = $nextStart->copy()->subMinutes($beforeMinutes)->toIso8601String();
+                        $state = 'READY_TO_CHECK_IN';
+                        $nextShiftPayload = [
+                            'id' => $next->id,
+                            'shift_name' => $next->shiftTemplate->nama_shift ?? 'Shift',
+                            'start_time' => $next->shiftTemplate->jam_masuk ?? '00:00',
+                            'end_time' => $next->shiftTemplate->jam_pulang ?? '00:00',
+                            'check_in_available_at' => $checkInAvailableAt,
+                        ];
+                    }
+                }
+            } catch (\Throwable $t) {
+                // ignore next-shift computation errors
+            }
 
             return response()->json([
                 'success' => true,
                 'message' => 'Check-out berhasil',
+                'state' => $state,
+                'next_shift' => $nextShiftPayload,
                 'data' => [
                     'attendance' => $attendance,
                     'schedule' => $attendance->jadwalJaga ? [
@@ -966,6 +1262,17 @@ class DokterDashboardController extends Controller
                     ] : null
                 ]
             ]);
+
+            // Ensure schedule caches are fresh for realtime UI updates
+            try {
+                $month = Carbon::now()->month;
+                $year = Carbon::now()->year;
+                $cacheKey = "jadwal_jaga_{$user->id}_{$month}_{$year}";
+                Cache::forget($cacheKey);
+                Cache::forget("dokter_dashboard_stats_{$user->id}");
+            } catch (\Throwable $t) {
+                // no-op on cache clear failure
+            }
 
         } catch (\Exception $e) {
             \Log::error('Check-out error for user ' . $user->id, [
@@ -1491,6 +1798,16 @@ class DokterDashboardController extends Controller
     {
         try {
             $user = Auth::user();
+            // Fallback: support Bearer token (Sanctum) when no web session is present
+            if (!$user) {
+                $bearer = $request->bearerToken();
+                if ($bearer) {
+                    $pat = \Laravel\Sanctum\PersonalAccessToken::findToken($bearer);
+                    if ($pat) {
+                        $user = $pat->tokenable;
+                    }
+                }
+            }
             
             if (!$user) {
                 return response()->json([
@@ -1502,6 +1819,17 @@ class DokterDashboardController extends Controller
             // Get fresh work location data
             $user->load('workLocation');
             $workLocation = $user->workLocation?->fresh();
+
+            // Prepare tolerance fields with fallback to JSON tolerance_settings if individual columns are null
+            $lateTol = $workLocation?->late_tolerance_minutes;
+            $earlyDepTol = $workLocation?->early_departure_tolerance_minutes;
+            $beforeShift = $workLocation?->checkin_before_shift_minutes;
+            $afterShift = $workLocation?->checkout_after_shift_minutes;
+            $tolJson = is_array($workLocation?->tolerance_settings) ? $workLocation->tolerance_settings : [];
+            if ($lateTol === null && isset($tolJson['late_tolerance_minutes'])) { $lateTol = (int) $tolJson['late_tolerance_minutes']; }
+            if ($earlyDepTol === null && isset($tolJson['early_departure_tolerance_minutes'])) { $earlyDepTol = (int) $tolJson['early_departure_tolerance_minutes']; }
+            if ($beforeShift === null && isset($tolJson['checkin_before_shift_minutes'])) { $beforeShift = (int) $tolJson['checkin_before_shift_minutes']; }
+            if ($afterShift === null && isset($tolJson['checkout_after_shift_minutes'])) { $afterShift = (int) $tolJson['checkout_after_shift_minutes']; }
 
             return response()->json([
                 'success' => true,
@@ -1518,6 +1846,12 @@ class DokterDashboardController extends Controller
                         'radius_meters' => $workLocation->radius_meters,
                         'is_active' => $workLocation->is_active,
                         'updated_at' => $workLocation->updated_at?->toISOString(),
+                        // expose tolerance configuration for frontend hints (with fallback JSON)
+                        'late_tolerance_minutes' => $lateTol,
+                        'checkin_before_shift_minutes' => $beforeShift,
+                        'early_departure_tolerance_minutes' => $earlyDepTol,
+                        'checkout_after_shift_minutes' => $afterShift,
+                        'strict_geofence' => $workLocation->strict_geofence,
                     ] : null,
                     'user_id' => $user->id,
                     'timestamp' => now()->toISOString(),
@@ -2146,11 +2480,25 @@ class DokterDashboardController extends Controller
                     return false;
                 });
                 
-                // Calculate total hours from completed shifts
-                $totalHours = $completedShifts->sum(function ($jadwal) {
+                // Calculate total hours from completed shifts (using actual attendance data)
+                $totalHours = $completedShifts->sum(function ($jadwal) use ($user) {
+                    // First, try to get actual hours from attendance records
+                    $attendance = \App\Models\Attendance::where('user_id', $user->id)
+                        ->whereDate('date', $jadwal->tanggal_jaga)
+                        ->first();
+                    
+                    if ($attendance && $attendance->time_in && $attendance->time_out) {
+                        // Use actual worked hours from attendance (check-out - check-in)
+                        $timeIn = Carbon::parse($attendance->time_in);
+                        $timeOut = Carbon::parse($attendance->time_out);
+                        return $timeOut->diffInHours($timeIn);
+                    }
+                    
+                    // If no attendance record, calculate from shift template
                     if ($jadwal->shiftTemplate && $jadwal->shiftTemplate->durasi_jam) {
                         return $jadwal->shiftTemplate->durasi_jam;
                     }
+                    
                     // Fallback: calculate from jam_masuk and jam_pulang
                     if ($jadwal->shiftTemplate && $jadwal->shiftTemplate->jam_masuk && $jadwal->shiftTemplate->jam_pulang) {
                         $startTime = Carbon::parse($jadwal->shiftTemplate->jam_masuk);
@@ -2163,8 +2511,9 @@ class DokterDashboardController extends Controller
                         
                         return $startTime->diffInHours($endTime);
                     }
-                    // Default 8 hours if no template data
-                    return 8;
+                    
+                    // Don't assume default hours - return 0 if no data available
+                    return 0;
                 });
 
                 // Schedule card statistics

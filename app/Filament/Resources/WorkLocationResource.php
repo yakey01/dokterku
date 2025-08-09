@@ -113,7 +113,7 @@ class WorkLocationResource extends Resource
                                 ->extraAttributes([
                                     'class' => 'w-full',
                                     'id' => 'get-location-btn',
-                                    'onclick' => 'autoDetectLocation()'
+                                    'onclick' => 'if(typeof autoDetectLocation !== "undefined") { autoDetectLocation(); } else { console.error("GPS function not yet loaded. Please try again in a moment."); }'
                                 ])
                                 ->action(function () {
                                     // This will be handled by JavaScript

@@ -897,7 +897,8 @@ Route::get('/test-paramedis-attendance-summary', function () {
                         'status' => $record->status,
                         'time_in' => $record->check_in_time,
                         'time_out' => $record->check_out_time,
-                        'work_duration' => '8 jam', // Default work duration
+                        // Ambil default dari Work Location atau fallback 8 jam
+                        'work_duration' => ($record->work_duration_minutes ? floor($record->work_duration_minutes/60).' jam' : '8 jam'),
                         'location_name_in' => 'Klinik'
                     ];
                 })

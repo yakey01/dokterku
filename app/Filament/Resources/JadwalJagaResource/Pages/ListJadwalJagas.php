@@ -5,6 +5,8 @@ namespace App\Filament\Resources\JadwalJagaResource\Pages;
 use App\Filament\Resources\JadwalJagaResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Resources\Components\Tab;
+use Illuminate\Database\Eloquent\Builder;
 
 class ListJadwalJagas extends ListRecords
 {
@@ -387,6 +389,43 @@ class ListJadwalJagas extends ListRecords
                             ->send();
                     }
                 }),
+        ];
+    }
+
+    public function getTabs(): array
+    {
+        return [
+            'all' => Tab::make('Semua')
+                ->badge(fn () => $this->getModel()::count()),
+
+            'dokter' => Tab::make('Dokter')
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('peran', 'Dokter'))
+                ->badge(fn () => $this->getModel()::where('peran', 'Dokter')->count())
+                ->badgeColor('success'),
+
+            'paramedis' => Tab::make('Paramedis')
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('peran', 'Paramedis'))
+                ->badge(fn () => $this->getModel()::where('peran', 'Paramedis')->count())
+                ->badgeColor('info'),
+
+            'non_paramedis' => Tab::make('Non Paramedis')
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('peran', 'NonParamedis'))
+                ->badge(fn () => $this->getModel()::where('peran', 'NonParamedis')->count())
+                ->badgeColor('warning'),
+
+            'upcoming' => Tab::make('Mendatang')
+                ->modifyQueryUsing(function (Builder $query) {
+                    return $query->whereDate('tanggal_jaga', '>=', \Carbon\Carbon::today('Asia/Jakarta'));
+                })
+                ->badge(fn () => $this->getModel()::whereDate('tanggal_jaga', '>=', \Carbon\Carbon::today('Asia/Jakarta'))->count())
+                ->badgeColor('primary'),
+
+            'past' => Tab::make('Riwayat (Terlewat)')
+                ->modifyQueryUsing(function (Builder $query) {
+                    return $query->whereDate('tanggal_jaga', '<', \Carbon\Carbon::today('Asia/Jakarta'));
+                })
+                ->badge(fn () => $this->getModel()::whereDate('tanggal_jaga', '<', \Carbon\Carbon::today('Asia/Jakarta'))->count())
+                ->badgeColor('gray'),
         ];
     }
     

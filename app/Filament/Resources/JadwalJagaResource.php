@@ -490,8 +490,14 @@ class JadwalJagaResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->defaultSort('tanggal_jaga', 'desc')
             ->filters([
-                //
+                Tables\Filters\Filter::make('upcoming')
+                    ->label('Hanya yang Mendatang')
+                    ->default()
+                    ->query(function (Builder $query) {
+                        return $query->whereDate('tanggal_jaga', '>=', \Carbon\Carbon::today('Asia/Jakarta'));
+                    }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

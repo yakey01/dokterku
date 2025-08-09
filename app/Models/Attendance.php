@@ -151,7 +151,19 @@ class Attendance extends Model
     {
         return self::where('user_id', $userId)
             ->where('date', Carbon::today())
+            ->orderByDesc('time_in')
             ->first();
+    }
+
+    /**
+     * Get all attendances for today (ascending by time_in)
+     */
+    public static function getTodayAttendances(int $userId)
+    {
+        return self::where('user_id', $userId)
+            ->where('date', Carbon::today())
+            ->orderBy('time_in')
+            ->get();
     }
 
     /**

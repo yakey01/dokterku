@@ -101,4 +101,51 @@ class CreateJadwalJaga extends CreateRecord
             throw $e;
         }
     }
+
+    /**
+     * Clear cache after creating a new schedule
+     * This ensures the schedule appears immediately in the mobile app
+     */
+    protected function afterCreate(): void
+    {
+        $record = $this->record;
+        
+        // Clear multiple cache keys to ensure fresh data
+        $tanggal = \Carbon\Carbon::parse($record->tanggal_jaga);
+        $month = $tanggal->month;
+        $year = $tanggal->year;
+        
+        // Clear schedule cache for the specific user and month
+        \Illuminate\Support\Facades\Cache::forget("jadwal_jaga_{$record->pegawai_id}_{$month}_{$year}");
+        
+        // Clear dashboard stats cache
+        \Illuminate\Support\Facades\Cache::forget("dokter_dashboard_stats_{$record->pegawai_id}");
+        
+        // Clear weekly cache (if exists)
+        \Illuminate\Support\Facades\Cache::forget("jadwal_jaga_weekly_{$record->pegawai_id}");
+        
+        // Clear test cache (if exists)
+        \Illuminate\Support\Facades\Cache::forget("jadwal_jaga_test_{$record->pegawai_id}_{$month}_{$year}");
+        
+        // Log cache clearing for debugging
+        \Log::info("Cache cleared after creating jadwal jaga", [
+            'pegawai_id' => $record->pegawai_id,
+            'tanggal_jaga' => $record->tanggal_jaga,
+            'month' => $month,
+            'year' => $year,
+            'cache_keys_cleared' => [
+                "jadwal_jaga_{$record->pegawai_id}_{$month}_{$year}",
+                "dokter_dashboard_stats_{$record->pegawai_id}",
+                "jadwal_jaga_weekly_{$record->pegawai_id}",
+                "jadwal_jaga_test_{$record->pegawai_id}_{$month}_{$year}"
+            ]
+        ]);
+        
+        // Show success notification
+        \Filament\Notifications\Notification::make()
+            ->success()
+            ->title('Jadwal berhasil dibuat')
+            ->body('Cache telah dibersihkan, jadwal akan segera muncul di aplikasi.')
+            ->send();
+    }
 }

@@ -16,8 +16,8 @@ class AttendanceValidationService
      */
     public function validateSchedule(User $user, Carbon $date = null): array
     {
-        $date = $date ?? Carbon::today();
-        $currentTime = Carbon::now();
+        $date = $date ? $date->copy()->setTimezone('Asia/Jakarta') : Carbon::now('Asia/Jakarta')->startOfDay();
+        $currentTime = Carbon::now('Asia/Jakarta');
         
         // Get user's schedule for today
         $jadwalJaga = JadwalJaga::where('pegawai_id', $user->id)
@@ -41,7 +41,7 @@ class AttendanceValidationService
         }
         
         // Check status with case insensitive comparison and debug logging
-        if (strtolower($jadwalJaga->status_jaga) !== 'aktif') {
+        if (strtolower((string) $jadwalJaga->status_jaga) !== 'aktif') {
             \Log::warning('Schedule validation failed - inactive status', [
                 'user_id' => $user->id,
                 'date' => $date->format('Y-m-d'),
@@ -186,7 +186,7 @@ class AttendanceValidationService
      */
     public function validateShiftTime(JadwalJaga $jadwalJaga, Carbon $currentTime = null): array
     {
-        $currentTime = $currentTime ?? Carbon::now();
+        $currentTime = $currentTime ? $currentTime->copy()->setTimezone('Asia/Jakarta') : Carbon::now('Asia/Jakarta');
         $shiftTemplate = $jadwalJaga->shiftTemplate;
         
         if (!$shiftTemplate) {
@@ -200,15 +200,15 @@ class AttendanceValidationService
         // Get shift start and end times with flexible parsing
         // Handle both H:i format and full datetime format
         try {
-            if (strlen($shiftTemplate->jam_masuk) > 5) {
+            if (strlen((string) $shiftTemplate->jam_masuk) > 5) {
                 // Full datetime format
-                $shiftStart = Carbon::parse($shiftTemplate->jam_masuk);
+                $shiftStart = Carbon::parse($shiftTemplate->jam_masuk)->setTimezone('Asia/Jakarta');
             } else {
                 // H:i format
-                $shiftStart = Carbon::createFromFormat('H:i', $shiftTemplate->jam_masuk);
+                $shiftStart = Carbon::createFromFormat('H:i', $shiftTemplate->jam_masuk, 'Asia/Jakarta');
             }
         } catch (Exception $e) {
-            $shiftStart = Carbon::parse($shiftTemplate->jam_masuk);
+            $shiftStart = Carbon::parse($shiftTemplate->jam_masuk)->setTimezone('Asia/Jakarta');
         }
         
         try {
@@ -221,31 +221,44 @@ class AttendanceValidationService
                 ];
             }
             
-            if (strlen($jamKeluar) > 5) {
+            if (strlen((string) $jamKeluar) > 5) {
                 // Full datetime format
-                $shiftEnd = Carbon::parse($jamKeluar);
+                $shiftEnd = Carbon::parse($jamKeluar)->setTimezone('Asia/Jakarta');
             } else {
                 // H:i format
-                $shiftEnd = Carbon::createFromFormat('H:i', $jamKeluar);
+                $shiftEnd = Carbon::createFromFormat('H:i', $jamKeluar, 'Asia/Jakarta');
             }
         } catch (Exception $e) {
-            $shiftEnd = Carbon::parse($jamKeluar);
+            $shiftEnd = Carbon::parse($jamKeluar)->setTimezone('Asia/Jakarta');
         }
         
         // Get work location tolerance settings with enhanced configuration
         $user = $jadwalJaga->pegawai;
         $workLocation = $user->workLocation;
         
-        // Use new tolerance fields or fallback to defaults
-        $lateToleranceMinutes = $workLocation ? $workLocation->late_tolerance_minutes ?? 15 : 15;
-        $checkInBeforeShiftMinutes = $workLocation ? $workLocation->checkin_before_shift_minutes ?? 30 : 30;
+        // Use new tolerance fields or fallback to JSON settings or defaults
+        $lateToleranceMinutes = $workLocation ? ($workLocation->late_tolerance_minutes ?? null) : null;
+        $checkInBeforeShiftMinutes = $workLocation ? ($workLocation->checkin_before_shift_minutes ?? null) : null;
+        if (($lateToleranceMinutes === null || $checkInBeforeShiftMinutes === null) && $workLocation && is_array($workLocation->tolerance_settings)) {
+            $ts = $workLocation->tolerance_settings;
+            if ($lateToleranceMinutes === null && isset($ts['late_tolerance_minutes'])) {
+                $lateToleranceMinutes = (int) $ts['late_tolerance_minutes'];
+            }
+            if ($checkInBeforeShiftMinutes === null && isset($ts['checkin_before_shift_minutes'])) {
+                $checkInBeforeShiftMinutes = (int) $ts['checkin_before_shift_minutes'];
+            }
+        }
+        $lateToleranceMinutes = $lateToleranceMinutes ?? 15;
+        $checkInBeforeShiftMinutes = $checkInBeforeShiftMinutes ?? 30;
+
+        // Global-only policy: do not apply per-user overrides
         
         // Calculate enhanced check-in window
         $checkInEarliestTime = $shiftStart->copy()->subMinutes($checkInBeforeShiftMinutes);
         $checkInLatestTime = $shiftStart->copy()->addMinutes($lateToleranceMinutes);
         
         // Check if current time is within allowed check-in window
-        $currentTimeOnly = Carbon::createFromFormat('H:i:s', $currentTime->format('H:i:s'));
+        $currentTimeOnly = Carbon::createFromFormat('H:i:s', $currentTime->copy()->setTimezone('Asia/Jakarta')->format('H:i:s'), 'Asia/Jakarta');
         
         // Too early check
         if ($currentTimeOnly->lt($checkInEarliestTime)) {
@@ -365,7 +378,7 @@ class AttendanceValidationService
      */
     public function validateCheckout(User $user, float $latitude, float $longitude, ?float $accuracy = null, Carbon $date = null): array
     {
-        $date = $date ?? Carbon::today();
+        $date = $date ? $date->copy()->setTimezone('Asia/Jakarta') : Carbon::now('Asia/Jakarta')->startOfDay();
         
         // 1. Check if user has checked in today
         $attendance = \App\Models\Attendance::getTodayAttendance($user->id);
@@ -405,7 +418,7 @@ class AttendanceValidationService
         }
         
         // 4. Validate check-out time with tolerance settings
-        $currentTime = Carbon::now();
+        $currentTime = Carbon::now('Asia/Jakarta');
         $currentWorkMinutes = $currentTime->diffInMinutes($attendance->time_in);
         
         // Get user's schedule and work location for tolerance settings
@@ -430,23 +443,36 @@ class AttendanceValidationService
                         ];
                     }
                     
-                    if (strlen($jamKeluar) > 5) {
+                    if (strlen((string) $jamKeluar) > 5) {
                         // Full datetime format
-                        $shiftEnd = Carbon::parse($jamKeluar);
+                        $shiftEnd = Carbon::parse($jamKeluar)->setTimezone('Asia/Jakarta');
                     } else {
                         // H:i format
-                        $shiftEnd = Carbon::createFromFormat('H:i', $jamKeluar);
+                        $shiftEnd = Carbon::createFromFormat('H:i', $jamKeluar, 'Asia/Jakarta');
                     }
                 } catch (Exception $e) {
-                    $shiftEnd = Carbon::parse($jamKeluar);
+                    $shiftEnd = Carbon::parse($jamKeluar)->setTimezone('Asia/Jakarta');
                 }
                 
-                $currentTimeOnly = Carbon::createFromFormat('H:i:s', $currentTime->format('H:i:s'));
+                $currentTimeOnly = Carbon::createFromFormat('H:i:s', $currentTime->copy()->setTimezone('Asia/Jakarta')->format('H:i:s'), 'Asia/Jakarta');
                 
                 // Get work location tolerance settings
                 $workLocation = $user->workLocation;
-                $earlyDepartureToleranceMinutes = $workLocation ? $workLocation->early_departure_tolerance_minutes ?? 15 : 15;
-                $checkoutAfterShiftMinutes = $workLocation ? $workLocation->checkout_after_shift_minutes ?? 60 : 60;
+                $earlyDepartureToleranceMinutes = $workLocation ? ($workLocation->early_departure_tolerance_minutes ?? null) : null;
+                $checkoutAfterShiftMinutes = $workLocation ? ($workLocation->checkout_after_shift_minutes ?? null) : null;
+                if (($earlyDepartureToleranceMinutes === null || $checkoutAfterShiftMinutes === null) && $workLocation && is_array($workLocation->tolerance_settings)) {
+                    $ts = $workLocation->tolerance_settings;
+                    if ($earlyDepartureToleranceMinutes === null && isset($ts['early_departure_tolerance_minutes'])) {
+                        $earlyDepartureToleranceMinutes = (int) $ts['early_departure_tolerance_minutes'];
+                    }
+                    if ($checkoutAfterShiftMinutes === null && isset($ts['checkout_after_shift_minutes'])) {
+                        $checkoutAfterShiftMinutes = (int) $ts['checkout_after_shift_minutes'];
+                    }
+                }
+                $earlyDepartureToleranceMinutes = $earlyDepartureToleranceMinutes ?? 15;
+                $checkoutAfterShiftMinutes = $checkoutAfterShiftMinutes ?? 60;
+
+                // Global-only policy: do not apply per-user overrides for checkout
                 
                 // Calculate checkout window
                 $checkoutEarliestTime = $shiftEnd->copy()->subMinutes($earlyDepartureToleranceMinutes);
@@ -512,20 +538,7 @@ class AttendanceValidationService
             }
         }
         
-        // 5. Check minimum work duration to prevent accidental check-outs
-        $minimumWorkMinutes = 30; // 30 minutes minimum
-        if ($currentWorkMinutes < $minimumWorkMinutes) {
-            return [
-                'valid' => false,
-                'message' => "Check-out terlalu cepat. Minimal bekerja {$minimumWorkMinutes} menit. Anda baru bekerja {$currentWorkMinutes} menit.",
-                'code' => 'MINIMUM_WORK_TIME_NOT_MET',
-                'data' => [
-                    'current_work_minutes' => $currentWorkMinutes,
-                    'minimum_required_minutes' => $minimumWorkMinutes,
-                    'time_in' => $attendance->time_in->format('H:i:s')
-                ]
-            ];
-        }
+        // 5. Tidak ada batas minimum durasi kerja untuk check-out
         
         return [
             'valid' => true,
@@ -535,6 +548,58 @@ class AttendanceValidationService
             'work_location' => $locationValidation['work_location'] ?? $locationValidation['location'] ?? null,
             'work_duration_minutes' => $currentWorkMinutes
         ];
+    }
+
+    /**
+     * Create per-user tolerance override (cache-based, expires end of day)
+     */
+    public function createToleranceOverride(User $admin, User $targetUser, array $settings): array
+    {
+        if (!$admin->hasRole(['admin', 'super-admin'])) {
+            return [
+                'success' => false,
+                'message' => 'Only administrators can create tolerance overrides.',
+                'code' => 'INSUFFICIENT_PERMISSIONS'
+            ];
+        }
+        $date = Carbon::now('Asia/Jakarta');
+        $cacheKey = 'tolerance_override_' . $targetUser->id . '_' . $date->format('Y-m-d');
+        $payload = [
+            'admin_id' => $admin->id,
+            'admin_name' => $admin->name,
+            'settings' => $settings,
+            'created_at' => now()->toISOString(),
+            'expires_at' => $date->copy()->endOfDay()->toISOString(),
+        ];
+        Cache::put($cacheKey, $payload, $date->diffInSeconds($date->copy()->endOfDay()));
+        Log::info('Tolerance override created', ['admin' => $admin->id, 'user' => $targetUser->id, 'settings' => $settings]);
+        return [
+            'success' => true,
+            'message' => 'Tolerance override created successfully.',
+            'code' => 'TOLERANCE_OVERRIDE_CREATED',
+            'override_data' => $payload,
+        ];
+    }
+
+    /**
+     * Check active tolerance override
+     */
+    public function hasActiveToleranceOverride(User $user): array
+    {
+        $date = Carbon::now('Asia/Jakarta');
+        $cacheKey = 'tolerance_override_' . $user->id . '_' . $date->format('Y-m-d');
+        $override = Cache::get($cacheKey);
+        if (!$override) {
+            return ['has_override' => false, 'override_data' => null];
+        }
+        $expiresAt = Carbon::parse($override['expires_at']);
+        if ($expiresAt->isPast()) {
+            Cache::forget($cacheKey);
+            return ['has_override' => false, 'override_data' => null];
+        }
+        // Unwrap settings directly for easy use
+        $data = $override['settings'] ?? [];
+        return ['has_override' => true, 'override_data' => $data];
     }
 
     /**

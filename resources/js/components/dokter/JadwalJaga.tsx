@@ -715,7 +715,8 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
           if (duration < 0) duration += 24 * 60; // Handle overnight shifts
           return sum + (duration / 60);
         }
-        return sum + 8; // Default 8 hours
+        // Don't assume default hours - only count actual shift template data
+        return sum;
       }, 0);
       setTotalHours(Math.round(totalHoursCalc));
     } else if (missions.length > 0) {

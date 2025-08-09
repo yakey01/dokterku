@@ -112,7 +112,7 @@ export class GPSManager extends EventEmitter {
       accuracyThreshold: 100, // meters
       distanceThreshold: 500, // meters for cache validity
       defaultLocation: { lat: -7.898878, lng: 111.961884 }, // Hospital location
-      enableLogging: true,
+      enableLogging: false,
       ...config
     };
 
