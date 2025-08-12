@@ -321,4 +321,20 @@ class AttendanceToleranceSettingResource extends Resource
             'edit' => Pages\EditAttendanceToleranceSetting::route('/{record}/edit'),
         ];
     }
+    
+    /**
+     * Required for navigation visibility
+     */
+    public static function shouldRegisterNavigation(): bool
+    {
+        return true;
+    }
+    
+    /**
+     * Required for resource access
+     */
+    public static function canViewAny(): bool
+    {
+        return true;
+    }
 }

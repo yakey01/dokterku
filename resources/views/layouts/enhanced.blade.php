@@ -8,13 +8,14 @@
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
     <!-- Minimal Design System CSS -->
     <link href="{{ asset('css/design-system/tokens.css') }}" rel="stylesheet">
     <link href="{{ asset('css/design-system/components.css') }}" rel="stylesheet">
     
-    <!-- Enhanced Theme System -->
-    <script src="{{ asset('js/theme-system.js') }}"></script>
-    
+    <!-- Tailwind Configuration -->
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -123,9 +124,9 @@
                         <div class="relative" x-data="{ open: false }">
                             <button @click="open = !open" class="flex items-center space-x-3 text-sm bg-white dark:bg-gray-800 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-medical-500 p-2">
                                 <div class="h-8 w-8 rounded-full bg-medical-500 flex items-center justify-center">
-                                    <span class="text-white font-medium text-sm">{{ substr(auth()->user()->name, 0, 1) }}</span>
+                                    <span class="text-white font-medium text-sm">{{ auth()->check() ? substr(auth()->user()->name, 0, 1) : 'G' }}</span>
                                 </div>
-                                <span class="hidden md:block text-gray-700 dark:text-gray-300 font-medium">{{ auth()->user()->name }}</span>
+                                <span class="hidden md:block text-gray-700 dark:text-gray-300 font-medium">{{ auth()->check() ? auth()->user()->name : 'Guest' }}</span>
                                 <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                 </svg>

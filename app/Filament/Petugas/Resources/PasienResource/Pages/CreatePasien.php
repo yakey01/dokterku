@@ -36,7 +36,12 @@ class CreatePasien extends CreateRecord
             'tanggal_lahir' => 'required|date|before_or_equal:today',
             'jenis_kelamin' => 'required|in:L,P',
             'alamat' => 'nullable|string|max:500',
-            'no_telepon' => 'nullable|string|max:20',
+            'no_telepon' => 'nullable|string|max:20|regex:/^[\d\-\+\(\)\s]+$/',
+            'email' => 'nullable|email|max:255|unique:pasien,email',
+            'pekerjaan' => 'nullable|string|max:255',
+            'status_pernikahan' => 'nullable|in:belum_menikah,menikah,janda,duda',
+            'kontak_darurat_nama' => 'nullable|string|max:255',
+            'kontak_darurat_telepon' => 'nullable|string|max:20|regex:/^[\d\-\+\(\)\s]+$/',
         ];
     }
 

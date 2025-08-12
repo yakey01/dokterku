@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Ngrok URL - Dokterku</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .status {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #4caf50;
+            color: white;
+            border-radius: 20px;
+            font-weight: 600;
+            margin: 20px 0;
+        }
+        .new-url {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            font-size: 16px;
+            font-family: monospace;
+            word-break: break-all;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .new-url:hover {
+            transform: scale(1.02);
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #4caf50, #45a049);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: transform 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+        }
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            color: #856404;
+            text-align: left;
+        }
+        .copy-msg {
+            color: #4caf50;
+            font-weight: 600;
+            margin-top: 10px;
+            display: none;
+        }
+        .old-url {
+            text-decoration: line-through;
+            color: #999;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Ngrok URL Updated!</h1>
+        
+        <div class="status">🟢 NEW TUNNEL ACTIVE</div>
+        
+        <div style="margin: 20px 0;">
+            <div class="old-url">Old: https://ee3f6b75ee7f.ngrok-free.app</div>
+            <div style="color: #666; margin-bottom: 10px;">⬇️ NEW URL ⬇️</div>
+        </div>
+        
+        <div class="new-url" onclick="copyUrl()">
+            https://e5e2ff4353d1.ngrok-free.app
+            <div style="font-size: 12px; margin-top: 10px;">👆 Click to copy</div>
+        </div>
+        
+        <div id="copy-msg" class="copy-msg">✅ Copied to clipboard!</div>
+
+        <div style="margin: 30px 0;">
+            <a href="https://e5e2ff4353d1.ngrok-free.app/login" class="btn" target="_blank">
+                🔐 Open Login Page
+            </a>
+            <a href="https://e5e2ff4353d1.ngrok-free.app/dokter/mobile-app" class="btn btn-secondary" target="_blank">
+                📱 Dokter App
+            </a>
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ URL Changed!</strong><br>
+            Ngrok tunnel restarted with new URL. Use the new URL above for mobile testing.
+            <br><br>
+            <strong>Remember:</strong>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+                <li>Click "Visit Site" on ngrok warning page</li>
+                <li>Login required before accessing dokter app</li>
+                <li>GPS will work with HTTPS connection</li>
+            </ul>
+        </div>
+
+        <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 10px;">
+            <strong>Test Accounts:</strong><br>
+            dd@rrr.com (Rindang)<br>
+            dd@cc.com (Yaya)
+        </div>
+    </div>
+
+    <script>
+        function copyUrl() {
+            const url = 'https://e5e2ff4353d1.ngrok-free.app';
+            navigator.clipboard.writeText(url).then(() => {
+                document.getElementById('copy-msg').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('copy-msg').style.display = 'none';
+                }, 3000);
+            }).catch(() => {
+                const input = document.createElement('input');
+                input.value = url;
+                document.body.appendChild(input);
+                input.select();
+                document.execCommand('copy');
+                document.body.removeChild(input);
+                document.getElementById('copy-msg').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('copy-msg').style.display = 'none';
+                }, 3000);
+            });
+        }
+    </script>
+</body>
+</html>

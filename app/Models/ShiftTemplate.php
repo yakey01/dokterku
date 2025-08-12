@@ -14,13 +14,38 @@ class ShiftTemplate extends Model
     ];
 
     protected $casts = [
-        'jam_masuk' => 'datetime:H:i',
-        'jam_pulang' => 'datetime:H:i',
+        'is_active' => 'boolean',
     ];
 
     public function jadwalJagas(): HasMany
     {
         return $this->hasMany(JadwalJaga::class);
+    }
+
+    /**
+     * Get jam_masuk as time string only
+     */
+    public function getJamMasukAttribute($value): string
+    {
+        // If value is already a time string (HH:MM:SS), return it
+        if (preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $value)) {
+            return $value;
+        }
+        // If it contains a date, extract just the time
+        return \Carbon\Carbon::parse($value)->format('H:i:s');
+    }
+
+    /**
+     * Get jam_pulang as time string only
+     */
+    public function getJamPulangAttribute($value): string
+    {
+        // If value is already a time string (HH:MM:SS), return it
+        if (preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $value)) {
+            return $value;
+        }
+        // If it contains a date, extract just the time
+        return \Carbon\Carbon::parse($value)->format('H:i:s');
     }
 
     public function getDurasiAttribute(): string

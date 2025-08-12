@@ -1,2 +1,0 @@
-import{d as n,j as o}from"./index-CmmmkQkd.js";import{W as c}from"./WelcomeLogin-BpdfgJyC.js";import"./user-kzwFVkUo.js";import"./zap-BZ853rAq.js";const r=()=>{const e=()=>{console.log("🎯 Login callback triggered"),alert("Login success callback executed!")};return o.jsx("div",{children:o.jsx(c,{onLogin:e})})},t=document.getElementById("test-welcome-login-root");t&&n.createRoot(t).render(o.jsx(r,{}));
-//# sourceMappingURL=test-welcome-login-DeEXrL2s.js.map

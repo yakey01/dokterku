@@ -21,6 +21,7 @@ class JumlahPasienHarian extends Model
         'validasi_by',
         'validasi_at',
         'catatan_validasi',
+        'catatan',
     ];
 
     protected $casts = [

@@ -105,13 +105,6 @@ class PetugasStatsWidget extends BaseWidget
                 ->descriptionIcon($todayStats['net_income'] >= 0 ? 'heroicon-m-currency-dollar' : 'heroicon-m-exclamation-triangle')
                 ->color($todayStats['net_income'] >= 0 ? 'success' : 'danger')
                 ->chart($this->getChartData($stats['trends']['charts']['daily_income'] ?? [])),
-                
-            // Validation summary  
-            Stat::make('Validasi Pending', $validationSummary['pending_validations'])
-                ->description($validationSummary['approval_rate'] . '% approval rate')
-                ->descriptionIcon('heroicon-m-clock')
-                ->color($validationSummary['pending_validations'] > 10 ? 'warning' : 'info')
-                ->chart([$validationSummary['rejected_today'] ?? 0, $validationSummary['approved_today'] ?? 0]),
         ];
     }
     
@@ -152,13 +145,6 @@ class PetugasStatsWidget extends BaseWidget
                 ->descriptionIcon('heroicon-m-currency-dollar')
                 ->color('success')
                 ->chart([4, 10, 14, 16, 19, 20, 21]),
-                
-            // Validation summary  
-            Stat::make('Validasi Pending', '3')
-                ->description('95% approval rate')
-                ->descriptionIcon('heroicon-m-clock')
-                ->color('info')
-                ->chart([1, 2, 3, 2, 1, 2, 3]),
         ];
     }
     
@@ -264,12 +250,6 @@ class PetugasStatsWidget extends BaseWidget
             Stat::make('Net Hari Ini', 'Rp 0')
                 ->description('Tidak ada perubahan')
                 ->descriptionIcon('heroicon-m-minus')
-                ->color('gray')
-                ->chart([0, 0]),
-                
-            Stat::make('Validasi Pending', 0)
-                ->description('0% approval rate')
-                ->descriptionIcon('heroicon-m-clock')
                 ->color('gray')
                 ->chart([0, 0]),
         ];

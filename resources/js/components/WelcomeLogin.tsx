@@ -106,24 +106,37 @@ const WelcomeLogin = ({ onLogin }: WelcomeLoginProps) => {
     console.log('🔄 Starting login process...');
     
     try {
-      // Get CSRF token
+      // Get CSRF token from meta tag
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      console.log('🔑 CSRF Token found:', csrfToken ? 'Yes' : 'No');
+      
+      if (!csrfToken) {
+        console.error('❌ No CSRF token found in meta tag');
+        alert('CSRF token not found. Please refresh the page and try again.');
+        setIsLoading(false);
+        return;
+      }
       
       // Submit login form
       const response = await fetch('/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': csrfToken || '',
+          'X-CSRF-TOKEN': csrfToken,
           'Accept': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
         },
         body: JSON.stringify({
+          _token: csrfToken,
           email_or_username: email,
           password: password,
           remember: false
         }),
         credentials: 'same-origin'
       });
+
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
 
       if (response.ok) {
         setIsLoading(false);
@@ -157,12 +170,19 @@ const WelcomeLogin = ({ onLogin }: WelcomeLoginProps) => {
           window.location.href = (response as any).url || '/dokter/mobile-app';
         }
       } else {
-        const data = await response.json();
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error occurred' }));
         setIsLoading(false);
-        alert(data.message || 'Login failed. Please check your credentials.');
+        
+        console.error('❌ Login failed:', errorData);
+        
+        if (response.status === 419) {
+          alert('CSRF token mismatch. Please refresh the page and try again.');
+        } else {
+          alert(errorData.message || 'Login failed. Please check your credentials.');
+        }
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('❌ Login error:', error);
       setIsLoading(false);
       alert('An error occurred during login. Please try again.');
     }

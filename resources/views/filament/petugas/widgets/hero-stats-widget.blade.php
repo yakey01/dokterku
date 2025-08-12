@@ -116,7 +116,7 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <!-- Efficiency Score -->
                         <div class="text-center">
                             <div class="relative w-16 h-16 mx-auto mb-2">
@@ -173,16 +173,6 @@
                             <p class="text-xs font-medium {{ $performance_summary['net_income'] >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400' }}">
                                 Rp {{ number_format($performance_summary['net_income'], 0, ',', '.') }}
                             </p>
-                        </div>
-
-                        <!-- Pending Validations -->
-                        <div class="text-center">
-                            <div class="w-16 h-16 mx-auto mb-2 flex items-center justify-center {{ $performance_summary['pending_validations'] > 5 ? 'bg-amber-100 dark:bg-amber-900/30' : 'bg-gray-100 dark:bg-gray-800' }} rounded-full">
-                                <span class="text-xl font-bold {{ $performance_summary['pending_validations'] > 5 ? 'text-amber-600 dark:text-amber-400' : 'text-gray-600 dark:text-gray-400' }}">
-                                    {{ $performance_summary['pending_validations'] }}
-                                </span>
-                            </div>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Pending</p>
                         </div>
                     </div>
                 </div>

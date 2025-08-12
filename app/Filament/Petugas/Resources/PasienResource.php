@@ -10,6 +10,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Tables\Actions\CreateAction;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
@@ -33,7 +34,7 @@ class PasienResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-user-plus';
     
-    protected static ?string $navigationGroup = '🏥 Manajemen Pasien';
+    protected static ?string $navigationGroup = 'Manajemen Pasien';
     
     protected static ?string $navigationLabel = 'Input Pasien';
     
@@ -53,12 +54,33 @@ class PasienResource extends Resource
         return true;
     }
 
+    public static function canCreate(): bool
+    {
+        return true;
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        return true;
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return true;
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        return true;
+    }
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Data Pasien')
+                Forms\Components\Section::make('📋 Data Identitas Pasien')
                     ->description('Masukkan data lengkap pasien. Field dengan tanda (*) wajib diisi.')
+                    ->extraAttributes(['class' => 'glass-card animate-slide-up'])
                     ->schema([
                         Forms\Components\TextInput::make('no_rekam_medis')
                             ->label('No. Rekam Medis')
@@ -66,6 +88,7 @@ class PasienResource extends Resource
                             ->placeholder('Otomatis di-generate jika kosong')
                             ->helperText('Nomor rekam medis akan dibuat otomatis jika tidak diisi')
                             ->unique(ignoreRecord: true)
+                            ->prefixIcon('heroicon-o-identification')
                             ->validationMessages([
                                 'unique' => 'Nomor rekam medis sudah digunakan.',
                                 'max' => 'Nomor rekam medis maksimal 20 karakter.',
@@ -76,6 +99,8 @@ class PasienResource extends Resource
                             ->required()
                             ->maxLength(255)
                             ->placeholder('Masukkan nama lengkap pasien')
+                            ->prefixIcon('heroicon-o-user')
+                            ->autocomplete('name')
                             ->validationMessages([
                                 'required' => 'Nama lengkap wajib diisi.',
                                 'max' => 'Nama lengkap maksimal 255 karakter.',
@@ -86,6 +111,9 @@ class PasienResource extends Resource
                             ->required()
                             ->maxDate(now())
                             ->placeholder('Pilih tanggal lahir')
+                            ->prefixIcon('heroicon-o-calendar-days')
+                            ->displayFormat('d/m/Y')
+                            ->helperText('Format: dd/mm/yyyy')
                             ->validationMessages([
                                 'required' => 'Tanggal lahir wajib diisi.',
                                 'date' => 'Format tanggal tidak valid.',
@@ -96,36 +124,46 @@ class PasienResource extends Resource
                             ->label('Jenis Kelamin *')
                             ->required()
                             ->options([
-                                'L' => 'Laki-laki',
-                                'P' => 'Perempuan',
+                                'L' => '👨 Laki-laki',
+                                'P' => '👩 Perempuan',
                             ])
                             ->placeholder('Pilih jenis kelamin')
+                            ->native(false)
                             ->validationMessages([
                                 'required' => 'Jenis kelamin wajib dipilih.',
                                 'in' => 'Pilihan jenis kelamin tidak valid.',
                             ]),
                         
-                        Forms\Components\Textarea::make('alamat')
-                            ->label('Alamat')
-                            ->maxLength(500)
-                            ->placeholder('Masukkan alamat lengkap (opsional)')
-                            ->columnSpanFull()
-                            ->validationMessages([
-                                'max' => 'Alamat maksimal 500 karakter.',
-                            ]),
-                        
-                        Forms\Components\TextInput::make('no_telepon')
-                            ->label('No. Telepon')
-                            ->tel()
-                            ->maxLength(20)
-                            ->placeholder('Contoh: 081234567890')
-                            ->validationMessages([
-                                'max' => 'Nomor telepon maksimal 20 karakter.',
-                            ]),
                     ])
                     ->columns(2)
                     ->collapsible()
                     ->persistCollapsed(false),
+                
+                
+                Forms\Components\Section::make('💼 Informasi Personal')
+                    ->description('Informasi tambahan tentang pasien.')
+                    ->extraAttributes(['class' => 'glass-card animate-slide-up'])
+                    ->schema([
+                        Forms\Components\TextInput::make('pekerjaan')
+                            ->label('Pekerjaan')
+                            ->maxLength(255)
+                            ->placeholder('Contoh: Pegawai Swasta, Wiraswasta, Mahasiswa')
+                            ->prefixIcon('heroicon-o-briefcase'),
+                        
+                        Forms\Components\Select::make('status_pernikahan')
+                            ->label('Status Pernikahan')
+                            ->options([
+                                'belum_menikah' => '👤 Belum Menikah',
+                                'menikah' => '💑 Menikah',
+                                'janda' => '👩 Janda',
+                                'duda' => '👨 Duda',
+                            ])
+                            ->placeholder('Pilih status pernikahan')
+                            ->native(false),
+                    ])
+                    ->columns(2)
+                    ->collapsible()
+                    ->collapsed(),
             ]);
     }
 
@@ -184,15 +222,33 @@ class PasienResource extends Resource
                         default => 'heroicon-o-clock',
                     }),
                 
-                Tables\Columns\TextColumn::make('no_telepon')
-                    ->label('No. Telepon')
+                
+                Tables\Columns\TextColumn::make('pekerjaan')
+                    ->label('Pekerjaan')
+                    ->limit(20)
                     ->searchable()
+                    ->icon('heroicon-o-briefcase')
                     ->toggleable(isToggledHiddenByDefault: true),
                 
-                Tables\Columns\TextColumn::make('alamat')
-                    ->label('Alamat')
-                    ->limit(30)
+                Tables\Columns\TextColumn::make('status_pernikahan')
+                    ->label('Status')
+                    ->formatStateUsing(fn (string $state = null): string => match ($state) {
+                        'belum_menikah' => 'Belum Menikah',
+                        'menikah' => 'Menikah',
+                        'janda' => 'Janda',
+                        'duda' => 'Duda',
+                        default => '-',
+                    })
+                    ->badge()
+                    ->color(fn (string $state = null): string => match ($state) {
+                        'belum_menikah' => 'gray',
+                        'menikah' => 'success',
+                        'janda' => 'warning',
+                        'duda' => 'info',
+                        default => 'gray',
+                    })
                     ->toggleable(isToggledHiddenByDefault: true),
+                
                 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Terdaftar')
@@ -245,6 +301,14 @@ class PasienResource extends Resource
                     ]),
             ])
             ->headerActions([
+                // Primary Create Action - ALWAYS VISIBLE
+                CreateAction::make()
+                    ->label('➕ Input Pasien Baru')
+                    ->icon('heroicon-o-plus-circle')
+                    ->color('primary')
+                    ->size('lg')
+                    ->visible(fn (): bool => true),
+                    
                 // Advanced Search Action
                 Tables\Actions\Action::make('advanced_search')
                     ->label('🔍 Pencarian Lanjutan')
@@ -262,12 +326,9 @@ class PasienResource extends Resource
                                     ->options([
                                         'nama' => 'Nama',
                                         'no_rekam_medis' => 'No. Rekam Medis',
-                                        'no_telepon' => 'No. Telepon',
-                                        'alamat' => 'Alamat',
                                         'jenis_kelamin' => 'Jenis Kelamin',
                                         'tanggal_lahir' => 'Tanggal Lahir',
                                         'status_pernikahan' => 'Status Pernikahan',
-                                        'email' => 'Email',
                                         'pekerjaan' => 'Pekerjaan',
                                     ])
                                     ->required(),
@@ -481,7 +542,7 @@ class PasienResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->visible(fn (): bool => Auth::user()->can('delete_any_pasien')),
+                        ->visible(fn (): bool => Auth::check() && Auth::user()->can('delete_any_pasien')),
                     
                     // Export selected patients
                     Tables\Actions\BulkAction::make('export_selected')
@@ -656,7 +717,6 @@ class PasienResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->where('input_by', auth()->id())
             ->with(['inputBy'])
             ->orderBy('created_at', 'desc');
     }
@@ -669,7 +729,7 @@ class PasienResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\CreatePasien::route('/'),
+            'index' => Pages\ListPasiens::route('/'),
             'create' => Pages\CreatePasien::route('/create'),
             'view' => Pages\ViewPasien::route('/{record}'),
             'edit' => Pages\EditPasien::route('/{record}/edit'),

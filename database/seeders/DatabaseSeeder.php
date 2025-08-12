@@ -44,6 +44,10 @@ class DatabaseSeeder extends Seeder
             
             // Specific doctor data
             YayaJadwalJagaSeeder::class,
+            
+            // Master financial data
+            MasterPendapatanSeeder::class,
+            MasterPengeluaranSeeder::class,
         ]);
     }
 }

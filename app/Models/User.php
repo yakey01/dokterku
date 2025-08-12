@@ -145,7 +145,7 @@ class User extends Authenticatable implements FilamentUser
     /**
      * Check if user has a specific role (supports both single string and array)
      */
-    public function hasRole($roles, string $guard = null): bool
+    public function hasRole($roles, ?string $guard = null): bool
     {
         // Check direct role relationship first (for role_id field)
         if (is_string($roles) && $this->role && $this->role->name === $roles) {
@@ -252,6 +252,14 @@ class User extends Authenticatable implements FilamentUser
 
     // LocationValidation relationship removed - functionality moved to GPS spoofing detection
 
+    /**
+     * Get attendances for this user
+     */
+    public function attendances(): HasMany
+    {
+        return $this->hasMany(Attendance::class, 'user_id');
+    }
+
     public function gpsSpoofingDetections(): HasMany
     {
         return $this->hasMany(GpsSpoofingDetection::class);
@@ -349,12 +357,27 @@ class User extends Authenticatable implements FilamentUser
 
     /**
      * Find user by email or username for authentication
+     * Prioritizes exact matches to avoid multi-role conflicts
      */
     public static function findForAuth(string $identifier): ?self
     {
-        return static::where('email', $identifier)
-            ->orWhere('username', $identifier)
-            ->first();
+        // Check if identifier is an email
+        if (filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
+            // If it's an email, search by email first
+            return static::where('email', $identifier)->first();
+        }
+        
+        // If it's not an email, it's likely a username
+        // Search by username first (exact match)
+        $user = static::where('username', $identifier)->first();
+        
+        if ($user) {
+            return $user;
+        }
+        
+        // Fallback: check if it might be an email without @ 
+        // (unlikely but kept for backward compatibility)
+        return static::where('email', $identifier)->first();
     }
 
     /**

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, DollarSign, User, Home, TrendingUp, Award, Target, Heart, Zap, Flame, Coffee, Moon, Sun, Crown, Star, Shield, Calendar, Loader2 } from 'lucide-react';
-import doctorApi, { UserData, DoctorDashboardData } from '../../utils/doctorApi';
+import { Clock, DollarSign, User, Home, TrendingUp, Award, Target, Heart, Zap, Flame, Coffee, Moon, Sun, Crown, Star, Shield, Calendar, Loader2, Trophy, Medal } from 'lucide-react';
+import doctorApi, { UserData, DoctorDashboardData, LeaderboardData } from '../../utils/doctorApi';
 import { AttendanceProgressBar, JaspelProgressBar, PerformanceProgressBar } from './DynamicProgressBar';
 import MedicalProgressDashboard from './MedicalProgressDashboard';
 
@@ -18,6 +18,7 @@ export function Dashboard({ userData, onNavigate }: DashboardProps) {
   const [progressAnimationsComplete, setProgressAnimationsComplete] = useState(false);
   const [user, setUser] = useState<UserData | null>(null);
   const [dashboardData, setDashboardData] = useState<DoctorDashboardData | null>(null);
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,14 +46,34 @@ export function Dashboard({ userData, onNavigate }: DashboardProps) {
       const dashboard = await doctorApi.getDashboard();
       setDashboardData(dashboard);
       
-      // Update stats from dashboard data
-      if (dashboard.performance?.attendance_rate) {
+      // Fetch leaderboard data
+      try {
+        const leaderboard = await doctorApi.getLeaderboard();
+        setLeaderboardData(leaderboard);
+        
+        // Update current user's level and XP from leaderboard if they're in it
+        const currentUserInLeaderboard = leaderboard.leaderboard.find(
+          doctor => doctor.id === currentUser.id
+        );
+        
+        if (currentUserInLeaderboard) {
+          setDoctorLevel(currentUserInLeaderboard.level);
+          setExperiencePoints(currentUserInLeaderboard.xp);
+          setDailyStreak(currentUserInLeaderboard.streak_days);
+        }
+      } catch (leaderboardErr) {
+        console.error('Failed to fetch leaderboard:', leaderboardErr);
+        // Continue without leaderboard data
+      }
+      
+      // Update stats from dashboard data as fallback
+      if (!leaderboardData && dashboard.performance?.attendance_rate) {
         // Update performance based on actual attendance rate
         const attendanceRate = dashboard.performance.attendance_rate;
         setDoctorLevel(Math.floor(attendanceRate / 10)); // Example: 96% = Level 9
       }
       
-      if (dashboard.jaspel_summary?.current_month) {
+      if (!leaderboardData && dashboard.jaspel_summary?.current_month) {
         // Update XP based on current month's Jaspel (example conversion)
         const xp = Math.floor(dashboard.jaspel_summary.current_month / 1000);
         setExperiencePoints(xp);
@@ -246,40 +267,87 @@ export function Dashboard({ userData, onNavigate }: DashboardProps) {
           {/* Leaderboard Card - Full width on mobile, 1 col on tablet+ */}
           <div className="col-span-1 relative z-10">
             <div className="bg-white/5 backdrop-blur-2xl rounded-3xl p-6 border border-white/10 h-full">
-              <h3 className="text-xl font-bold mb-6 text-center bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
-                Elite Doctor Leaderboard
-              </h3>
-              
-              <div className="space-y-4">
-                <div className="flex items-center space-x-4 bg-gradient-to-r from-yellow-500/30 to-amber-500/30 rounded-2xl p-4 border-2 border-yellow-400/50">
-                  <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-amber-500 rounded-xl flex items-center justify-center font-bold text-white text-lg">
-                    #1
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-bold text-white">Dr. Maya Sari</div>
-                    <div className="text-yellow-300">Level 9 • 98.7% Score</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-yellow-400">4,750 XP</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-4 bg-gradient-to-r from-gray-400/30 to-slate-500/30 rounded-2xl p-4 border-2 border-gray-400/50">
-                  <div className="w-12 h-12 bg-gradient-to-br from-gray-500 to-slate-600 rounded-xl flex items-center justify-center font-bold text-white text-lg">
-                    #2
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-bold text-white">{displayName}</div>
-                    <div className="text-green-300">
-                      Level {doctorLevel} • {dashboardData?.performance?.attendance_rate || 0}% Score
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-green-400">{experiencePoints} XP</div>
-                    <div className="text-xs text-green-300">You</div>
-                  </div>
-                </div>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
+                  Top 3 Dokter
+                </h3>
+                <Trophy className="w-6 h-6 text-yellow-400" />
               </div>
+              
+              {leaderboardData && leaderboardData.leaderboard.length > 0 ? (
+                <div className="space-y-4">
+                  {leaderboardData.leaderboard.map((doctor, index) => {
+                    const isCurrentUser = doctor.id === user?.id;
+                    const rankColors = {
+                      1: 'from-yellow-500/30 to-amber-500/30 border-yellow-400/50',
+                      2: 'from-gray-400/30 to-slate-500/30 border-gray-400/50',
+                      3: 'from-orange-500/30 to-amber-600/30 border-orange-400/50'
+                    };
+                    const badgeColors = {
+                      1: 'from-yellow-500 to-amber-500',
+                      2: 'from-gray-500 to-slate-600',
+                      3: 'from-orange-500 to-amber-600'
+                    };
+                    const textColors = {
+                      1: 'text-yellow-300',
+                      2: 'text-gray-300',
+                      3: 'text-orange-300'
+                    };
+                    const xpColors = {
+                      1: 'text-yellow-400',
+                      2: 'text-gray-400',
+                      3: 'text-orange-400'
+                    };
+                    
+                    return (
+                      <div 
+                        key={doctor.id}
+                        className={`flex items-center space-x-4 bg-gradient-to-r ${rankColors[doctor.rank] || rankColors[3]} rounded-2xl p-4 border-2 ${isCurrentUser ? 'ring-2 ring-green-400' : ''}`}
+                      >
+                        <div className={`w-12 h-12 bg-gradient-to-br ${badgeColors[doctor.rank] || badgeColors[3]} rounded-xl flex items-center justify-center font-bold text-white text-lg`}>
+                          <span className="text-2xl">{doctor.badge}</span>
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <div className="font-bold text-white">
+                              {doctor.name}
+                            </div>
+                            {isCurrentUser && (
+                              <span className="text-xs bg-green-500/30 text-green-300 px-2 py-1 rounded-full">
+                                Anda
+                              </span>
+                            )}
+                          </div>
+                          <div className={textColors[doctor.rank] || textColors[3]}>
+                            Level {doctor.level} • {doctor.attendance_rate}% Kehadiran
+                          </div>
+                          <div className="text-xs text-gray-400 mt-1">
+                            {doctor.total_days} hari • {doctor.streak_days} hari berturut-turut
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className={`text-2xl font-bold ${xpColors[doctor.rank] || xpColors[3]}`}>
+                            {doctor.xp.toLocaleString()} XP
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Medal className="w-12 h-12 text-gray-500 mx-auto mb-3" />
+                  <p className="text-gray-400">Loading leaderboard...</p>
+                </div>
+              )}
+              
+              {leaderboardData && (
+                <div className="mt-4 pt-4 border-t border-white/10">
+                  <p className="text-xs text-gray-400 text-center">
+                    Periode: {leaderboardData.month} • {leaderboardData.working_days} hari kerja
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 

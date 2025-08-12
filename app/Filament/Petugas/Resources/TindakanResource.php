@@ -481,7 +481,7 @@ class TindakanResource extends Resource
                         ->visible(fn (Tindakan $record): bool => 
                             $record->status_validasi === 'pending' && 
                             $record->submitted_at !== null &&
-                            Auth::user()->hasAnyRole(['supervisor', 'manager', 'admin'])
+                            Auth::check() && Auth::user()->hasAnyRole(['supervisor', 'manager', 'admin'])
                         )
                         ->requiresConfirmation()
                         ->modalHeading('✅ Setujui Tindakan')
@@ -497,7 +497,7 @@ class TindakanResource extends Resource
                             try {
                                 $validationService = new ValidationWorkflowService(new \App\Services\TelegramService());
                                 $result = $validationService->approve($record, [
-                                    'reason' => $data['approval_reason'] ?? 'Approved by ' . Auth::user()->name
+                                    'reason' => $data['approval_reason'] ?? 'Approved by ' . (Auth::check() ? Auth::user()->name : 'System')
                                 ]);
                                 
                                 Notification::make()
@@ -522,7 +522,7 @@ class TindakanResource extends Resource
                         ->visible(fn (Tindakan $record): bool => 
                             $record->status_validasi === 'pending' && 
                             $record->submitted_at !== null &&
-                            Auth::user()->hasAnyRole(['supervisor', 'manager', 'admin'])
+                            Auth::check() && Auth::user()->hasAnyRole(['supervisor', 'manager', 'admin'])
                         )
                         ->requiresConfirmation()
                         ->modalHeading('❌ Tolak Tindakan')
@@ -562,7 +562,7 @@ class TindakanResource extends Resource
                         ->visible(fn (Tindakan $record): bool => 
                             $record->status_validasi === 'pending' && 
                             $record->submitted_at !== null &&
-                            Auth::user()->hasAnyRole(['supervisor', 'manager', 'admin'])
+                            Auth::check() && Auth::user()->hasAnyRole(['supervisor', 'manager', 'admin'])
                         )
                         ->requiresConfirmation()
                         ->modalHeading('🔄 Minta Revisi Tindakan')
@@ -603,7 +603,7 @@ class TindakanResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->visible(fn (): bool => Auth::user()->can('delete_any_tindakan')),
+                        ->visible(fn (): bool => Auth::check() && Auth::user()->can('delete_any_tindakan')),
                     
                     // Export selected treatments
                     Tables\Actions\BulkAction::make('export_selected')
@@ -786,7 +786,7 @@ class TindakanResource extends Resource
                         ->modalHeading('Approve Tindakan')
                         ->modalDescription('Approve tindakan yang dipilih untuk validasi.')
                         ->modalSubmitActionLabel('Approve')
-                        ->visible(fn (): bool => Auth::user()->can('approve_tindakan'))
+                        ->visible(fn (): bool => Auth::check() && Auth::user()->can('approve_tindakan'))
                         ->action(function (Collection $records) {
                             try {
                                 $bulkService = new BulkOperationService();

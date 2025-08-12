@@ -575,7 +575,7 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
         status_jaga: "Terjadwal",
         description: "Visite rutin weekend dengan monitoring pasien rawat inap",
         peran: "Dokter Jaga",
-        employee_name: userData?.name || "dr. Yaya Mulyana, M.Kes",
+        employee_name: userData?.name || "Dokter",
         shift_template: {
           id: 2,
           nama_shift: "Pagi",

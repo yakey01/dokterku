@@ -16,9 +16,6 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // Force local session configuration for development
-        $middleware->prepend(\App\Http\Middleware\ForceLocalSession::class);
-        
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
             'enhanced.role' => \App\Http\Middleware\EnhancedRoleMiddleware::class,
@@ -44,15 +41,24 @@ return Application::configure(basePath: dirname(__DIR__))
             'clear.stale.session' => \App\Http\Middleware\ClearStaleSessionMiddleware::class,
             // Debug API requests middleware
             'log.api.requests' => \App\Http\Middleware\LogApiRequests::class,
+            // Filament CSRF protection
+            'filament.csrf' => \App\Http\Middleware\FilamentCsrfProtection::class,
         ]);
         
         // Add security headers to all responses
         // Temporarily disabled for debugging
         // $middleware->append(\App\Http\Middleware\SecurityHeadersMiddleware::class);
         
-        // Add session cleanup middleware to web group
-        $middleware->web(append: [
-            \App\Http\Middleware\ClearStaleSessionMiddleware::class,
+        // Configure web middleware group with essential middleware - FIXED ORDER
+        $middleware->web([
+            \Illuminate\Cookie\Middleware\EncryptCookies::class,
+            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+            \Illuminate\Session\Middleware\StartSession::class,
+            \App\Http\Middleware\ForceLocalSession::class, // MOVED BEFORE ShareErrors
+            \Illuminate\View\Middleware\ShareErrorsFromSession::class,
+            \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            // \App\Http\Middleware\ClearStaleSessionMiddleware::class, // TEMPORARILY DISABLED
         ]);
         
         // Add API request logging to API group for debugging

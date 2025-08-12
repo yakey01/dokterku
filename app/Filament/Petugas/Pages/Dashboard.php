@@ -17,9 +17,16 @@ class Dashboard extends BaseDashboard
     public function getWidgets(): array
     {
         return [
-            \App\Filament\Petugas\Widgets\NotificationWidget::class,
-            \App\Filament\Petugas\Widgets\PetugasStatsWidget::class,
-            \App\Filament\Petugas\Widgets\QuickActionsWidget::class,
+            // Completely static widget - no database calls, no Livewire state
+            \App\Filament\Petugas\Widgets\PetugasStaticDashboardWidget::class,
+        ];
+    }
+    
+    public function getWidgetsColumns(): int | string | array
+    {
+        return [
+            'md' => 2,
+            'xl' => 3,
         ];
     }
 }

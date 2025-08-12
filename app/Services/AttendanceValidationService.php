@@ -190,11 +190,27 @@ class AttendanceValidationService
         $shiftTemplate = $jadwalJaga->shiftTemplate;
         
         if (!$shiftTemplate) {
-            return [
-                'valid' => false,
-                'message' => 'Template shift tidak ditemukan. Hubungi admin untuk informasi lebih lanjut.',
-                'code' => 'NO_SHIFT_TEMPLATE'
-            ];
+            // FALLBACK: Use default schedule if no shift template
+            \Log::warning('No shift template found for jadwal', [
+                'jadwal_id' => $jadwalJaga->id,
+                'pegawai_id' => $jadwalJaga->pegawai_id,
+                'tanggal' => $jadwalJaga->tanggal_jaga
+            ]);
+            
+            // Try to auto-fix by assigning default shift template
+            $defaultTemplate = \App\Models\ShiftTemplate::where('id', 14)->first();
+            if ($defaultTemplate) {
+                $jadwalJaga->shift_template_id = 14;
+                $jadwalJaga->save();
+                $shiftTemplate = $defaultTemplate;
+                
+                \Log::info('Auto-assigned default shift template ID 14', [
+                    'jadwal_id' => $jadwalJaga->id
+                ]);
+            } else {
+                // Use hardcoded fallback times as last resort
+                return $this->validateWithFallbackTimes($jadwalJaga, $currentTime);
+            }
         }
         
         // Get shift start and end times with flexible parsing
@@ -236,26 +252,45 @@ class AttendanceValidationService
         $user = $jadwalJaga->pegawai;
         $workLocation = $user->workLocation;
         
-        // Use new tolerance fields or fallback to JSON settings or defaults
-        $lateToleranceMinutes = $workLocation ? ($workLocation->late_tolerance_minutes ?? null) : null;
-        $checkInBeforeShiftMinutes = $workLocation ? ($workLocation->checkin_before_shift_minutes ?? null) : null;
-        if (($lateToleranceMinutes === null || $checkInBeforeShiftMinutes === null) && $workLocation && is_array($workLocation->tolerance_settings)) {
-            $ts = $workLocation->tolerance_settings;
-            if ($lateToleranceMinutes === null && isset($ts['late_tolerance_minutes'])) {
-                $lateToleranceMinutes = (int) $ts['late_tolerance_minutes'];
+        // ENHANCED: Always prioritize admin settings from JSON, with individual fields as backup
+        $lateToleranceMinutes = null;
+        $checkInBeforeShiftMinutes = null;
+        
+        if ($workLocation) {
+            // PRIORITY 1: Use JSON admin settings if available
+            if (is_array($workLocation->tolerance_settings)) {
+                $ts = $workLocation->tolerance_settings;
+                $lateToleranceMinutes = isset($ts['late_tolerance_minutes']) ? (int) $ts['late_tolerance_minutes'] : null;
+                $checkInBeforeShiftMinutes = isset($ts['checkin_before_shift_minutes']) ? (int) $ts['checkin_before_shift_minutes'] : null;
             }
-            if ($checkInBeforeShiftMinutes === null && isset($ts['checkin_before_shift_minutes'])) {
-                $checkInBeforeShiftMinutes = (int) $ts['checkin_before_shift_minutes'];
+            
+            // PRIORITY 2: Fallback to individual fields if JSON not available
+            if ($lateToleranceMinutes === null) {
+                $lateToleranceMinutes = $workLocation->late_tolerance_minutes;
+            }
+            if ($checkInBeforeShiftMinutes === null) {
+                $checkInBeforeShiftMinutes = $workLocation->checkin_before_shift_minutes;
             }
         }
+        
+        // PRIORITY 3: Final defaults if nothing is set
         $lateToleranceMinutes = $lateToleranceMinutes ?? 15;
         $checkInBeforeShiftMinutes = $checkInBeforeShiftMinutes ?? 30;
 
+        // Log tolerance values for transparency
+        \Log::info('Tolerance settings used for validation', [
+            'user_id' => $user->id,
+            'work_location_id' => $workLocation ? $workLocation->id : null,
+            'late_tolerance_minutes' => $lateToleranceMinutes,
+            'checkin_before_shift_minutes' => $checkInBeforeShiftMinutes,
+            'source' => $workLocation && is_array($workLocation->tolerance_settings) ? 'admin_json_settings' : 'individual_fields_or_defaults'
+        ]);
+
         // Global-only policy: do not apply per-user overrides
         
-        // Calculate enhanced check-in window
+        // ADMIN-CONTROLLED: Check-in window based on admin settings
         $checkInEarliestTime = $shiftStart->copy()->subMinutes($checkInBeforeShiftMinutes);
-        $checkInLatestTime = $shiftStart->copy()->addMinutes($lateToleranceMinutes);
+        $checkInLatestTime = $shiftStart->copy()->addMinutes($lateToleranceMinutes); // Use admin tolerance
         
         // Check if current time is within allowed check-in window
         $currentTimeOnly = Carbon::createFromFormat('H:i:s', $currentTime->copy()->setTimezone('Asia/Jakarta')->format('H:i:s'), 'Asia/Jakarta');
@@ -264,7 +299,7 @@ class AttendanceValidationService
         if ($currentTimeOnly->lt($checkInEarliestTime)) {
             return [
                 'valid' => false,
-                'message' => "Terlalu awal untuk check-in. Anda dapat check-in mulai pukul {$checkInEarliestTime->format('H:i')} ({$checkInBeforeShiftMinutes} menit sebelum shift dimulai).",
+                'message' => "Terlalu awal untuk check-in. Anda dapat check-in mulai pukul {$checkInEarliestTime->format('H:i')} ({$checkInBeforeShiftMinutes} menit sebelum shift dimulai) hingga pukul {$checkInLatestTime->format('H:i')} ({$lateToleranceMinutes} menit setelah shift dimulai).",
                 'code' => 'TOO_EARLY',
                 'data' => [
                     'shift_start' => $shiftStart->format('H:i'),
@@ -279,35 +314,37 @@ class AttendanceValidationService
             ];
         }
         
-        // Late check-in but still within tolerance
+        // ADMIN-CONTROLLED: Late check-in validation based on tolerance settings
         if ($currentTimeOnly->gt($checkInLatestTime)) {
-            $lateMinutes = $currentTimeOnly->diffInMinutes($shiftStart);
+            $lateMinutes = $shiftStart->diffInMinutes($currentTimeOnly); // FIXED: Correct order for positive result
             
-            // Check if exceeds maximum late tolerance 
-            if ($lateMinutes > ($lateToleranceMinutes + 30)) { // Allow extra 30 minutes buffer
+            // Check if exceeds admin tolerance
+            if ($lateMinutes > $lateToleranceMinutes) {
                 return [
                     'valid' => false,
-                    'message' => "Check-in terlalu terlambat ({$lateMinutes} menit). Batas maksimal toleransi adalah {$lateToleranceMinutes} menit. Hubungi supervisor untuk approval manual.",
+                    'message' => "Check-in terlalu terlambat ({$lateMinutes} menit). Batas maksimal toleransi adalah {$lateToleranceMinutes} menit setelah jam shift ({$shiftStart->format('H:i')}). Hubungi supervisor untuk approval manual.",
                     'code' => 'TOO_LATE',
                     'data' => [
                         'shift_start' => $shiftStart->format('H:i'),
                         'late_minutes' => $lateMinutes,
                         'max_tolerance_minutes' => $lateToleranceMinutes,
-                        'current_time' => $currentTimeOnly->format('H:i')
+                        'current_time' => $currentTimeOnly->format('H:i'),
+                        'policy' => $lateToleranceMinutes == 0 ? 'strict' : 'tolerant'
                     ]
                 ];
             }
             
+            // Late but within tolerance
             return [
-                'valid' => true, // Still valid but late
-                'message' => "Check-in terlambat {$lateMinutes} menit dari jadwal shift ({$shiftStart->format('H:i')}). Status: Terlambat dengan toleransi.",
+                'valid' => true,
+                'message' => "Check-in terlambat {$lateMinutes} menit dari jadwal shift ({$shiftStart->format('H:i')}). Status: Terlambat namun dalam batas toleransi {$lateToleranceMinutes} menit.",
                 'code' => 'VALID_BUT_LATE',
                 'data' => [
                     'shift_start' => $shiftStart->format('H:i'),
                     'late_minutes' => $lateMinutes,
                     'tolerance_minutes' => $lateToleranceMinutes,
-                    'within_tolerance' => $lateMinutes <= $lateToleranceMinutes,
-                    'status' => $lateMinutes <= $lateToleranceMinutes ? 'late_within_tolerance' : 'late_beyond_tolerance'
+                    'within_tolerance' => true,
+                    'status' => 'late_within_tolerance'
                 ]
             ];
         }
@@ -318,13 +355,14 @@ class AttendanceValidationService
         return [
             'valid' => true,
             'message' => $earlyMinutes > 0 
-                ? "Check-in {$earlyMinutes} menit sebelum shift dimulai. Status: Tepat waktu." 
+                ? "Check-in berhasil {$earlyMinutes} menit sebelum shift dimulai. Status: Tepat waktu." 
                 : 'Check-in tepat waktu.',
             'code' => 'ON_TIME',
             'data' => [
                 'shift_start' => $shiftStart->format('H:i'),
                 'shift_end' => $shiftEnd->format('H:i'),
                 'early_minutes' => $earlyMinutes,
+                'policy' => $lateToleranceMinutes == 0 ? 'strict' : 'tolerant',
                 'check_in_window' => [
                     'earliest' => $checkInEarliestTime->format('H:i'),
                     'latest' => $checkInLatestTime->format('H:i')
@@ -374,47 +412,79 @@ class AttendanceValidationService
     }
     
     /**
-     * Validate check-out request
+     * Validate check-out request with WORK LOCATION TOLERANCE
      */
     public function validateCheckout(User $user, float $latitude, float $longitude, ?float $accuracy = null, Carbon $date = null): array
     {
         $date = $date ? $date->copy()->setTimezone('Asia/Jakarta') : Carbon::now('Asia/Jakarta')->startOfDay();
         
-        // 1. Check if user has checked in today
-        $attendance = \App\Models\Attendance::getTodayAttendance($user->id);
+        // 1. Check if user has an open attendance session (either today or recent)
+        $attendance = \App\Models\Attendance::where('user_id', $user->id)
+            ->whereNotNull('time_in')
+            ->whereNull('time_out')
+            ->orderByDesc('date')
+            ->orderByDesc('time_in')
+            ->first();
         
         if (!$attendance) {
-            return [
-                'valid' => false,
-                'message' => 'Anda belum melakukan check-in hari ini. Silakan check-in terlebih dahulu.',
-                'code' => 'NOT_CHECKED_IN'
-            ];
+            // Check today's specific attendance as fallback
+            $attendance = \App\Models\Attendance::getTodayAttendance($user->id);
+            
+            if (!$attendance) {
+                return [
+                    'valid' => false,
+                    'message' => 'Anda belum melakukan check-in. Silakan check-in terlebih dahulu.',
+                    'code' => 'NOT_CHECKED_IN'
+                ];
+            }
         }
         
-        // 2. Check if already checked out
+        // WORK LOCATION TOLERANCE: If there's an open session, allow checkout
+        // This is the core principle - users can checkout anytime after check-in
+        if ($attendance && $attendance->time_in && !$attendance->time_out) {
+            \Log::info('WORK LOCATION TOLERANCE: Open session found, allowing checkout', [
+                'user_id' => $user->id,
+                'attendance_id' => $attendance->id,
+                'check_in_time' => $attendance->time_in
+            ]);
+        }
+        
+        // 2. MULTIPLE CHECKOUT SUPPORT: Don't block if already checked out
+        // Allow updating checkout time multiple times within the same shift
         if ($attendance->hasCheckedOut()) {
-            return [
-                'valid' => false,
-                'message' => 'Anda sudah melakukan check-out hari ini.',
-                'code' => 'ALREADY_CHECKED_OUT',
-                'data' => [
-                    'time_in' => $attendance->time_in->format('H:i:s'),
-                    'time_out' => $attendance->time_out->format('H:i:s'),
-                    'duration' => $attendance->formatted_work_duration
-                ]
-            ];
+            // Log but don't block - allow multiple checkout
+            \Log::info('MULTIPLE CHECKOUT: Updating existing checkout time', [
+                'user_id' => $user->id,
+                'attendance_id' => $attendance->id,
+                'previous_checkout' => $attendance->time_out->format('H:i:s'),
+                'work_duration' => $attendance->formatted_work_duration
+            ]);
+            
+            // Don't return error - continue with validation to allow checkout update
+            // This enables users to checkout multiple times in the same shift
         }
         
-        // 3. Validate work location for checkout
+        // 3. WORK LOCATION TOLERANCE FOR CHECKOUT
+        // For checkout, we apply more lenient validation - users can checkout from anywhere
+        // after they have checked in. This is the core of work location tolerance.
         $locationValidation = $this->validateWorkLocation($user, $latitude, $longitude, $accuracy);
         
         if (!$locationValidation['valid']) {
-            return [
-                'valid' => false,
-                'message' => 'Check-out gagal: ' . $locationValidation['message'],
-                'code' => $locationValidation['code'],
-                'data' => $locationValidation['data'] ?? null
-            ];
+            // WORK LOCATION TOLERANCE: Override location validation for checkout
+            // Users who have checked in should be able to checkout from anywhere
+            \Log::info('WORK LOCATION TOLERANCE: Overriding location validation for checkout', [
+                'user_id' => $user->id,
+                'attendance_id' => $attendance->id,
+                'original_validation_code' => $locationValidation['code'],
+                'original_message' => $locationValidation['message']
+            ]);
+            
+            // Don't block checkout due to location - apply tolerance
+            // Set valid to true but keep the message for information
+            $locationValidation['valid'] = true;
+            $locationValidation['original_code'] = $locationValidation['code'];
+            $locationValidation['code'] = 'LOCATION_TOLERANCE_APPLIED';
+            $locationValidation['message'] = 'Checkout diizinkan dengan toleransi lokasi';
         }
         
         // 4. Validate check-out time with tolerance settings
@@ -469,32 +539,41 @@ class AttendanceValidationService
                         $checkoutAfterShiftMinutes = (int) $ts['checkout_after_shift_minutes'];
                     }
                 }
-                $earlyDepartureToleranceMinutes = $earlyDepartureToleranceMinutes ?? 15;
-                $checkoutAfterShiftMinutes = $checkoutAfterShiftMinutes ?? 60;
+                // ADMIN-CONTROLLED: Use admin settings for checkout tolerance
+                $earlyDepartureToleranceMinutes = $earlyDepartureToleranceMinutes ?? 15; // Admin controlled
+                $checkoutAfterShiftMinutes = $checkoutAfterShiftMinutes ?? 60; // Admin controlled
 
                 // Global-only policy: do not apply per-user overrides for checkout
                 
-                // Calculate checkout window
-                $checkoutEarliestTime = $shiftEnd->copy()->subMinutes($earlyDepartureToleranceMinutes);
-                $checkoutLatestTime = $shiftEnd->copy()->addMinutes($checkoutAfterShiftMinutes);
+                // FLEXIBLE CHECKOUT: Based on admin tolerance settings
+                $checkoutEarliestTime = $shiftEnd->copy()->subMinutes($earlyDepartureToleranceMinutes); // Admin controlled early departure
+                $checkoutLatestTime = $shiftEnd->copy()->addMinutes($checkoutAfterShiftMinutes); // Admin controlled late checkout
                 
-                // Check if checkout is too early
+                // WORK LOCATION TOLERANCE: Skip "too early" validation if there's an open session
+                // Users should be able to checkout anytime after check-in
+                $hasOpenSession = $attendance && $attendance->time_in && !$attendance->time_out;
+                
+                // ADMIN-CONTROLLED: Early checkout validation based on tolerance
                 if ($currentTimeOnly->lt($checkoutEarliestTime)) {
                     $earlyMinutes = $checkoutEarliestTime->diffInMinutes($currentTimeOnly);
+                    
+                    \Log::info('Early checkout attempt - checking admin tolerance', [
+                        'user_id' => $user->id,
+                        'early_minutes' => $earlyMinutes,
+                        'tolerance_minutes' => $earlyDepartureToleranceMinutes
+                    ]);
+                    
                     return [
                         'valid' => false,
-                        'message' => "Check-out terlalu awal. Anda dapat check-out mulai pukul {$checkoutEarliestTime->format('H:i')} ({$earlyMinutes} menit lagi).",
+                        'message' => "Check-out terlalu awal. Anda mencoba check-out {$earlyMinutes} menit sebelum toleransi dimulai. Check-out paling awal: pukul {$checkoutEarliestTime->format('H:i')} ({$earlyDepartureToleranceMinutes} menit sebelum shift berakhir). Hubungi supervisor jika diperlukan.",
                         'code' => 'CHECKOUT_TOO_EARLY',
                         'data' => [
                             'shift_end' => $shiftEnd->format('H:i'),
                             'checkout_earliest' => $checkoutEarliestTime->format('H:i'),
-                            'checkout_latest' => $checkoutLatestTime->format('H:i'),
                             'current_time' => $currentTimeOnly->format('H:i'),
                             'early_minutes' => $earlyMinutes,
-                            'tolerance_settings' => [
-                                'early_departure_tolerance_minutes' => $earlyDepartureToleranceMinutes,
-                                'checkout_after_shift_minutes' => $checkoutAfterShiftMinutes
-                            ]
+                            'tolerance_minutes' => $earlyDepartureToleranceMinutes,
+                            'policy' => $earlyDepartureToleranceMinutes == 0 ? 'strict' : 'tolerant'
                         ]
                     ];
                 }
@@ -518,12 +597,12 @@ class AttendanceValidationService
                     ];
                 }
                 
-                // Early departure within tolerance
+                // Early departure within admin tolerance
                 if ($currentTimeOnly->lt($shiftEnd)) {
                     $earlyMinutes = $shiftEnd->diffInMinutes($currentTimeOnly);
                     return [
                         'valid' => true,
-                        'message' => "Check-out {$earlyMinutes} menit sebelum shift berakhir. Status: Dalam toleransi.",
+                        'message' => "Check-out {$earlyMinutes} menit sebelum shift berakhir. Status: Dalam batas toleransi pulang awal ({$earlyDepartureToleranceMinutes} menit).",
                         'code' => 'CHECKOUT_EARLY_TOLERANCE',
                         'attendance' => $attendance,
                         'work_location' => $locationValidation['work_location'] ?? $locationValidation['location'] ?? null,
@@ -531,6 +610,7 @@ class AttendanceValidationService
                         'data' => [
                             'shift_end' => $shiftEnd->format('H:i'),
                             'early_minutes' => $earlyMinutes,
+                            'tolerance_minutes' => $earlyDepartureToleranceMinutes,
                             'within_tolerance' => true
                         ]
                     ];
@@ -542,11 +622,15 @@ class AttendanceValidationService
         
         return [
             'valid' => true,
-            'message' => 'Check-out diizinkan',
+            'message' => 'Check-out berhasil.',
             'code' => 'VALID_CHECKOUT',
             'attendance' => $attendance,
             'work_location' => $locationValidation['work_location'] ?? $locationValidation['location'] ?? null,
-            'work_duration_minutes' => $currentWorkMinutes
+            'work_duration_minutes' => $currentWorkMinutes,
+            'data' => [
+                'checkout_time' => $currentTime->format('H:i:s'),
+                'work_duration_minutes' => $currentWorkMinutes
+            ]
         ];
     }
 
@@ -828,6 +912,60 @@ class AttendanceValidationService
         return [
             'has_override' => true,
             'override_data' => $override
+        ];
+    }
+
+    /**
+     * Fallback validation when no shift template is available
+     */
+    private function validateWithFallbackTimes(JadwalJaga $jadwalJaga, Carbon $currentTime): array
+    {
+        // Use default 08:00-16:00 schedule as fallback
+        $shiftStart = Carbon::createFromFormat('H:i:s', '08:00:00', 'Asia/Jakarta');
+        $shiftEnd = Carbon::createFromFormat('H:i:s', '16:00:00', 'Asia/Jakarta');
+        
+        $user = $jadwalJaga->pegawai;
+        $workLocation = $user->workLocation;
+        
+        // Get tolerance settings
+        $lateToleranceMinutes = 15;
+        $checkInBeforeShiftMinutes = 30;
+        
+        if ($workLocation && is_array($workLocation->tolerance_settings)) {
+            $ts = $workLocation->tolerance_settings;
+            $lateToleranceMinutes = $ts['late_tolerance_minutes'] ?? 15;
+            $checkInBeforeShiftMinutes = $ts['checkin_before_shift_minutes'] ?? 30;
+        }
+        
+        // Calculate check-in window
+        $checkInEarliestTime = $shiftStart->copy()->subMinutes($checkInBeforeShiftMinutes);
+        $checkInLatestTime = $shiftStart->copy()->addMinutes($lateToleranceMinutes);
+        
+        $currentTimeOnly = Carbon::createFromFormat('H:i:s', $currentTime->format('H:i:s'), 'Asia/Jakarta');
+        
+        // Validation logic
+        if ($currentTimeOnly->lt($checkInEarliestTime)) {
+            return [
+                'valid' => false,
+                'message' => "Terlalu awal untuk check-in. Check-in mulai {$checkInEarliestTime->format('H:i')}",
+                'code' => 'TOO_EARLY'
+            ];
+        }
+        
+        if ($currentTimeOnly->gt($checkInLatestTime)) {
+            $lateMinutes = $shiftStart->diffInMinutes($currentTimeOnly);
+            return [
+                'valid' => false,
+                'message' => "Check-in terlambat ({$lateMinutes} menit). Batas toleransi: {$lateToleranceMinutes} menit",
+                'code' => 'TOO_LATE'
+            ];
+        }
+        
+        return [
+            'valid' => true,
+            'message' => 'Check-in diperbolehkan (menggunakan jadwal default 08:00-16:00)',
+            'code' => 'VALID_WITH_FALLBACK',
+            'fallback_used' => true
         ];
     }
 

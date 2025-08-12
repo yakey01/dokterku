@@ -6,6 +6,131 @@ import '../css/app.css';
 import '../css/responsive-typography.css';
 import './setup-csrf';
 
+// 🛡️ SAFE DOM UTILITIES
+class SafeDOM {
+    /**
+     * Safely remove element with existence validation
+     */
+    static safeRemove(element: Element | HTMLElement | null | undefined): boolean {
+        if (!element) {
+            console.warn('⚠️ SafeDOM: Attempted to remove null/undefined element');
+            return false;
+        }
+
+        try {
+            // Check if element exists in DOM
+            if (!document.contains(element)) {
+                console.warn('⚠️ SafeDOM: Element not in document');
+                return false;
+            }
+
+            // Check if parent exists and contains the element
+            if (!element.parentNode) {
+                console.warn('⚠️ SafeDOM: Element has no parent');
+                return false;
+            }
+
+            if (!element.parentNode.contains(element)) {
+                console.warn('⚠️ SafeDOM: Parent does not contain element');
+                return false;
+            }
+
+            // Use modern remove() method if available, fallback to removeChild
+            if ('remove' in element && typeof element.remove === 'function') {
+                element.remove();
+            } else {
+                element.parentNode.removeChild(element);
+            }
+            console.log('✅ SafeDOM: Element safely removed');
+            return true;
+
+        } catch (error) {
+            // Handle NotFoundError gracefully
+            if (error instanceof DOMException && error.name === 'NotFoundError') {
+                console.warn('⚠️ SafeDOM: Element was already removed (NotFoundError)');
+                return true; // Consider successful since element is gone
+            }
+            
+            console.error('❌ SafeDOM: Removal failed:', {
+                error: error instanceof Error ? error.message : String(error),
+                elementInfo: {
+                    tagName: element.tagName,
+                    className: element.className,
+                    id: element.id
+                }
+            });
+            return false;
+        }
+    }
+
+    /**
+     * Safely query element with error handling
+     */
+    static safeQuery(selector: string, parent: Document | Element = document): Element | null {
+        try {
+            return parent.querySelector(selector);
+        } catch (error) {
+            console.error('❌ SafeDOM: Query failed:', {
+                selector,
+                error: error instanceof Error ? error.message : String(error)
+            });
+            return null;
+        }
+    }
+
+    /**
+     * Safely query all elements with error handling
+     */
+    static safeQueryAll(selector: string, parent: Document | Element = document): Element[] {
+        try {
+            return Array.from(parent.querySelectorAll(selector));
+        } catch (error) {
+            console.error('❌ SafeDOM: QueryAll failed:', {
+                selector,
+                error: error instanceof Error ? error.message : String(error)
+            });
+            return [];
+        }
+    }
+
+    /**
+     * Batch safe removal with progress tracking
+     */
+    static batchRemove(elements: (Element | null | undefined)[]): { removed: number; failed: number } {
+        let removed = 0;
+        let failed = 0;
+
+        elements.forEach((element, index) => {
+            if (this.safeRemove(element)) {
+                removed++;
+            } else {
+                failed++;
+            }
+        });
+
+        console.log(`🧹 SafeDOM: Batch removal complete - ${removed} removed, ${failed} failed`);
+        return { removed, failed };
+    }
+
+    /**
+     * Monitor DOM mutations and validate operations
+     */
+    static createSafeMutationObserver(callback: MutationCallback, options: MutationObserverInit = {}) {
+        const safeCallback: MutationCallback = (mutations, observer) => {
+            try {
+                callback(mutations, observer);
+            } catch (error) {
+                console.error('❌ SafeDOM: MutationObserver callback failed:', error);
+                
+                // Don't disconnect on error, just log it
+                // observer.disconnect();
+            }
+        };
+
+        return new MutationObserver(safeCallback);
+    }
+}
+
 // 🌟 WORLD-CLASS ERROR HANDLING & MONITORING SYSTEM
 interface ErrorMetrics {
     timestamp: number;
@@ -226,22 +351,40 @@ class DokterKuBootstrap {
         
         performance.mark('react-mount-start');
         
-        const container = document.getElementById('dokter-app');
-        if (!container) throw new Error('Container not found during mount');
+        // Add safe DOM element check with retry
+        let container = document.getElementById('dokter-app');
+        if (!container) {
+            console.warn('⚠️ Container not found immediately, waiting for DOM...');
+            // Wait for DOM to be ready
+            await new Promise(resolve => {
+                if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                    resolve(undefined);
+                } else {
+                    document.addEventListener('DOMContentLoaded', () => resolve(undefined));
+                }
+            });
+            
+            // Try again after DOM is ready
+            container = document.getElementById('dokter-app');
+            if (!container) {
+                console.error('❌ Container still not found after DOM ready');
+                throw new Error('Container not found during mount');
+            }
+        }
         
-        // Get user data from meta tag
+        // Get user data from meta tag with safe DOM access
         let userData = null;
-        const userDataMeta = document.querySelector('meta[name="user-data"]');
-        if (userDataMeta) {
-            try {
+        try {
+            const userDataMeta = document.querySelector('meta[name="user-data"]');
+            if (userDataMeta) {
                 const content = userDataMeta.getAttribute('content') || '{}';
                 if (content.trim() && content !== '{}') {
                     userData = JSON.parse(content);
                     console.log('✅ User data loaded:', userData.name || 'Unknown');
                 }
-            } catch (e) {
-                console.error('❌ Failed to parse user data:', e);
             }
+        } catch (e) {
+            console.error('❌ Failed to parse user data:', e);
         }
         
         // Fallback user data if needed
@@ -364,22 +507,22 @@ class DokterKuBootstrap {
         
         let removed = 0;
         emergencySelectors.forEach(selector => {
-            const elements = document.querySelectorAll(selector);
-            elements.forEach(el => {
-                console.log(`🧹 Removing emergency navigation: ${selector}`);
-                el.remove();
-                removed++;
-            });
+            const elements = SafeDOM.safeQueryAll(selector);
+            console.log(`🧹 Removing emergency navigation: ${selector} (${elements.length} found)`);
+            const result = SafeDOM.batchRemove(elements);
+            removed += result.removed;
         });
         
         // Secondary cleanup - Detect injected navigation by content patterns
-        const suspiciousNavs = document.querySelectorAll([
+        const suspiciousNavs = SafeDOM.safeQueryAll([
             '[class*="fixed"][class*="bottom"]',
             '[style*="bottom: 0"]', 
             '[style*="bottom:0"]',
             '[style*="position: fixed"]',
             '[style*="z-index: 99999"]'
         ].join(', '));
+        
+        const suspiciousToRemove: Element[] = [];
         
         suspiciousNavs.forEach(nav => {
             const content = nav.innerHTML || '';
@@ -392,39 +535,43 @@ class DokterKuBootstrap {
             if ((hasEmojiPattern || hasEmergencyClass || hasHighZIndex) && 
                 hasNavigationKeywords && 
                 !nav.closest('#dokter-app')) {
-                console.log('🧹 Removing suspected injected navigation with patterns:', {
+                console.log('🧹 Marking suspected injected navigation for removal:', {
                     emojis: hasEmojiPattern,
                     emergency: hasEmergencyClass, 
                     highZ: hasHighZIndex,
                     keywords: hasNavigationKeywords
                 });
-                nav.remove();
-                removed++;
+                suspiciousToRemove.push(nav);
             }
         });
         
+        const suspiciousResult = SafeDOM.batchRemove(suspiciousToRemove);
+        removed += suspiciousResult.removed;
+        
         // Tertiary cleanup - Remove any duplicate bottom navigation
-        const bottomNavs = document.querySelectorAll([
+        const bottomNavs = SafeDOM.safeQueryAll([
             '[class*="bottom-0"]',
             '[style*="bottom: 0"]'
         ].join(', '));
         
         if (bottomNavs.length > 1) {
             console.log(`🔍 Found ${bottomNavs.length} bottom navigations, keeping only React component`);
+            const duplicateNavs: Element[] = [];
+            
             bottomNavs.forEach((nav, index) => {
                 // Keep only the first one that's inside dokter-app (React component)
                 const isReactComponent = nav.closest('#dokter-app') !== null;
                 const hasReactClasses = nav.className.includes('backdrop-blur') && 
                                        nav.className.includes('gradient');
                 
-                if (!isReactComponent || !hasReactClasses) {
-                    if (index > 0) { // Keep first one, remove others
-                        console.log(`🧹 Removing duplicate bottom navigation #${index + 1}`);
-                        nav.remove();
-                        removed++;
-                    }
+                if (!isReactComponent || (!hasReactClasses && index > 0)) {
+                    console.log(`🧹 Marking duplicate bottom navigation #${index + 1} for removal`);
+                    duplicateNavs.push(nav);
                 }
             });
+            
+            const duplicateResult = SafeDOM.batchRemove(duplicateNavs);
+            removed += duplicateResult.removed;
         }
         
         console.log(`✅ Emergency navigation cleanup complete. Removed ${removed} elements.`);
@@ -434,12 +581,17 @@ class DokterKuBootstrap {
     }
     
     private setupNavigationProtection(): void {
-        // Create MutationObserver to prevent re-injection of emergency navigation
-        const observer = new MutationObserver((mutations) => {
+        // Create SAFE MutationObserver to prevent re-injection of emergency navigation
+        const observer = SafeDOM.createSafeMutationObserver((mutations) => {
             mutations.forEach((mutation) => {
                 mutation.addedNodes.forEach((node) => {
                     if (node.nodeType === 1) { // Element node
                         const element = node as Element;
+                        
+                        // Skip React-managed elements to prevent interference
+                        if (element.closest('#dokter-app') || element.closest('[data-react-root]')) {
+                            return;
+                        }
                         
                         // Check if it's an emergency navigation injection
                         const isEmergencyNav = element.classList.contains('emergency-navigation') ||
@@ -452,21 +604,25 @@ class DokterKuBootstrap {
                                                 /bottom.*0|fixed.*bottom/i.test(element.style.cssText || element.className);
                         
                         if (isEmergencyNav || hasEmojiInjection) {
-                            console.log('🛡️ Prevented emergency navigation re-injection:', element.className);
-                            element.remove();
+                            console.log('🛡️ Preventing emergency navigation re-injection:', element.className);
+                            // Use SafeDOM for guaranteed safe removal
+                            SafeDOM.safeRemove(element);
                         }
                     }
                 });
             });
         });
         
-        // Start observing
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
-        
-        console.log('🛡️ Navigation protection active - MutationObserver monitoring injections');
+        // Start observing with error handling
+        try {
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+            console.log('🛡️ Navigation protection active - SafeMutationObserver monitoring injections');
+        } catch (error) {
+            console.error('❌ Failed to start navigation protection:', error);
+        }
     }
     
     private injectEmergencyNavigation(): void {
@@ -601,31 +757,144 @@ class DokterKuBootstrap {
     }
 }
 
-// 🛡️ ENTERPRISE ERROR BOUNDARY COMPONENT
+// 🛡️ ENHANCED ENTERPRISE ERROR BOUNDARY COMPONENT
 class ErrorBoundary extends React.Component<
     { children: React.ReactNode },
-    { hasError: boolean; error?: Error }
+    { hasError: boolean; error?: Error; errorInfo?: React.ErrorInfo }
 > {
+    private retryCount = 0;
+    private maxRetries = 3;
+
     constructor(props: { children: React.ReactNode }) {
         super(props);
         this.state = { hasError: false };
     }
     
     static getDerivedStateFromError(error: Error) {
+        // Analyze error type for better handling
+        const isNotFoundError = error.name === 'NotFoundError' || 
+                               error.message.includes('object can not be found') ||
+                               error.message.includes('removeChild');
+        
+        console.warn('🚨 React Error Boundary - Error detected:', {
+            name: error.name,
+            message: error.message,
+            isNotFoundError,
+            stack: error.stack?.split('\n').slice(0, 5)
+        });
+
         return { hasError: true, error };
     }
     
     componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-        console.error('🚨 React Error Boundary caught error:', error, errorInfo);
+        console.error('🚨 React Error Boundary caught error:', {
+            error: {
+                name: error.name,
+                message: error.message,
+                stack: error.stack
+            },
+            errorInfo: {
+                componentStack: errorInfo.componentStack
+            },
+            retryCount: this.retryCount
+        });
         
-        // Log to our error handling system
+        this.setState({ errorInfo });
+        
+        // Enhanced error logging
         if ((window as any).dokterKuDiagnostics) {
             (window as any).dokterKuDiagnostics.logReactError?.(error, errorInfo);
         }
+
+        // Store error details in localStorage for debugging
+        try {
+            const errorReport = {
+                timestamp: new Date().toISOString(),
+                error: {
+                    name: error.name,
+                    message: error.message,
+                    stack: error.stack
+                },
+                errorInfo: {
+                    componentStack: errorInfo.componentStack
+                },
+                retryCount: this.retryCount,
+                userAgent: navigator.userAgent,
+                url: window.location.href
+            };
+            localStorage.setItem('dokterku_react_error', JSON.stringify(errorReport));
+        } catch (e) {
+            console.warn('⚠️ Could not store error report');
+        }
+
+        // Attempt DOM cleanup to prevent further issues
+        this.performSafeDOMCleanup();
+    }
+
+    performSafeDOMCleanup = () => {
+        console.log('🧹 Performing safe DOM cleanup after React error...');
+        
+        try {
+            // Remove any orphaned elements that might cause issues
+            const orphanedElements = document.querySelectorAll('[data-react-orphan]');
+            orphanedElements.forEach(el => {
+                // Use SafeDOM for safe removal
+                SafeDOM.safeRemove(el);
+            });
+
+            // Clear any problematic styles or attributes
+            const problemElements = document.querySelectorAll('[style*="position: fixed"], [style*="z-index: 99999"]');
+            problemElements.forEach(el => {
+                if (!el.closest('#dokter-app')) {
+                    // Use SafeDOM for safe removal
+                    SafeDOM.safeRemove(el);
+                }
+            });
+            
+            // Clean up any detached nodes that might cause issues
+            const allElements = document.querySelectorAll('*');
+            allElements.forEach(el => {
+                // Check for detached React internal properties
+                if ('_reactInternalFiber' in el && !document.contains(el)) {
+                    SafeDOM.safeRemove(el);
+                }
+            });
+        } catch (error) {
+            console.warn('⚠️ DOM cleanup failed:', error);
+        }
+    }
+
+    handleRetry = () => {
+        if (this.retryCount < this.maxRetries) {
+            this.retryCount++;
+            console.log(`🔄 Attempting retry ${this.retryCount}/${this.maxRetries}`);
+            
+            // Perform cleanup before retry
+            this.performSafeDOMCleanup();
+            
+            // Reset state after a brief delay
+            setTimeout(() => {
+                this.setState({ 
+                    hasError: false, 
+                    error: undefined, 
+                    errorInfo: undefined 
+                });
+            }, 500);
+        } else {
+            console.log('❌ Max retries reached, showing permanent error state');
+        }
+    }
+
+    handleReload = () => {
+        console.log('🔄 User requested page reload');
+        window.location.reload();
     }
     
     render() {
         if (this.state.hasError) {
+            const canRetry = this.retryCount < this.maxRetries;
+            const errorType = this.state.error?.name === 'NotFoundError' ? 'DOM Cleanup Error' : 'React Component Error';
+            
             return (
                 <div style={{
                     minHeight: '100vh',
@@ -648,14 +917,51 @@ class ErrorBoundary extends React.Component<
                     }}>
                         <div style={{ fontSize: '48px', marginBottom: '20px' }}>⚠️</div>
                         <h1 style={{ margin: '0 0 20px 0', fontSize: '24px', color: '#f59e0b' }}>
-                            Komponen React Bermasalah
+                            {errorType}
                         </h1>
                         <p style={{ margin: '0 0 30px 0', color: '#d1d5db', lineHeight: '1.6' }}>
-                            Terjadi kesalahan dalam komponen React. Error telah dicatat untuk diperbaiki.
+                            {this.state.error?.name === 'NotFoundError' 
+                                ? 'Terjadi kesalahan DOM cleanup. Sistem akan mencoba memperbaiki otomatis.'
+                                : 'Terjadi kesalahan dalam komponen React. Error telah dicatat untuk diperbaiki.'}
                         </p>
+                        
+                        {/* Retry counter display */}
+                        {this.retryCount > 0 && (
+                            <div style={{
+                                background: 'rgba(249, 115, 22, 0.2)',
+                                border: '1px solid #f97316',
+                                borderRadius: '8px',
+                                padding: '10px',
+                                margin: '20px 0',
+                                fontSize: '14px',
+                                color: '#fed7aa'
+                            }}>
+                                🔄 Percobaan: {this.retryCount}/{this.maxRetries}
+                            </div>
+                        )}
+
                         <div style={{ marginBottom: '20px' }}>
+                            {canRetry && (
+                                <button 
+                                    onClick={this.handleRetry}
+                                    style={{
+                                        background: 'linear-gradient(to right, #10b981, #059669)',
+                                        border: 'none',
+                                        color: 'white',
+                                        padding: '12px 24px',
+                                        borderRadius: '8px',
+                                        cursor: 'pointer',
+                                        fontWeight: 'bold',
+                                        marginRight: '10px',
+                                        marginBottom: '10px'
+                                    }}
+                                >
+                                    🔄 Coba Lagi ({this.maxRetries - this.retryCount} tersisa)
+                                </button>
+                            )}
+                            
                             <button 
-                                onClick={() => window.location.reload()}
+                                onClick={this.handleReload}
                                 style={{
                                     background: 'linear-gradient(to right, #06b6d4, #8b5cf6)',
                                     border: 'none',
@@ -664,11 +970,13 @@ class ErrorBoundary extends React.Component<
                                     borderRadius: '8px',
                                     cursor: 'pointer',
                                     fontWeight: 'bold',
-                                    marginRight: '10px'
+                                    marginRight: '10px',
+                                    marginBottom: '10px'
                                 }}
                             >
                                 🔄 Muat Ulang Halaman
                             </button>
+                            
                             <button 
                                 onClick={() => {
                                     if ((window as any).dokterKuDebug) {
@@ -683,14 +991,15 @@ class ErrorBoundary extends React.Component<
                                     padding: '12px 24px',
                                     borderRadius: '8px',
                                     cursor: 'pointer',
-                                    fontWeight: 'bold'
+                                    fontWeight: 'bold',
+                                    marginBottom: '10px'
                                 }}
                             >
-                                🔧 Coba Perbaiki
+                                🔧 Reinitialize
                             </button>
                         </div>
                         
-                        {/* Error details for debugging */}
+                        {/* Enhanced error details for debugging */}
                         <details style={{
                             marginTop: '20px',
                             padding: '15px',
@@ -699,22 +1008,45 @@ class ErrorBoundary extends React.Component<
                             border: '1px solid #374151'
                         }}>
                             <summary style={{ cursor: 'pointer', fontWeight: 'bold', marginBottom: '10px' }}>Detail Error</summary>
-                            <div style={{ fontSize: '12px', color: '#f59e0b' }}>
-                                <div><strong>Error:</strong> {this.state.error?.message || 'Unknown error'}</div>
-                                <div style={{ marginTop: '10px' }}><strong>Browser:</strong> {navigator.userAgent}</div>
+                            <div style={{ fontSize: '12px', color: '#f59e0b', textAlign: 'left' }}>
+                                <div><strong>Type:</strong> {this.state.error?.name}</div>
+                                <div><strong>Message:</strong> {this.state.error?.message}</div>
+                                <div><strong>Retry Count:</strong> {this.retryCount}/{this.maxRetries}</div>
+                                <div style={{ marginTop: '10px' }}><strong>Browser:</strong> {navigator.userAgent.split(' ').slice(-2).join(' ')}</div>
                                 <div><strong>Time:</strong> {new Date().toLocaleString('id-ID')}</div>
+                                
+                                {this.state.errorInfo?.componentStack && (
+                                    <div style={{ marginTop: '10px' }}>
+                                        <strong>Component Stack:</strong>
+                                        <pre style={{
+                                            marginTop: '5px',
+                                            padding: '10px',
+                                            background: '#111827',
+                                            borderRadius: '4px',
+                                            overflow: 'auto',
+                                            fontSize: '10px',
+                                            whiteSpace: 'pre-wrap'
+                                        }}>
+                                            {this.state.errorInfo.componentStack.split('\n').slice(0, 8).join('\n')}
+                                        </pre>
+                                    </div>
+                                )}
+                                
                                 {this.state.error?.stack && (
-                                    <pre style={{
-                                        marginTop: '10px',
-                                        padding: '10px',
-                                        background: '#111827',
-                                        borderRadius: '4px',
-                                        overflow: 'auto',
-                                        fontSize: '11px',
-                                        whiteSpace: 'pre-wrap'
-                                    }}>
-                                        {this.state.error.stack.split('\n').slice(0, 10).join('\n')}
-                                    </pre>
+                                    <div style={{ marginTop: '10px' }}>
+                                        <strong>Stack Trace:</strong>
+                                        <pre style={{
+                                            marginTop: '5px',
+                                            padding: '10px',
+                                            background: '#111827',
+                                            borderRadius: '4px',
+                                            overflow: 'auto',
+                                            fontSize: '10px',
+                                            whiteSpace: 'pre-wrap'
+                                        }}>
+                                            {this.state.error.stack.split('\n').slice(0, 10).join('\n')}
+                                        </pre>
+                                    </div>
                                 )}
                             </div>
                         </details>
@@ -1574,6 +1906,48 @@ class ApplicationLauncher {
     }
 }
 
+// GLOBAL ERROR HANDLERS
+// Catch and suppress NotFoundError before they reach React
+if (typeof window !== 'undefined') {
+    // Catch synchronous DOM errors
+    window.addEventListener('error', (event) => {
+        if (event.error && (
+            event.error.name === 'NotFoundError' ||
+            event.error.message?.includes('removeChild') ||
+            event.error.message?.includes('object can not be found')
+        )) {
+            console.warn('🚨 Global Error Interceptor: Suppressed NotFoundError', {
+                name: event.error.name,
+                message: event.error.message,
+                source: `${event.filename}:${event.lineno}:${event.colno}`
+            });
+            
+            // Prevent propagation to React
+            event.preventDefault();
+            event.stopPropagation();
+            
+            // Clean up orphaned elements safely
+            try {
+                document.querySelectorAll('[data-react-orphan]').forEach(el => {
+                    SafeDOM.safeRemove(el);
+                });
+            } catch {}
+            
+            return true;
+        }
+    }, true);
+    
+    // Catch promise rejection errors
+    window.addEventListener('unhandledrejection', (event) => {
+        if (event.reason?.name === 'NotFoundError' ||
+            event.reason?.message?.includes('removeChild')) {
+            console.warn('🚨 Promise Error Interceptor: Suppressed NotFoundError', event.reason);
+            event.preventDefault();
+            return true;
+        }
+    });
+}
+
 // ENHANCED INITIALIZATION SYSTEM
 // Multiple launch strategies with comprehensive fallback handling
 
@@ -1625,6 +1999,7 @@ if (typeof window !== 'undefined') {
     (window as any).BootstrapSingleton = BootstrapSingleton;
     (window as any).ApplicationLauncher = ApplicationLauncher;
     (window as any).DependencyManager = DependencyManager;
+    (window as any).SafeDOM = SafeDOM;
     
     // Legacy compatibility
     (window as any).dokterKuBootstrapInstance = async () => {
@@ -1812,11 +2187,55 @@ if (typeof window !== 'undefined') {
   - clearErrors()           Clear error logs
   - getPerformance()        Performance metrics
 
+🛡️ DOM Safety (SafeDOM):
+  - SafeDOM.safeRemove(el)     Safe element removal
+  - SafeDOM.safeQuery(sel)     Safe element query
+  - SafeDOM.batchRemove(els)   Batch safe removal
+  - SafeDOM.performCleanup()   Emergency DOM cleanup
+
 🧪 Testing:
   - simulateError()         Test error handling
   - forceReload()           Force page reload
   - help()                  Show this help
 `);
+        },
+
+        // DOM Safety utilities
+        performEmergencyDOMCleanup() {
+            console.log('🧹 Performing emergency DOM cleanup...');
+            
+            const problemSelectors = [
+                '.emergency-navigation',
+                '.emergency-nav',
+                '[class*="emergency"][class*="nav"]',
+                '[style*="z-index: 99999"]',
+                '[data-react-orphan]'
+            ];
+            
+            let totalRemoved = 0;
+            problemSelectors.forEach(selector => {
+                const elements = SafeDOM.safeQueryAll(selector);
+                const result = SafeDOM.batchRemove(elements);
+                totalRemoved += result.removed;
+            });
+            
+            console.log(`✅ Emergency DOM cleanup complete. Removed ${totalRemoved} elements.`);
+            return totalRemoved;
+        },
+
+        testSafeDOM() {
+            console.log('🧪 Testing SafeDOM utilities...');
+            
+            // Test safe query
+            const testEl = SafeDOM.safeQuery('#dokter-app');
+            console.log('Safe query test:', testEl ? 'PASSED' : 'FAILED');
+            
+            // Test safe removal on non-existent element
+            const nonExistent = document.createElement('div');
+            const removeResult = SafeDOM.safeRemove(nonExistent);
+            console.log('Safe remove test (non-existent):', removeResult ? 'FAILED' : 'PASSED');
+            
+            console.log('✅ SafeDOM tests completed');
         }
     };
     

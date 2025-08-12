@@ -297,8 +297,8 @@ class WorkLocationResource extends Resource
                     ->collapsed(true),
 
                 Forms\Components\Section::make('⏱️ Pengaturan Toleransi Waktu')
-                    ->description('Konfigurasi toleransi waktu check-in dan check-out untuk fleksibilitas presensi')
-                    ->icon('heroicon-o-clock')
+                    ->description('⚠️ PERHATIAN: Jika ada AttendanceToleranceSetting yang aktif, setting ini hanya menjadi FALLBACK/cadangan!')
+                    ->icon('heroicon-o-exclamation-triangle')
                     ->schema([
                         Forms\Components\Grid::make(2)
                             ->schema([
@@ -408,6 +408,32 @@ class WorkLocationResource extends Resource
                             })
                             ->columnSpanFull(),
 
+                        // Priority System Warning
+                        Forms\Components\Placeholder::make('priority_warning')
+                            ->label('⚠️ PENTING: Sistem Prioritas Toleransi')
+                            ->content(new \Illuminate\Support\HtmlString('<div style="background: #fef5e7; padding: 15px; border-radius: 8px; border-left: 4px solid #f39c12;">
+                                <h4 style="color: #e67e22; margin-top: 0;">🔴 Perhatian: Setting ini mungkin TIDAK AKTIF!</h4>
+                                <p style="margin: 10px 0;"><strong>Sistem menggunakan prioritas berikut:</strong></p>
+                                <ol style="margin: 10px 0;">
+                                    <li><strong>AttendanceToleranceSetting (User)</strong> - Prioritas tertinggi</li>
+                                    <li><strong>AttendanceToleranceSetting (Role)</strong> - Prioritas menengah</li>
+                                    <li><strong>AttendanceToleranceSetting (Global)</strong> - Prioritas rendah</li>
+                                    <li><strong>WorkLocation (setting ini)</strong> - HANYA jika tidak ada AttendanceToleranceSetting</li>
+                                </ol>
+                                <p style="margin: 10px 0; color: #d35400;">
+                                    <strong>📋 Untuk mengatur toleransi yang PASTI AKTIF, gunakan:</strong><br>
+                                    <a href="/admin/attendance-tolerance-settings" target="_blank" style="color: #3498db; text-decoration: underline;">
+                                        Admin → Attendance Tolerance Settings
+                                    </a>
+                                </p>
+                                <p style="margin: 10px 0;">
+                                    <a href="/consolidate-tolerance-settings.php" target="_blank" style="color: #27ae60; text-decoration: underline;">
+                                        🔍 Cek Status Toleransi Aktif
+                                    </a>
+                                </p>
+                            </div>'))
+                            ->columnSpanFull(),
+                        
                         Forms\Components\Placeholder::make('tolerance_tips')
                             ->label('💡 Tips Pengaturan Toleransi:')
                             ->content(new \Illuminate\Support\HtmlString('<div class="tolerance-tips-content text-sm space-y-2">

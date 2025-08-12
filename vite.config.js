@@ -12,18 +12,21 @@ export default defineConfig({
                 'resources/js/paramedis-mobile-app.tsx',
                 'resources/js/dokter-mobile-app.tsx',
                 'resources/js/dokter-mobile-app-simple.tsx',
-                'resources/js/test-welcome-login.tsx',
+                // 'resources/js/test-welcome-login.tsx', // File not found, commented out
                 'resources/js/welcome-login-app.tsx',
                 'resources/js/welcome-login-new.tsx',
                 'resources/js/widget-animations.js',
                 // 'resources/js/leaflet-utilities.ts', // Removed - using simple map component instead
-                'resources/js/test-presensi.tsx',
+                // 'resources/js/test-presensi.tsx', // File not found, commented out
                 'resources/css/petugas-table-ux.css',
                 'resources/css/filament/admin/theme.css',
                 'resources/css/filament/bendahara/theme.css',
                 'resources/css/filament/manajer/theme.css',
                 'resources/css/filament/paramedis/theme.css',
                 'resources/css/filament/petugas/theme.css',
+                'resources/css/filament/petugas/world-class-dashboard.css',
+                'resources/js/components/dashboard-interactivity.js',
+                'resources/js/petugas-dashboard-app.tsx',
             ],
             refresh: true,
             detectTls: false,

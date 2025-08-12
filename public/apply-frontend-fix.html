@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply Frontend Fix for Checkout Button</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin: 5px;
+        }
+        .status.ok { background: #10b981; }
+        .status.warning { background: #f59e0b; }
+        .status.error { background: #ef4444; }
+        .status.info { background: #3b82f6; }
+        
+        button {
+            background: white;
+            color: #764ba2;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .code-block {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        .step {
+            margin: 15px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+        .step::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            width: 20px;
+            height: 20px;
+            background: #10b981;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        .step.pending::before {
+            content: '•';
+            background: #6b7280;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Frontend Fix for Checkout Button</h1>
+        <p>This tool applies comprehensive fixes to ensure the checkout button works properly</p>
+        
+        <div class="card">
+            <h2>📋 Instructions</h2>
+            <div class="step">Open the dokter dashboard in another tab</div>
+            <div class="step">Navigate to the Presensi (attendance) page</div>
+            <div class="step">Click "Diagnose & Fix" below</div>
+            <div class="step pending">Review the results and test checkout</div>
+        </div>
+        
+        <div class="card">
+            <h2>🎯 Quick Actions</h2>
+            <button onclick="diagnoseAndFix()">🔍 Diagnose & Fix</button>
+            <button onclick="forceEnableCheckout()">⚡ Force Enable Checkout</button>
+            <button onclick="refreshAttendance()">🔄 Refresh Attendance Data</button>
+            <button onclick="clearAndReset()">🧹 Clear & Reset</button>
+        </div>
+        
+        <div id="results"></div>
+    </div>
+    
+    <script>
+        function diagnoseAndFix() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<div class="card"><h3>🔍 Diagnosing...</h3></div>';
+            
+            try {
+                // This script will be injected into the dokter dashboard
+                const fixScript = `
+                    (function() {
+                        console.log('🔧 APPLYING COMPREHENSIVE FIX...');
+                        
+                        const diagnosis = {
+                            hasReactRoot: false,
+                            hasScheduleData: false,
+                            hasOpenAttendance: false,
+                            buttonFound: false,
+                            buttonDisabled: false,
+                            appliedFixes: []
+                        };
+                        
+                        // 1. Find React component and state
+                        const container = document.querySelector('#root') || document.querySelector('[data-reactroot]');
+                        if (container) {
+                            diagnosis.hasReactRoot = true;
+                            
+                            // Try to access React fiber
+                            if (container._reactRootContainer) {
+                                const fiber = container._reactRootContainer._internalRoot?.current;
+                                if (fiber) {
+                                    // Walk fiber tree to find Presensi component
+                                    let node = fiber;
+                                    let componentFound = false;
+                                    
+                                    const findPresensiComponent = (node) => {
+                                        if (!node) return null;
+                                        
+                                        // Check if this node has our state
+                                        if (node.memoizedState?.scheduleData !== undefined) {
+                                            return node;
+                                        }
+                                        
+                                        // Check hooks for useState calls
+                                        if (node.memoizedState && node.memoizedState.next) {
+                                            let hook = node.memoizedState;
+                                            while (hook) {
+                                                if (hook.memoizedState?.scheduleData !== undefined) {
+                                                    return node;
+                                                }
+                                                hook = hook.next;
+                                            }
+                                        }
+                                        
+                                        // Traverse children
+                                        let child = node.child;
+                                        while (child) {
+                                            const found = findPresensiComponent(child);
+                                            if (found) return found;
+                                            child = child.sibling;
+                                        }
+                                        
+                                        return null;
+                                    };
+                                    
+                                    const presensiNode = findPresensiComponent(fiber);
+                                    if (presensiNode && presensiNode.memoizedState) {
+                                        diagnosis.hasScheduleData = true;
+                                        
+                                        // Check for open attendance
+                                        const state = presensiNode.memoizedState;
+                                        const todayRecords = state.todayRecords || [];
+                                        diagnosis.hasOpenAttendance = todayRecords.some(r => r.time_in && !r.time_out);
+                                        
+                                        // Fix the state if needed
+                                        if (diagnosis.hasOpenAttendance && !state.scheduleData?.canCheckOut) {
+                                            // We need to trigger a state update
+                                            // This is a bit hacky but works in emergency situations
+                                            
+                                            // Try to find the setState function
+                                            let hook = presensiNode.memoizedState;
+                                            let stateIndex = 0;
+                                            
+                                            while (hook) {
+                                                if (hook.memoizedState?.canCheckOut !== undefined) {
+                                                    // Found scheduleData state hook
+                                                    if (hook.queue && hook.queue.dispatch) {
+                                                        // Dispatch state update
+                                                        hook.queue.dispatch({
+                                                            ...hook.memoizedState,
+                                                            canCheckOut: true
+                                                        });
+                                                        diagnosis.appliedFixes.push('Updated scheduleData.canCheckOut to true');
+                                                    }
+                                                    break;
+                                                }
+                                                hook = hook.next;
+                                                stateIndex++;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // 2. Check and fix the checkout button
+                        const buttons = Array.from(document.querySelectorAll('button'));
+                        const checkoutButton = buttons.find(b => 
+                            b.textContent.includes('Check Out') || 
+                            b.querySelector('.Moon') ||
+                            b.onclick?.toString().includes('handleCheckOut')
+                        );
+                        
+                        if (checkoutButton) {
+                            diagnosis.buttonFound = true;
+                            diagnosis.buttonDisabled = checkoutButton.disabled;
+                            
+                            if (diagnosis.hasOpenAttendance && checkoutButton.disabled) {
+                                // Force enable the button
+                                checkoutButton.disabled = false;
+                                checkoutButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                                checkoutButton.style.opacity = '1';
+                                checkoutButton.style.cursor = 'pointer';
+                                diagnosis.appliedFixes.push('Enabled checkout button');
+                                
+                                // Add click handler if missing
+                                if (!checkoutButton.onclick) {
+                                    checkoutButton.onclick = () => {
+                                        console.log('Checkout button clicked - triggering handleCheckOut');
+                                        // Try to find and call handleCheckOut function
+                                        if (window.handleCheckOut) {
+                                            window.handleCheckOut();
+                                        } else {
+                                            // Trigger a custom event that the React component might listen to
+                                            const event = new CustomEvent('checkout-requested');
+                                            document.dispatchEvent(event);
+                                        }
+                                    };
+                                    diagnosis.appliedFixes.push('Added click handler to button');
+                                }
+                            }
+                        }
+                        
+                        // 3. Set global debugging variable
+                        window.__checkoutDiagnosis = diagnosis;
+                        
+                        // 4. Try to trigger a re-render
+                        if (window.__dokterState && window.__dokterState.scheduleData) {
+                            window.__dokterState.scheduleData.canCheckOut = true;
+                            diagnosis.appliedFixes.push('Set global state canCheckOut to true');
+                        }
+                        
+                        console.log('📊 Diagnosis:', diagnosis);
+                        return diagnosis;
+                    })();
+                `;
+                
+                // Try to execute in the dokter window
+                const dokterWindow = window.opener || window.parent || window;
+                const result = dokterWindow.eval(fixScript);
+                
+                // Display results
+                let statusHtml = '<div class="card"><h3>📊 Diagnosis Results</h3><div class="grid">';
+                
+                statusHtml += `
+                    <div class="stat">
+                        <div class="stat-label">React Root</div>
+                        <div class="stat-value">${result.hasReactRoot ? '✅' : '❌'}</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Schedule Data</div>
+                        <div class="stat-value">${result.hasScheduleData ? '✅' : '❌'}</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Open Session</div>
+                        <div class="stat-value">${result.hasOpenAttendance ? '✅' : '❌'}</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">Button Found</div>
+                        <div class="stat-value">${result.buttonFound ? '✅' : '❌'}</div>
+                    </div>
+                `;
+                
+                statusHtml += '</div>';
+                
+                if (result.appliedFixes.length > 0) {
+                    statusHtml += '<h4>✅ Applied Fixes:</h4><ul>';
+                    result.appliedFixes.forEach(fix => {
+                        statusHtml += `<li>${fix}</li>`;
+                    });
+                    statusHtml += '</ul>';
+                }
+                
+                // Provide diagnosis
+                if (result.hasOpenAttendance && result.buttonFound && !result.buttonDisabled) {
+                    statusHtml += '<div class="status ok">✅ Everything looks good! Checkout should work.</div>';
+                } else if (result.hasOpenAttendance && result.appliedFixes.length > 0) {
+                    statusHtml += '<div class="status warning">🔧 Fixes applied. Try clicking checkout now.</div>';
+                } else if (!result.hasOpenAttendance) {
+                    statusHtml += '<div class="status info">ℹ️ No open session. Check-in first.</div>';
+                } else {
+                    statusHtml += '<div class="status error">❌ Could not fix automatically. Try "Force Enable".</div>';
+                }
+                
+                statusHtml += '</div>';
+                results.innerHTML = statusHtml;
+                
+            } catch (error) {
+                results.innerHTML = `
+                    <div class="card">
+                        <h3>❌ Error</h3>
+                        <p>Could not access the dokter dashboard. Make sure it's open in another tab.</p>
+                        <div class="code-block">${error.message}</div>
+                    </div>
+                `;
+            }
+        }
+        
+        function forceEnableCheckout() {
+            const results = document.getElementById('results');
+            
+            try {
+                const forceScript = `
+                    // Force enable checkout button
+                    const buttons = Array.from(document.querySelectorAll('button'));
+                    const checkoutButton = buttons.find(b => 
+                        b.textContent.includes('Check Out') || 
+                        b.querySelector('.Moon')
+                    );
+                    
+                    if (checkoutButton) {
+                        checkoutButton.disabled = false;
+                        checkoutButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                        checkoutButton.style.opacity = '1';
+                        checkoutButton.style.cursor = 'pointer';
+                        checkoutButton.style.pointerEvents = 'auto';
+                        
+                        // Force state update
+                        if (window.__dokterState) {
+                            window.__dokterState.scheduleData = window.__dokterState.scheduleData || {};
+                            window.__dokterState.scheduleData.canCheckOut = true;
+                            window.__dokterState.isCheckedIn = true;
+                        }
+                        
+                        console.log('✅ Checkout button force enabled');
+                        return true;
+                    }
+                    return false;
+                `;
+                
+                const dokterWindow = window.opener || window.parent || window;
+                const success = dokterWindow.eval(forceScript);
+                
+                if (success) {
+                    results.innerHTML = '<div class="card"><div class="status ok">✅ Checkout button has been force enabled!</div></div>';
+                } else {
+                    results.innerHTML = '<div class="card"><div class="status error">❌ Could not find checkout button</div></div>';
+                }
+            } catch (error) {
+                results.innerHTML = '<div class="card"><div class="status error">❌ ' + error.message + '</div></div>';
+            }
+        }
+        
+        function refreshAttendance() {
+            const results = document.getElementById('results');
+            
+            try {
+                const refreshScript = `
+                    // Trigger attendance data reload
+                    if (window.loadTodayAttendance) {
+                        window.loadTodayAttendance();
+                        console.log('✅ Triggered attendance refresh');
+                        return true;
+                    }
+                    
+                    // Try to find and call the function
+                    const scripts = Array.from(document.querySelectorAll('script'));
+                    for (let script of scripts) {
+                        if (script.textContent.includes('loadTodayAttendance')) {
+                            eval(script.textContent);
+                            if (window.loadTodayAttendance) {
+                                window.loadTodayAttendance();
+                                return true;
+                            }
+                        }
+                    }
+                    
+                    return false;
+                `;
+                
+                const dokterWindow = window.opener || window.parent || window;
+                const success = dokterWindow.eval(refreshScript);
+                
+                if (success) {
+                    results.innerHTML = '<div class="card"><div class="status ok">✅ Attendance data refreshed!</div></div>';
+                } else {
+                    results.innerHTML = '<div class="card"><div class="status warning">⚠️ Could not trigger refresh. Try reloading the page.</div></div>';
+                }
+            } catch (error) {
+                results.innerHTML = '<div class="card"><div class="status error">❌ ' + error.message + '</div></div>';
+            }
+        }
+        
+        function clearAndReset() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<div class="card"><div class="status info">🧹 Cleared results. Ready for new diagnosis.</div></div>';
+        }
+    </script>
+</body>
+</html>

@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class ForceLocalSession
 {
@@ -23,15 +24,24 @@ class ForceLocalSession
             config(['database.default' => 'sqlite']);
             config(['database.connections.sqlite.database' => database_path('database.sqlite')]);
             
-            // Ensure session is started and CSRF token is available
-            if (!session()->isStarted()) {
-                session()->start();
+            // FIXED: Ensure session is started before accessing token
+            if (!$request->session()->isStarted()) {
+                $request->session()->start();
             }
             
-            // Regenerate CSRF token if not present
-            if (!session()->token()) {
-                session()->regenerateToken();
+            // Generate CSRF token if missing
+            if (!$request->session()->has('_token')) {
+                $request->session()->regenerateToken();
             }
+            
+            Log::debug('ForceLocalSession middleware executed', [
+                'session_id' => $request->session()->getId(),
+                'session_started' => $request->session()->isStarted(),
+                'has_token' => $request->session()->has('_token'),
+                'token_length' => $request->session()->token() ? strlen($request->session()->token()) : 0,
+                'url' => $request->fullUrl(),
+                'method' => $request->method(),
+            ]);
         }
         
         return $next($request);

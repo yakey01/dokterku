@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Testing Guide - Dokterku</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 30px 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .status {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #4caf50;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        .card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .url-box {
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+            border: 2px dashed rgba(255,255,255,0.3);
+        }
+        .url-box .url {
+            font-size: 18px;
+            font-weight: 600;
+            color: #4caf50;
+            word-break: break-all;
+            margin: 10px 0;
+        }
+        .qr-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .qr-code {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #4caf50, #45a049);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 18px;
+            margin: 20px 0;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .btn:hover {
+            transform: scale(1.02);
+        }
+        .btn:active {
+            transform: scale(0.98);
+        }
+        .copy-btn {
+            background: linear-gradient(135deg, #2196F3, #1976D2);
+        }
+        .instructions {
+            background: rgba(255, 193, 7, 0.2);
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .instructions h3 {
+            margin-bottom: 10px;
+            color: #ffc107;
+        }
+        .instructions ol {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+        .warning {
+            background: rgba(244, 67, 54, 0.2);
+            border-left: 4px solid #f44336;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .success {
+            background: rgba(76, 175, 80, 0.2);
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .feature {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .feature-icon {
+            font-size: 30px;
+            margin-bottom: 5px;
+        }
+        .feature-text {
+            font-size: 14px;
+        }
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 24px;
+            }
+            .url-box .url {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 Mobile Testing Ready!</h1>
+            <div class="status">🟢 NGROK ACTIVE</div>
+        </div>
+
+        <div class="card">
+            <h2>🌐 HTTPS URL untuk Mobile</h2>
+            <div class="url-box">
+                <div>Scan QR Code atau klik link:</div>
+                <div class="url">https://ee3f6b75ee7f.ngrok-free.app</div>
+            </div>
+            
+            <button class="btn copy-btn" onclick="copyUrl()">📋 Copy URL</button>
+            
+            <a href="https://ee3f6b75ee7f.ngrok-free.app/dokter/mobile-app" class="btn" target="_blank">
+                🚀 Buka Dokter App
+            </a>
+        </div>
+
+        <div class="card">
+            <h2>✅ Features yang Bisa Ditest</h2>
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">📍</div>
+                    <div class="feature-text">GPS Location</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">✅</div>
+                    <div class="feature-text">Check In</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🚪</div>
+                    <div class="feature-text">Check Out</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">📊</div>
+                    <div class="feature-text">Progress Bar</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="instructions">
+                <h3>📱 Cara Testing di Mobile:</h3>
+                <ol>
+                    <li>Buka browser di HP (Chrome/Safari)</li>
+                    <li>Masukkan URL: <strong>https://ee3f6b75ee7f.ngrok-free.app</strong></li>
+                    <li>Klik "Visit Site" jika ada warning ngrok</li>
+                    <li>Login dengan kredensial dokter</li>
+                    <li>Navigasi ke <strong>/dokter/mobile-app</strong></li>
+                    <li>Allow permission untuk GPS saat diminta</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="success">
+                <h3>✅ Test Cases untuk Mobile:</h3>
+                <ul>
+                    <li>✅ GPS detection dan distance calculation</li>
+                    <li>✅ Check-in dengan validasi lokasi</li>
+                    <li>✅ Check-out validation (early checkout prevention)</li>
+                    <li>✅ Progress bar real-time update</li>
+                    <li>✅ Multiple checkout support</li>
+                    <li>✅ Responsive UI di berbagai screen size</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="warning">
+                <h3>⚠️ Catatan Penting:</h3>
+                <ul>
+                    <li>Ngrok session akan timeout setelah 2 jam (free tier)</li>
+                    <li>URL akan berubah setiap kali restart ngrok</li>
+                    <li>Pastikan Laravel server tetap running di port 8000</li>
+                    <li>GPS hanya bekerja di HTTPS connection</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card" style="text-align: center;">
+            <h3>🔧 Quick Links</h3>
+            <div style="display: grid; gap: 10px; margin-top: 15px;">
+                <a href="https://ee3f6b75ee7f.ngrok-free.app/dokter/mobile-app" class="btn" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                    👨‍⚕️ Dokter Mobile App
+                </a>
+                <a href="https://ee3f6b75ee7f.ngrok-free.app/admin" class="btn" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
+                    ⚙️ Admin Panel
+                </a>
+                <a href="http://localhost:4040" class="btn" style="background: linear-gradient(135deg, #89f7fe, #66a6ff);">
+                    📊 Ngrok Inspector
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function copyUrl() {
+            const url = 'https://ee3f6b75ee7f.ngrok-free.app';
+            navigator.clipboard.writeText(url).then(() => {
+                alert('✅ URL copied to clipboard!');
+            }).catch(() => {
+                // Fallback for older browsers
+                const input = document.createElement('input');
+                input.value = url;
+                document.body.appendChild(input);
+                input.select();
+                document.execCommand('copy');
+                document.body.removeChild(input);
+                alert('✅ URL copied to clipboard!');
+            });
+        }
+
+        // Auto refresh every 30 seconds to check ngrok status
+        setInterval(() => {
+            fetch('https://ee3f6b75ee7f.ngrok-free.app/api/health', { mode: 'no-cors' })
+                .catch(() => {
+                    console.log('Ngrok might be disconnected');
+                });
+        }, 30000);
+    </script>
+</body>
+</html>

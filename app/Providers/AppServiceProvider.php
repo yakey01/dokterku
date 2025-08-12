@@ -35,6 +35,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Force HTTPS in production or when using ngrok
+        if (str_contains(config('app.url'), 'https://')) {
+            \URL::forceScheme('https');
+        }
+        
         // Set Carbon locale to Indonesian
         \Carbon\Carbon::setLocale(config('app.locale', 'id'));
         

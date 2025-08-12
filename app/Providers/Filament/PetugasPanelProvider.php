@@ -27,73 +27,101 @@ class PetugasPanelProvider extends PanelProvider
         return $panel
             ->id('petugas')
             ->path('petugas')
-            ->login(false)
+            ->login(CustomLogin::class)
             ->brandName('Petugas Dashboard')
             ->viteTheme('resources/css/filament/petugas/theme.css')
             ->colors([
-                'primary' => Color::Amber,
-                'success' => Color::Green,
-                'warning' => Color::Orange,
+                'primary' => Color::Blue,
+                'success' => Color::Emerald,
+                'warning' => Color::Amber,
                 'danger' => Color::Red,
-                'info' => Color::Blue,
+                'info' => Color::Indigo,
+                'gray' => Color::Slate,
             ])
+            ->darkMode(false)
+            ->maxContentWidth('full')
+            ->renderHook(
+                'panels::head.end',
+                fn (): string => view('filament.petugas.world-class-ui')->render()
+            )
             ->sidebarCollapsibleOnDesktop()
             ->resources([
-                // Patient Management Group
+                // Patient Management
                 \App\Filament\Petugas\Resources\PasienResource::class,
-                \App\Filament\Petugas\Resources\TindakanResource::class,
-                
-                // Daily Data Entry Group  
-                \App\Filament\Petugas\Resources\PendapatanHarianResource::class,
-                \App\Filament\Petugas\Resources\PengeluaranHarianResource::class,
                 \App\Filament\Petugas\Resources\JumlahPasienHarianResource::class,
                 
-                // Transaction Management Group
+                // Medical Actions
+                \App\Filament\Petugas\Resources\TindakanResource::class,
+                
+                // Financial Management
+                \App\Filament\Petugas\Resources\PendapatanHarianResource::class,
+                \App\Filament\Petugas\Resources\PengeluaranHarianResource::class,
                 \App\Filament\Petugas\Resources\ValidasiPendapatanResource::class,
             ])
+            ->navigationGroups([
+                NavigationGroup::make()
+                    ->label('🏠 Dashboard')
+                    ->icon('heroicon-o-home')
+                    ->collapsed(),
+                NavigationGroup::make()
+                    ->label('👥 Manajemen Pasien')
+                    ->icon('heroicon-o-users')
+                    ->collapsed(),
+                NavigationGroup::make()
+                    ->label('🩺 Tindakan Medis')
+                    ->icon('heroicon-o-heart')
+                    ->collapsed(),
+                NavigationGroup::make()
+                    ->label('💰 Keuangan')
+                    ->icon('heroicon-o-currency-dollar')
+                    ->collapsed(),
+                NavigationGroup::make()
+                    ->label('📊 Laporan & Analytics')
+                    ->icon('heroicon-o-chart-bar')
+                    ->collapsed(),
+                NavigationGroup::make()
+                    ->label('⚡ Quick Actions')
+                    ->icon('heroicon-o-bolt')
+                    ->collapsed(),
+                NavigationGroup::make()
+                    ->label('⚙️ System')
+                    ->icon('heroicon-o-cog-6-tooth')
+                    ->collapsed(),
+            ])
             ->pages([
-                \App\Filament\Petugas\Pages\PetugasDashboard::class,
+                // Static Dashboard - No widgets, completely static HTML
+                \App\Filament\Petugas\Pages\StaticDashboard::class,
+                
+                // Note: Using StaticDashboard to completely avoid Livewire component issues
+                // This is a regular Filament page without any widgets
             ])
             ->widgets([
-                \Filament\Widgets\AccountWidget::class,
+                // Widgets are now managed by Dashboard page directly
+                // Commented out to prevent duplicate widgets and charts
+                // \App\Filament\Petugas\Widgets\PetugasInteractiveDashboardWidget::class,
+                // \App\Filament\Petugas\Widgets\PatientStatsWidget::class,
+                // \App\Filament\Petugas\Widgets\DailyActivitiesWidget::class,
+                // \App\Filament\Petugas\Widgets\FinancialSummaryWidget::class,
+                // \App\Filament\Petugas\Widgets\PetugasStatsWidget::class,
+                // \App\Filament\Petugas\Widgets\PetugasHeroStatsWidget::class,
             ])
-            ->navigationGroups([
-                NavigationGroup::make('Dashboard')
-                    ->collapsed(false),
-                NavigationGroup::make('🏥 Manajemen Pasien')
-                    ->collapsed(true)
-                    ->collapsible(),
-                NavigationGroup::make('📊 Data Entry Harian')
-                    ->collapsed(false)
-                    ->collapsible(),
-                NavigationGroup::make('💰 Manajemen Transaksi')
-                    ->collapsed(true)
-                    ->collapsible(),
-                NavigationGroup::make('📈 Laporan & Analitik')
-                    ->collapsed(true)
-                    ->collapsible(),
-                NavigationGroup::make('⚙️ Pengaturan')
-                    ->collapsed(true)
-                    ->collapsible(),
+            ->plugins([
+                // Plugin commented out due to incorrect instantiation
+                // \BezhanSalleh\FilamentShield\FilamentShieldPlugin::class,
             ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
                 StartSession::class,
-                \App\Http\Middleware\SessionCleanupMiddleware::class,
                 AuthenticateSession::class,
                 ShareErrorsFromSession::class,
                 VerifyCsrfToken::class,
-                \App\Http\Middleware\RefreshCsrfToken::class,
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
             ->authMiddleware([
-                \App\Http\Middleware\RedirectToUnifiedAuth::class,
                 Authenticate::class,
-                \App\Http\Middleware\PetugasMiddleware::class,
-            ])
-            ->authGuard('web');
+            ]);
     }
 }

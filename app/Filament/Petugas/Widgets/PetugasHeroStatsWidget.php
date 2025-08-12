@@ -170,7 +170,6 @@ class PetugasHeroStatsWidget extends Widget
                 'approval_rate' => 92,
                 'total_input' => 38,
                 'net_income' => 2750000,
-                'pending_validations' => 3,
             ];
         }
         
@@ -179,7 +178,6 @@ class PetugasHeroStatsWidget extends Widget
             'approval_rate' => $validationSummary['approval_rate'],
             'total_input' => $todayStats['pasien_count'] + $todayStats['tindakan_count'],
             'net_income' => $todayStats['net_income'],
-            'pending_validations' => $validationSummary['pending_validations'],
         ];
     }
     
@@ -235,7 +233,6 @@ class PetugasHeroStatsWidget extends Widget
                 'approval_rate' => 0,
                 'total_input' => 0,
                 'net_income' => 0,
-                'pending_validations' => 0,
             ],
             'last_updated' => now()->format('H:i'),
             'user_id' => Auth::id(),

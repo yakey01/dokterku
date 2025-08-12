@@ -86,6 +86,7 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Resources\JadwalJagaResource::class,
                 \App\Filament\Resources\ShiftTemplateResource::class,
                 \App\Filament\Resources\AttendanceRecapResource::class,
+                \App\Filament\Resources\AttendanceToleranceSettingResource::class, // Added tolerance settings
                 \App\Filament\Resources\PermohonanCutiResource::class,
                 \App\Filament\Resources\CutiPegawaiResource::class,
                 \App\Filament\Resources\LeaveTypeResource::class,

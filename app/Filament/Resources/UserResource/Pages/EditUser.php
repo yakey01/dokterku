@@ -42,15 +42,38 @@ class EditUser extends EditRecord
             }
         }
         
-        // Validate NIP uniqueness if provided
-        if (!empty($data['nip'])) {
-            $nipCheck = \App\Models\User::checkNipAvailability($data['nip'], $user->id);
-            if (!$nipCheck['available']) {
-                throw new \Filament\Notifications\DatabaseNotification([
-                    'title' => '⚠️ NIP Sudah Digunakan',
-                    'body' => $nipCheck['message'],
-                    'status' => 'danger'
+        // NIP validation removed - NIP can be duplicated for multi-role users
+        // Log if NIP is being reused (informational only)
+        if (!empty($data['nip']) && $data['nip'] != $user->nip) {
+            $existingUsers = \App\Models\User::where('nip', $data['nip'])
+                ->where('id', '!=', $user->id)
+                ->get();
+                
+            if ($existingUsers->count() > 0) {
+                // Just log for information - multi-role is allowed
+                \Log::info('EditUser: NIP shared with other users (multi-role)', [
+                    'user_id' => $user->id,
+                    'nip' => $data['nip'],
+                    'other_users' => $existingUsers->map(function ($user) {
+                        return [
+                            'id' => $user->id,
+                            'name' => $user->name,
+                            'role' => $user->role ? $user->role->name : null
+                        ];
+                    })->toArray()
                 ]);
+                
+                // Show informational notification (not error)
+                $usersList = $existingUsers->map(function ($user) {
+                    return "{$user->name} (Role: " . ($user->role ? $user->role->display_name : 'No role') . ")";
+                })->join(', ');
+                
+                \Filament\Notifications\Notification::make()
+                    ->title('ℹ️ NIP Multi-Role')
+                    ->body("NIP '{$data['nip']}' juga digunakan oleh: {$usersList}. Ini diperbolehkan untuk multi-role.")
+                    ->info()
+                    ->duration(5000)
+                    ->send();
             }
         }
         

@@ -140,7 +140,7 @@ class ValidasiPendapatanResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->visible(fn (): bool => Auth::user()->can('delete_any_pendapatan')),
+                        ->visible(fn (): bool => Auth::check() && Auth::user()->can('delete_any_pendapatan')),
                 ]),
             ])
             ->defaultSort('tanggal', 'desc')

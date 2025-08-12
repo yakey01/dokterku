@@ -28,8 +28,7 @@ class UnifiedAuthController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        // CSRF token validation removed - handled by middleware exclusion
-        // This prevents double CSRF checking which can cause 419 errors
+        // CSRF protection is handled by middleware exclusion for this route
 
         // Rate limiting check
         $key = 'login_attempts:' . $request->ip();
@@ -41,7 +40,7 @@ class UnifiedAuthController extends Controller
             'ip' => $request->ip(),
             'has_token' => $request->has('_token'),
             'session_id' => $request->session()->getId(),
-            'csrf_token' => substr($request->input('_token'), 0, 10) . '...',
+            'csrf_token' => $request->input('_token') ? substr($request->input('_token'), 0, 10) . '...' : 'null',
             'user_agent' => $request->userAgent()
         ]);
 
@@ -65,17 +64,33 @@ class UnifiedAuthController extends Controller
         // Find user by email or username from User table first
         $user = \App\Models\User::findForAuth($identifier);
         
+        // Store the original identifier type for proper authentication
+        $isEmail = filter_var($identifier, FILTER_VALIDATE_EMAIL);
+        
         // If not found in User table, try to find in Dokter table
         if (!$user) {
             $dokter = \App\Models\Dokter::where('username', $identifier)
                 ->whereNotNull('username')
                 ->whereNotNull('password')
-                ->where('status_akun', 'Aktif')
+                ->whereRaw('LOWER(status_akun) = ?', ['aktif'])
                 ->first();
+                
+            Log::info('Dokter search result', [
+                'identifier' => $identifier,
+                'found' => $dokter ? true : false,
+                'dokter_id' => $dokter ? $dokter->id : null,
+                'dokter_name' => $dokter ? $dokter->nama_lengkap : null,
+            ]);
                 
             if ($dokter) {
                 // Check password for dokter
-                if (Hash::check($password, $dokter->password)) {
+                $passwordValid = Hash::check($password, $dokter->password);
+                Log::info('Dokter password check', [
+                    'valid' => $passwordValid,
+                    'dokter_id' => $dokter->id,
+                ]);
+                
+                if ($passwordValid) {
                     // Create or get associated User for the dokter
                     if ($dokter->user_id && $dokter->user) {
                         $user = $dokter->user;
@@ -136,7 +151,7 @@ class UnifiedAuthController extends Controller
             $pegawai = \App\Models\Pegawai::where('username', $identifier)
                 ->whereNotNull('username')
                 ->whereNotNull('password')
-                ->where('status_akun', 'Aktif')
+                ->whereRaw('LOWER(status_akun) = ?', ['aktif'])
                 ->first();
                 
             if ($pegawai) {
@@ -262,7 +277,21 @@ class UnifiedAuthController extends Controller
                 ]);
             } else {
                 // Regular Auth::attempt for normal users
-                $loginSuccessful = Auth::attempt(['email' => $user->email, 'password' => $password], $remember);
+                // IMPORTANT: Use the correct field for authentication to avoid multi-role conflicts
+                if ($isEmail) {
+                    // If user provided email, authenticate by email AND user ID to ensure correct user
+                    $loginSuccessful = Auth::attempt([
+                        'email' => $user->email, 
+                        'id' => $user->id,  // Add ID to ensure we get the exact user
+                        'password' => $password
+                    ], $remember);
+                } else {
+                    // If user provided username, authenticate by username
+                    $loginSuccessful = Auth::attempt([
+                        'username' => $user->username,
+                        'password' => $password
+                    ], $remember);
+                }
             }
         }
         

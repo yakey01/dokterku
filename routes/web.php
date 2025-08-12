@@ -14,6 +14,18 @@ use Illuminate\Support\Facades\Cache;
 require __DIR__.'/test.php';
 require __DIR__.'/test-models.php';
 require __DIR__.'/test-csrf.php';
+
+// Chart.js debugging route
+Route::get('/chart-debug', function () {
+    return view('chart-debug');
+});
+
+// Include role-specific routes
+require __DIR__.'/admin.php';
+require __DIR__.'/petugas.php';
+require __DIR__.'/dokter.php';
+require __DIR__.'/paramedis.php';
+
 use Illuminate\Support\Facades\Auth;
 
 // Debug work location issue
@@ -127,6 +139,9 @@ Route::prefix('api/v2/dashboards/dokter')->middleware(['web', 'auth'])->group(fu
     // Check-in/out endpoints
     Route::post('/checkin', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'checkIn']);
     Route::post('/checkout', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'checkOut']);
+    
+    // Multi-shift status endpoint
+    Route::get('/multishift-status', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'multishiftStatus']);
     
     // TEMPORARY TEST ENDPOINTS - Bypass authentication for debugging
     
@@ -2483,4 +2498,9 @@ Route::get('/test-attendance-resource', function () {
     } finally {
         \Illuminate\Support\Facades\Auth::logout();
     }
+});
+
+// Test SSL configuration
+Route::get('/test-ssl-fix', function () {
+    return view('test-ssl-fix');
 });

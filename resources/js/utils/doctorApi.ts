@@ -38,6 +38,29 @@ export interface DoctorDashboardData {
   };
 }
 
+export interface LeaderboardDoctor {
+  id: number;
+  name: string;
+  role: string;
+  attendance_rate: number;
+  level: number;
+  xp: number;
+  total_days: number;
+  total_hours: number;
+  avatar?: string;
+  department: string;
+  streak_days: number;
+  rank: number;
+  badge: string;
+}
+
+export interface LeaderboardData {
+  leaderboard: LeaderboardDoctor[];
+  month: string;
+  working_days: number;
+  last_updated: string;
+}
+
 export interface GPSDebugData {
   latitude: number;
   longitude: number;
@@ -267,6 +290,19 @@ class DoctorApi {
         }
       }
       
+      throw error;
+    }
+  }
+
+  /**
+   * Get top 3 doctors leaderboard by attendance rate
+   */
+  async getLeaderboard(): Promise<LeaderboardData> {
+    try {
+      const response = await getUnifiedAuth().makeJsonRequest('/api/v2/dashboards/dokter/leaderboard');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching leaderboard:', error);
       throw error;
     }
   }

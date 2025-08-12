@@ -7,7 +7,9 @@ use App\Models\Attendance;
 use App\Models\Location;
 use App\Models\WorkLocation;
 use App\Models\User;
+use App\Models\JadwalJaga;
 use App\Services\AttendanceValidationService;
+use App\Services\CheckInValidationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -23,10 +25,14 @@ use Carbon\Carbon;
 class AttendanceController extends BaseApiController
 {
     protected AttendanceValidationService $validationService;
+    protected CheckInValidationService $checkInService;
     
-    public function __construct(AttendanceValidationService $validationService)
-    {
+    public function __construct(
+        AttendanceValidationService $validationService,
+        CheckInValidationService $checkInService
+    ) {
         $this->validationService = $validationService;
+        $this->checkInService = $checkInService;
     }
     /**
      * @OA\Post(
@@ -90,36 +96,12 @@ class AttendanceController extends BaseApiController
         $user = $this->getAuthenticatedUser();
         $today = Carbon::today();
 
-        // Check attendance status for today
-        $attendanceStatus = Attendance::getTodayStatus($user->id);
-        
-        if (!$attendanceStatus['can_check_in']) {
-            $message = $attendanceStatus['status'] === 'checked_in' 
-                ? 'Anda sudah check-in hari ini. Silakan lakukan check-out terlebih dahulu.'
-                : 'Anda sudah menyelesaikan presensi hari ini. Check-in dapat dilakukan kembali besok.';
-                
-            return $this->errorResponse(
-                $message,
-                400,
-                [
-                    'current_status' => $attendanceStatus['status'],
-                    'message' => $attendanceStatus['message'],
-                    'attendance' => $attendanceStatus['attendance'] ? [
-                        'time_in' => $attendanceStatus['attendance']->time_in?->format('H:i'),
-                        'time_out' => $attendanceStatus['attendance']->time_out?->format('H:i'),
-                        'duration' => $attendanceStatus['attendance']->formatted_work_duration
-                    ] : null
-                ],
-                'CANNOT_CHECK_IN'
-            );
-        }
-
-        // Comprehensive validation using AttendanceValidationService
+        // Use new CheckInValidationService for comprehensive validation
         $latitude = (float) $request->latitude;
         $longitude = (float) $request->longitude;
         $accuracy = $request->accuracy ? (float) $request->accuracy : null;
         
-        $validation = $this->validationService->validateCheckin($user, $latitude, $longitude, $accuracy, $today);
+        $validation = $this->checkInService->validateCheckIn($user, $latitude, $longitude, $accuracy, $today);
         
         if (!$validation['valid']) {
             return $this->errorResponse(
@@ -137,20 +119,44 @@ class AttendanceController extends BaseApiController
         }
 
         // Extract validated data
-        $jadwalJaga = $validation['jadwal_jaga'];
-        $workLocation = $validation['work_location'];
-        $isLate = $validation['code'] === 'VALID_BUT_LATE';
+        $validationData = $validation['data'];
         
-        // Create attendance record with enhanced data
+        // Check if required data exists
+        if (!isset($validationData['jadwal_jaga']) || !isset($validationData['shift'])) {
+            return $this->errorResponse(
+                'Data validasi tidak lengkap',
+                500,
+                ['validation_data' => $validationData],
+                'INCOMPLETE_VALIDATION_DATA'
+            );
+        }
+        
+        $jadwalJaga = $validationData['jadwal_jaga'];
+        $shift = $validationData['shift'];
+        $workLocation = $validationData['work_location'];
+        $isLate = $validationData['is_late'] ?? false;
+        $metadata = $validationData['metadata'];
+        
+        // Extract multi-shift info
+        $multishiftInfo = $validationData['multishift_info'] ?? [];
+        
+        // Create attendance record with enhanced data and multi-shift support
         $attendance = Attendance::create([
             'user_id' => $user->id,
             'date' => $today,
             'time_in' => Carbon::now(),
+            'logical_time_in' => $validationData['logical_time_in'],
+            'shift_id' => $shift->id,
+            'shift_sequence' => $multishiftInfo['shift_sequence'] ?? 1,
+            'previous_attendance_id' => $multishiftInfo['previous_attendance_id'] ?? null,
+            'gap_from_previous_minutes' => $multishiftInfo['gap_minutes'] ?? null,
+            'shift_start' => $shift->jam_masuk,
+            'shift_end' => $shift->jam_pulang ?? $shift->jam_keluar,
             'latitude' => $latitude,
             'longitude' => $longitude,
             'accuracy' => $accuracy,
             'latlon_in' => $latitude . ',' . $longitude,
-            'location_name_in' => $request->location_name ?? $workLocation->name,
+            'location_name_in' => $request->location_name ?? $workLocation?->name ?? 'Unknown Location',
             'location_id' => $workLocation instanceof WorkLocation ? null : $workLocation?->id, // Legacy location ID
             'work_location_id' => $workLocation instanceof WorkLocation ? $workLocation->id : null,
             'jadwal_jaga_id' => $jadwalJaga->id,
@@ -158,6 +164,9 @@ class AttendanceController extends BaseApiController
             'notes' => $request->notes,
             'photo_in' => $faceRecognitionResult ? 'face_recognition_stored' : null,
             'location_validated' => true,
+            'is_additional_shift' => $multishiftInfo['is_additional_shift'] ?? false,
+            'is_overtime_shift' => $multishiftInfo['is_overtime'] ?? false,
+            'check_in_metadata' => $metadata,
         ]);
 
         // Clear cache
@@ -166,6 +175,7 @@ class AttendanceController extends BaseApiController
         return $this->successResponse([
             'attendance_id' => $attendance->id,
             'time_in' => $attendance->time_in->format('H:i'),
+            'logical_time_in' => $attendance->logical_time_in->format('H:i'),
             'status' => $attendance->status,
             'coordinates' => [
                 'latitude' => $attendance->latitude,
@@ -176,17 +186,30 @@ class AttendanceController extends BaseApiController
                 'name' => $attendance->location_name_in,
                 'work_location_id' => $attendance->work_location_id,
                 'location_id' => $attendance->location_id, // Legacy support
+                'distance' => $metadata['validation']['location']['distance'] ?? null,
             ],
             'schedule' => [
                 'jadwal_jaga_id' => $attendance->jadwal_jaga_id,
-                'shift_name' => $jadwalJaga->shiftTemplate?->nama_shift ?? 'Unknown',
-                'unit_kerja' => $jadwalJaga->unit_kerja,
+                'shift_id' => $attendance->shift_id,
+                'shift_name' => $shift->nama_shift,
+                'shift_start' => $attendance->shift_start->format('H:i'),
+                'shift_end' => $attendance->shift_end->format('H:i'),
+                'unit_kerja' => $jadwalJaga->unit_kerja ?? null,
                 'is_late' => $isLate,
+                'shift_sequence' => $attendance->shift_sequence,
+                'is_additional_shift' => $attendance->is_additional_shift,
+                'is_overtime' => $attendance->is_overtime_shift,
+            ],
+            'timer' => [
+                'actual_check_in' => $attendance->time_in->format('H:i'),
+                'logical_start' => $attendance->logical_time_in->format('H:i'),
+                'timer_started_early' => $metadata['validation']['timer']['is_early'] ?? false,
+                'early_minutes' => $metadata['validation']['timer']['early_minutes'] ?? 0,
             ],
             'validation_details' => [
                 'message' => $validation['message'],
                 'code' => $validation['code'],
-                'all_validations' => $validation['validations'] ?? null,
+                'check_in_window' => $metadata['validation']['time']['window'] ?? null,
             ],
             'face_recognition' => $faceRecognitionResult ? [
                 'verified' => $faceRecognitionResult['verified'] ?? false,
@@ -589,5 +612,246 @@ class AttendanceController extends BaseApiController
     {
         Cache::forget("attendance:today:{$userId}");
         // Clear other related cache keys as needed
+    }
+
+    /**
+     * Get multi-shift status for the user
+     * 
+     * @OA\Get(
+     *     path="/api/v2/attendance/multishift-status",
+     *     summary="Get comprehensive multi-shift attendance status",
+     *     tags={"Attendance"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Multi-shift status retrieved successfully"
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
+    public function multishiftStatus(Request $request): JsonResponse
+    {
+        $user = $this->getAuthenticatedUser();
+        $today = Carbon::today();
+
+        // Get all attendances for today
+        $todayAttendances = Attendance::where('user_id', $user->id)
+            ->whereDate('date', $today)
+            ->orderBy('shift_sequence')
+            ->with(['shift', 'jadwalJaga'])
+            ->get();
+
+        // Get today's schedules
+        $todaySchedules = JadwalJaga::where(function($query) use ($user) {
+                $query->where('pegawai_id', $user->id)
+                      ->orWhere('user_id', $user->id);
+            })
+            ->whereDate('tanggal_jaga', $today)
+            ->with('shiftTemplate')
+            ->orderBy('shift_sequence')
+            ->get();
+
+        // Determine current status
+        $canCheckIn = false;
+        $canCheckOut = false;
+        $currentShift = null;
+        $nextShift = null;
+        $shiftsAvailable = [];
+        $message = '';
+
+        // Check if there's an open attendance (checked in but not out)
+        $openAttendance = $todayAttendances->firstWhere('time_out', null);
+        
+        if ($openAttendance) {
+            $canCheckOut = true;
+            $currentShift = [
+                'id' => $openAttendance->shift_id,
+                'nama_shift' => $openAttendance->shift?->nama_shift ?? 'Unknown',
+                'jam_masuk' => $openAttendance->shift_start?->format('H:i') ?? '',
+                'jam_pulang' => $openAttendance->shift_end?->format('H:i') ?? '',
+                'shift_sequence' => $openAttendance->shift_sequence,
+                'is_current' => true,
+                'is_available' => false,
+                'can_checkin' => false
+            ];
+            $message = 'Anda sedang dalam shift ' . ($currentShift['nama_shift'] ?? '') . '. Silakan check-out terlebih dahulu.';
+        } else {
+            // Check if can check in for next shift
+            $maxShifts = config('attendance.multishift.max_shifts_per_day', 3);
+            $completedShifts = $todayAttendances->count();
+
+            if ($completedShifts >= $maxShifts) {
+                $message = 'Anda sudah mencapai batas maksimal ' . $maxShifts . ' shift per hari.';
+            } else {
+                // Check gap from last attendance
+                $lastAttendance = $todayAttendances->last();
+                $currentTime = Carbon::now();
+                
+                if ($lastAttendance && $lastAttendance->time_out) {
+                    $timeSinceCheckout = Carbon::parse($lastAttendance->time_out)->diffInMinutes($currentTime);
+                    $minGap = config('attendance.multishift.min_gap_between_shifts', 60);
+                    
+                    if ($timeSinceCheckout < $minGap) {
+                        $remainingMinutes = $minGap - $timeSinceCheckout;
+                        $message = 'Anda harus menunggu ' . $remainingMinutes . ' menit lagi sebelum check-in shift berikutnya.';
+                    } else {
+                        // Get work location settings for tolerance
+                        $workLocation = WorkLocation::first();
+                        $toleranceEarly = 30; // default
+                        $toleranceLate = 15; // default
+                        
+                        if ($workLocation) {
+                            // Try JSON settings first
+                            $toleranceSettings = $workLocation->tolerance_settings;
+                            if ($toleranceSettings) {
+                                $settings = is_string($toleranceSettings) ? json_decode($toleranceSettings, true) : $toleranceSettings;
+                                $toleranceEarly = $settings['checkin_before_shift_minutes'] ?? 30;
+                                $toleranceLate = $settings['late_tolerance_minutes'] ?? 15;
+                            }
+                            
+                            // Individual fields override JSON if set
+                            if ($workLocation->late_tolerance_minutes !== null) {
+                                $toleranceLate = $workLocation->late_tolerance_minutes;
+                            }
+                            // Note: early_checkin_minutes field doesn't exist in DB
+                        }
+                        
+                        // Find available shifts
+                        foreach ($todaySchedules as $schedule) {
+                            // Skip if already used
+                            if ($todayAttendances->contains('jadwal_jaga_id', $schedule->id)) {
+                                continue;
+                            }
+
+                            $shift = $schedule->shiftTemplate;
+                            if (!$shift) continue;
+
+                            $shiftStart = Carbon::parse($today->format('Y-m-d') . ' ' . $shift->jam_masuk);
+                            $windowStart = $shiftStart->copy()->subMinutes($toleranceEarly);
+                            $windowEnd = $shiftStart->copy()->addMinutes($toleranceLate);
+
+                            $shiftInfo = [
+                                'id' => $shift->id,
+                                'nama_shift' => $shift->nama_shift,
+                                'jam_masuk' => $shift->jam_masuk,
+                                'jam_pulang' => $shift->jam_pulang ?? $shift->jam_keluar,
+                                'shift_sequence' => $completedShifts + 1,
+                                'is_available' => true,
+                                'is_current' => false,
+                                'can_checkin' => false,
+                                'window_message' => null
+                            ];
+
+                            if ($currentTime->between($windowStart, $windowEnd)) {
+                                $canCheckIn = true;
+                                $shiftInfo['can_checkin'] = true;
+                                $shiftInfo['is_current'] = true;
+                                $currentShift = $shiftInfo;
+                                $message = 'Anda dapat check-in untuk shift ' . $shift->nama_shift;
+                            } elseif ($currentTime->lessThan($windowStart)) {
+                                $shiftInfo['window_message'] = 'Check-in mulai pukul ' . $windowStart->format('H:i');
+                                $shiftsAvailable[] = $shiftInfo;
+                                if (!$nextShift) {
+                                    $nextShift = $shiftInfo;
+                                }
+                            }
+                        }
+                    }
+                } else if ($completedShifts === 0) {
+                    // First shift of the day - check if within window
+                    // Get work location settings for tolerance
+                    $workLocation = WorkLocation::first();
+                    $toleranceEarly = 30; // default
+                    $toleranceLate = 15; // default
+                    
+                    if ($workLocation) {
+                        // Try JSON settings first
+                        $toleranceSettings = $workLocation->tolerance_settings;
+                        if ($toleranceSettings) {
+                            $settings = is_string($toleranceSettings) ? json_decode($toleranceSettings, true) : $toleranceSettings;
+                            $toleranceEarly = $settings['checkin_before_shift_minutes'] ?? 30;
+                            $toleranceLate = $settings['late_tolerance_minutes'] ?? 15;
+                        }
+                        
+                        // Individual fields override JSON if set
+                        if ($workLocation->late_tolerance_minutes !== null) {
+                            $toleranceLate = $workLocation->late_tolerance_minutes;
+                        }
+                    }
+                    
+                    // Find first available shift
+                    foreach ($todaySchedules as $schedule) {
+                        $shift = $schedule->shiftTemplate;
+                        if (!$shift) continue;
+
+                        $shiftStart = Carbon::parse($today->format('Y-m-d') . ' ' . $shift->jam_masuk);
+                        $windowStart = $shiftStart->copy()->subMinutes($toleranceEarly);
+                        $windowEnd = $shiftStart->copy()->addMinutes($toleranceLate);
+
+                        if ($currentTime->between($windowStart, $windowEnd)) {
+                            $canCheckIn = true;
+                            $currentShift = [
+                                'id' => $shift->id,
+                                'nama_shift' => $shift->nama_shift,
+                                'jam_masuk' => $shift->jam_masuk,
+                                'jam_pulang' => $shift->jam_pulang ?? $shift->jam_keluar,
+                                'shift_sequence' => 1,
+                                'is_available' => true,
+                                'is_current' => true,
+                                'can_checkin' => true
+                            ];
+                            $message = 'Anda dapat check-in untuk shift ' . $shift->nama_shift;
+                            break;
+                        } elseif ($currentTime->lessThan($windowStart)) {
+                            $message = 'Check-in untuk shift ' . $shift->nama_shift . ' mulai pukul ' . $windowStart->format('H:i');
+                            if (!$nextShift) {
+                                $nextShift = [
+                                    'id' => $shift->id,
+                                    'nama_shift' => $shift->nama_shift,
+                                    'jam_masuk' => $shift->jam_masuk,
+                                    'jam_pulang' => $shift->jam_pulang ?? $shift->jam_keluar,
+                                    'shift_sequence' => 1,
+                                    'is_available' => true,
+                                    'is_current' => false,
+                                    'can_checkin' => false,
+                                    'window_message' => 'Check-in mulai pukul ' . $windowStart->format('H:i')
+                                ];
+                            }
+                        } else {
+                            $message = 'Waktu check-in untuk shift ' . $shift->nama_shift . ' sudah lewat (maksimal ' . $windowEnd->format('H:i') . ')';
+                        }
+                    }
+                    
+                    if (!$canCheckIn && $todaySchedules->isEmpty()) {
+                        $message = 'Tidak ada jadwal untuk hari ini';
+                    }
+                }
+            }
+        }
+
+        // Format attendance records
+        $attendanceRecords = $todayAttendances->map(function ($att) {
+            return [
+                'id' => $att->id,
+                'shift_sequence' => $att->shift_sequence,
+                'shift_name' => $att->shift?->nama_shift ?? 'Unknown',
+                'time_in' => $att->time_in?->format('H:i:s') ?? '',
+                'time_out' => $att->time_out?->format('H:i:s') ?? null,
+                'status' => $att->status,
+                'is_overtime' => $att->is_overtime_shift ?? false,
+                'gap_minutes' => $att->gap_from_previous_minutes
+            ];
+        });
+
+        return $this->successResponse([
+            'can_check_in' => $canCheckIn,
+            'can_check_out' => $canCheckOut,
+            'current_shift' => $currentShift,
+            'next_shift' => $nextShift,
+            'today_attendances' => $attendanceRecords,
+            'shifts_available' => $shiftsAvailable,
+            'max_shifts_reached' => $todayAttendances->count() >= config('attendance.multishift.max_shifts_per_day', 3),
+            'message' => $message
+        ], 'Multi-shift status retrieved');
     }
 }

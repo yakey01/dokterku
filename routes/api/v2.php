@@ -133,6 +133,7 @@ Route::middleware(['auth:sanctum', App\Http\Middleware\Api\ApiResponseHeadersMid
         Route::get('/today', [App\Http\Controllers\Api\V2\Attendance\AttendanceController::class, 'today']);
         Route::get('/history', [App\Http\Controllers\Api\V2\Attendance\AttendanceController::class, 'history']);
         Route::get('/statistics', [App\Http\Controllers\Api\V2\Attendance\AttendanceController::class, 'statistics']);
+        Route::get('/multishift-status', [App\Http\Controllers\Api\V2\Attendance\AttendanceController::class, 'multishiftStatus']);
     });
 
     // Dashboard endpoints
@@ -158,6 +159,9 @@ Route::prefix('v2/dashboards/dokter')->middleware(['web'])->group(function () {
     Route::get('/patients', [DokterDashboardController::class, 'getPatients']);
     Route::get('/test', [DokterDashboardController::class, 'test']);
     
+    // Leaderboard endpoint
+    Route::get('/leaderboard', [\App\Http\Controllers\Api\V2\Dashboards\LeaderboardController::class, 'getTopDoctors']);
+    
     // Schedule endpoints
     Route::get('/schedules', [DokterDashboardController::class, 'schedules']);
     Route::get('/weekly-schedules', [DokterDashboardController::class, 'getWeeklySchedule']);
@@ -173,6 +177,9 @@ Route::prefix('v2/dashboards/dokter')->middleware(['web'])->group(function () {
     Route::post('/checkout', [DokterDashboardController::class, 'checkOut']);
     
 
+    
+    // Multi-shift status endpoint
+    Route::get('/multishift-status', [DokterDashboardController::class, 'multishiftStatus']);
     
     // Test endpoint for authentication debugging
     Route::get('/auth-test', function () {

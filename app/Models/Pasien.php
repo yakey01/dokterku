@@ -69,9 +69,10 @@ class Pasien extends Model
                 'female_count' => static::where('jenis_kelamin', 'P')->count(),
                 'recent_count' => static::whereDate('created_at', today())->count(),
                 'avg_age' => static::whereNotNull('tanggal_lahir')
-                    ->selectRaw('AVG(YEAR(CURDATE()) - YEAR(tanggal_lahir)) as avg_age')
-                    ->first()
-                    ->avg_age ?? 0,
+                    ->get()
+                    ->avg(function ($pasien) {
+                        return $pasien->tanggal_lahir ? $pasien->tanggal_lahir->age : 0;
+                    }) ?? 0,
             ];
         });
     }

@@ -315,9 +315,13 @@ export class GPSManager extends EventEmitter {
 
       for (const service of services) {
         try {
-          const response = await fetch(service, { 
-            signal: AbortSignal.timeout(3000) 
-          });
+          // Check if AbortSignal.timeout is supported
+          let fetchOptions: RequestInit = {};
+          if ('timeout' in AbortSignal && typeof AbortSignal.timeout === 'function') {
+            fetchOptions.signal = AbortSignal.timeout(3000);
+          }
+          
+          const response = await fetch(service, fetchOptions);
           
           if (response.ok) {
             const data = await response.json();
@@ -612,28 +616,43 @@ export class GPSManager extends EventEmitter {
   }
 
   /**
-   * Request permission explicitly
+   * Request permission explicitly with enhanced error handling
    */
   public async requestPermission(): Promise<boolean> {
-    if (!navigator.permissions) {
+    // Check if permissions API is available
+    if (!navigator.permissions || typeof navigator.permissions.query !== 'function') {
+      this.log('Permissions API not available, assuming granted', 'warn');
       return true; // Can't check, assume granted
     }
 
     try {
-      const result = await navigator.permissions.query({ name: 'geolocation' });
+      // Safe permissions query with type checking
+      const permissionName = 'geolocation' as PermissionName;
+      const result = await navigator.permissions.query({ name: permissionName });
       
       if (result.state === 'granted') {
         return true;
       } else if (result.state === 'prompt') {
-        // Trigger permission request
-        await this.getHighAccuracyGPS();
-        return true;
+        // Trigger permission request with error handling
+        try {
+          await this.getHighAccuracyGPS();
+          return true;
+        } catch (gpsError) {
+          this.log('GPS permission request failed', 'warn');
+          return false;
+        }
       } else {
         return false;
       }
     } catch (error) {
-      this.log('Could not check permissions', 'warn');
-      return true; // Assume granted
+      // Handle NotFoundError and other permission API errors
+      if (error instanceof Error && error.name === 'NotFoundError') {
+        this.log('Geolocation permission not found in permissions API', 'warn');
+      } else {
+        this.log('Could not check permissions: ' + error, 'warn');
+      }
+      // Try to use geolocation anyway as fallback
+      return true;
     }
   }
 

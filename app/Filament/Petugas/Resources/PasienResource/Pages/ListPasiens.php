@@ -16,9 +16,22 @@ class ListPasiens extends ListRecords
     {
         return [
             Actions\CreateAction::make()
-                ->label('Input Pasien Baru')
+                ->label('➕ Input Pasien Baru')
                 ->icon('heroicon-o-plus-circle')
-                ->color('primary'),
+                ->color('primary')
+                ->size('lg')
+                ->visible(fn (): bool => true),
+        ];
+    }
+
+    protected function getTableEmptyStateActions(): array
+    {
+        return [
+            Actions\CreateAction::make()
+                ->label('➕ Input Pasien Baru')
+                ->icon('heroicon-o-plus-circle')
+                ->color('primary')
+                ->size('lg'),
         ];
     }
 
@@ -64,13 +77,4 @@ class ListPasiens extends ListRecords
         return 'Mulai dengan menambahkan data pasien baru menggunakan tombol "Input Pasien Baru" di atas.';
     }
 
-    protected function getTableEmptyStateActions(): array
-    {
-        return [
-            Actions\CreateAction::make()
-                ->label('Input Pasien Baru')
-                ->icon('heroicon-o-plus-circle')
-                ->color('primary'),
-        ];
-    }
 }

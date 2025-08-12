@@ -17,9 +17,20 @@ class Attendance extends Model
         'location_id',
         'work_location_id',
         'jadwal_jaga_id',
+        'shift_id',
+        'shift_sequence',
+        'previous_attendance_id',
+        'gap_from_previous_minutes',
         'date',
         'time_in',
         'time_out',
+        'logical_time_in',
+        'logical_time_out',
+        'logical_work_minutes',
+        'shift_start',
+        'shift_end',
+        'next_shift_start',
+        'next_shift_id',
         'latlon_in',
         'latlon_out',
         'location_name_in',
@@ -31,6 +42,10 @@ class Attendance extends Model
         'photo_out',
         'notes',
         'status',
+        'check_in_rejection_code',
+        'check_in_rejection_reason',
+        'check_in_metadata',
+        'check_out_metadata',
         // Enhanced GPS fields
         'latitude',
         'longitude',
@@ -39,12 +54,22 @@ class Attendance extends Model
         'checkout_longitude', 
         'checkout_accuracy',
         'location_validated',
+        'is_additional_shift',
+        'is_overtime_shift',
     ];
 
     protected $casts = [
         'date' => 'date',
         'time_in' => 'datetime:H:i:s',
         'time_out' => 'datetime:H:i:s',
+        'logical_time_in' => 'datetime:H:i:s',
+        'logical_time_out' => 'datetime:H:i:s',
+        'shift_start' => 'datetime:H:i:s',
+        'shift_end' => 'datetime:H:i:s',
+        'next_shift_start' => 'datetime:H:i:s',
+        'logical_work_minutes' => 'integer',
+        'shift_sequence' => 'integer',
+        'gap_from_previous_minutes' => 'integer',
         'latitude' => 'decimal:8',
         'longitude' => 'decimal:8',
         'checkout_latitude' => 'decimal:8',
@@ -52,6 +77,10 @@ class Attendance extends Model
         'accuracy' => 'float',
         'checkout_accuracy' => 'float',
         'location_validated' => 'boolean',
+        'is_additional_shift' => 'boolean',
+        'is_overtime_shift' => 'boolean',
+        'check_in_metadata' => 'array',
+        'check_out_metadata' => 'array',
     ];
 
     /**
@@ -92,6 +121,40 @@ class Attendance extends Model
     public function jadwalJaga(): BelongsTo
     {
         return $this->belongsTo(JadwalJaga::class, 'jadwal_jaga_id');
+    }
+
+    /**
+     * Relationship dengan ShiftTemplate
+     */
+    public function shift(): BelongsTo
+    {
+        return $this->belongsTo(ShiftTemplate::class, 'shift_id');
+    }
+
+    /**
+     * Relationship dengan previous attendance (for multi-shift)
+     */
+    public function previousAttendance(): BelongsTo
+    {
+        return $this->belongsTo(Attendance::class, 'previous_attendance_id');
+    }
+
+    /**
+     * Relationship dengan next shift template
+     */
+    public function nextShift(): BelongsTo
+    {
+        return $this->belongsTo(ShiftTemplate::class, 'next_shift_id');
+    }
+
+    /**
+     * Get all attendances for the same day (multi-shift)
+     */
+    public function sameDayAttendances()
+    {
+        return self::where('user_id', $this->user_id)
+            ->where('date', $this->date)
+            ->orderBy('shift_sequence');
     }
 
     /**
@@ -246,10 +309,50 @@ class Attendance extends Model
     {
         if (!$this->time_in || !$this->time_out) return null;
         
-        $timeIn = Carbon::parse($this->time_in);
-        $timeOut = Carbon::parse($this->time_out);
-        
-        return $timeOut->diffInMinutes($timeIn);
+        // Parse times - handle both datetime and time-only formats
+        try {
+            // If full datetime format
+            if (strlen($this->time_in) > 8) {
+                $timeIn = Carbon::parse($this->time_in);
+                $timeOut = Carbon::parse($this->time_out);
+            } else {
+                // If time-only format (HH:MM:SS), use today's date
+                $today = $this->date ?? Carbon::today()->format('Y-m-d');
+                $timeIn = Carbon::parse($today . ' ' . $this->time_in);
+                $timeOut = Carbon::parse($today . ' ' . $this->time_out);
+                
+                // Handle overnight shift (checkout next day)
+                if ($timeOut->lt($timeIn)) {
+                    $timeOut->addDay();
+                }
+            }
+            
+            // Calculate duration (always positive)
+            $duration = $timeOut->diffInMinutes($timeIn);
+            
+            // Log if duration seems unusual (> 24 hours)
+            if ($duration > 1440) {
+                \Log::warning('Unusually long work duration detected', [
+                    'attendance_id' => $this->id,
+                    'user_id' => $this->user_id,
+                    'duration_minutes' => $duration,
+                    'time_in' => $this->time_in,
+                    'time_out' => $this->time_out
+                ]);
+            }
+            
+            return $duration;
+            
+        } catch (\Exception $e) {
+            \Log::error('Error calculating work duration', [
+                'attendance_id' => $this->id,
+                'error' => $e->getMessage(),
+                'time_in' => $this->time_in,
+                'time_out' => $this->time_out
+            ]);
+            
+            return 0;
+        }
     }
 
     /**
@@ -258,7 +361,8 @@ class Attendance extends Model
     public function getFormattedWorkDurationAttribute(): ?string
     {
         $duration = $this->work_duration;
-        if (!$duration) return null;
+        if ($duration === null) return null;
+        if ($duration <= 0) return '0j 0m'; // Handle zero or negative duration
         
         $hours = intval($duration / 60);
         $minutes = $duration % 60;

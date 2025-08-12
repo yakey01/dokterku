@@ -93,6 +93,11 @@ class Tindakan extends Model
         return $this->belongsTo(User::class, 'validated_by');
     }
 
+    public function petugas(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'input_by');
+    }
+
     public function jaspel(): HasMany
     {
         return $this->hasMany(Jaspel::class);

@@ -1,0 +1,585 @@
+/**
+ * Petugas Glass Morphism Cards - World-Class Medical Dashboard
+ * Ultra-modern glass effects with professional medical theme
+ * WCAG AAA compliant with mobile-first responsive design
+ */
+
+:root {
+  /* Petugas Medical Blue Color Scheme */
+  --petugas-50: #eff6ff;
+  --petugas-100: #dbeafe;
+  --petugas-200: #bfdbfe;
+  --petugas-300: #93c5fd;
+  --petugas-400: #60a5fa;
+  --petugas-500: #3b82f6;
+  --petugas-600: #2563eb;
+  --petugas-700: #1d4ed8;
+  --petugas-800: #1e40af;
+  --petugas-900: #1e3a8a;
+  --petugas-950: #172554;
+
+  /* Glass Morphism Variables */
+  --glass-bg-light: rgba(255, 255, 255, 0.25);
+  --glass-bg-dark: rgba(15, 23, 42, 0.25);
+  --glass-border-light: rgba(255, 255, 255, 0.18);
+  --glass-border-dark: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  --glass-shadow-hover: 0 20px 40px 0 rgba(31, 38, 135, 0.5);
+  
+  /* Animation Variables */
+  --bounce-duration: 0.6s;
+  --float-duration: 3s;
+  --glow-duration: 2s;
+  --pulse-duration: 2s;
+  
+  /* Professional Medical Gradients */
+  --gradient-primary: linear-gradient(135deg, var(--petugas-500) 0%, var(--petugas-700) 100%);
+  --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  --gradient-danger: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  --gradient-purple: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  --gradient-emerald: linear-gradient(135deg, #10b981 0%, #047857 100%);
+}
+
+/* Base Glass Card Foundation */
+.petugas-glass-card {
+  position: relative;
+  background: var(--glass-bg-light);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border-light);
+  border-radius: 20px;
+  box-shadow: var(--glass-shadow);
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  overflow: hidden;
+  padding: 1.5rem;
+  /* Ensure proper stacking context */
+  transform: translateZ(0);
+  /* Hardware acceleration */
+  will-change: transform, box-shadow;
+}
+
+/* Dark Mode Glass Effects */
+.dark .petugas-glass-card {
+  background: var(--glass-bg-dark);
+  border: 1px solid var(--glass-border-dark);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* Floating Animation Base */
+.petugas-glass-card {
+  animation: gentleFloat var(--float-duration) ease-in-out infinite;
+}
+
+@keyframes gentleFloat {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-4px) rotate(0.5deg); }
+}
+
+/* Hover States with Enhanced Glass Effects */
+.petugas-glass-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: var(--glass-shadow-hover);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.dark .petugas-glass-card:hover {
+  box-shadow: 0 20px 40px 0 rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Interactive Glow Effect */
+.petugas-glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.petugas-glass-card:hover::before {
+  opacity: 1;
+}
+
+/* Hero Metrics Cards - Specific Styling */
+.petugas-hero-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Individual Metric Card */
+.petugas-metric-card {
+  position: relative;
+  background: var(--glass-bg-light);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid var(--glass-border-light);
+  border-radius: 24px;
+  padding: 2rem;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  overflow: hidden;
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.dark .petugas-metric-card {
+  background: var(--glass-bg-dark);
+  border: 1px solid var(--glass-border-dark);
+}
+
+/* Metric Card Hover Effects */
+.petugas-metric-card:hover {
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: 0 25px 50px 0 rgba(59, 130, 246, 0.25);
+}
+
+.dark .petugas-metric-card:hover {
+  box-shadow: 0 25px 50px 0 rgba(59, 130, 246, 0.35);
+}
+
+/* Metric Icon Container */
+.petugas-metric-icon {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  background: var(--glass-bg-light);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border-light);
+  transition: all 0.3s ease;
+}
+
+.dark .petugas-metric-icon {
+  background: var(--glass-bg-dark);
+  border: 1px solid var(--glass-border-dark);
+}
+
+/* Icon Hover Glow */
+.petugas-metric-card:hover .petugas-metric-icon {
+  animation: pulseGlow var(--pulse-duration) ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { 
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    transform: scale(1);
+  }
+  50% { 
+    box-shadow: 0 0 40px rgba(59, 130, 246, 0.5);
+    transform: scale(1.05);
+  }
+}
+
+/* Color-Specific Icon Styling */
+.petugas-metric-icon.blue { background: linear-gradient(135deg, var(--petugas-400), var(--petugas-600)); }
+.petugas-metric-icon.green { background: var(--gradient-success); }
+.petugas-metric-icon.emerald { background: var(--gradient-emerald); }
+.petugas-metric-icon.purple { background: var(--gradient-purple); }
+
+/* Metric Value Styling */
+.petugas-metric-value {
+  font-size: 2.25rem;
+  font-weight: 800;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.5rem;
+  line-height: 1.1;
+  animation: countUp 0.8s ease-out;
+}
+
+@keyframes countUp {
+  from { 
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Metric Label */
+.petugas-metric-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dark .petugas-metric-label {
+  color: #94a3b8;
+}
+
+/* Trend Indicator */
+.petugas-trend-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: var(--glass-bg-light);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border-light);
+  transition: all 0.3s ease;
+}
+
+.dark .petugas-trend-indicator {
+  background: var(--glass-bg-dark);
+  border: 1px solid var(--glass-border-dark);
+}
+
+/* Trend Colors */
+.petugas-trend-up {
+  color: #059669;
+  border-color: rgba(5, 150, 105, 0.3);
+}
+
+.petugas-trend-down {
+  color: #dc2626;
+  border-color: rgba(220, 38, 38, 0.3);
+}
+
+.petugas-trend-stable {
+  color: #6b7280;
+  border-color: rgba(107, 114, 128, 0.3);
+}
+
+/* Trend Icon Animation */
+.petugas-trend-icon {
+  animation: bounce var(--bounce-duration) ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 20%, 53%, 80%, 100% {
+    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+    transform: translate3d(0, 0, 0);
+  }
+  40%, 43% {
+    animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
+    transform: translate3d(0, -8px, 0);
+  }
+  70% {
+    animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
+    transform: translate3d(0, -4px, 0);
+  }
+  90% {
+    transform: translate3d(0, -2px, 0);
+  }
+}
+
+/* Quick Action Cards */
+.petugas-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.petugas-action-card {
+  position: relative;
+  background: var(--glass-bg-light);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border-light);
+  border-radius: 16px;
+  padding: 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.dark .petugas-action-card {
+  background: var(--glass-bg-dark);
+  border: 1px solid var(--glass-border-dark);
+}
+
+.petugas-action-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 15px 30px 0 rgba(59, 130, 246, 0.3);
+}
+
+/* Performance Summary Card */
+.petugas-performance-card {
+  position: relative;
+  background: var(--glass-bg-light);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid var(--glass-border-light);
+  border-radius: 24px;
+  padding: 2rem;
+  overflow: hidden;
+}
+
+.dark .petugas-performance-card {
+  background: var(--glass-bg-dark);
+  border: 1px solid var(--glass-border-dark);
+}
+
+/* Circular Progress Indicators */
+.petugas-circular-progress {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1rem;
+}
+
+.petugas-circular-progress svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.petugas-circular-progress .progress-bg {
+  fill: none;
+  stroke: rgba(148, 163, 184, 0.2);
+  stroke-width: 8;
+}
+
+.petugas-circular-progress .progress-fill {
+  fill: none;
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s ease-in-out;
+  animation: progressFill 2s ease-in-out;
+}
+
+@keyframes progressFill {
+  from { stroke-dashoffset: 251.2; }
+}
+
+/* Progress Colors */
+.petugas-circular-progress .progress-blue { stroke: var(--petugas-500); }
+.petugas-circular-progress .progress-green { stroke: #10b981; }
+.petugas-circular-progress .progress-purple { stroke: #8b5cf6; }
+.petugas-circular-progress .progress-emerald { stroke: #059669; }
+
+/* Progress Value Label */
+.petugas-progress-value {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.dark .petugas-progress-value {
+  color: #f1f5f9;
+}
+
+/* Live Status Indicator */
+.petugas-live-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--glass-bg-light);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border-light);
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #059669;
+}
+
+.dark .petugas-live-indicator {
+  background: var(--glass-bg-dark);
+  border: 1px solid var(--glass-border-dark);
+}
+
+.petugas-live-dot {
+  width: 8px;
+  height: 8px;
+  background: #10b981;
+  border-radius: 50%;
+  animation: livePulse var(--glow-duration) ease-in-out infinite;
+}
+
+@keyframes livePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.2); }
+}
+
+/* Responsive Design - Mobile First */
+@media (max-width: 640px) {
+  .petugas-hero-metrics-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .petugas-metric-card {
+    padding: 1.5rem;
+    min-height: 140px;
+  }
+  
+  .petugas-metric-value {
+    font-size: 1.875rem;
+  }
+  
+  .petugas-metric-icon {
+    width: 56px;
+    height: 56px;
+  }
+  
+  .petugas-quick-actions {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  .petugas-action-card {
+    padding: 1rem;
+    min-height: 100px;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 768px) {
+  .petugas-hero-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .petugas-quick-actions {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 769px) {
+  .petugas-hero-metrics-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .petugas-quick-actions {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Touch Target Accessibility (44px minimum) */
+.petugas-action-card,
+.petugas-trend-indicator,
+.petugas-live-indicator {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Focus States for Keyboard Navigation */
+.petugas-glass-card:focus,
+.petugas-metric-card:focus,
+.petugas-action-card:focus {
+  outline: 3px solid var(--petugas-500);
+  outline-offset: 2px;
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .petugas-glass-card,
+  .petugas-metric-card,
+  .petugas-action-card,
+  .petugas-performance-card {
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid #000;
+  }
+  
+  .dark .petugas-glass-card,
+  .dark .petugas-metric-card,
+  .dark .petugas-action-card,
+  .dark .petugas-performance-card {
+    background: rgba(0, 0, 0, 0.95);
+    border: 2px solid #fff;
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .petugas-glass-card,
+  .petugas-metric-card,
+  .petugas-action-card,
+  .petugas-trend-icon,
+  .petugas-live-dot {
+    animation: none;
+  }
+  
+  .petugas-glass-card:hover,
+  .petugas-metric-card:hover,
+  .petugas-action-card:hover {
+    transform: none;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .petugas-glass-card,
+  .petugas-metric-card,
+  .petugas-action-card,
+  .petugas-performance-card {
+    background: white !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+  
+  .petugas-metric-value {
+    -webkit-text-fill-color: #1e293b !important;
+    color: #1e293b !important;
+  }
+}
+
+/* Loading State */
+.petugas-loading {
+  opacity: 0.7;
+  pointer-events: none;
+  position: relative;
+}
+
+.petugas-loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 24px;
+  height: 24px;
+  margin: -12px 0 0 -12px;
+  border: 3px solid rgba(59, 130, 246, 0.3);
+  border-radius: 50%;
+  border-top-color: var(--petugas-500);
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Error State */
+.petugas-error {
+  border-color: rgba(239, 68, 68, 0.5) !important;
+  background: rgba(254, 226, 226, 0.5) !important;
+}
+
+.dark .petugas-error {
+  border-color: rgba(239, 68, 68, 0.3) !important;
+  background: rgba(127, 29, 29, 0.2) !important;
+}

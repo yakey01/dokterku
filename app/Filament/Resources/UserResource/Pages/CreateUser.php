@@ -36,12 +36,22 @@ class CreateUser extends CreateRecord
             }
         }
         
-        // Validate NIP uniqueness if provided
+        // NIP validation removed - NIP can be duplicated for multi-role users
+        // Log if NIP is being reused (informational only)
         if (!empty($data['nip'])) {
-            $nipCheck = \App\Models\User::checkNipAvailability($data['nip']);
-            if (!$nipCheck['available']) {
-                throw ValidationException::withMessages([
-                    'nip' => $nipCheck['message']
+            $existingUsers = \App\Models\User::where('nip', $data['nip'])->get();
+            if ($existingUsers->count() > 0) {
+                \Log::info('CreateUser: NIP reused for multi-role', [
+                    'nip' => $data['nip'],
+                    'existing_users' => $existingUsers->map(function ($user) {
+                        return [
+                            'id' => $user->id,
+                            'name' => $user->name,
+                            'role' => $user->role ? $user->role->name : null
+                        ];
+                    })->toArray(),
+                    'new_user_name' => $data['name'] ?? 'NOT_SET',
+                    'new_user_role_id' => $data['role_id'] ?? null
                 ]);
             }
         }

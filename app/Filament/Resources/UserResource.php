@@ -75,17 +75,12 @@ class UserResource extends Resource
                             ->email()
                             ->nullable()
                             ->maxLength(255)
-                            ->unique(ignoreRecord: true)
+                            // Removed unique constraint - email can be duplicated for multi-role users
                             ->rules([
                                 'nullable',
-                                'email',
-                                function () {
-                                    return new \App\Rules\PreventDuplicateAccounts(
-                                        request()->route('record')
-                                    );
-                                }
+                                'email'
                             ])
-                            ->helperText('Email opsional - bisa kosong jika user login dengan username')
+                            ->helperText('Email opsional - bisa kosong jika user login dengan username. Email boleh sama untuk multi-role.')
                             ->placeholder('Masukkan alamat email (opsional)')
                             ->dehydrated(true)
                             ->live(onBlur: true)
@@ -96,19 +91,23 @@ class UserResource extends Resource
                             ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set, ?string $state) {
                                 if (empty($state)) return;
                                 
-                                // Real-time validation feedback for email
+                                // Info feedback - show users with same email (for multi-role awareness)
                                 $existing = \App\Models\User::where('email', $state)
                                     ->when(request()->route('record'), function ($query) {
                                         return $query->where('id', '!=', request()->route('record'));
                                     })
-                                    ->first();
+                                    ->get();
                                     
-                                if ($existing) {
+                                if ($existing->count() > 0) {
+                                    $usersList = $existing->map(function ($user) {
+                                        return "{$user->name} (Role: " . ($user->role ? $user->role->display_name : 'No role') . ")";
+                                    })->join(', ');
+                                    
                                     \Filament\Notifications\Notification::make()
-                                        ->title('⚠️ Email Sudah Digunakan')
-                                        ->body("Email '{$state}' sudah digunakan oleh user '{$existing->name}' (Username: {$existing->username}). Silakan gunakan email yang berbeda.")
-                                        ->danger()
-                                        ->persistent()
+                                        ->title('ℹ️ Email Sudah Digunakan')
+                                        ->body("Email '{$state}' sudah digunakan oleh: {$usersList}. Ini diperbolehkan untuk multi-role.")
+                                        ->info()
+                                        ->duration(5000)
                                         ->send();
                                 }
                             }),
@@ -116,7 +115,7 @@ class UserResource extends Resource
                             ->label('NIP')
                             ->maxLength(255)
                             ->nullable()
-                            ->unique(ignoreRecord: true)
+                            // Removed unique constraint - NIP can be duplicated for multi-role users
                             ->required(function (Forms\Get $get) use ($source) {
                                 // NIP is required for certain roles only
                                 $roleId = $get('role_id') ?? request()->get('role_id');
@@ -136,25 +135,29 @@ class UserResource extends Resource
                                         return '📋 NIP opsional untuk role ' . ($role->display_name ?? $role->name) . ' - boleh dikosongkan';
                                     }
                                 }
-                                return 'NIP harus unik dalam sistem - tidak boleh sama dengan NIP lain';
+                                return '📋 NIP dapat digunakan untuk multiple role (satu orang bisa memiliki beberapa akun dengan NIP yang sama)';
                             })
                             ->live(onBlur: true)
                             ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set, ?string $state) {
                                 if (empty($state)) return;
                                 
-                                // Real-time validation feedback for NIP uniqueness
+                                // Info feedback - show users with same NIP (for multi-role awareness)
                                 $existing = \App\Models\User::where('nip', $state)
                                     ->when(request()->route('record'), function ($query) {
                                         return $query->where('id', '!=', request()->route('record'));
                                     })
-                                    ->first();
+                                    ->get();
                                     
-                                if ($existing) {
+                                if ($existing->count() > 0) {
+                                    $usersList = $existing->map(function ($user) {
+                                        return "{$user->name} (Role: " . ($user->role ? $user->role->display_name : 'No role') . ")";
+                                    })->join(', ');
+                                    
                                     \Filament\Notifications\Notification::make()
-                                        ->title('⚠️ NIP Sudah Digunakan')
-                                        ->body("NIP '{$state}' sudah digunakan oleh user '{$existing->name}' (Username: {$existing->username}). Silakan gunakan NIP yang berbeda.")
-                                        ->danger()
-                                        ->persistent()
+                                        ->title('ℹ️ NIP Sudah Digunakan')
+                                        ->body("NIP '{$state}' sudah digunakan oleh: {$usersList}. Ini diperbolehkan untuk multi-role.")
+                                        ->info()
+                                        ->duration(5000)
                                         ->send();
                                 }
                             }),
@@ -416,7 +419,7 @@ class UserResource extends Resource
                                         <ul class="space-y-1 mb-3">
                                             <li>• <strong>Email OPSIONAL</strong> - user dapat dibuat tanpa email</li>
                                             <li>• Jika email diisi, harus dalam format yang valid</li>
-                                            <li>• Email harus unik jika digunakan</li>
+                                            <li>• <strong>Email BOLEH SAMA</strong> untuk multi-role (satu orang bisa memiliki beberapa role)</li>
                                             <li>• User tanpa email harus login menggunakan username</li>
                                         </ul>
                                         
@@ -433,9 +436,9 @@ class UserResource extends Resource
                                         <ul class="space-y-1 mb-3">
                                             <li>• <strong>NIP WAJIB</strong> untuk role: Petugas, Bendahara, Paramedis</li>
                                             <li>• <strong>NIP OPSIONAL</strong> untuk role: Dokter, Pegawai, Non-Paramedis</li>
-                                            <li>• Jika diisi, NIP harus <strong>unik</strong> dalam seluruh sistem</li>
+                                            <li>• <strong>NIP BOLEH SAMA</strong> untuk multi-role (satu orang bisa memiliki beberapa role)</li>
                                             <li>• NIP boleh dikosongkan untuk Dokter dan Pegawai</li>
-                                            <li>• Sistem akan mencegah duplikasi NIP secara otomatis</li>
+                                            <li>• Sistem akan menampilkan informasi jika NIP sudah digunakan user lain</li>
                                         </ul>
                                         
                                         <h4 class="font-semibold mb-2 text-blue-800 dark:text-blue-200">🔒 Validasi Anti-Duplikasi:</h4>
