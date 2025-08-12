@@ -372,15 +372,38 @@ class DokterKuBootstrap {
             }
         }
         
-        // Get user data from meta tag with safe DOM access
+        // Get user data from meta tags with multiple fallbacks
         let userData = null;
         try {
+            // First try: Get from user-data meta tag
             const userDataMeta = document.querySelector('meta[name="user-data"]');
             if (userDataMeta) {
                 const content = userDataMeta.getAttribute('content') || '{}';
                 if (content.trim() && content !== '{}') {
                     userData = JSON.parse(content);
-                    console.log('✅ User data loaded:', userData.name || 'Unknown');
+                    console.log('✅ User data loaded from user-data meta:', userData.name || 'Unknown');
+                }
+            }
+            
+            // Second try: Get from user-name meta tag if userData is incomplete
+            if (!userData || !userData.name) {
+                const userNameMeta = document.querySelector('meta[name="user-name"]');
+                const userIdMeta = document.querySelector('meta[name="user-id"]');
+                const userEmailMeta = document.querySelector('meta[name="user-email"]');
+                
+                if (userNameMeta && userNameMeta.getAttribute('content')) {
+                    const userName = userNameMeta.getAttribute('content');
+                    const userId = userIdMeta ? userIdMeta.getAttribute('content') : '';
+                    const userEmail = userEmailMeta ? userEmailMeta.getAttribute('content') : '';
+                    
+                    userData = {
+                        id: userId,
+                        name: userName,
+                        email: userEmail || '',
+                        greeting: 'Selamat datang',
+                        initials: userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'DR'
+                    };
+                    console.log('✅ User data loaded from individual meta tags:', userData.name);
                 }
             }
         } catch (e) {
@@ -388,7 +411,7 @@ class DokterKuBootstrap {
         }
         
         // Fallback user data if needed
-        if (!userData || Object.keys(userData).length === 0) {
+        if (!userData || !userData.name || Object.keys(userData).length === 0) {
             userData = {
                 name: 'Dokter',
                 email: '',
@@ -396,6 +419,11 @@ class DokterKuBootstrap {
                 initials: 'DR'
             };
             console.log('⚠️ Using fallback user data');
+        } else {
+            // Ensure initials are set
+            if (!userData.initials && userData.name) {
+                userData.initials = userData.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'DR';
+            }
         }
         
         // Hide loading spinner with smooth transition
