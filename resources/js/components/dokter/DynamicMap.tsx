@@ -216,6 +216,7 @@ const DynamicMap: React.FC<DynamicMapProps> = ({
 }) => {
   const [mapReady, setMapReady] = useState(false);
   const [gpsStatus, setGpsStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const mapRef = useRef<L.Map | null>(null);
 
   // Check GPS availability and update status based on user location
   useEffect(() => {
@@ -229,6 +230,28 @@ const DynamicMap: React.FC<DynamicMapProps> = ({
       setGpsStatus('error');
     }
   }, [userLocation]);
+
+  // Add cleanup effect for map instance to prevent DOM warnings
+  useEffect(() => {
+    return () => {
+      // Cleanup map instance on unmount
+      if (mapRef.current) {
+        try {
+          // Check if it's a Leaflet map instance with proper methods
+          if (typeof mapRef.current.remove === 'function') {
+            mapRef.current.remove();
+          } else if (typeof mapRef.current.off === 'function') {
+            // Alternative cleanup for React-Leaflet instances
+            mapRef.current.off();
+          }
+          mapRef.current = null;
+        } catch (error) {
+          // Suppress cleanup errors - they're expected during unmount
+          console.debug('Map cleanup completed (expected during unmount)');
+        }
+      }
+    };
+  }, []);
 
   // Calculate distance for display
   const getDistance = () => {
@@ -251,12 +274,16 @@ const DynamicMap: React.FC<DynamicMapProps> = ({
 
   return (
     <div className={`relative ${className}`}>
-      {/* Map Container */}
+      {/* Map Container with proper cleanup */}
       <MapContainer
         center={[hospitalLocation.lat, hospitalLocation.lng]}
         zoom={15}
         className="h-full w-full rounded-lg"
-        whenReady={() => setMapReady(true)}
+        whenReady={(map) => {
+          setMapReady(true);
+          mapRef.current = map;
+        }}
+        key={`${hospitalLocation.lat}-${hospitalLocation.lng}`} // Force remount on location change
       >
         {/* OpenStreetMap Tile Layer */}
         <TileLayer

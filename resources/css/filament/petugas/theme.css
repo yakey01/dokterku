@@ -1,46 +1,197 @@
 @import '../../../../vendor/filament/filament/resources/css/theme.css';
 
-/* Petugas Panel Design System - Comprehensive Styling */
+/* WORLD-CLASS MINIMALIST WHITE UI/UX 2024-2025 */
+/* Inspired by Dribbble & Pinterest Healthcare Design Trends */
+/* Clean, Professional, Minimalist White Design System */
+
+/* ===========================
+   GLOBAL MINIMALIST VARIABLES
+   =========================== */
 [data-filament-panel-id="petugas"] {
-    /* Primary Colors - Amber/Orange */
-    --primary: 245 158 11; /* Amber */
-    --success: 34 197 94; /* Green */
-    --warning: 251 189 35; /* Yellow */
-    --danger: 239 68 68; /* Red */
-    --info: 59 130 246; /* Blue */
-    --gray: 107 114 128; /* Gray */
+    /* Minimalist White Color Palette */
+    --white-pure: #ffffff;
+    --white-soft: #fefefe;
+    --white-warm: #fafbfc;
+    --white-cool: #f8f9fb;
+    --gray-ultra-light: #f5f6f8;
+    --gray-whisper: #f1f3f5;
+    --gray-mist: #e9ecef;
+    --gray-light: #dee2e6;
+    --gray-medium: #6c757d;
+    --gray-text: #495057;
+    --gray-heading: #212529;
     
-    /* Panel Variables */
-    --panel-primary: #f59e0b;
-    --panel-primary-light: #fcd34d;
-    --panel-primary-dark: #d97706;
+    /* Accent Colors - Minimal & Professional */
+    --accent-blue: #4285f4;
+    --accent-blue-light: #e8f0fe;
+    --accent-green: #34a853;
+    --accent-green-light: #e6f4ea;
+    --accent-orange: #fbbc04;
+    --accent-orange-light: #fef7e0;
+    --accent-red: #ea4335;
+    --accent-red-light: #fce8e6;
     
-    /* Enhanced Color Palette */
-    --primary-50: #fef3c7;
-    --primary-100: #fde68a;
-    --primary-200: #fcd34d;
-    --primary-300: #fbbf24;
-    --primary-400: #f59e0b;
-    --primary-500: #f59e0b;
-    --primary-600: #d97706;
-    --primary-700: #b45309;
-    --primary-800: #92400e;
-    --primary-900: #78350f;
-    --primary-950: #451a03;
+    /* Typography Scale */
+    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Courier, monospace;
+    
+    /* Shadows - Ultra Subtle */
+    --shadow-minimal: 0 1px 2px rgba(0, 0, 0, 0.02);
+    --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02);
+    --shadow-medium: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+    --shadow-elevated: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+    --shadow-floating: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+    
+    /* Border Radius */
+    --radius-minimal: 6px;
+    --radius-small: 8px;
+    --radius-medium: 12px;
+    --radius-large: 16px;
+    --radius-xl: 20px;
+    
+    /* Spacing Scale */
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 3rem;
+    --space-3xl: 4rem;
+    
+    /* Transitions */
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-normal: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Legacy Filament Variables (for compatibility) */
+    --primary: 66 133 244; /* Blue */
+    --success: 52 168 83; /* Green */
+    --warning: 251 188 4; /* Orange */
+    --danger: 234 67 53; /* Red */
+    --info: 66 133 244; /* Blue */
+    --gray: 108 117 125; /* Gray */
 }
 
-/* Petugas Branding */
-[data-filament-panel-id="petugas"] .fi-topbar {
-    background: linear-gradient(135deg, var(--panel-primary) 0%, var(--panel-primary-dark) 100%);
+/* WORLD-CLASS BLACK GLASSMORPHISM SIDEBAR - ULTIMATE FORCE */
+body .fi-panel-petugas .fi-sidebar,
+body[class*="fi-panel-petugas"] .fi-sidebar,
+.fi-panel-petugas aside.fi-sidebar,
+[data-filament-panel-id="petugas"] .fi-sidebar,
+[data-filament-panel-id="petugas"] aside,
+.fi-sidebar {
+    background: #000000 !important;
+    background-color: #000000 !important;
+    background-image: linear-gradient(135deg, 
+        rgba(0, 0, 0, 0.98) 0%, 
+        rgba(10, 10, 10, 0.95) 50%, 
+        rgba(20, 20, 20, 0.92) 100%) !important;
+    backdrop-filter: blur(30px) saturate(200%) !important;
+    -webkit-backdrop-filter: blur(30px) saturate(200%) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 
+        inset 0 0 30px rgba(100, 126, 234, 0.05),
+        4px 0 24px rgba(0, 0, 0, 0.7) !important;
 }
 
 [data-filament-panel-id="petugas"] .fi-sidebar-header {
-    background: linear-gradient(135deg, var(--panel-primary) 0%, var(--panel-primary-dark) 100%);
+    background: #000000 !important;
+    background-color: #000000 !important; 
+    background-image: none !important;
+    border-bottom: 1px solid #1a1a1a !important;
 }
 
 [data-filament-panel-id="petugas"] .fi-sidebar-header .fi-logo {
-    color: white;
+    color: #ffffff;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Navigation Group Labels */
+[data-filament-panel-id="petugas"] .fi-sidebar-group-label {
+    color: #ffffff;
     font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    margin: 0.25rem 0.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-group-label:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    transform: translateX(2px);
+}
+
+/* Navigation Items */
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item {
+    margin: 0.125rem 0.5rem;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item .fi-sidebar-nav-item-label {
+    color: #d0d7de;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item .fi-sidebar-nav-item-icon {
+    color: #7d8590;
+    transition: all 0.3s ease;
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateX(3px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover .fi-sidebar-nav-item-label {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover .fi-sidebar-nav-item-icon {
+    color: #ffffff;
+    transform: scale(1.05);
+}
+
+/* Active Navigation Item */
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active {
+    background: linear-gradient(135deg, #238636 0%, #2da44e 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(35, 134, 54, 0.3);
+    transform: translateX(2px);
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active .fi-sidebar-nav-item-label {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active .fi-sidebar-nav-item-icon {
+    color: #ffffff;
+    transform: scale(1.1);
+}
+
+/* Minimalist Topbar */
+[data-filament-panel-id="petugas"] .fi-topbar {
+    background: var(--white-pure) !important;
+    border-bottom: 1px solid var(--gray-ultra-light) !important;
+    box-shadow: var(--shadow-minimal) !important;
+}
+
+/* Global Minimalist Background */
+[data-filament-panel-id="petugas"] .fi-main {
+    background: var(--white-warm) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-main-content {
+    background: var(--white-warm) !important;
 }
 
 /* ================================
@@ -1555,3 +1706,6 @@
         transition-duration: 0.01ms !important;
     }
 }
+/* IMPORT WORLD-CLASS MINIMALIST CSS FILES */
+@import 'world-class-crud.css';
+@import 'world-class-forms.css';

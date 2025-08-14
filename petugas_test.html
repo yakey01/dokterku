@@ -1291,7 +1291,22 @@ document.addEventListener('DOMContentLoaded', function() {
             this.style.overflow = 'hidden';
             this.appendChild(ripple);
             
-            setTimeout(() => ripple.remove(), 600);
+            // Safe ripple removal with comprehensive protection
+            setTimeout(() => {
+                try {
+                    // Triple validation for safe removal
+                    if (ripple && ripple.parentNode && document.contains(ripple)) {
+                        ripple.remove();
+                    }
+                } catch (error) {
+                    if (error.name === 'NotFoundError') {
+                        // Element already removed, this is expected
+                        console.debug('✓ Ripple element already removed');
+                    } else {
+                        console.warn('⚠️ Ripple cleanup error:', error.message);
+                    }
+                }
+            }, 600);
         });
     });
     

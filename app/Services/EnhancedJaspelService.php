@@ -7,12 +7,21 @@ use App\Models\Tindakan;
 use App\Models\User;
 use App\Models\Pegawai;
 use App\Models\JenisTindakan;
+use App\Models\JumlahPasienHarian;
+use App\Models\Dokter;
+use App\Services\Jaspel\UnifiedJaspelCalculationService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class EnhancedJaspelService
 {
+    private $unifiedCalculationService;
+    
+    public function __construct()
+    {
+        $this->unifiedCalculationService = app(UnifiedJaspelCalculationService::class);
+    }
     /**
      * Get comprehensive Jaspel data for user including orphan records
      */
@@ -40,6 +49,151 @@ class EnhancedJaspelService
             'year' => $year,
             'status_filter' => $status
         ]);
+
+        // NEW: Use UnifiedJaspelCalculationService for consistent calculations
+        return $this->getUnifiedJaspelData($user, $month, $year, $status);
+    }
+
+    /**
+     * Get unified Jaspel data using UnifiedJaspelCalculationService
+     */
+    private function getUnifiedJaspelData(User $user, $month, $year, $status = null)
+    {
+        // Find the associated Dokter record
+        $dokter = Dokter::where('user_id', $user->id)->first();
+        if (!$dokter) {
+            // Fallback to legacy method if no Dokter record
+            return $this->getLegacyJaspelData($user, $month, $year, $status);
+        }
+
+        // Get JumlahPasienHarian records for unified calculation
+        $pasienQuery = JumlahPasienHarian::where('dokter_id', $dokter->id)
+            ->whereMonth('tanggal', $month)
+            ->whereYear('tanggal', $year)
+            ->with(['jadwalJaga', 'dokter']);
+
+        if ($status) {
+            $pasienQuery->where('status_validasi', $status);
+        }
+
+        $pasienRecords = $pasienQuery->get();
+
+        $jaspelItems = [];
+        $totalAmount = 0;
+        $paidAmount = 0;
+        $pendingAmount = 0;
+        $rejectedAmount = 0;
+
+        foreach ($pasienRecords as $record) {
+            // Use unified calculation service
+            if (!$record->jaspel_rupiah || $record->jaspel_rupiah == 0) {
+                try {
+                    $calculation = $this->unifiedCalculationService->calculateForPasienRecord($record);
+                    $record->jaspel_rupiah = $calculation['total'];
+                    $record->save();
+                    
+                    \Log::info('Updated jaspel_rupiah using unified service', [
+                        'record_id' => $record->id,
+                        'old_value' => 0,
+                        'new_value' => $calculation['total'],
+                        'calculation_method' => $calculation['calculation_method'] ?? 'unified'
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::warning('Failed to calculate jaspel using unified service', [
+                        'record_id' => $record->id,
+                        'error' => $e->getMessage()
+                    ]);
+                    // Use fallback calculation
+                    $record->jaspel_rupiah = $this->calculateFallbackJaspel($record);
+                }
+            }
+
+            // Map to frontend format
+            $amount = $record->jaspel_rupiah;
+            $status = $this->mapStatusToFrontend($record->status_validasi ?? 'pending');
+            
+            $jaspelItems[] = [
+                'id' => $record->id,
+                'tanggal' => $record->tanggal->format('Y-m-d'),
+                'jumlah' => $amount,
+                'pasien_umum' => $record->jumlah_pasien_umum ?? 0,
+                'pasien_bpjs' => $record->jumlah_pasien_bpjs ?? 0,
+                'jenis_jaspel' => 'jaga_umum',
+                'status' => $status,
+                'status_validasi' => $record->status_validasi ?? 'pending',
+                'keterangan' => "Jaspel jaga tanggal {$record->tanggal->format('d/m/Y')}",
+                'calculation_method' => 'unified_service',
+                'nominal' => $amount // ✅ FIXED: Use nominal instead of tarif/bonus
+            ];
+
+            // Calculate totals
+            $totalAmount += $amount;
+            switch ($status) {
+                case 'paid':
+                    $paidAmount += $amount;
+                    break;
+                case 'pending':
+                    $pendingAmount += $amount;
+                    break;
+                case 'rejected':
+                    $rejectedAmount += $amount;
+                    break;
+            }
+        }
+
+        // Also get legacy Jaspel records to merge
+        $legacyData = $this->getLegacyJaspelData($user, $month, $year, $status);
+        
+        // Merge the data
+        $allJaspelItems = array_merge($jaspelItems, $legacyData['jaspel_items']);
+        
+        // Calculate comprehensive summary
+        $summary = [
+            'total' => $totalAmount + $legacyData['summary']['total'],
+            'paid' => $paidAmount + $legacyData['summary']['paid'],
+            'pending' => $pendingAmount + $legacyData['summary']['pending'],
+            'rejected' => $rejectedAmount + $legacyData['summary']['rejected'],
+            'count' => [
+                'total' => count($allJaspelItems),
+                'paid' => count(array_filter($allJaspelItems, fn($item) => $item['status'] === 'paid')),
+                'pending' => count(array_filter($allJaspelItems, fn($item) => $item['status'] === 'pending')),
+                'rejected' => count(array_filter($allJaspelItems, fn($item) => $item['status'] === 'rejected'))
+            ]
+        ];
+
+        return [
+            'jaspel_items' => $allJaspelItems,
+            'summary' => $summary,
+            'counts' => [
+                'unified_records' => count($jaspelItems),
+                'legacy_records' => count($legacyData['jaspel_items']),
+                'total_records' => count($allJaspelItems)
+            ]
+        ];
+    }
+
+    /**
+     * Fallback jaspel calculation for records without unified calculation
+     */
+    private function calculateFallbackJaspel(JumlahPasienHarian $record): float
+    {
+        // Simple fallback calculation
+        $pasienUmum = $record->jumlah_pasien_umum ?? 0;
+        $pasienBpjs = $record->jumlah_pasien_bpjs ?? 0;
+        
+        // Basic rates
+        $rateUmum = 30000; // 30k per pasien umum
+        $rateBpjs = 25000; // 25k per pasien BPJS
+        $uangDuduk = 50000; // Base sitting fee
+        
+        return ($pasienUmum * $rateUmum) + ($pasienBpjs * $rateBpjs) + $uangDuduk;
+    }
+
+    /**
+     * Legacy method for backward compatibility
+     */
+    private function getLegacyJaspelData(User $user, $month, $year, $status = null)
+    {
 
         // Get all Jaspel records (including orphans) - STRICTLY filtered by user_id
         $query = Jaspel::where('user_id', $user->id)
@@ -117,6 +271,7 @@ class EnhancedJaspelService
                     'tanggal' => $tindakan->tanggal_tindakan->format('Y-m-d'),
                     'jenis' => $tindakan->jenisTindakan ? $tindakan->jenisTindakan->nama : 'Tindakan Medis',
                     'jumlah' => (int) $expectedJaspel, // PENTING: jumlah = expected Jaspel (persentase dari tarif)
+                    'jenis_jaspel' => 'paramedis', // ✅ ADDED: Jenis jaspel yang benar
                     'status' => 'pending',
                     'keterangan' => 'Menunggu validasi bendahara - ' . 
                         ($tindakan->pasien ? "Pasien: {$tindakan->pasien->nama}" : 'Tindakan pending'),
@@ -124,7 +279,8 @@ class EnhancedJaspelService
                     'validated_at' => null,
                     'source' => 'tindakan_pending',
                     'tindakan_id' => $tindakan->id,
-                    'tindakan_status' => $tindakan->status_validasi
+                    'tindakan_status' => $tindakan->status_validasi,
+                    'nominal' => (int) $expectedJaspel // ✅ ADDED: Nominal untuk compatibility
                 ];
             }
             
@@ -148,6 +304,7 @@ class EnhancedJaspelService
                     'tanggal' => $tindakan->tanggal_tindakan->format('Y-m-d'),
                     'jenis' => $tindakan->jenisTindakan ? $tindakan->jenisTindakan->nama : 'Tindakan Medis',
                     'jumlah' => (int) $expectedJaspel, // PENTING: jumlah = expected Jaspel (persentase dari tarif)
+                    'jenis_jaspel' => 'paramedis', // ✅ ADDED: Jenis jaspel yang benar
                     'status' => 'paid', // Approved by bendahara = paid
                     'keterangan' => 'Tervalidasi bendahara - ' . 
                         ($tindakan->pasien ? "Pasien: {$tindakan->pasien->nama}" : 'Menunggu generate Jaspel'),
@@ -155,7 +312,8 @@ class EnhancedJaspelService
                     'validated_at' => $tindakan->validated_at ? $tindakan->validated_at->format('Y-m-d H:i:s') : null,
                     'source' => 'tindakan_approved',
                     'tindakan_id' => $tindakan->id,
-                    'tindakan_status' => $tindakan->status_validasi
+                    'tindakan_status' => $tindakan->status_validasi,
+                    'nominal' => (int) $expectedJaspel // ✅ ADDED: Nominal untuk compatibility
                 ];
             }
         }
@@ -171,13 +329,16 @@ class EnhancedJaspelService
                 'tanggal' => $jaspel->tanggal->format('Y-m-d'),
                 'jenis' => $jenisTindakan ? $jenisTindakan->nama : 
                           ($jaspel->keterangan ?: 'Jaspel ' . ucwords(str_replace('_', ' ', $jaspel->jenis_jaspel))),
-                'jumlah' => (int) $jaspel->nominal, // PENTING: jumlah = nominal (nilai Jaspel), bukan tarif tindakan
+                'jumlah' => (int) $jaspel->nominal, // PENTING: jumlah = nominal (nilai Jaspel)
+                'jenis_jaspel' => $jaspel->jenis_jaspel, // ✅ ADDED: Jenis jaspel dari database
                 'status' => $this->mapStatusToFrontend($jaspel->status_validasi),
                 'keterangan' => $this->generateKeterangan($jaspel, $pasien, $jenisTindakan),
                 'validated_by' => $jaspel->validasiBy ? $jaspel->validasiBy->name : null,
                 'validated_at' => $jaspel->validasi_at ? $jaspel->validasi_at->format('Y-m-d H:i:s') : null,
                 'source' => $jaspel->tindakan_id ? 'tindakan_linked' : 'manual_entry',
-                'tindakan_id' => $jaspel->tindakan_id
+                'tindakan_id' => $jaspel->tindakan_id,
+                'shift_id' => $jaspel->shift_id, // ✅ ADDED: Shift ID untuk tab jaga
+                'nominal' => (int) $jaspel->nominal // ✅ ADDED: Nominal untuk compatibility
             ];
         })->toArray();
 
@@ -286,12 +447,16 @@ class EnhancedJaspelService
         }
 
         return [
-            'total_paid' => $paidTotal,
-            'total_pending' => $pendingTotal,
-            'total_rejected' => $rejectedTotal,
-            'count_paid' => $paidCount,
-            'count_pending' => $pendingCount,
-            'count_rejected' => $rejectedCount,
+            'total' => $paidTotal + $pendingTotal + $rejectedTotal,
+            'paid' => $paidTotal,
+            'pending' => $pendingTotal,
+            'rejected' => $rejectedTotal,
+            'count' => [
+                'total' => $paidCount + $pendingCount + $rejectedCount,
+                'paid' => $paidCount,
+                'pending' => $pendingCount,
+                'rejected' => $rejectedCount
+            ],
             'breakdown' => [
                 'manual_entries' => $realJaspelRecords->whereNull('tindakan_id')->count(),
                 'tindakan_linked' => $realJaspelRecords->whereNotNull('tindakan_id')->count(),

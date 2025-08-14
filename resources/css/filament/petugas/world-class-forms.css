@@ -1,0 +1,565 @@
+/* WORLD-CLASS MINIMALIST WHITE FORMS UI/UX 2024-2025 */
+/* Inspired by Dribbble & Pinterest Healthcare Design Trends */
+/* Clean, Professional, Minimalist White Form Design */
+
+/* ===========================
+   DESIGN PHILOSOPHY
+   =========================== 
+   - Ultra-minimal white-based forms
+   - Subtle depth through micro-shadows
+   - Premium typography with perfect spacing
+   - Gentle micro-interactions
+   - Professional healthcare aesthetics
+   - Inspired by Apple, Linear, and Figma
+   =========================== */
+
+/* ===========================
+   1. FORM CONTAINER & LAYOUT
+   =========================== */
+[data-filament-panel-id="petugas"] .fi-fo-form-wrapper {
+    background: var(--white-warm) !important;
+    min-height: 100vh !important;
+    padding: var(--space-lg) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-main-content {
+    background: var(--white-warm) !important;
+}
+
+/* ===========================
+   2. SECTION CONTAINERS
+   =========================== */
+[data-filament-panel-id="petugas"] .fi-fo-section {
+    background: var(--white-pure) !important;
+    border-radius: var(--radius-large) !important;
+    box-shadow: var(--shadow-soft) !important;
+    border: 1px solid var(--gray-ultra-light) !important;
+    padding: var(--space-2xl) !important;
+    margin-bottom: var(--space-xl) !important;
+    transition: all var(--transition-normal) !important;
+    position: relative !important;
+    overflow: visible !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-fo-section:hover {
+    box-shadow: var(--shadow-medium) !important;
+    transform: translateY(-1px) !important;
+    border-color: var(--gray-mist) !important;
+}
+
+/* Remove colorful gradients and animations from section headers */
+[data-filament-panel-id="petugas"] .fi-fo-section::before {
+    display: none !important;
+}
+
+/* ===========================
+   3. SECTION HEADERS
+   =========================== */
+[data-filament-panel-id="petugas"] .fi-fo-section-header {
+    margin-bottom: var(--space-xl) !important;
+    padding-bottom: var(--space-lg) !important;
+    border-bottom: 1px solid var(--gray-ultra-light) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-fo-section-heading {
+    font-size: 1.25rem !important;
+    font-weight: 600 !important;
+    color: var(--gray-heading) !important;
+    letter-spacing: -0.01em !important;
+    margin: 0 !important;
+    font-family: var(--font-family) !important;
+    /* Remove gradient text effects */
+    background: none !important;
+    -webkit-background-clip: unset !important;
+    -webkit-text-fill-color: unset !important;
+    background-clip: unset !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-fo-section-description {
+    font-size: 0.875rem !important;
+    color: var(--gray-medium) !important;
+    margin-top: var(--space-sm) !important;
+    font-weight: 400 !important;
+    line-height: 1.5 !important;
+}
+
+/* ===========================
+   4. FORM FIELDS & INPUTS
+   =========================== */
+[data-filament-panel-id="petugas"] .fi-fo-field-wrp {
+    margin-bottom: var(--space-lg) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-fo-field-wrp-label {
+    margin-bottom: var(--space-sm) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-fo-field-wrp-label label {
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    color: var(--gray-text) !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+    font-family: var(--font-family) !important;
+    display: block !important;
+    margin-bottom: var(--space-xs) !important;
+}
+
+/* Text Inputs - Ultra Clean Minimalist Style */
+[data-filament-panel-id="petugas"] .fi-input {
+    background: var(--white-pure) !important;
+    border: 1px solid var(--gray-light) !important;
+    border-radius: var(--radius-small) !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 0.875rem !important;
+    font-weight: 400 !important;
+    font-family: var(--font-family) !important;
+    color: var(--gray-text) !important;
+    transition: all var(--transition-fast) !important;
+    box-shadow: none !important;
+    line-height: 1.5 !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-input:focus {
+    border-color: var(--accent-blue) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px var(--accent-blue-light) !important;
+    background: var(--white-pure) !important;
+    transform: none !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-input:hover:not(:focus) {
+    border-color: var(--gray-medium) !important;
+    background: var(--white-soft) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-input::placeholder {
+    color: var(--gray-medium) !important;
+    font-weight: 400 !important;
+    opacity: 0.7 !important;
+}
+
+/* Select Dropdowns */
+[data-filament-panel-id="petugas"] .fi-select-input {
+    background: var(--white-pure) !important;
+    border: 1px solid var(--gray-light) !important;
+    border-radius: var(--radius-small) !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 0.875rem !important;
+    font-weight: 400 !important;
+    font-family: var(--font-family) !important;
+    color: var(--gray-text) !important;
+    transition: all var(--transition-fast) !important;
+    box-shadow: none !important;
+    cursor: pointer !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-select-input:focus {
+    border-color: var(--accent-blue) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px var(--accent-blue-light) !important;
+    transform: none !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-select-input:hover:not(:focus) {
+    border-color: var(--gray-medium) !important;
+    background: var(--white-soft) !important;
+}
+
+/* Date Pickers */
+[data-filament-panel-id="petugas"] .fi-fo-date-time-picker input {
+    background: var(--white-pure) !important;
+    border: 1px solid var(--gray-light) !important;
+    border-radius: var(--radius-small) !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 0.875rem !important;
+    font-weight: 400 !important;
+    font-family: var(--font-family) !important;
+    color: var(--gray-text) !important;
+    transition: all var(--transition-fast) !important;
+    box-shadow: none !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-fo-date-time-picker input:focus {
+    border-color: var(--accent-blue) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px var(--accent-blue-light) !important;
+    transform: none !important;
+}
+
+/* Textarea */
+[data-filament-panel-id="petugas"] textarea.fi-input {
+    min-height: 100px !important;
+    resize: vertical !important;
+    font-family: var(--font-family) !important;
+    line-height: 1.5 !important;
+}
+
+/* ===========================
+   5. HELPER TEXT & VALIDATION
+   =========================== */
+[data-filament-panel-id="petugas"] .fi-fo-field-wrp-helper-text {
+    margin-top: var(--space-xs) !important;
+    font-size: 0.75rem !important;
+    color: var(--gray-medium) !important;
+    font-weight: 400 !important;
+    font-style: normal !important;
+    line-height: 1.4 !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-fo-field-wrp-error-message {
+    margin-top: var(--space-xs) !important;
+    padding: var(--space-sm) var(--space-md) !important;
+    background: var(--accent-red-light) !important;
+    border: 1px solid var(--accent-red) !important;
+    border-radius: var(--radius-small) !important;
+    font-size: 0.75rem !important;
+    color: var(--accent-red) !important;
+    font-weight: 500 !important;
+    animation: none !important;
+}
+
+/* ===========================
+   6. BUTTONS & ACTIONS
+   =========================== */
+[data-filament-panel-id="petugas"] .fi-form-actions {
+    background: var(--white-pure) !important;
+    padding: var(--space-xl) !important;
+    border-radius: var(--radius-large) !important;
+    margin-top: var(--space-xl) !important;
+    box-shadow: var(--shadow-soft) !important;
+    border: 1px solid var(--gray-ultra-light) !important;
+    display: flex !important;
+    gap: var(--space-md) !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-btn {
+    padding: 0.75rem 1.5rem !important;
+    border-radius: var(--radius-small) !important;
+    font-weight: 500 !important;
+    font-size: 0.875rem !important;
+    font-family: var(--font-family) !important;
+    letter-spacing: 0 !important;
+    transition: all var(--transition-fast) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    box-shadow: var(--shadow-minimal) !important;
+    cursor: pointer !important;
+    border: 1px solid transparent !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: var(--space-xs) !important;
+}
+
+/* Primary Button - Clean Blue */
+[data-filament-panel-id="petugas"] .fi-btn-color-primary,
+[data-filament-panel-id="petugas"] .fi-btn-color-success {
+    background: var(--accent-blue) !important;
+    color: var(--white-pure) !important;
+    border-color: var(--accent-blue) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-btn-color-primary:hover,
+[data-filament-panel-id="petugas"] .fi-btn-color-success:hover {
+    background: #3367d6 !important;
+    border-color: #3367d6 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: var(--shadow-medium) !important;
+}
+
+/* Secondary Button - Clean Gray */
+[data-filament-panel-id="petugas"] .fi-btn-color-gray {
+    background: var(--white-pure) !important;
+    color: var(--gray-text) !important;
+    border-color: var(--gray-light) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-btn-color-gray:hover {
+    background: var(--white-soft) !important;
+    border-color: var(--gray-medium) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: var(--shadow-medium) !important;
+}
+
+/* Warning Button - Clean Orange */
+[data-filament-panel-id="petugas"] .fi-btn-color-warning {
+    background: var(--accent-orange) !important;
+    color: var(--gray-heading) !important;
+    border-color: var(--accent-orange) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-btn-color-warning:hover {
+    background: #f9ab00 !important;
+    border-color: #f9ab00 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: var(--shadow-medium) !important;
+}
+
+/* Remove colorful gradients and shimmer effects */
+[data-filament-panel-id="petugas"] .fi-btn::before,
+[data-filament-panel-id="petugas"] .fi-btn-color-primary::before {
+    display: none !important;
+}
+
+/* ===========================
+   7. FORM HEADER
+   =========================== */
+[data-filament-panel-id="petugas"] .fi-resource-create-form-header,
+[data-filament-panel-id="petugas"] .fi-resource-edit-form-header,
+[data-filament-panel-id="petugas"] .fi-header {
+    background: var(--white-pure) !important;
+    padding: var(--space-2xl) !important;
+    border-radius: var(--radius-large) !important;
+    margin-bottom: var(--space-xl) !important;
+    box-shadow: var(--shadow-soft) !important;
+    border: 1px solid var(--gray-ultra-light) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-header-heading {
+    font-size: 1.875rem !important;
+    font-weight: 600 !important;
+    color: var(--gray-heading) !important;
+    letter-spacing: -0.025em !important;
+    font-family: var(--font-family) !important;
+    margin: 0 !important;
+    /* Remove gradient text effects */
+    background: none !important;
+    -webkit-background-clip: unset !important;
+    -webkit-text-fill-color: unset !important;
+    background-clip: unset !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-header-subheading {
+    font-size: 1rem !important;
+    color: var(--gray-medium) !important;
+    margin-top: var(--space-sm) !important;
+    font-weight: 400 !important;
+    line-height: 1.5 !important;
+    font-family: var(--font-family) !important;
+}
+
+/* ===========================
+   8. GRID LAYOUTS
+   =========================== */
+[data-filament-panel-id="petugas"] .fi-fo-grid {
+    gap: var(--space-lg) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-fo-grid-col {
+    position: relative !important;
+}
+
+/* ===========================
+   9. ICONS & VISUAL ELEMENTS
+   =========================== */
+[data-filament-panel-id="petugas"] .fi-input-wrp-prefix {
+    position: absolute !important;
+    left: 0.75rem !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    color: var(--gray-medium) !important;
+    pointer-events: none !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-input-wrp-prefix svg {
+    width: 1rem !important;
+    height: 1rem !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-input-wrp-input:has(+ .fi-input-wrp-prefix) {
+    padding-left: 2.5rem !important;
+}
+
+/* ===========================
+   10. LOADING STATES
+   =========================== */
+[data-filament-panel-id="petugas"] .fi-fo-loading {
+    position: relative;
+    overflow: hidden;
+    opacity: 0.6;
+}
+
+[data-filament-panel-id="petugas"] .fi-fo-loading::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.5), 
+        transparent);
+    animation: minimalistShimmer 2s infinite;
+}
+
+@keyframes minimalistShimmer {
+    0% {
+        left: -100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+/* ===========================
+   11. RESPONSIVE DESIGN
+   =========================== */
+@media (max-width: 768px) {
+    [data-filament-panel-id="petugas"] .fi-fo-form-wrapper {
+        padding: var(--space-md) !important;
+    }
+    
+    [data-filament-panel-id="petugas"] .fi-fo-section {
+        padding: var(--space-lg) !important;
+        margin-bottom: var(--space-lg) !important;
+    }
+    
+    [data-filament-panel-id="petugas"] .fi-input,
+    [data-filament-panel-id="petugas"] .fi-select-input {
+        padding: 0.625rem 0.875rem !important;
+        font-size: 0.875rem !important;
+    }
+    
+    [data-filament-panel-id="petugas"] .fi-btn {
+        padding: 0.625rem 1.25rem !important;
+        font-size: 0.875rem !important;
+    }
+    
+    [data-filament-panel-id="petugas"] .fi-form-actions {
+        flex-direction: column !important;
+        gap: var(--space-sm) !important;
+    }
+    
+    [data-filament-panel-id="petugas"] .fi-header-heading {
+        font-size: 1.5rem !important;
+    }
+}
+
+/* ===========================
+   12. ACCESSIBILITY ENHANCEMENTS
+   =========================== */
+[data-filament-panel-id="petugas"] .fi-input:focus-visible,
+[data-filament-panel-id="petugas"] .fi-select-input:focus-visible,
+[data-filament-panel-id="petugas"] .fi-btn:focus-visible {
+    outline: 2px solid var(--accent-blue) !important;
+    outline-offset: 2px !important;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    [data-filament-panel-id="petugas"] .fi-input,
+    [data-filament-panel-id="petugas"] .fi-select-input {
+        border-width: 2px !important;
+        border-color: var(--gray-text) !important;
+    }
+    
+    [data-filament-panel-id="petugas"] .fi-btn {
+        border-width: 2px !important;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    [data-filament-panel-id="petugas"] * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ===========================
+   13. DARK MODE PREPARATION
+   =========================== */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --white-pure: #1a1a1a;
+        --white-soft: #1e1e1e;
+        --white-warm: #161616;
+        --white-cool: #181818;
+        --gray-ultra-light: #262626;
+        --gray-whisper: #2a2a2a;
+        --gray-mist: #333333;
+        --gray-light: #404040;
+        --gray-medium: #a0a0a0;
+        --gray-text: #e0e0e0;
+        --gray-heading: #ffffff;
+        
+        --accent-blue-light: rgba(66, 133, 244, 0.1);
+        --accent-green-light: rgba(52, 168, 83, 0.1);
+        --accent-orange-light: rgba(251, 188, 4, 0.1);
+        --accent-red-light: rgba(234, 67, 53, 0.1);
+    }
+}
+
+/* ===========================
+   14. PROFESSIONAL POLISH
+   =========================== */
+
+/* Remove all colorful animations and effects */
+[data-filament-panel-id="petugas"] .fi-fo-section:hover {
+    background: var(--white-pure) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Ensure consistent typography */
+[data-filament-panel-id="petugas"] * {
+    font-family: var(--font-family) !important;
+}
+
+/* Clean focus states */
+[data-filament-panel-id="petugas"] *:focus {
+    outline-color: var(--accent-blue) !important;
+}
+
+/* Remove text decorations and gradients */
+[data-filament-panel-id="petugas"] h1,
+[data-filament-panel-id="petugas"] h2,
+[data-filament-panel-id="petugas"] h3,
+[data-filament-panel-id="petugas"] h4,
+[data-filament-panel-id="petugas"] h5,
+[data-filament-panel-id="petugas"] h6 {
+    background: none !important;
+    -webkit-background-clip: unset !important;
+    -webkit-text-fill-color: unset !important;
+    background-clip: unset !important;
+    color: var(--gray-heading) !important;
+    font-family: var(--font-family) !important;
+}
+
+/* Ensure button text is readable */
+[data-filament-panel-id="petugas"] .world-class-save-btn,
+[data-filament-panel-id="petugas"] .world-class-continue-btn,
+[data-filament-panel-id="petugas"] .world-class-cancel-btn {
+    color: inherit !important;
+    -webkit-text-fill-color: unset !important;
+    text-shadow: none !important;
+}
+
+/* Clean selection styles */
+[data-filament-panel-id="petugas"] ::selection {
+    background: var(--accent-blue-light) !important;
+    color: var(--gray-heading) !important;
+}
+
+/* Professional scrollbar */
+[data-filament-panel-id="petugas"] ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+[data-filament-panel-id="petugas"] ::-webkit-scrollbar-track {
+    background: var(--gray-ultra-light);
+}
+
+[data-filament-panel-id="petugas"] ::-webkit-scrollbar-thumb {
+    background: var(--gray-light);
+    border-radius: 3px;
+}
+
+[data-filament-panel-id="petugas"] ::-webkit-scrollbar-thumb:hover {
+    background: var(--gray-medium);
+}

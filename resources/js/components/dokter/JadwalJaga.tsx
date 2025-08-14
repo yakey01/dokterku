@@ -28,7 +28,11 @@ import {
   FileText,
   User,
   X,
-  Crown
+  Crown,
+  Timer,
+  LogIn,
+  LogOut,
+  Hourglass
 } from 'lucide-react';
 
 interface JadwalJagaProps {
@@ -59,6 +63,12 @@ interface Mission {
     jam_masuk: string;
     jam_pulang: string;
   };
+  // Enhanced: attendance fields
+  attendance?: {
+    check_in_time?: string;
+    check_out_time?: string;
+    status?: 'not_started' | 'checked_in' | 'checked_out' | 'completed' | 'expired';
+  };
 }
 
 export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
@@ -77,6 +87,168 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
+  // Enhanced: Get current time for schedule status
+  const getCurrentTime = () => new Date();
+
+  // Enhanced: Determine schedule status based on current time and schedule
+  const getScheduleStatus = (mission: Mission): 'upcoming' | 'active' | 'expired' => {
+    const now = getCurrentTime();
+    const scheduleDate = new Date(mission.full_date);
+    const todayString = now.toISOString().split('T')[0];
+    const scheduleString = scheduleDate.toISOString().split('T')[0];
+    
+    // Parse shift times
+    const [startHour, startMinute] = mission.shift_template?.jam_masuk.split(':').map(Number) || [8, 0];
+    const [endHour, endMinute] = mission.shift_template?.jam_pulang.split(':').map(Number) || [16, 0];
+    
+    // Create shift start and end times
+    const shiftStart = new Date(scheduleDate);
+    shiftStart.setHours(startHour, startMinute, 0, 0);
+    
+    let shiftEnd = new Date(scheduleDate);
+    shiftEnd.setHours(endHour, endMinute, 0, 0);
+    
+    // Handle overnight shifts (end time is next day)
+    if (endHour < startHour) {
+      shiftEnd = new Date(scheduleDate);
+      shiftEnd.setDate(shiftEnd.getDate() + 1);
+      shiftEnd.setHours(endHour, endMinute, 0, 0);
+    }
+    
+    // Check if schedule is today and within time range
+    if (scheduleString === todayString) {
+      if (now >= shiftStart && now <= shiftEnd) {
+        return 'active';
+      } else if (now > shiftEnd) {
+        return 'expired';
+      } else {
+        return 'upcoming';
+      }
+    } else if (scheduleDate < now) {
+      return 'expired';
+    } else {
+      return 'upcoming';
+    }
+  };
+
+  // Enhanced: Get gaming-style badge configuration
+  const getBadgeConfig = (status: 'upcoming' | 'active' | 'expired', mission: Mission) => {
+    const checkInTime = mission.attendance?.check_in_time;
+    const checkOutTime = mission.attendance?.check_out_time;
+    
+    switch (status) {
+      case 'active':
+        if (checkInTime && checkOutTime) {
+          return {
+            text: 'COMPLETED',
+            icon: CheckCircle,
+            gradient: 'from-emerald-500 via-green-500 to-teal-500',
+            textColor: 'text-emerald-100',
+            borderColor: 'border-emerald-400/50',
+            glowColor: 'shadow-emerald-500/30',
+            bgGlow: 'from-emerald-500/20 to-green-500/20',
+            pulse: 'animate-pulse'
+          };
+        } else if (checkInTime) {
+          return {
+            text: 'ACTIVE',
+            icon: Activity,
+            gradient: 'from-cyan-500 via-blue-500 to-indigo-500',
+            textColor: 'text-cyan-100',
+            borderColor: 'border-cyan-400/50',
+            glowColor: 'shadow-cyan-500/30',
+            bgGlow: 'from-cyan-500/20 to-blue-500/20',
+            pulse: 'animate-pulse'
+          };
+        } else {
+          return {
+            text: 'READY',
+            icon: Zap,
+            gradient: 'from-yellow-500 via-amber-500 to-orange-500',
+            textColor: 'text-yellow-100',
+            borderColor: 'border-yellow-400/50',
+            glowColor: 'shadow-yellow-500/30',
+            bgGlow: 'from-yellow-500/20 to-amber-500/20',
+            pulse: 'animate-bounce'
+          };
+        }
+      case 'expired':
+        if (checkInTime && checkOutTime) {
+          return {
+            text: 'COMPLETED',
+            icon: Trophy,
+            gradient: 'from-emerald-500 via-green-500 to-teal-500',
+            textColor: 'text-emerald-100',
+            borderColor: 'border-emerald-400/50',
+            glowColor: 'shadow-emerald-500/30',
+            bgGlow: 'from-emerald-500/20 to-green-500/20',
+            pulse: ''
+          };
+        } else {
+          return {
+            text: 'COMPLETED',
+            icon: Hourglass,
+            gradient: 'from-red-500 via-rose-500 to-pink-500',
+            textColor: 'text-red-100',
+            borderColor: 'border-red-400/50',
+            glowColor: 'shadow-red-500/30',
+            bgGlow: 'from-red-500/20 to-rose-500/20',
+            pulse: ''
+          };
+        }
+      case 'upcoming':
+      default:
+        return {
+          text: 'UPCOMING',
+          icon: Clock,
+          gradient: 'from-purple-500 via-indigo-500 to-blue-500',
+          textColor: 'text-purple-100',
+          borderColor: 'border-purple-400/50',
+          glowColor: 'shadow-purple-500/30',
+          bgGlow: 'from-purple-500/20 to-indigo-500/20',
+          pulse: 'animate-pulse'
+        };
+    }
+  };
+
+  // Enhanced: Format attendance times for display with improved error handling
+  const formatAttendanceTime = (timeString: string | undefined): string => {
+    if (!timeString) return '--:--';
+    
+    try {
+      // Handle both full datetime and time-only strings
+      let dateToFormat;
+      
+      if (timeString.includes('T') || timeString.includes(' ')) {
+        // Full datetime string
+        dateToFormat = new Date(timeString);
+      } else if (timeString.includes(':')) {
+        // Time-only string (HH:MM or HH:MM:SS)
+        dateToFormat = new Date(`2025-01-01 ${timeString}`);
+      } else {
+        // Fallback
+        dateToFormat = new Date(timeString);
+      }
+      
+      // Validate the date
+      if (isNaN(dateToFormat.getTime())) {
+        debug.warn('⚠️ Invalid date format:', timeString);
+        return '--:--';
+      }
+      
+      const formatted = dateToFormat.toLocaleTimeString('id-ID', { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: false 
+      });
+      
+      return formatted;
+    } catch (error) {
+      debug.error('❌ Time formatting error:', { input: timeString, error });
+      return '--:--';
+    }
+  };
+
   // API Data Fetching function (extracted for reusability)
   const fetchJadwalJaga = async (isRefresh = false) => {
     debug.log(`JadwalJaga: ${isRefresh ? 'Refreshing' : 'Starting'} API fetch at ${new Date().toLocaleTimeString()}`);
@@ -88,9 +260,9 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
         // Use web session authentication (no Sanctum token needed)
         const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
         
-        // Use real API endpoint for jadwal jaga data with web session auth
-        debug.log('Making API call to /api/v2/dashboards/dokter/jadwal-jaga with web session auth');
-        const cacheBuster = isRefresh ? `?refresh=${Date.now()}` : '';
+        // Enhanced: Use real API endpoint with attendance data
+        debug.log('Making API call to /api/v2/dashboards/dokter/jadwal-jaga with attendance data');
+        const cacheBuster = isRefresh ? `?refresh=${Date.now()}&include_attendance=true` : '?include_attendance=true';
         const response = await fetch(`/api/v2/dashboards/dokter/jadwal-jaga${cacheBuster}`, {
           method: 'GET',
           headers: {
@@ -115,11 +287,12 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
         }
 
         const data = await response.json();
-        debug.log('API Data received:', { 
+        debug.log('Enhanced API Data received:', { 
           hasData: !!data.data,
           calendarEventsCount: data.data?.calendar_events?.length || 0,
           weeklyScheduleCount: data.data?.weekly_schedule?.length || 0,
           hasScheduleStats: !!data.data?.schedule_stats,
+          hasAttendanceData: !!data.data?.attendance_records,
           success: data.success,
           message: data.message
         });
@@ -140,11 +313,44 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
           setTotalShifts(stats.total_shifts || 0);
         }
         
-        // Combine both weekly_schedule and calendar_events to show all schedules
+        // Enhanced: Combine schedule data with attendance data
         const weeklySchedules = data.data?.weekly_schedule || [];
         const calendarEvents = data.data?.calendar_events || [];
+        const attendanceRecords = data.data?.attendance_records || [];
         
-        // Combine and deduplicate by ID to avoid duplicate cards
+        // DEBUG: Log attendance records
+        debug.log('📊 Attendance Records Debug:', {
+          attendanceCount: attendanceRecords.length,
+          attendanceRecords: attendanceRecords,
+          hasAttendanceData: attendanceRecords.length > 0
+        });
+        
+        // Create attendance map for quick lookup
+        const attendanceMap = new Map();
+        attendanceRecords.forEach((record: any) => {
+          if (record.jadwal_jaga_id) {
+            attendanceMap.set(record.jadwal_jaga_id, record);
+            debug.log('📍 Mapped attendance:', {
+              jadwalJagaId: record.jadwal_jaga_id,
+              timeIn: record.time_in || record.check_in_time,
+              timeOut: record.time_out || record.check_out_time,
+              rawRecord: record  // Add full record for debugging
+            });
+          }
+        });
+        
+        // DEBUG: Log final attendance map
+        debug.log('🗺️ Final attendance map:', {
+          mapSize: attendanceMap.size,
+          mapKeys: Array.from(attendanceMap.keys()),
+          mapEntries: Array.from(attendanceMap.entries()).map(([key, value]) => ({
+            jadwalJagaId: key,
+            timeIn: value.time_in || value.check_in_time,
+            timeOut: value.time_out || value.check_out_time
+          }))
+        });
+        
+        // Combine and deduplicate schedules
         const combinedSchedules = [...weeklySchedules, ...calendarEvents];
         const seenIds = new Set();
         const apiSchedules = combinedSchedules.filter(schedule => {
@@ -156,16 +362,72 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
           return true;
         });
         
-        debug.log('Schedule sources:', {
+        debug.log('Enhanced schedule sources:', {
           weeklySchedulesCount: weeklySchedules.length,
           calendarEventsCount: calendarEvents.length,
+          attendanceRecordsCount: attendanceRecords.length,
           totalCombined: combinedSchedules.length,
           afterDeduplication: apiSchedules.length,
           duplicatesRemoved: combinedSchedules.length - apiSchedules.length
         });
         
-        const transformedMissions = transformApiData(apiSchedules);
+        // Enhanced: Transform API data with attendance information
+        const transformedMissions = transformApiDataWithAttendance(apiSchedules, attendanceMap);
         transform('missions', { count: transformedMissions.length });
+        
+        // DEBUG: Log missions with attendance
+        debug.log('🎯 Missions with Attendance Debug:', {
+          totalMissions: transformedMissions.length,
+          missionsWithAttendance: transformedMissions.filter(m => m.attendance).length,
+          attendanceDetails: transformedMissions.map(m => ({
+            id: m.id,
+            title: m.title,
+            hasAttendance: !!m.attendance,
+            checkIn: m.attendance?.check_in_time,
+            checkOut: m.attendance?.check_out_time,
+            status: getScheduleStatus(m),
+            // DEBUG: Check time display logic
+            willShowAttendanceTime: !!(m.attendance && (m.attendance.check_in_time || m.attendance.check_out_time)),
+            formattedCheckIn: m.attendance?.check_in_time ? formatAttendanceTime(m.attendance.check_in_time) : 'N/A',
+            formattedCheckOut: m.attendance?.check_out_time ? formatAttendanceTime(m.attendance.check_out_time) : 'N/A'
+          }))
+        });
+        
+        // DEBUG: Specific logging for COMPLETED missions
+        const completedMissions = transformedMissions.filter(m => {
+          const status = getScheduleStatus(m);
+          const badgeConfig = getBadgeConfig(status, m);
+          return badgeConfig.text === 'COMPLETED';
+        });
+        
+        if (completedMissions.length > 0) {
+          debug.log('✅ COMPLETED Missions Analysis:', {
+            count: completedMissions.length,
+            missions: completedMissions.map(m => ({
+              id: m.id,
+              title: m.title,
+              hasAttendanceData: !!m.attendance,
+              checkInTime: m.attendance?.check_in_time,
+              checkOutTime: m.attendance?.check_out_time,
+              bothTimesExist: !!(m.attendance?.check_in_time && m.attendance?.check_out_time),
+              eitherTimeExists: !!(m.attendance?.check_in_time || m.attendance?.check_out_time),
+              willDisplayAttendance: !!(m.attendance && (m.attendance.check_in_time || m.attendance.check_out_time)),
+              // NEW: Show what time will be displayed
+              displayTime: m.attendance && (m.attendance.check_in_time || m.attendance.check_out_time) ?
+                `ACTUAL: ${formatAttendanceTime(m.attendance.check_in_time)} - ${formatAttendanceTime(m.attendance.check_out_time)}` :
+                `SCHEDULED: ${m.time}`
+            }))
+          });
+          
+          // Additional success confirmation
+          const workingMissions = completedMissions.filter(m => 
+            m.attendance && (m.attendance.check_in_time || m.attendance.check_out_time)
+          );
+          
+          if (workingMissions.length > 0) {
+            console.log('🎉 SUCCESS: ' + workingMissions.length + ' COMPLETED missions will now show actual attendance times!');
+          }
+        }
         
         // IMPORTANT: Only use fallback if there's a clear authentication issue
         if (transformedMissions.length === 0) {
@@ -309,7 +571,213 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
     }
   };
 
-  // Enhanced transform API data to Mission format with better relationship handling
+  // Enhanced transform API data with attendance information
+  const transformApiDataWithAttendance = (apiSchedules: any[], attendanceMap: Map<any, any>): Mission[] => {
+    transform('starting enhanced transform', apiSchedules);
+    
+    const transformedMissions = apiSchedules.map((schedule, index) => {
+      // FIX: Get attendance record using jadwal_jaga_id, not schedule.id
+      const attendanceRecord = attendanceMap.get(schedule.id);
+      
+      // DEBUG: Log the lookup process for debugging identical times
+      debug.log(`🔍 Attendance Lookup for Schedule ${schedule.id}:`, {
+        scheduleId: schedule.id,
+        attendanceMapKeys: Array.from(attendanceMap.keys()),
+        attendanceMapSize: attendanceMap.size,
+        foundAttendanceRecord: !!attendanceRecord,
+        attendanceRecord: attendanceRecord
+      });
+      
+      // ENHANCED DEBUG: Log if multiple schedules are getting the same attendance
+      if (attendanceRecord) {
+        debug.log(`✅ Found attendance for Schedule ${schedule.id}:`, {
+          jadwalJagaId: schedule.id,
+          checkInTime: attendanceRecord.time_in || attendanceRecord.check_in_time,
+          checkOutTime: attendanceRecord.time_out || attendanceRecord.check_out_time,
+          formattedTimes: attendanceRecord.time_in && attendanceRecord.time_out 
+            ? `${new Date(attendanceRecord.time_in).toLocaleTimeString('id-ID', {hour: '2-digit', minute: '2-digit'})} - ${new Date(attendanceRecord.time_out).toLocaleTimeString('id-ID', {hour: '2-digit', minute: '2-digit'})}`
+            : 'Incomplete'
+        });
+      } else {
+        debug.log(`❌ No attendance found for Schedule ${schedule.id}`);
+      }
+      
+      // Handle both calendar_events and weekly_schedule formats
+      const isCalendarEvent = schedule.start && schedule.title;
+      const isWeeklySchedule = schedule.tanggal_jaga || schedule.shift_template;
+      
+      let mission: Mission;
+      
+      if (isCalendarEvent) {
+        const shiftInfo = schedule.shift_info || {};
+        
+        const formatTime = (time: string) => {
+          if (!time) return time;
+          if (time.includes('T')) {
+            const timePart = time.split('T')[1];
+            if (timePart) {
+              return timePart.split(':').slice(0, 2).join(':');
+            }
+          }
+          return time.split(':').slice(0, 2).join(':');
+        };
+        
+        const formattedJamMasuk = formatTime(shiftInfo.jam_masuk) || '08:00';
+        const formattedJamPulang = formatTime(shiftInfo.jam_pulang) || '16:00';
+        const shiftTime = `${formattedJamMasuk} - ${formattedJamPulang}`;
+        
+        mission = {
+          id: schedule.id || index + 1,
+          title: schedule.title || shiftInfo.nama_shift || "Dokter Jaga",
+          subtitle: getShiftSubtitle(shiftInfo.nama_shift),
+          date: new Date(schedule.start).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
+          full_date: schedule.start,
+          day_name: new Date(schedule.start).toLocaleDateString('id-ID', { weekday: 'long' }),
+          time: shiftTime,
+          location: shiftInfo.unit_kerja || schedule.description || 'Unit Kerja',
+          type: getShiftType(shiftInfo.nama_shift),
+          difficulty: 'easy' as const,
+          status: 'available' as const,
+          status_jaga: mapApiStatus(shiftInfo.status || 'aktif'),
+          description: schedule.description || `${shiftInfo.nama_shift || 'Shift'} duty assignment`,
+          peran: shiftInfo.peran || "Dokter Jaga",
+          employee_name: shiftInfo.employee_name || userData?.name || "dr. Medical Officer",
+          shift_template: {
+            id: shiftInfo.id || index + 1,
+            nama_shift: shiftInfo.nama_shift || 'Pagi',
+            jam_masuk: formatTime(shiftInfo.jam_masuk) || '08:00',
+            jam_pulang: formatTime(shiftInfo.jam_pulang) || '16:00'
+          },
+          attendance: attendanceRecord ? {
+            check_in_time: attendanceRecord.time_in || attendanceRecord.check_in_time,
+            check_out_time: attendanceRecord.time_out || attendanceRecord.check_out_time,
+            status: attendanceRecord.status || 'not_started'
+          } : undefined
+        };
+        
+        // DEBUG: Log each calendar event mission transformation
+        debug.log(`📅 Calendar Event Mission ${schedule.id}:`, {
+          missionId: mission.id,
+          scheduleId: schedule.id,
+          hasAttendanceRecord: !!attendanceRecord,
+          attendanceCheckIn: attendanceRecord ? (attendanceRecord.time_in || attendanceRecord.check_in_time) : 'N/A',
+          attendanceCheckOut: attendanceRecord ? (attendanceRecord.time_out || attendanceRecord.check_out_time) : 'N/A',
+          finalAttendance: mission.attendance
+        });
+      } else if (isWeeklySchedule) {
+        const shiftTemplate = schedule.shift_template || {};
+        const scheduleDate = schedule.tanggal_jaga || schedule.date;
+        
+        const formatTime = (time: string) => {
+          if (!time) return time;
+          if (time.includes('T')) {
+            const timePart = time.split('T')[1];
+            if (timePart) {
+              return timePart.split(':').slice(0, 2).join(':');
+            }
+          }
+          return time.split(':').slice(0, 2).join(':');
+        };
+        
+        const formattedJamMasuk = formatTime(shiftTemplate.jam_masuk) || '08:00';
+        const formattedJamPulang = formatTime(shiftTemplate.jam_pulang) || '16:00';
+        const shiftTime = `${formattedJamMasuk} - ${formattedJamPulang}`;
+        
+        mission = {
+          id: schedule.id || index + 1,
+          title: shiftTemplate.nama_shift || "Dokter Jaga",
+          subtitle: getShiftSubtitle(shiftTemplate.nama_shift),
+          date: new Date(scheduleDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
+          full_date: scheduleDate,
+          day_name: new Date(scheduleDate).toLocaleDateString('id-ID', { weekday: 'long' }),
+          time: shiftTime,
+          location: schedule.unit_kerja || 'Unit Kerja',
+          type: getShiftType(shiftTemplate.nama_shift),
+          difficulty: 'easy' as const,
+          status: 'available' as const,
+          status_jaga: mapApiStatus(schedule.status_jaga || 'aktif'),
+          description: schedule.keterangan || `${shiftTemplate.nama_shift || 'Shift'} duty assignment`,
+          peran: schedule.peran || "Dokter Jaga",
+          employee_name: schedule.employee_name || userData?.name || "dr. Medical Officer",
+          shift_template: {
+            id: shiftTemplate.id || index + 1,
+            nama_shift: shiftTemplate.nama_shift || 'Pagi',
+            jam_masuk: formatTime(shiftTemplate.jam_masuk) || '08:00',
+            jam_pulang: formatTime(shiftTemplate.jam_pulang) || '16:00'
+          },
+          attendance: attendanceRecord ? {
+            check_in_time: attendanceRecord.time_in || attendanceRecord.check_in_time,
+            check_out_time: attendanceRecord.time_out || attendanceRecord.check_out_time,
+            status: attendanceRecord.status || 'not_started'
+          } : undefined
+        };
+        
+        // DEBUG: Log each weekly schedule mission transformation
+        debug.log(`📊 Weekly Schedule Mission ${schedule.id}:`, {
+          missionId: mission.id,
+          scheduleId: schedule.id,
+          hasAttendanceRecord: !!attendanceRecord,
+          attendanceCheckIn: attendanceRecord ? (attendanceRecord.time_in || attendanceRecord.check_in_time) : 'N/A',
+          attendanceCheckOut: attendanceRecord ? (attendanceRecord.time_out || attendanceRecord.check_out_time) : 'N/A',
+          finalAttendance: mission.attendance
+        });
+      } else {
+        // Fallback
+        mission = {
+          id: schedule.id || index + 1,
+          title: "Dokter Jaga",
+          subtitle: "General Medical Duty",
+          date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
+          full_date: new Date().toISOString(),
+          day_name: new Date().toLocaleDateString('id-ID', { weekday: 'long' }),
+          time: '08:00 - 16:00',
+          location: 'Unit Kerja',
+          type: 'regular' as const,
+          difficulty: 'easy' as const,
+          status: 'available' as const,
+          status_jaga: 'Terjadwal',
+          description: 'Medical duty assignment',
+          peran: "Dokter Jaga",
+          employee_name: userData?.name || "dr. Medical Officer",
+          shift_template: {
+            id: index + 1,
+            nama_shift: 'Pagi',
+            jam_masuk: '08:00',
+            jam_pulang: '16:00'
+          },
+          attendance: attendanceRecord ? {
+            check_in_time: attendanceRecord.time_in || attendanceRecord.check_in_time,
+            check_out_time: attendanceRecord.time_out || attendanceRecord.check_out_time,
+            status: attendanceRecord.status || 'not_started'
+          } : undefined
+        };
+      }
+      
+      return mission;
+    });
+    
+    // FINAL DEBUG: Summary of all missions with their attendance
+    debug.log('🎉 FINAL MISSIONS SUMMARY:', {
+      totalMissions: transformedMissions.length,
+      missionsWithAttendance: transformedMissions.filter(m => m.attendance).length,
+      attendanceSummary: transformedMissions
+        .filter(m => m.attendance)
+        .map(m => ({
+          missionId: m.id,
+          title: m.title,
+          attendanceTimes: m.attendance && (m.attendance.check_in_time && m.attendance.check_out_time) 
+            ? `${new Date(m.attendance.check_in_time).toLocaleTimeString('id-ID', {hour: '2-digit', minute: '2-digit'})} - ${new Date(m.attendance.check_out_time).toLocaleTimeString('id-ID', {hour: '2-digit', minute: '2-digit'})}`
+            : 'Incomplete',
+          rawCheckIn: m.attendance?.check_in_time,
+          rawCheckOut: m.attendance?.check_out_time
+        }))
+    });
+    
+    transform('enhanced missions with attendance', transformedMissions);
+    return transformedMissions;
+  };
+
+  // Original transform API data to Mission format (kept for compatibility)
   const transformApiData = (apiSchedules: any[]): Mission[] => {
     transform('starting', apiSchedules);
     
@@ -746,36 +1214,6 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
     }
   };
 
-  // Enhanced helper functions for gaming-style appearance
-  const getMissionIcon = (mission: Mission) => {
-    if (mission.difficulty === 'legendary') return Shield;
-    if (mission.type === 'urgent') return Activity;
-    if (mission.type === 'special') return Zap;
-    if (mission.type === 'training') return Target;
-    if (mission.subtitle.toLowerCase().includes('malam')) return Shield;
-    if (mission.subtitle.toLowerCase().includes('pagi')) return Heart;
-    return Users;
-  };
-
-  const getMissionGradient = (mission: Mission) => {
-    switch (mission.status_jaga) {
-      case 'Aktif': return 'from-green-600 to-emerald-600';
-      case 'OnCall': return 'from-red-600 to-orange-600';
-      case 'Cuti': return 'from-purple-600 to-pink-600';
-      case 'Izin': return 'from-blue-600 to-cyan-600';
-      default: return 'from-indigo-600 to-blue-600';
-    }
-  };
-
-  const getMissionBgGlow = (mission: Mission) => {
-    switch (mission.status_jaga) {
-      case 'Aktif': return 'from-green-500/20 to-emerald-500/20';
-      case 'OnCall': return 'from-red-500/20 to-orange-500/20';
-      case 'Cuti': return 'from-purple-500/20 to-pink-500/20';
-      case 'Izin': return 'from-blue-500/20 to-cyan-500/20';
-      default: return 'from-indigo-500/20 to-blue-500/20';
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
@@ -795,7 +1233,7 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
               <h1 className={`font-bold bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent
                 ${isIpad ? 'text-3xl md:text-4xl lg:text-5xl' : 'text-2xl sm:text-3xl'}
               `}>
-                Medical Mission Central
+                Enhanced Mission Central
               </h1>
               <button
                 onClick={forceRefresh}
@@ -807,7 +1245,7 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
               </button>
             </div>
             <p className={`text-purple-200 ${isIpad ? 'text-lg md:text-xl' : 'text-base'}`}>
-              Elite Doctor Duty Assignments
+              Elite Doctor Duty Assignments with Gaming Badges
             </p>
             {error && (
               <div className="flex items-center justify-center mt-4">
@@ -906,66 +1344,115 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
               }
             `}>
               {currentMissions.map((mission) => {
-                const Icon = getMissionIcon(mission);
-                const gradient = getMissionGradient(mission);
-                const bgGlow = getMissionBgGlow(mission);
+                const scheduleStatus = getScheduleStatus(mission);
+                const badgeConfig = getBadgeConfig(scheduleStatus, mission);
+                const BadgeIcon = badgeConfig.icon;
                 
                 return (
                   <div
                     key={mission.id}
                     className="relative group cursor-default transform transition-all duration-300 hover:scale-[1.01]"
                   >
-                    {/* Compact Card */}
+                    {/* Enhanced Card with Gaming Badges */}
                     <div className={`
                       relative bg-white/8 backdrop-blur-xl rounded-2xl overflow-hidden
                       border border-white/15 group-hover:border-white/25
                       transition-all duration-300 group-hover:bg-white/10
-                      ${isIpad ? 'p-4' : 'p-3'}
+                      ${isIpad ? 'p-5' : 'p-4'}
                     `}>
                       
-                      {/* Elegant Background Glow */}
+                      {/* Gaming Badge - Top Right */}
+                      <div className="absolute top-3 right-3 z-20">
+                        <div className={`
+                          bg-gradient-to-r ${badgeConfig.gradient} rounded-xl px-3 py-1.5
+                          border ${badgeConfig.borderColor} shadow-lg ${badgeConfig.glowColor}
+                          ${badgeConfig.pulse}
+                        `}>
+                          <div className="flex items-center space-x-1.5">
+                            <BadgeIcon className="w-3.5 h-3.5 text-white" />
+                            <span className={`text-xs font-bold ${badgeConfig.textColor} tracking-wide`}>
+                              {badgeConfig.text}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Background Glow Effect */}
                       <div className={`
-                        absolute inset-0 bg-gradient-to-br ${bgGlow} opacity-0 
-                        group-hover:opacity-30 transition-opacity duration-400
+                        absolute inset-0 bg-gradient-to-br ${badgeConfig.bgGlow} opacity-0 
+                        group-hover:opacity-20 transition-opacity duration-400
                       `}></div>
 
-                      {/* Compact Header */}
-                      <div className="relative z-10 mb-3">
+                      {/* Enhanced Header with Schedule Info */}
+                      <div className="relative z-10 mb-4">
                         <div className="flex items-start space-x-3 mb-3">
-                          {/* Small Icon */}
+                          {/* Shift Icon */}
                           <div className={`
-                            bg-gradient-to-br ${gradient} rounded-xl flex items-center justify-center
+                            bg-gradient-to-br from-indigo-600 to-blue-600 rounded-xl flex items-center justify-center
                             shadow-sm transition-all duration-300
-                            ${isIpad ? 'w-10 h-10 p-2.5' : 'w-8 h-8 p-2'}
+                            ${isIpad ? 'w-12 h-12 p-3' : 'w-10 h-10 p-2.5'}
                           `}>
-                            <Icon className={`text-white ${isIpad ? 'w-5 h-5' : 'w-4 h-4'}`} />
+                            <Shield className={`text-white ${isIpad ? 'w-6 h-6' : 'w-5 h-5'}`} />
                           </div>
                           
-                          {/* Compact Title */}
-                          <div className="flex-1">
-                            <h3 className={`font-semibold text-white mb-1 ${isIpad ? 'text-base' : 'text-sm'}`}>
+                          {/* Title Section */}
+                          <div className="flex-1 min-w-0 pr-20">
+                            <h3 className={`font-semibold text-white mb-1 truncate ${isIpad ? 'text-lg' : 'text-base'}`}>
                               {mission.shift_template?.nama_shift || mission.title || 'Dokter Jaga'}
                             </h3>
-                            <p className={`text-gray-300 font-medium ${isIpad ? 'text-sm' : 'text-xs'}`}>
+                            <p className={`text-gray-300 font-medium truncate ${isIpad ? 'text-sm' : 'text-xs'}`}>
                               {mission.subtitle || 'Shift Jaga'}
                             </p>
+                            <div className={`text-gray-400 ${isIpad ? 'text-xs' : 'text-xs'} mt-1`}>
+                              {mission.day_name} • {new Date(mission.full_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                            </div>
                           </div>
                         </div>
 
-                        {/* Compact Date & Time */}
+                        {/* Unified Time Display - Minimalist & Clear */}
                         <div className={`
-                          bg-white/8 backdrop-blur-md rounded-xl border border-white/10
-                          ${isIpad ? 'p-3' : 'p-2.5'}
+                          bg-white/10 backdrop-blur-md rounded-xl border border-white/10
+                          ${isIpad ? 'p-4' : 'p-3'} mb-4
                         `}>
-                          <div className="text-center space-y-1">
+                          <div className="text-center">
+                            <div className="flex items-center justify-center mb-2">
+                              {/* Always show scheduled time on top */}
+                              <>
+                                <Clock className="w-4 h-4 text-gray-300 mr-2" />
+                                <span className={`text-white font-bold ${isIpad ? 'text-lg' : 'text-base'}`}>
+                                  {mission.time}
+                                </span>
+                              </>
+                            </div>
                             <div className={`text-gray-300 font-medium ${isIpad ? 'text-sm' : 'text-xs'}`}>
-                              {new Date(mission.full_date).toLocaleDateString('en-US', { month: 'short', day: '2-digit' })}
+                              {mission.attendance && (mission.attendance.check_in_time || mission.attendance.check_out_time) ? (
+                                <div className="text-gray-400 text-xs">Jadwal Jaga</div>
+                              ) : (
+                                'Dokter Jaga'
+                              )}
                             </div>
-                            <div className={`text-gray-400 ${isIpad ? 'text-xs' : 'text-xs'}`}>
-                              {mission.peran}
-                            </div>
-                            <div className={`text-white font-semibold ${isIpad ? 'text-base' : 'text-sm'}`}>
-                              {mission.time}
+                            <div className="text-gray-400 text-xs mt-1">
+                              {mission.attendance && (mission.attendance.check_in_time || mission.attendance.check_out_time) ? (
+                                <div className="space-y-1">
+                                  <div className="text-gray-500 text-xs">Riwayat Presensi:</div>
+                                  <div className="flex items-center justify-center space-x-4">
+                                    {mission.attendance.check_in_time && (
+                                      <div className="flex items-center space-x-1">
+                                        <LogIn className="w-3 h-3 text-green-400" />
+                                        <span>Masuk: {formatAttendanceTime(mission.attendance.check_in_time)}</span>
+                                      </div>
+                                    )}
+                                    {mission.attendance.check_out_time && (
+                                      <div className="flex items-center space-x-1">
+                                        <LogOut className="w-3 h-3 text-red-400" />
+                                        <span>Keluar: {formatAttendanceTime(mission.attendance.check_out_time)}</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              ) : (
+                                `${mission.location} • ${mission.employee_name}`
+                              )}
                             </div>
                           </div>
                         </div>
@@ -1096,7 +1583,7 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
                   <div className="flex items-center space-x-2">
                     <div className="w-2 h-2 bg-gradient-to-r from-cyan-400 to-purple-400 rounded-full animate-pulse"></div>
                     <span className="text-purple-200 text-sm font-medium tracking-wide">
-                      Medical Mission {startIndex + 1}-{Math.min(endIndex, missions.length)} of {missions.length}
+                      Enhanced Mission {startIndex + 1}-{Math.min(endIndex, missions.length)} of {missions.length}
                     </span>
                     <div className="w-2 h-2 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full animate-pulse"></div>
                   </div>

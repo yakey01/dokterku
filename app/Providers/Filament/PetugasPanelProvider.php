@@ -29,7 +29,17 @@ class PetugasPanelProvider extends PanelProvider
             ->path('petugas')
             ->login(CustomLogin::class)
             ->brandName('Petugas Dashboard')
-            ->viteTheme('resources/css/filament/petugas/theme.css')
+            ->viteTheme([
+                'resources/css/filament/petugas/theme.css',
+                'resources/css/filament/petugas/world-class-crud.css',
+                'resources/css/filament/petugas/world-class-2025.css',
+                'resources/css/filament/petugas/world-class-crud-enhanced.css',
+                'resources/css/filament/petugas/world-class-patient-table.css',
+                'resources/css/filament/petugas/world-class-forms.css',
+                'resources/css/filament/petugas/white-glass-tabs.css',
+                'resources/css/filament/petugas/ultra-world-class-2025.css',
+                'resources/js/world-class-form-enhancer.js',
+            ])
             ->colors([
                 'primary' => Color::Blue,
                 'success' => Color::Emerald,
@@ -42,7 +52,7 @@ class PetugasPanelProvider extends PanelProvider
             ->maxContentWidth('full')
             ->renderHook(
                 'panels::head.end',
-                fn (): string => view('filament.petugas.world-class-ui')->render()
+                fn (): string => view('filament.petugas.world-class-2025-ui')->render()
             )
             ->sidebarCollapsibleOnDesktop()
             ->resources([
@@ -60,40 +70,37 @@ class PetugasPanelProvider extends PanelProvider
             ])
             ->navigationGroups([
                 NavigationGroup::make()
-                    ->label('🏠 Dashboard')
+                    ->label('Dashboard')
                     ->icon('heroicon-o-home')
                     ->collapsed(),
                 NavigationGroup::make()
-                    ->label('👥 Manajemen Pasien')
+                    ->label('Manajemen Pasien')
                     ->icon('heroicon-o-users')
                     ->collapsed(),
                 NavigationGroup::make()
-                    ->label('🩺 Tindakan Medis')
+                    ->label('Tindakan Medis')
                     ->icon('heroicon-o-heart')
                     ->collapsed(),
                 NavigationGroup::make()
-                    ->label('💰 Keuangan')
+                    ->label('Keuangan')
                     ->icon('heroicon-o-currency-dollar')
                     ->collapsed(),
                 NavigationGroup::make()
-                    ->label('📊 Laporan & Analytics')
+                    ->label('Laporan & Analytics')
                     ->icon('heroicon-o-chart-bar')
                     ->collapsed(),
                 NavigationGroup::make()
-                    ->label('⚡ Quick Actions')
+                    ->label('Quick Actions')
                     ->icon('heroicon-o-bolt')
                     ->collapsed(),
                 NavigationGroup::make()
-                    ->label('⚙️ System')
+                    ->label('System')
                     ->icon('heroicon-o-cog-6-tooth')
                     ->collapsed(),
             ])
             ->pages([
-                // Static Dashboard - No widgets, completely static HTML
-                \App\Filament\Petugas\Pages\StaticDashboard::class,
-                
-                // Note: Using StaticDashboard to completely avoid Livewire component issues
-                // This is a regular Filament page without any widgets
+                // World-Class Dashboard with modern UI/UX
+                \App\Filament\Petugas\Pages\WorldClassDashboard::class,
             ])
             ->widgets([
                 // Widgets are now managed by Dashboard page directly

@@ -35,7 +35,7 @@ class TindakanResource extends Resource
 
     protected static ?string $navigationLabel = 'Input Tindakan';
     
-    protected static ?string $navigationGroup = '🏥 Manajemen Pasien';
+    protected static ?string $navigationGroup = 'Tindakan Medis';
 
     protected static ?string $modelLabel = 'Tindakan';
 

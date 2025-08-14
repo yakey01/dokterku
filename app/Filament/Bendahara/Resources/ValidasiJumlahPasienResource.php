@@ -41,29 +41,39 @@ class ValidasiJumlahPasienResource extends Resource
                             ->required()
                             ->disabled(),
 
-                        Forms\Components\Select::make('shift')
-                            ->label('Shift')
+                        Forms\Components\Select::make('poli')
+                            ->label('Poli')
                             ->options([
-                                'pagi' => 'Pagi (07:00-15:00)',
-                                'siang' => 'Siang (15:00-23:00)',
-                                'malam' => 'Malam (23:00-07:00)',
+                                'umum' => 'Poli Umum',
+                                'gigi' => 'Poli Gigi',
                             ])
                             ->disabled(),
 
-                        Forms\Components\TextInput::make('jumlah_pasien')
-                            ->label('Jumlah Pasien')
+                        Forms\Components\Select::make('dokter_id')
+                            ->label('Nama Dokter')
+                            ->relationship('dokter', 'nama_lengkap')
+                            ->disabled(),
+
+                        Forms\Components\TextInput::make('jumlah_pasien_umum')
+                            ->label('Pasien Umum')
                             ->numeric()
                             ->required(),
 
-                        Forms\Components\TextInput::make('pasien_umum')
-                            ->label('Pasien Umum')
-                            ->numeric()
-                            ->disabled(),
-
-                        Forms\Components\TextInput::make('pasien_bpjs')
+                        Forms\Components\TextInput::make('jumlah_pasien_bpjs')
                             ->label('Pasien BPJS')
                             ->numeric()
-                            ->disabled(),
+                            ->required(),
+
+                        Forms\Components\TextInput::make('jaspel_rupiah')
+                            ->label('💰 Jaspel (Rupiah)')
+                            ->numeric()
+                            ->minValue(0)
+                            ->step(100)
+                            ->prefix('Rp')
+                            ->placeholder('0')
+                            ->helperText('Nominal jasa pelayanan dalam Rupiah')
+                            ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', '.') : '')
+                            ->dehydrateStateUsing(fn ($state) => $state ? str_replace(['.', ','], '', $state) : null),
 
                         Forms\Components\Select::make('input_by')
                             ->label('Input Oleh')
@@ -103,22 +113,28 @@ class ValidasiJumlahPasienResource extends Resource
                     ->date('d/m/Y')
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('shift')
-                    ->label('Shift')
+                Tables\Columns\TextColumn::make('dokter.nama_lengkap')
+                    ->label('Nama Dokter')
+                    ->searchable()
+                    ->sortable()
+                    ->color('primary')
+                    ->icon('heroicon-o-user')
+                    ->description(fn ($record) => $record->dokter?->jabatan_display ?? '-'),
+
+                Tables\Columns\TextColumn::make('poli')
+                    ->label('Poli')
                     ->color(fn (string $state): string => match ($state) {
-                        'pagi' => 'success',
-                        'siang' => 'warning',
-                        'malam' => 'info',
+                        'umum' => 'primary',
+                        'gigi' => 'success',
                         default => 'gray',
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'pagi' => '🌅 Pagi',
-                        'siang' => '🌞 Siang',
-                        'malam' => '🌙 Malam',
+                        'umum' => '🏥 Umum',
+                        'gigi' => '🦷 Gigi',
                         default => ucfirst($state),
                     }),
 
-                Tables\Columns\TextColumn::make('jumlah_pasien')
+                Tables\Columns\TextColumn::make('total_pasien')
                     ->label('Total Pasien')
                     ->numeric()
                     ->alignment(Alignment::Center)
@@ -129,17 +145,34 @@ class ValidasiJumlahPasienResource extends Resource
                         default => 'success',
                     }),
 
-                Tables\Columns\TextColumn::make('pasien_umum')
-                    ->label('Umum')
+                Tables\Columns\TextColumn::make('jumlah_pasien_umum')
+                    ->label('Pasien Umum')
                     ->numeric()
                     ->alignment(Alignment::Center)
                     ->toggleable(),
 
-                Tables\Columns\TextColumn::make('pasien_bpjs')
-                    ->label('BPJS')
+                Tables\Columns\TextColumn::make('jumlah_pasien_bpjs')
+                    ->label('Pasien BPJS')
                     ->numeric()
                     ->alignment(Alignment::Center)
                     ->toggleable(),
+
+                Tables\Columns\TextColumn::make('jaspel_rupiah')
+                    ->label('💰 Jaspel')
+                    ->formatStateUsing(function ($state) {
+                        // Handle null, empty string, or zero values
+                        if (is_null($state) || $state === '' || $state == 0) {
+                            return '-';
+                        }
+                        // Format as Indonesian Rupiah
+                        return 'Rp ' . number_format((float)$state, 0, ',', '.');
+                    })
+                    ->alignment(Alignment::End)
+                    ->sortable()
+                    ->color(fn ($state) => !is_null($state) && $state > 0 ? 'success' : 'gray')
+                    ->icon('heroicon-o-banknotes')
+                    ->description('Jasa Pelayanan')
+                    ->toggleable(isToggledHiddenByDefault: false),
 
                 Tables\Columns\TextColumn::make('status_validasi')
                     ->label('Status')
@@ -189,13 +222,17 @@ class ValidasiJumlahPasienResource extends Resource
                             );
                     }),
 
-                Tables\Filters\SelectFilter::make('shift')
-                    ->label('Shift')
+                Tables\Filters\SelectFilter::make('poli')
+                    ->label('Poli')
                     ->options([
-                        'pagi' => 'Pagi',
-                        'siang' => 'Siang',
-                        'malam' => 'Malam',
+                        'umum' => 'Poli Umum',
+                        'gigi' => 'Poli Gigi',
                     ]),
+
+                Tables\Filters\SelectFilter::make('dokter_id')
+                    ->label('Dokter')
+                    ->relationship('dokter', 'nama_lengkap')
+                    ->preload(),
 
                 Tables\Filters\SelectFilter::make('status_validasi')
                     ->label('Status Validasi')
@@ -208,7 +245,35 @@ class ValidasiJumlahPasienResource extends Resource
 
                 Tables\Filters\Filter::make('pasien_banyak')
                     ->label('Pasien > 50')
-                    ->query(fn (Builder $query): Builder => $query->where('jumlah_pasien', '>', 50)),
+                    ->query(fn (Builder $query): Builder => $query->whereRaw('(jumlah_pasien_umum + jumlah_pasien_bpjs) > 50')),
+
+                Tables\Filters\Filter::make('jaspel_filter')
+                    ->label('Filter Jaspel')
+                    ->form([
+                        Forms\Components\TextInput::make('min_jaspel')
+                            ->label('Minimal Jaspel (Rp)')
+                            ->numeric()
+                            ->prefix('Rp'),
+                        Forms\Components\TextInput::make('max_jaspel')
+                            ->label('Maksimal Jaspel (Rp)')
+                            ->numeric()
+                            ->prefix('Rp'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['min_jaspel'],
+                                fn (Builder $query, $amount): Builder => $query->where('jaspel_rupiah', '>=', $amount),
+                            )
+                            ->when(
+                                $data['max_jaspel'],
+                                fn (Builder $query, $amount): Builder => $query->where('jaspel_rupiah', '<=', $amount),
+                            );
+                    }),
+
+                Tables\Filters\Filter::make('ada_jaspel')
+                    ->label('Ada Jaspel')
+                    ->query(fn (Builder $query): Builder => $query->whereNotNull('jaspel_rupiah')->where('jaspel_rupiah', '>', 0)),
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
@@ -225,7 +290,7 @@ class ValidasiJumlahPasienResource extends Resource
 
                                 Notification::make()
                                     ->title('✅ Data Pasien Disetujui')
-                                    ->body("Data pasien tanggal {$record->tanggal->format('d/m/Y')} shift {$record->shift} disetujui")
+                                    ->body("Data pasien tanggal {$record->tanggal->format('d/m/Y')} poli {$record->poli} dari dr. {$record->dokter?->nama_lengkap} disetujui")
                                     ->success()
                                     ->send();
 
@@ -294,20 +359,32 @@ class ValidasiJumlahPasienResource extends Resource
                     ->action(function () {
                         $today = now()->toDateString();
                         $summary = [
-                            'total_today' => JumlahPasienHarian::whereDate('tanggal', $today)->sum('jumlah_pasien'),
-                            'avg_per_shift' => JumlahPasienHarian::whereDate('tanggal', $today)->avg('jumlah_pasien'),
+                            'total_today' => JumlahPasienHarian::whereDate('tanggal', $today)
+                                ->selectRaw('SUM(jumlah_pasien_umum + jumlah_pasien_bpjs) as total')
+                                ->value('total') ?? 0,
+                            'avg_per_poli' => JumlahPasienHarian::whereDate('tanggal', $today)
+                                ->selectRaw('AVG(jumlah_pasien_umum + jumlah_pasien_bpjs) as avg')
+                                ->value('avg') ?? 0,
                             'pending_count' => JumlahPasienHarian::where('status_validasi', 'pending')->count(),
-                            'monthly_avg' => JumlahPasienHarian::whereMonth('tanggal', now()->month)->avg('jumlah_pasien'),
+                            'monthly_avg' => JumlahPasienHarian::whereMonth('tanggal', now()->month)
+                                ->selectRaw('AVG(jumlah_pasien_umum + jumlah_pasien_bpjs) as avg')
+                                ->value('avg') ?? 0,
+                            'total_jaspel_today' => JumlahPasienHarian::whereDate('tanggal', $today)
+                                ->sum('jaspel_rupiah') ?? 0,
+                            'avg_jaspel_monthly' => JumlahPasienHarian::whereMonth('tanggal', now()->month)
+                                ->avg('jaspel_rupiah') ?? 0,
                         ];
 
                         $message = "👥 **RINGKASAN PASIEN HARIAN**\n\n";
                         $message .= "📅 Hari Ini: {$summary['total_today']} pasien\n";
-                        $message .= "📊 Rata-rata per Shift: " . round($summary['avg_per_shift'], 1) . " pasien\n";
+                        $message .= "📊 Rata-rata per Poli: " . round($summary['avg_per_poli'], 1) . " pasien\n";
                         $message .= "📈 Rata-rata Bulanan: " . round($summary['monthly_avg'], 1) . " pasien\n";
+                        $message .= "💰 Total Jaspel Hari Ini: Rp " . number_format($summary['total_jaspel_today'], 0, ',', '.') . "\n";
+                        $message .= "💵 Rata-rata Jaspel Bulanan: Rp " . number_format($summary['avg_jaspel_monthly'], 0, ',', '.') . "\n";
                         $message .= "⏳ Pending Validasi: {$summary['pending_count']}";
 
                         Notification::make()
-                            ->title('👥 Ringkasan Pasien')
+                            ->title('👥 Ringkasan Pasien & Jaspel')
                             ->body($message)
                             ->info()
                             ->send();
@@ -319,7 +396,7 @@ class ValidasiJumlahPasienResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['inputBy', 'validasiBy']);
+            ->with(['inputBy', 'validasiBy', 'dokter']);
     }
 
     public static function getNavigationBadge(): ?string

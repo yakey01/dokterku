@@ -11,6 +11,7 @@ use App\Models\Jaspel;
 use App\Models\Attendance;
 use App\Models\JadwalJaga;
 use App\Services\AttendanceToleranceService;
+use App\Services\EffectiveDurationCalculatorService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -388,6 +389,25 @@ class DokterDashboardController extends Controller
                     $currentShift = $todaySchedule->where('status_jaga', 'Aktif')->first();
                 }
 
+                // ENHANCED: Get attendance records for jadwal jaga integration
+                $attendanceRecords = Attendance::where('user_id', $user->id)
+                    ->whereMonth('date', $month)
+                    ->whereYear('date', $year)
+                    ->whereNotNull('jadwal_jaga_id')
+                    ->get()
+                    ->map(function ($attendance) {
+                        return [
+                            'id' => $attendance->id,
+                            'jadwal_jaga_id' => $attendance->jadwal_jaga_id,
+                            'date' => $attendance->date->format('Y-m-d'),
+                            'time_in' => $attendance->time_in,
+                            'time_out' => $attendance->time_out,
+                            'check_in_time' => $attendance->time_in,  // Frontend compatibility
+                            'check_out_time' => $attendance->time_out, // Frontend compatibility
+                            'status' => $attendance->status ?? 'not_started'
+                        ];
+                    });
+
                 // ENHANCED: Calculate schedule card statistics
                 $now = $nowJakarta;
                 $todayDate = $now->toDateString();
@@ -511,6 +531,7 @@ class DokterDashboardController extends Controller
                     'weekly_schedule' => $weeklySchedule,
                     'today' => $todaySchedule,
                     'currentShift' => $currentShift,
+                    'attendance_records' => $attendanceRecords,
                     'workLocation' => $workLocationData,
                     'schedule_stats' => $scheduleStats,
                     'month' => $month,
@@ -803,9 +824,10 @@ class DokterDashboardController extends Controller
             
             $today = Carbon::today('Asia/Jakarta');
             
-            // Presensi hari ini (multi-shift aware)
+            // Presensi hari ini (multi-shift aware) with relationships for shift_info
             $todayRecords = Attendance::where('user_id', $user->id)
                 ->whereDate('date', $today)
+                ->with(['shift', 'jadwalJaga.shiftTemplate']) // ✅ ADDED: Load relationships
                 ->orderBy('time_in')
                 ->get();
 
@@ -821,21 +843,258 @@ class DokterDashboardController extends Controller
                 return $a->time_in && !$a->time_out;
             }) ?? $todayRecords->last();
 
-            // History presensi bulan ini
-            $attendanceHistory = Attendance::where('user_id', $user->id)
-                ->whereMonth('date', Carbon::now()->month)
-                ->whereYear('date', Carbon::now()->year)
-                ->orderByDesc('date')
-                ->get();
+            // History presensi dengan date range support
+            $historyQuery = Attendance::where('user_id', $user->id)
+                ->with(['shift', 'jadwalJaga.shiftTemplate'])
+                ->orderByDesc('date');
+            
+            // Handle date range parameters from frontend
+            if ($request->has('start') && $request->has('end')) {
+                $startDate = Carbon::parse($request->get('start'));
+                $endDate = Carbon::parse($request->get('end'));
+                $historyQuery->whereBetween('date', [$startDate, $endDate]);
+            } else {
+                // ✅ ENHANCED: Get more comprehensive history (last 90 days instead of just current month)
+                $startDate = Carbon::now()->subDays(90);
+                $endDate = Carbon::now();
+                $historyQuery->whereBetween('date', [$startDate, $endDate]);
+            }
+            
+            // ✅ ADDED: Ensure we get all relevant attendance records
+            $historyQuery->whereNotNull('time_in'); // Only records with check-in
+            
+            // ✅ FIXED: Get completed shifts separately to avoid query conflicts
+            $completedShiftsIds = collect();
+            try {
+                $completedShiftsQuery = JadwalJaga::where('pegawai_id', $user->id)
+                    ->where('tanggal_jaga', '<', Carbon::today())
+                    ->pluck('id');
+                
+                if ($completedShiftsQuery->isNotEmpty()) {
+                    $completedShiftsIds = $completedShiftsQuery;
+                }
+            } catch (\Exception $e) {
+                \Log::warning('Failed to get completed shifts for history:', [
+                    'user_id' => $user->id,
+                    'error' => $e->getMessage()
+                ]);
+                $completedShiftsIds = collect();
+            }
+            
+            // Get main attendance history
+            $attendanceHistory = $historyQuery->get();
+            
+            // ✅ ADDED: Include attendance from completed shifts if not already in main query
+            if ($completedShiftsIds->isNotEmpty()) {
+                try {
+                    $completedShiftsAttendance = Attendance::where('user_id', $user->id)
+                        ->whereIn('jadwal_jaga_id', $completedShiftsIds)
+                        ->whereNotNull('time_in')
+                        ->with(['shift', 'jadwalJaga.shiftTemplate'])
+                        ->whereNotIn('id', $attendanceHistory->pluck('id'))
+                        ->get();
+                    
+                    $attendanceHistory = $attendanceHistory->merge($completedShiftsAttendance);
+                } catch (\Exception $e) {
+                    \Log::warning('Failed to get completed shifts attendance:', [
+                        'user_id' => $user->id,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+            
+            // Process and deduplicate
+            $attendanceHistory = $attendanceHistory
+                ->unique('id')
+                ->sortByDesc('date')
+                ->values()
+                ->map(function ($attendance) {
+                    // ✅ ENHANCED: Comprehensive shift_info extraction
+                    $shiftInfo = null;
+                    $jadwalJaga = $attendance->jadwalJaga;
+                    
+                    // ✅ FIX: Properly get shift template object
+                    $shiftTemplate = null;
+                    if ($attendance->shift && is_object($attendance->shift)) {
+                        $shiftTemplate = $attendance->shift;
+                    } elseif ($jadwalJaga && $jadwalJaga->shiftTemplate && is_object($jadwalJaga->shiftTemplate)) {
+                        $shiftTemplate = $jadwalJaga->shiftTemplate;
+                    }
+                    
+                    // Debug logging
+                    \Log::info('Shift template debug:', [
+                        'attendance_id' => $attendance->id,
+                        'has_attendance_shift' => $attendance->shift ? 'YES' : 'NO',
+                        'attendance_shift_type' => $attendance->shift ? gettype($attendance->shift) : 'NULL',
+                        'has_jadwal_jaga' => $jadwalJaga ? 'YES' : 'NO',
+                        'has_shift_template' => ($jadwalJaga && $jadwalJaga->shiftTemplate) ? 'YES' : 'NO',
+                        'shift_template_type' => ($jadwalJaga && $jadwalJaga->shiftTemplate) ? gettype($jadwalJaga->shiftTemplate) : 'NULL',
+                        'final_shift_template' => $shiftTemplate ? 'OBJECT' : 'NULL'
+                    ]);
+                    
+                    if ($shiftTemplate && is_object($shiftTemplate)) {
+                        $shiftInfo = [
+                            'shift_name' => $shiftTemplate->nama_shift ?? 'Shift Jaga',
+                            'shift_start' => ($shiftTemplate->jam_masuk && !is_bool($shiftTemplate->jam_masuk)) ? \Carbon\Carbon::parse($shiftTemplate->jam_masuk)->format('H:i') : '08:00',
+                            'shift_end' => ($shiftTemplate->jam_pulang && !is_bool($shiftTemplate->jam_pulang)) ? \Carbon\Carbon::parse($shiftTemplate->jam_pulang)->format('H:i') : '16:00',
+                            'shift_duration' => $this->calculateShiftDuration($shiftTemplate->jam_masuk ?? '08:00', $shiftTemplate->jam_pulang ?? '16:00'),
+                            
+                            // ✅ ADDED: Enhanced jam jaga information
+                            'jam_jaga' => $jadwalJaga ? ($jadwalJaga->jam_shift ?? null) : null,
+                            'jam_masuk_effective' => $jadwalJaga ? ($jadwalJaga->effective_start_time ?? null) : null,
+                            'jam_pulang_effective' => $jadwalJaga ? ($jadwalJaga->effective_end_time ?? null) : null,
+                            'unit_kerja' => $jadwalJaga ? ($jadwalJaga->unit_kerja ?? null) : null,
+                            'peran' => $jadwalJaga ? ($jadwalJaga->peran ?? null) : null,
+                            'status_jaga' => $jadwalJaga ? ($jadwalJaga->status_jaga ?? null) : null,
+                            'is_custom_schedule' => $jadwalJaga ? (!empty($jadwalJaga->jam_jaga_custom)) : false,
+                            'custom_reason' => $jadwalJaga ? ($jadwalJaga->keterangan ?? null) : null,
+                            'is_time_mismatch' => false, // Will be calculated below
+                            'actual_attendance_time' => $attendance->time_in ? \Carbon\Carbon::parse($attendance->time_in)->format('H:i') : null,
+                        ];
+                        
+                        // ✅ ADDED: Calculate time mismatch
+                        if ($attendance->time_in && $shiftTemplate->jam_masuk) {
+                            $scheduledStart = \Carbon\Carbon::parse($shiftTemplate->jam_masuk);
+                            $actualStart = \Carbon\Carbon::parse($attendance->time_in);
+                            $timeDiffMinutes = $actualStart->diffInMinutes($scheduledStart, false);
+                            
+                            // Flag as mismatch if more than 15 minutes late
+                            if ($timeDiffMinutes > 15) {
+                                $shiftInfo['is_time_mismatch'] = true;
+                            }
+                        }
+                    } else {
+                        // ✅ ADDED: Fallback shift_info when no template available
+                        $shiftInfo = [
+                            'shift_name' => 'Shift Default',
+                            'shift_start' => '08:00',
+                            'shift_end' => '16:00',
+                            'shift_duration' => '8j 0m',
+                            'jam_jaga' => '08:00 - 16:00',
+                            'jam_masuk_effective' => '08:00',
+                            'jam_pulang_effective' => '16:00',
+                            'unit_kerja' => 'Dokter Jaga',
+                            'peran' => 'Dokter',
+                            'status_jaga' => 'Aktif',
+                            'is_custom_schedule' => false,
+                            'custom_reason' => null,
+                            'is_time_mismatch' => false,
+                            'actual_attendance_time' => $attendance->time_in ? \Carbon\Carbon::parse($attendance->time_in)->format('H:i') : null,
+                        ];
+                    }
+                    
+                    // ✅ ENHANCED: Mission-style performance calculation
+                    $status = 'incomplete';
+                    $points = 0;
+                    $badge = '📋 UNKNOWN';
+                    
+                    if ($attendance->time_in && $attendance->time_out && $shiftTemplate && is_object($shiftTemplate)) {
+                        $scheduledStart = \Carbon\Carbon::parse($shiftTemplate->jam_masuk ?? '08:00');
+                        $actualStart = \Carbon\Carbon::parse($attendance->time_in);
+                        $timeDiffMinutes = $actualStart->diffInMinutes($scheduledStart, false);
+                        
+                        // Gaming status determination
+                        if ($timeDiffMinutes <= 0) {
+                            $status = 'perfect';
+                            $points = 150;
+                            $badge = '🏆 PERFECT';
+                        } elseif ($timeDiffMinutes <= 15) {
+                            $status = 'good';
+                            $points = 120;
+                            $badge = '⭐ GOOD';
+                        } elseif ($timeDiffMinutes <= 30) {
+                            $status = 'late';
+                            $points = 80;
+                            $badge = '⚠️ LATE';
+                        } else {
+                            $status = 'incomplete';
+                            $points = 50;
+                            $badge = '❌ INCOMPLETE';
+                        }
+                    }
+                    
+                    // ✅ SOPHISTICATED: Calculate effective duration using 5-step logic
+                    $durationCalculator = new EffectiveDurationCalculatorService();
+                    $effectiveDuration = null;
+                    $shortageMinutes = 0;
+                    
+                    // Calculate for ALL records that have check-in/out, with or without shift template
+                    if ($attendance->time_in && $attendance->time_out) {
+                        // Use shift template if available, otherwise use default 8-hour shift
+                        $shiftStart = '08:00';
+                        $shiftEnd = '16:00';
+                        $shiftName = 'default';
+                        
+                        if ($shiftTemplate && is_object($shiftTemplate)) {
+                            $shiftStart = $shiftTemplate->jam_masuk ?? '08:00';
+                            $shiftEnd = $shiftTemplate->jam_pulang ?? '16:00';
+                            $shiftName = $shiftTemplate->nama_shift ?? 'default';
+                        }
+                        
+                        // Get standard break times for this shift
+                        $breakTimes = $durationCalculator->getStandardBreakTimes(
+                            $shiftName,
+                            Carbon::parse($shiftStart),
+                            Carbon::parse($shiftEnd)
+                        );
+                        
+                        // Calculate effective duration for ALL records
+                        $effectiveDuration = $durationCalculator->calculateEffectiveDuration(
+                            $attendance->time_in,
+                            $attendance->time_out,
+                            $shiftStart,
+                            $shiftEnd,
+                            $breakTimes
+                        );
+                        
+                        $shortageMinutes = $effectiveDuration['shortage_minutes'] ?? 0;
+                    }
 
-            // Stats presensi
-            $attendanceStats = [
-                'total_days' => $attendanceHistory->count(),
-                'on_time' => $attendanceHistory->where('status', 'on_time')->count(),
-                'late' => $attendanceHistory->where('status', 'late')->count(),
-                'early_leave' => $attendanceHistory->where('status', 'early_leave')->count(),
-                'total_hours' => $attendanceHistory->sum('work_duration_minutes') / 60
-            ];
+                    // ✅ ENHANCED: Comprehensive response structure
+                    return [
+                        'id' => $attendance->id,
+                        'jadwal_jaga_id' => $attendance->jadwal_jaga_id,
+                        'date' => $attendance->date->format('Y-m-d'),
+                        'day_name' => $attendance->date->format('l'),
+                        'full_date' => $attendance->date->toISOString(),
+                        
+                        // ✅ CRITICAL: Complete shift_info for frontend
+                        'shift_info' => $shiftInfo,
+                        
+                        // Mission data (gaming style)
+                        'mission_info' => [
+                            'mission_title' => ($shiftTemplate && is_object($shiftTemplate) ? $shiftTemplate->nama_shift : 'Shift Jaga') . ' - ' . ($jadwalJaga ? $jadwalJaga->unit_kerja : 'Dokter Jaga'),
+                            'mission_subtitle' => $jadwalJaga ? $jadwalJaga->peran : 'Dokter',
+                            'scheduled_time' => $shiftInfo['shift_start'] . ' - ' . $shiftInfo['shift_end'],
+                            'location' => 'Klinik Dokterku',
+                            'shift_duration' => $shiftInfo['shift_duration']
+                        ],
+                        'status' => $status,
+                        'points_earned' => $points,
+                        'achievement_badge' => $badge,
+                        
+                        // ✅ SOPHISTICATED: Effective duration calculation results
+                        'effective_duration' => $effectiveDuration,
+                        'shortage_minutes' => $shortageMinutes,
+                        'shortfall_minutes' => $shortageMinutes, // ✅ COMPATIBILITY: Send both field names
+                        'attendance_percentage' => $effectiveDuration['attendance_percentage'] ?? 0,
+                        
+                        // Attendance data (multiple formats for compatibility)
+                        'time_in' => $attendance->time_in ? $attendance->time_in->format('H:i') : null,
+                        'time_out' => $attendance->time_out ? $attendance->time_out->format('H:i') : null,
+                        'working_duration' => $effectiveDuration ? $effectiveDuration['final_duration_hours'] : ($attendance->formatted_work_duration ?? '0j 0m'),
+                        
+                        // Legacy compatibility
+                        'check_in_time' => $attendance->time_in,
+                        'check_out_time' => $attendance->time_out,
+                        'status_legacy' => $attendance->status,
+                        
+                        // ✅ ADDED: Additional fields for frontend
+                        'shift_start' => $shiftInfo['shift_start'],
+                        'shift_end' => $shiftInfo['shift_end'],
+                        'shift_duration' => $shiftInfo['shift_duration']
+                    ];
+                });
 
             return response()->json([
                 'success' => true,
@@ -869,15 +1128,42 @@ class DokterDashboardController extends Controller
                         ];
                     })->values(),
                     'history' => $attendanceHistory,
-                    'stats' => $attendanceStats
+                    'stats' => [
+                        'total_missions' => $attendanceHistory->count(),
+                        'perfect_missions' => $attendanceHistory->where('status', 'perfect')->count(),
+                        'good_missions' => $attendanceHistory->where('status', 'good')->count(),
+                        'late_missions' => $attendanceHistory->where('status', 'late')->count(),
+                        'incomplete_missions' => $attendanceHistory->where('status', 'incomplete')->count(),
+                        'total_xp' => $attendanceHistory->sum('points_earned'),
+                        'total_hours' => $attendanceHistory->sum(function($item) {
+                            if (is_array($item) && isset($item['working_duration'])) {
+                                return $this->parseDurationToHours($item['working_duration']);
+                            }
+                            return 0;
+                        }),
+                        'performance_rate' => $attendanceHistory->count() > 0 ? 
+                            round(($attendanceHistory->whereIn('status', ['perfect', 'good'])->count() / $attendanceHistory->count()) * 100, 1) : 0
+                    ]
                 ]
             ]);
 
         } catch (\Exception $e) {
+            \Log::error('Error in getPresensi:', [
+                'user_id' => $user->id ?? 'unknown',
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all()
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal memuat data presensi: ' . $e->getMessage(),
-                'data' => null
+                'data' => null,
+                'debug_info' => [
+                    'error_type' => get_class($e),
+                    'line' => $e->getLine(),
+                    'file' => $e->getFile()
+                ]
             ], 500);
         }
     }
@@ -3236,4 +3522,47 @@ class DokterDashboardController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Calculate shift duration in formatted string
+     */
+    protected function calculateShiftDuration(string $startTime, string $endTime): string
+    {
+        try {
+            $start = \Carbon\Carbon::parse($startTime);
+            $end = \Carbon\Carbon::parse($endTime);
+            
+            // Handle overnight shifts
+            if ($end->lt($start)) {
+                $end->addDay();
+            }
+            
+            $totalMinutes = $start->diffInMinutes($end); // Fixed: start->diffInMinutes(end)
+            $hours = intval($totalMinutes / 60);
+            $minutes = $totalMinutes % 60;
+            
+            return sprintf('%dj %dm', $hours, $minutes);
+        } catch (\Exception $e) {
+            return '8j 0m'; // Default fallback
+        }
+    }
+
+    /**
+     * Parse duration string to hours for calculations
+     */
+    protected function parseDurationToHours(string $duration): float
+    {
+        try {
+            // Parse format like "8j 30m" or "0j 5m"
+            if (preg_match('/(\d+)j\s*(\d+)m/', $duration, $matches)) {
+                $hours = (int)$matches[1];
+                $minutes = (int)$matches[2];
+                return $hours + ($minutes / 60);
+            }
+            return 0;
+        } catch (\Exception $e) {
+            return 0;
+        }
+    }
+
 }

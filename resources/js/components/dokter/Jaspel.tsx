@@ -2,159 +2,44 @@ import React, { useState, useEffect } from 'react';
 import { 
   DollarSign, Calendar, Clock, TrendingUp, Award, Target, Activity, Star, 
   ChevronLeft, ChevronRight, Eye, FileText, CreditCard, Stethoscope, 
-  Users, MapPin, CheckCircle
+  Users, MapPin, CheckCircle, RefreshCw, AlertCircle
 } from 'lucide-react';
 
-// Mock data untuk jaspel jaga
-const jaspelJagaData = [
-  {
-    id: 1,
-    tanggal: '2024-01-15',
-    shift: 'Pagi',
-    jam: '07:00 - 14:00',
-    lokasi: 'IGD',
-    tarif: 750000,
-    bonus: 150000,
-    status: 'completed',
-    keterangan: 'Jaga normal, tidak ada kasus emergency'
-  },
-  {
-    id: 2,
-    tanggal: '2024-01-18',
-    shift: 'Malam',
-    jam: '20:00 - 07:00',
-    lokasi: 'ICU',
-    tarif: 950000,
-    bonus: 200000,
-    status: 'completed',
-    keterangan: 'Jaga malam dengan 2 kasus critical'
-  },
-  {
-    id: 3,
-    tanggal: '2024-01-22',
-    shift: 'Siang',
-    jam: '14:00 - 20:00',
-    lokasi: 'Poli Umum',
-    tarif: 650000,
-    bonus: 100000,
-    status: 'pending',
-    keterangan: 'Jaga siang hari, antrian padat'
-  },
-  {
-    id: 4,
-    tanggal: '2024-01-25',
-    shift: 'Pagi',
-    jam: '07:00 - 14:00',
-    lokasi: 'Ruang Bedah',
-    tarif: 850000,
-    bonus: 180000,
-    status: 'scheduled',
-    keterangan: 'Stanby untuk operasi elektif'
-  },
-  {
-    id: 5,
-    tanggal: '2024-01-28',
-    shift: 'Malam',
-    jam: '20:00 - 07:00',
-    lokasi: 'IGD',
-    tarif: 950000,
-    bonus: 250000,
-    status: 'scheduled',
-    keterangan: 'Weekend shift, tarif premium'
-  },
-  {
-    id: 6,
-    tanggal: '2024-01-30',
-    shift: 'Siang',
-    jam: '14:00 - 20:00',
-    lokasi: 'Poli Spesialis',
-    tarif: 700000,
-    bonus: 120000,
-    status: 'scheduled',
-    keterangan: 'Konsultasi spesialis kardio'
-  }
-];
+interface JaspelItem {
+  id: number;
+  tanggal: string;
+  jenis_jaspel: string;
+  nominal: number;
+  status_validasi: string;
+  keterangan?: string;
+  shift?: string;
+  jam?: string;
+  lokasi?: string;
+  tindakan?: string;
+  jenis?: string;
+  durasi?: string;
+  complexity?: string;
+  tim?: string[];
+  // ✅ ADDED: Correct fields from database
+  jumlah?: number;
+  status?: string;
+  source?: string;
+  tindakan_id?: number;
+  shift_id?: number;
+}
 
-// Mock data untuk jaspel tindakan
-const jaspelTindakanData = [
-  {
-    id: 1,
-    tanggal: '2024-01-16',
-    tindakan: 'Operasi Appendektomi',
-    jenis: 'Bedah Mayor',
-    durasi: '2.5 jam',
-    tarif: 2500000,
-    complexity: 'high',
-    tim: ['dr. Andi', 'dr. Budi', 'Sister Citra'],
-    status: 'completed'
-  },
-  {
-    id: 2,
-    tanggal: '2024-01-19',
-    tindakan: 'Konsultasi Kardiologi',
-    jenis: 'Konsultasi',
-    durasi: '45 menit',
-    tarif: 350000,
-    complexity: 'low',
-    tim: ['dr. Andi'],
-    status: 'completed'
-  },
-  {
-    id: 3,
-    tanggal: '2024-01-21',
-    tindakan: 'Endoskopi',
-    jenis: 'Diagnostik',
-    durasi: '1 jam',
-    tarif: 850000,
-    complexity: 'medium',
-    tim: ['dr. Andi', 'Nurse Dewi'],
-    status: 'completed'
-  },
-  {
-    id: 4,
-    tanggal: '2024-01-24',
-    tindakan: 'Emergency Surgery',
-    jenis: 'Bedah Darurat',
-    durasi: '4 jam',
-    tarif: 4200000,
-    complexity: 'critical',
-    tim: ['dr. Andi', 'dr. Budi', 'dr. Celine', 'Sister Fiona'],
-    status: 'completed'
-  },
-  {
-    id: 5,
-    tanggal: '2024-01-26',
-    tindakan: 'Pemeriksaan Rutin',
-    jenis: 'Check-up',
-    durasi: '30 menit',
-    tarif: 200000,
-    complexity: 'low',
-    tim: ['dr. Andi'],
-    status: 'pending'
-  },
-  {
-    id: 6,
-    tanggal: '2024-01-29',
-    tindakan: 'Operasi Hernia',
-    jenis: 'Bedah Minor',
-    durasi: '1.5 jam',
-    tarif: 1800000,
-    complexity: 'medium',
-    tim: ['dr. Andi', 'Sister Gina'],
-    status: 'scheduled'
-  },
-  {
-    id: 7,
-    tanggal: '2024-02-01',
-    tindakan: 'Konsultasi Multidisiplin',
-    jenis: 'Konsultasi Tim',
-    durasi: '2 jam',
-    tarif: 650000,
-    complexity: 'high',
-    tim: ['dr. Andi', 'dr. Hendra', 'dr. Ina'],
-    status: 'scheduled'
-  }
-];
+interface JaspelSummary {
+  total: number;
+  approved: number;
+  pending: number;
+  rejected: number;
+  count: {
+    total: number;
+    approved: number;
+    pending: number;
+    rejected: number;
+  };
+}
 
 const JaspelComponent = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -162,12 +47,437 @@ const JaspelComponent = () => {
   const [currentPageTindakan, setCurrentPageTindakan] = useState(1);
   const itemsPerPage = 3;
   const [isIPad, setIsIPad] = useState(false);
+  
+  // State for dynamic data
+  const [jaspelData, setJaspelData] = useState<JaspelItem[]>([]);
+  const [summary, setSummary] = useState<JaspelSummary>({
+    total: 0,
+    approved: 0,
+    pending: 0,
+    rejected: 0,
+    count: {
+      total: 0,
+      approved: 0,
+      pending: 0,
+      rejected: 0,
+    }
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Separate jaga and tindakan data
+  const [jaspelJagaData, setJaspelJagaData] = useState<JaspelItem[]>([]);
+  const [jaspelTindakanData, setJaspelTindakanData] = useState<JaspelItem[]>([]);
+  
+  // State for Jumlah Pasien data integration
+  const [jumlahPasienData, setJumlahPasienData] = useState<any[]>([]);
+  const [loadingJumlahPasien, setLoadingJumlahPasien] = useState(false);
 
   useEffect(() => {
     // Detect iPad for layout adjustments
     const userAgent = navigator.userAgent.toLowerCase();
     setIsIPad(userAgent.includes('ipad'));
+    
+    // Fetch Jaspel data on component mount
+    fetchJaspelData();
+    // Fetch Jumlah Pasien data for Jaga integration
+    fetchJumlahPasienData();
   }, []);
+
+  const fetchJaspelData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      console.log('📊 Fetching Jaspel data...');
+      
+      // Get current month and year
+      const currentDate = new Date();
+      const currentMonth = currentDate.getMonth() + 1;
+      const currentYear = currentDate.getFullYear();
+      
+      // Get authentication tokens
+      const token = localStorage.getItem('auth_token') || 
+                   localStorage.getItem('dokterku_auth_token') ||
+                   localStorage.getItem('api_token') ||
+                   sessionStorage.getItem('auth_token') ||
+                   sessionStorage.getItem('dokterku_auth_token') ||
+                   sessionStorage.getItem('api_token') ||
+                   document.querySelector('meta[name="api-token"]')?.getAttribute('content');
+                   
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      
+      console.log('🔑 Token found:', !!token, token ? token.substring(0, 10) + '...' : 'null');
+      console.log('🔒 CSRF token found:', !!csrfToken);
+      
+      // Build headers with authentication
+      const headers: Record<string, string> = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      };
+      
+      // Add Bearer token if available
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      // Add CSRF token if available
+      if (csrfToken) {
+        headers['X-CSRF-TOKEN'] = csrfToken;
+      }
+      
+      // Fetch comprehensive jaspel data from correct endpoint
+      const response = await fetch(`/api/v2/jaspel/mobile-data-alt?month=${currentMonth}&year=${currentYear}`, {
+        method: 'GET',
+        headers,
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // COMPREHENSIVE DATA VALIDATION
+      if (!data) {
+        throw new Error('No response data received from server');
+      }
+      
+      if (!data.success) {
+        throw new Error(data.message || 'API request unsuccessful');
+      }
+      
+      if (!data.data) {
+        console.warn('⚠️ No data object in API response, using fallback');
+        // Continue with empty data rather than failing
+      }
+      
+      if (data.success && (data.data || data.success)) {
+        console.log('✅ Jaspel data received:', data);
+        
+        // SAFE DATA EXTRACTION: Handle undefined/null jaspel_items
+        const jaspelItems = Array.isArray(data.data.jaspel_items) ? data.data.jaspel_items : [];
+        const summaryData = data.data.summary || {
+          total: 0, approved: 0, pending: 0, rejected: 0,
+          count: { total: 0, approved: 0, pending: 0, rejected: 0 }
+        };
+        
+        console.log('📊 Jaspel items count:', jaspelItems.length);
+        
+        // BULLETPROOF TRANSFORMATION: Comprehensive validation for each item
+        const transformedData: JaspelItem[] = jaspelItems.map((item: any) => {
+          // Validate each item is an object
+          if (!item || typeof item !== 'object') {
+            console.warn('⚠️ Invalid jaspel item detected:', item);
+            return null;
+          }
+          
+          // Extract and validate jenis field (handle both jenis_jaspel and jenis)
+          const jenisField = (item.jenis_jaspel && typeof item.jenis_jaspel === 'string') 
+                           ? item.jenis_jaspel 
+                           : (item.jenis && typeof item.jenis === 'string')
+                           ? item.jenis
+                           : '';
+          
+          // 🔍 DEBUG: Log each item transformation
+          console.log('🔍 Transforming jaspel item:', {
+            original: item,
+            jenisField,
+            nominal: item.nominal || item.jumlah,
+            jenis_jaspel: item.jenis_jaspel
+          });
+          
+          return {
+            id: Number(item.id) || 0,
+            tanggal: (item.tanggal && typeof item.tanggal === 'string') 
+                    ? item.tanggal 
+                    : new Date().toISOString().split('T')[0],
+            jenis_jaspel: jenisField,
+            nominal: Number(item.nominal || item.jumlah) || 0, // Handle both nominal and jumlah
+            status_validasi: String(item.status_validasi || item.status || 'pending'),
+            keterangan: String(item.keterangan || ''),
+            
+            // BULLETPROOF HELPER CALLS: All helper functions now handle any input type
+            shift: mapJenisToShift(jenisField),
+            jam: getShiftTime(jenisField),
+            lokasi: getLocationFromJenis(jenisField),
+            tindakan: mapJenisToTindakan(jenisField),
+            jenis: jenisField,
+            durasi: getDurationFromJenis(jenisField),
+            complexity: getComplexityFromJenis(jenisField),
+            tim: ['dr. ' + String(item.user_name || 'Dokter')]
+          };
+        }).filter(Boolean) as JaspelItem[]; // Remove null entries and assert type
+        
+        // 🔍 DEBUG: Log final transformed data
+        console.log('🔍 Final transformed data:', transformedData);
+        console.log('🔍 Data structure check:', {
+          hasTarif: transformedData.some(item => 'tarif' in item),
+          hasBonus: transformedData.some(item => 'bonus' in item),
+          hasJenisJaspel: transformedData.some(item => 'jenis_jaspel' in item),
+          sampleItem: transformedData[0]
+        });
+        
+        // BULLETPROOF DATA SEPARATION: Ultra-safe string operations
+        const jagaData = transformedData.filter(item => {
+          if (!item || typeof item !== 'object') return false;
+          const jenis = (item.jenis_jaspel && typeof item.jenis_jaspel === 'string') 
+                       ? item.jenis_jaspel.toLowerCase() 
+                       : '';
+          
+          try {
+            return jenis.includes('jaga') || jenis.includes('shift');
+          } catch (error) {
+            console.warn('⚠️ Filter error in jagaData:', error, 'item:', item);
+            return false;
+          }
+        });
+        
+        const tindakanData = transformedData.filter(item => {
+          if (!item || typeof item !== 'object') return false;
+          const jenis = (item.jenis_jaspel && typeof item.jenis_jaspel === 'string') 
+                       ? item.jenis_jaspel.toLowerCase() 
+                       : '';
+          
+          try {
+            return !jenis.includes('jaga') && !jenis.includes('shift');
+          } catch (error) {
+            console.warn('⚠️ Filter error in tindakanData:', error, 'item:', item);
+            return false;
+          }
+        });
+        
+        setJaspelData(transformedData);
+        setJaspelJagaData(jagaData);
+        setJaspelTindakanData(tindakanData);
+        setSummary(summaryData);
+        
+      } else {
+        console.warn('⚠️ Invalid response structure, using fallback data');
+        // Use fallback instead of throwing error
+        setJaspelData([]);
+        setJaspelJagaData([]);
+        setJaspelTindakanData([]);
+        setSummary({
+          total: 0, approved: 0, pending: 0, rejected: 0,
+          count: { total: 0, approved: 0, pending: 0, rejected: 0 }
+        });
+      }
+    } catch (err) {
+      console.error('❌ Failed to fetch Jaspel data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load data');
+      
+      // Use fallback data if API fails
+      setJaspelJagaData([]);
+      setJaspelTindakanData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Fetch Jumlah Pasien data from Bendahara validation system
+  const fetchJumlahPasienData = async () => {
+    try {
+      setLoadingJumlahPasien(true);
+      
+      console.log('📊 Fetching Jumlah Pasien data for Jaga integration...');
+      
+      // Get current month and year
+      const currentDate = new Date();
+      const currentMonth = currentDate.getMonth() + 1;
+      const currentYear = currentDate.getFullYear();
+      
+      // Get authentication tokens
+      const token = localStorage.getItem('auth_token') || 
+                   localStorage.getItem('dokterku_auth_token') ||
+                   localStorage.getItem('api_token') ||
+                   sessionStorage.getItem('auth_token') ||
+                   sessionStorage.getItem('dokterku_auth_token') ||
+                   sessionStorage.getItem('api_token') ||
+                   document.querySelector('meta[name="api-token"]')?.getAttribute('content');
+                   
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      
+      // Build headers with authentication
+      const headers: Record<string, string> = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      };
+      
+      // Add Bearer token if available
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      // Add CSRF token if available
+      if (csrfToken) {
+        headers['X-CSRF-TOKEN'] = csrfToken;
+      }
+      
+      // Fetch Jumlah Pasien data from new endpoint
+      const response = await fetch(`/api/v2/jumlah-pasien/jaspel-jaga?month=${currentMonth}&year=${currentYear}`, {
+        method: 'GET',
+        headers,
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        console.log('✅ Jumlah Pasien data received:', data);
+        
+        const jumlahPasienItems = data.data.jumlah_pasien_items || [];
+        
+        // Transform Jumlah Pasien data to Jaspel format for Jaga tab
+        // NOTE: These are only Bendahara-validated (approved) entries
+        const transformedJagaData = jumlahPasienItems.map((item: any) => ({
+          id: item.id,
+          tanggal: item.tanggal,
+          jenis_jaspel: item.jenis_jaga || 'jaga_umum',
+          nominal: item.estimated_jaspel || 0,
+          status_validasi: 'disetujui', // Always approved since API now filters for approved only
+          keterangan: `Jaga ${item.poli} - ${item.total_pasien} pasien (${item.jumlah_pasien_umum} umum, ${item.jumlah_pasien_bpjs} BPJS) ✓ Tervalidasi Bendahara`,
+          shift: item.shift,
+          jam: item.jam,
+          lokasi: item.lokasi,
+          tarif: item.tarif_base,
+          bonus: item.bonus,
+          // Additional patient data fields
+          dokter_nama: item.dokter_nama,
+          total_pasien: item.total_pasien,
+          poli: item.poli,
+          validasi_by: item.validasi_by,
+          validasi_at: item.validasi_at,
+          is_bendahara_validated: true, // Flag to indicate Bendahara validation
+        }));
+        
+        // Merge with existing jaspelJagaData or replace it
+        setJumlahPasienData(jumlahPasienItems);
+        
+        // Combine with existing Jaspel Jaga data
+        // Priority to Jumlah Pasien data as it's from Bendahara validation
+        const mergedJagaData = [...transformedJagaData, ...jaspelJagaData.filter(item => 
+          !transformedJagaData.find(jp => jp.tanggal === item.tanggal)
+        )];
+        
+        setJaspelJagaData(mergedJagaData);
+        
+        // Update summary with Jumlah Pasien statistics
+        if (data.data.summary) {
+          setSummary(prev => ({
+            ...prev,
+            total: prev.total + (data.data.summary.total_estimated_jaspel || 0),
+          }));
+        }
+      }
+    } catch (err) {
+      console.error('❌ Failed to fetch Jumlah Pasien data:', err);
+      // Don't set error state as this is supplementary data
+      // The main Jaspel data will still work
+    } finally {
+      setLoadingJumlahPasien(false);
+    }
+  };
+  
+  // BULLETPROOF HELPER FUNCTIONS: Triple-layer safety checks
+  const mapJenisToShift = (jenis: any): string => {
+    // Triple-layer safety: null check + type check + string conversion
+    if (!jenis || typeof jenis !== 'string') return 'Pagi';
+    const safeJenis = String(jenis).toLowerCase();
+    
+    try {
+      if (safeJenis.includes('pagi')) return 'Pagi';
+      if (safeJenis.includes('siang')) return 'Siang';
+      if (safeJenis.includes('malam')) return 'Malam';
+    } catch (error) {
+      console.warn('⚠️ mapJenisToShift error with jenis:', jenis, error);
+    }
+    return 'Pagi';
+  };
+  
+  const getShiftTime = (jenis: any): string => {
+    if (!jenis || typeof jenis !== 'string') return '07:00 - 14:00';
+    const safeJenis = String(jenis).toLowerCase();
+    
+    try {
+      if (safeJenis.includes('pagi')) return '07:00 - 14:00';
+      if (safeJenis.includes('siang')) return '14:00 - 20:00';
+      if (safeJenis.includes('malam')) return '20:00 - 07:00';
+    } catch (error) {
+      console.warn('⚠️ getShiftTime error with jenis:', jenis, error);
+    }
+    return '07:00 - 14:00';
+  };
+  
+  const getLocationFromJenis = (jenis: any): string => {
+    if (!jenis || typeof jenis !== 'string') return 'Klinik';
+    const safeJenis = String(jenis).toLowerCase();
+    
+    try {
+      if (safeJenis.includes('igd') || safeJenis.includes('emergency')) return 'IGD';
+      if (safeJenis.includes('icu')) return 'ICU';
+      if (safeJenis.includes('poli')) return 'Poli Umum';
+      if (safeJenis.includes('bedah')) return 'Ruang Bedah';
+    } catch (error) {
+      console.warn('⚠️ getLocationFromJenis error with jenis:', jenis, error);
+    }
+    return 'Klinik';
+  };
+  
+  const mapJenisToTindakan = (jenis: any): string => {
+    if (!jenis || typeof jenis !== 'string') return 'Tindakan Medis';
+    const safeJenis = String(jenis).toLowerCase();
+    
+    try {
+      if (safeJenis.includes('konsultasi')) return 'Konsultasi Medis';
+      if (safeJenis.includes('emergency')) return 'Tindakan Emergency';
+      if (safeJenis.includes('operasi') || safeJenis.includes('bedah')) return 'Tindakan Bedah';
+      
+      // Safe string transformation
+      const transformed = String(jenis)
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, l => l.toUpperCase());
+      return transformed || 'Tindakan Medis';
+    } catch (error) {
+      console.warn('⚠️ mapJenisToTindakan error with jenis:', jenis, error);
+      return 'Tindakan Medis';
+    }
+  };
+  
+  const getDurationFromJenis = (jenis: any): string => {
+    if (!jenis || typeof jenis !== 'string') return '1 jam';
+    const safeJenis = String(jenis).toLowerCase();
+    
+    try {
+      if (safeJenis.includes('konsultasi')) return '30-45 menit';
+      if (safeJenis.includes('emergency')) return '2-4 jam';
+      if (safeJenis.includes('jaga')) return '7 jam';
+    } catch (error) {
+      console.warn('⚠️ getDurationFromJenis error with jenis:', jenis, error);
+    }
+    return '1 jam';
+  };
+  
+  const getComplexityFromJenis = (jenis: any): string => {
+    if (!jenis || typeof jenis !== 'string') return 'low';
+    const safeJenis = String(jenis).toLowerCase();
+    
+    try {
+      if (safeJenis.includes('emergency') || safeJenis.includes('critical')) return 'critical';
+      if (safeJenis.includes('khusus') || safeJenis.includes('operasi')) return 'high';
+      if (safeJenis.includes('konsultasi')) return 'medium';
+    } catch (error) {
+      console.warn('⚠️ getComplexityFromJenis error with jenis:', jenis, error);
+    }
+    return 'low';
+  };
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('id-ID', {
@@ -179,8 +489,12 @@ const JaspelComponent = () => {
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      completed: { bg: 'bg-green-500/20', text: 'text-green-400', border: 'border-green-500/30', label: 'Selesai' },
+      // API status values
+      disetujui: { bg: 'bg-green-500/20', text: 'text-green-400', border: 'border-green-500/30', label: 'Disetujui' },
       pending: { bg: 'bg-yellow-500/20', text: 'text-yellow-400', border: 'border-yellow-500/30', label: 'Tertunda' },
+      ditolak: { bg: 'bg-red-500/20', text: 'text-red-400', border: 'border-red-500/30', label: 'Ditolak' },
+      // Legacy status values for fallback
+      completed: { bg: 'bg-green-500/20', text: 'text-green-400', border: 'border-green-500/30', label: 'Selesai' },
       scheduled: { bg: 'bg-blue-500/20', text: 'text-blue-400', border: 'border-blue-500/30', label: 'Terjadwal' }
     };
     
@@ -211,12 +525,12 @@ const JaspelComponent = () => {
     );
   };
 
-  const totalJaspelJaga = jaspelJagaData.reduce((sum, item) => sum + item.tarif + item.bonus, 0);
-  const totalJaspelTindakan = jaspelTindakanData.reduce((sum, item) => sum + item.tarif, 0);
-  const grandTotal = totalJaspelJaga + totalJaspelTindakan;
+  const totalJaspelJaga = jaspelJagaData.reduce((sum, item) => sum + (item.nominal || (item.tarif || 0) + (item.bonus || 0)), 0);
+  const totalJaspelTindakan = jaspelTindakanData.reduce((sum, item) => sum + (item.nominal || item.tarif || 0), 0);
+  const grandTotal = summary.total || (totalJaspelJaga + totalJaspelTindakan);
 
-  const completedJaga = jaspelJagaData.filter(item => item.status === 'completed').length;
-  const completedTindakan = jaspelTindakanData.filter(item => item.status === 'completed').length;
+  const completedJaga = jaspelJagaData.filter(item => item.status_validasi === 'disetujui' || item.status === 'completed').length;
+  const completedTindakan = jaspelTindakanData.filter(item => item.status_validasi === 'disetujui' || item.status === 'completed').length;
 
   // Pagination logic
   const paginateJaga = () => {
@@ -279,6 +593,39 @@ const JaspelComponent = () => {
     </div>
   );
 
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex items-center justify-center">
+        <div className="text-center">
+          <RefreshCw className="w-12 h-12 text-emerald-400 animate-spin mx-auto mb-4" />
+          <p className="text-emerald-300 text-xl">Memuat data JASPEL...</p>
+          <p className="text-gray-400 text-sm mt-2">Mengambil data terbaru dari server</p>
+        </div>
+      </div>
+    );
+  }
+  
+  // Error state
+  if (error && jaspelData.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-6">
+          <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+          <h2 className="text-red-300 text-xl mb-4">Gagal Memuat Data</h2>
+          <p className="text-gray-400 text-sm mb-6">{error}</p>
+          <button 
+            onClick={fetchJaspelData}
+            className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium transition-colors flex items-center mx-auto"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Coba Lagi
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
       {/* Responsive container with full-width assumption and self-managed padding */}
@@ -301,6 +648,23 @@ const JaspelComponent = () => {
                   </h1>
                   <p className="text-gray-300 text-lg">Dashboard Pendapatan Dokter</p>
                 </div>
+              </div>
+              <div className="flex items-center space-x-3">
+                {error && (
+                  <div className="text-yellow-400 text-xs bg-yellow-900/20 px-3 py-1 rounded-full border border-yellow-500/30">
+                    Data lokal
+                  </div>
+                )}
+                <button 
+                  onClick={() => {
+                    fetchJaspelData();
+                    fetchJumlahPasienData();
+                  }}
+                  className="p-3 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 rounded-xl border border-emerald-500/30 transition-colors"
+                  title="Refresh data"
+                >
+                  <RefreshCw className={`w-5 h-5 ${loading || loadingJumlahPasien ? 'animate-spin' : ''}`} />
+                </button>
               </div>
             </div>
             
@@ -389,7 +753,7 @@ const JaspelComponent = () => {
                   <div className="bg-yellow-500/10 rounded-xl p-4 border border-yellow-400/20">
                     <p className="text-yellow-300 text-sm">Tertunda</p>
                     <p className="text-2xl font-bold text-white">
-                      {jaspelJagaData.filter(item => item.status === 'pending').length}
+                      {jaspelJagaData.filter(item => item.status_validasi === 'pending' || item.status === 'pending').length}
                     </p>
                   </div>
                 </div>
@@ -435,9 +799,23 @@ const JaspelComponent = () => {
                   <h3 className="text-xl font-bold text-white">Jadwal Jaga</h3>
                 </div>
                 <div className="text-sm text-gray-400">
-                  {jaspelJagaData.length} total jaga
+                  {jaspelJagaData.length} total jaga • Data dinamis
+                  {jumlahPasienData.length > 0 && (
+                    <span className="ml-2 text-emerald-400">
+                      • {jumlahPasienData.length} tervalidasi Bendahara
+                    </span>
+                  )}
                 </div>
               </div>
+              {/* Bendahara Validation Notice */}
+              {jumlahPasienData.length > 0 && (
+                <div className="mt-3 bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-2 flex items-center">
+                  <CheckCircle className="w-4 h-4 text-green-400 mr-2 flex-shrink-0" />
+                  <span className="text-green-300 text-sm">
+                    Hanya menampilkan data jaga yang sudah divalidasi dan disetujui oleh Bendahara untuk perhitungan Jaspel
+                  </span>
+                </div>
+              )}
             </div>
             
             <div className="divide-y divide-white/10">
@@ -458,12 +836,42 @@ const JaspelComponent = () => {
                         <span className="text-gray-300">{item.jam}</span>
                       </div>
                       <p className="text-gray-400 text-sm">{item.keterangan}</p>
+                      {item.total_pasien && (
+                        <div className="flex items-center mt-2 space-x-4">
+                          <div className="flex items-center">
+                            <Users className="w-4 h-4 text-emerald-400 mr-1" />
+                            <span className="text-emerald-300 text-sm font-medium">
+                              {item.total_pasien} pasien
+                            </span>
+                          </div>
+                          {item.is_bendahara_validated && (
+                            <div className="flex items-center bg-green-500/20 px-2 py-1 rounded-full">
+                              <CheckCircle className="w-4 h-4 text-green-400 mr-1" />
+                              <span className="text-green-300 text-xs font-medium">
+                                ✓ Tervalidasi Bendahara
+                              </span>
+                            </div>
+                          )}
+                          {item.validasi_by && !item.is_bendahara_validated && (
+                            <div className="flex items-center">
+                              <CheckCircle className="w-4 h-4 text-green-400 mr-1" />
+                              <span className="text-green-300 text-xs">
+                                Validasi: {item.validasi_by}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <div className="text-right ml-6">
-                      <div className="mb-2">{getStatusBadge(item.status)}</div>
-                      <div className="text-white font-bold text-lg">{formatCurrency(item.tarif + item.bonus)}</div>
+                      <div className="mb-2">{getStatusBadge(item.status_validasi || item.status)}</div>
+                      <div className="text-white font-bold text-lg">{formatCurrency(item.nominal || item.jumlah)}</div>
                       <div className="text-xs text-gray-400">
-                        Tarif: {formatCurrency(item.tarif)} + Bonus: {formatCurrency(item.bonus)}
+                        {item.jenis_jaspel ? (
+                          <>Jenis: {item.jenis_jaspel}</>
+                        ) : (
+                          <>Nominal: {formatCurrency(item.nominal || item.jumlah)}</>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -489,7 +897,7 @@ const JaspelComponent = () => {
                   <h3 className="text-xl font-bold text-white">Tindakan Medis</h3>
                 </div>
                 <div className="text-sm text-gray-400">
-                  {jaspelTindakanData.length} total tindakan
+                  {jaspelTindakanData.length} total tindakan • Data dinamis
                 </div>
               </div>
             </div>
@@ -517,11 +925,11 @@ const JaspelComponent = () => {
                       </div>
                       <div className="flex items-center space-x-3">
                         {getComplexityBadge(item.complexity)}
-                        {getStatusBadge(item.status)}
+                        {getStatusBadge(item.status_validasi || item.status)}
                       </div>
                     </div>
                     <div className="text-right ml-6">
-                      <div className="text-white font-bold text-xl">{formatCurrency(item.tarif)}</div>
+                      <div className="text-white font-bold text-xl">{formatCurrency(item.nominal || item.tarif)}</div>
                       <div className="text-xs text-gray-400 mt-1">Fee tindakan</div>
                     </div>
                   </div>

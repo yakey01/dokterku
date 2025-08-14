@@ -238,7 +238,17 @@ document.addEventListener('DOMContentLoaded', function() {
         // Auto remove
         setTimeout(() => {
             toast.classList.add('translate-x-full', 'opacity-0');
-            setTimeout(() => toast.remove(), 300);
+            setTimeout(() => {
+                try {
+                    if (toast && toast.parentNode && document.contains(toast)) {
+                        toast.remove();
+                    }
+                } catch (error) {
+                    if (error.name !== 'NotFoundError') {
+                        console.warn('Toast cleanup error:', error.message);
+                    }
+                }
+            }, 300);
         }, 5000);
     }
 

@@ -35,6 +35,14 @@ export interface AttendanceRecord {
   hours?: string;
   checkIn?: string;
   checkOut?: string;
+  shift_info?: {
+    shift_name?: string;
+    shift_start?: string;
+    shift_end?: string;
+    shift_duration?: string;
+  };
+  shortfall_minutes?: number;
+  shortfall_formatted?: string;
 }
 
 export interface ShiftInfo {

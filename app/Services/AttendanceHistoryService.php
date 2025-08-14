@@ -21,11 +21,110 @@ class AttendanceHistoryService
     ): LengthAwarePaginator {
         $query = $this->buildOptimizedQuery($userId, $filters);
         
-        return $query->paginate($perPage, [
+        $result = $query->with(['jadwalJaga.shiftTemplate'])->paginate($perPage, [
             'id', 'user_id', 'date', 'time_in', 'time_out', 
             'status', 'latitude', 'longitude', 'location_name_in',
-            'location_name_out', 'notes', 'created_at'
+            'location_name_out', 'notes', 'created_at', 'jadwal_jaga_id'
         ], 'page', $page);
+
+        // Transform data to include kekurangan menit dan jadwal jaga
+        $result->getCollection()->transform(function ($attendance) {
+            // Get shift schedule information with enhanced jam jaga data
+            $shiftInfo = null;
+            if ($attendance->jadwalJaga && $attendance->jadwalJaga->shiftTemplate) {
+                $jadwalJaga = $attendance->jadwalJaga;
+                $shift = $jadwalJaga->shiftTemplate;
+                
+                // Enhanced shift info with jam jaga details
+                $shiftInfo = [
+                    'shift_name' => $shift->nama_shift ?? 'Shift Umum',
+                    'shift_start' => $shift->jam_masuk ? \Carbon\Carbon::parse($shift->jam_masuk)->format('H:i') : null,
+                    'shift_end' => $shift->jam_pulang ? \Carbon\Carbon::parse($shift->jam_pulang)->format('H:i') : null,
+                    'shift_duration' => $shift->jam_masuk && $shift->jam_pulang ? 
+                        $this->calculateShiftDuration($shift->jam_masuk, $shift->jam_pulang) : null,
+                    
+                    // ✅ ADDED: Enhanced jam jaga information
+                    'jam_jaga' => $jadwalJaga->jam_shift ?? null, // Formatted time range
+                    'jam_masuk_effective' => $jadwalJaga->effective_start_time ?? null, // Custom or default start
+                    'jam_pulang_effective' => $jadwalJaga->effective_end_time ?? null, // Custom or default end
+                    'unit_kerja' => $jadwalJaga->unit_kerja ?? null, // Unit kerja (Dokter Jaga, Pendaftaran, etc)
+                    'peran' => $jadwalJaga->peran ?? null, // Peran (Dokter, Paramedis, NonParamedis)
+                    'status_jaga' => $jadwalJaga->status_jaga ?? null, // Status jaga (Aktif, Cuti, Izin, OnCall)
+                    'is_custom_schedule' => !empty($jadwalJaga->jam_jaga_custom), // Flag for custom schedule
+                    'custom_reason' => $jadwalJaga->keterangan ?? null, // Custom schedule reason
+                ];
+            } else {
+                // ✅ ADDED: Fallback jam jaga data when no jadwal jaga
+                $fallbackJadwal = \App\Models\JadwalJaga::where('pegawai_id', $attendance->user_id)
+                    ->whereDate('tanggal_jaga', $attendance->date)
+                    ->with('shiftTemplate')
+                    ->first();
+                
+                if ($fallbackJadwal && $fallbackJadwal->shiftTemplate) {
+                    $shift = $fallbackJadwal->shiftTemplate;
+                    $shiftInfo = [
+                        'shift_name' => $shift->nama_shift ?? 'Shift Umum',
+                        'shift_start' => $shift->jam_masuk ? \Carbon\Carbon::parse($shift->jam_masuk)->format('H:i') : '08:00',
+                        'shift_end' => $shift->jam_pulang ? \Carbon\Carbon::parse($shift->jam_pulang)->format('H:i') : '16:00',
+                        'shift_duration' => $shift->jam_masuk && $shift->jam_pulang ? 
+                            $this->calculateShiftDuration($shift->jam_masuk, $shift->jam_pulang) : '8j 0m',
+                        
+                        // ✅ ADDED: Fallback jam jaga information
+                        'jam_jaga' => $fallbackJadwal->jam_shift ?? '08:00 - 16:00',
+                        'jam_masuk_effective' => $fallbackJadwal->effective_start_time ?? '08:00',
+                        'jam_pulang_effective' => $fallbackJadwal->effective_end_time ?? '16:00',
+                        'unit_kerja' => $fallbackJadwal->unit_kerja ?? 'Dokter Jaga',
+                        'peran' => $fallbackJadwal->peran ?? 'Dokter',
+                        'status_jaga' => $fallbackJadwal->status_jaga ?? 'Aktif',
+                        'is_custom_schedule' => !empty($fallbackJadwal->jam_jaga_custom),
+                        'custom_reason' => $fallbackJadwal->keterangan ?? 'Jadwal default',
+                    ];
+                } else {
+                    // ✅ ADDED: Default jam jaga data when no jadwal found
+                    $shiftInfo = [
+                        'shift_name' => 'Shift Default',
+                        'shift_start' => '08:00',
+                        'shift_end' => '16:00',
+                        'shift_duration' => '8j 0m',
+                        
+                        // ✅ ADDED: Default jam jaga information
+                        'jam_jaga' => '08:00 - 16:00',
+                        'jam_masuk_effective' => '08:00',
+                        'jam_pulang_effective' => '16:00',
+                        'unit_kerja' => 'Dokter Jaga',
+                        'peran' => 'Dokter',
+                        'status_jaga' => 'Aktif',
+                        'is_custom_schedule' => false,
+                        'custom_reason' => 'Jadwal standar 8 jam',
+                    ];
+                }
+            }
+
+            return [
+                'id' => $attendance->id,
+                'date' => $attendance->date,
+                'time_in' => $attendance->time_in ? $attendance->time_in->format('H:i') : null,
+                'time_out' => $attendance->time_out ? $attendance->time_out->format('H:i') : null,
+                'status' => $attendance->status,
+                'duration_formatted' => $attendance->formatted_work_duration,
+                'duration_minutes' => $attendance->work_duration,
+                'target_minutes' => $attendance->target_work_duration,
+                'shortfall_minutes' => $attendance->shortfall_minutes,
+                'shortfall_formatted' => $attendance->formatted_shortfall,
+                'location_name_in' => $attendance->location_name_in,
+                'location_name_out' => $attendance->location_name_out,
+                'notes' => $attendance->notes,
+                'shift_info' => $shiftInfo,
+                // Enhanced duration data
+                'effective_start_time' => $attendance->effective_start_time?->format('H:i'),
+                'effective_end_time' => $attendance->effective_end_time?->format('H:i'),
+                'break_deduction_minutes' => $attendance->break_time_deduction,
+                'attendance_percentage' => $attendance->attendance_percentage,
+                'work_duration_breakdown' => $attendance->work_duration_breakdown,
+            ];
+        });
+
+        return $result;
     }
 
     /**
@@ -189,6 +288,30 @@ class AttendanceHistoryService
             ->whereNull('time_out')
             ->orderBy('date', 'desc')
             ->get(['id', 'date', 'time_in', 'location_name_in']);
+    }
+
+    /**
+     * Calculate shift duration in formatted string
+     */
+    protected function calculateShiftDuration(string $startTime, string $endTime): string
+    {
+        try {
+            $start = \Carbon\Carbon::parse($startTime);
+            $end = \Carbon\Carbon::parse($endTime);
+            
+            // Handle overnight shifts
+            if ($end->lt($start)) {
+                $end->addDay();
+            }
+            
+            $totalMinutes = $end->diffInMinutes($start);
+            $hours = intval($totalMinutes / 60);
+            $minutes = $totalMinutes % 60;
+            
+            return sprintf('%dj %dm', $hours, $minutes);
+        } catch (\Exception $e) {
+            return '8j 0m'; // Default fallback
+        }
     }
 
     /**

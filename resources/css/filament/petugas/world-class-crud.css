@@ -1,0 +1,946 @@
+/* WORLD-CLASS MINIMALIST WHITE UI/UX 2024-2025 */
+/* Inspired by Dribbble & Pinterest Healthcare Design Trends */
+/* Clean, Professional, Minimalist White Design System */
+
+/* ===========================
+   DESIGN PHILOSOPHY
+   =========================== 
+   - Ultra-minimal white-based design
+   - Subtle depth through micro-shadows
+   - Premium typography with perfect spacing
+   - Gentle micro-interactions
+   - Professional healthcare aesthetics
+   - Inspired by Apple, Linear, and Figma
+   =========================== */
+
+/* ===========================
+   1. CORE VARIABLES & FOUNDATIONS
+   =========================== */
+[data-filament-panel-id="petugas"] {
+    /* Minimalist White Color Palette */
+    --white-pure: #ffffff;
+    --white-soft: #fefefe;
+    --white-warm: #fafbfc;
+    --white-cool: #f8f9fb;
+    --gray-ultra-light: #f5f6f8;
+    --gray-whisper: #f1f3f5;
+    --gray-mist: #e9ecef;
+    --gray-light: #dee2e6;
+    --gray-medium: #6c757d;
+    --gray-text: #495057;
+    --gray-heading: #212529;
+    
+    /* Accent Colors - Minimal & Professional */
+    --accent-blue: #4285f4;
+    --accent-blue-light: #e8f0fe;
+    --accent-green: #34a853;
+    --accent-green-light: #e6f4ea;
+    --accent-orange: #fbbc04;
+    --accent-orange-light: #fef7e0;
+    --accent-red: #ea4335;
+    --accent-red-light: #fce8e6;
+    
+    /* Typography Scale */
+    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Courier, monospace;
+    
+    /* Shadows - Ultra Subtle */
+    --shadow-minimal: 0 1px 2px rgba(0, 0, 0, 0.02);
+    --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02);
+    --shadow-medium: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+    --shadow-elevated: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+    --shadow-floating: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+    
+    /* Border Radius */
+    --radius-minimal: 6px;
+    --radius-small: 8px;
+    --radius-medium: 12px;
+    --radius-large: 16px;
+    --radius-xl: 20px;
+    
+    /* Spacing Scale */
+    --space-xs: 0.25rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+    --space-xl: 2rem;
+    --space-2xl: 3rem;
+    --space-3xl: 4rem;
+    
+    /* Transitions */
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-normal: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===========================
+   2. GLOBAL TYPOGRAPHY
+   =========================== */
+[data-filament-panel-id="petugas"] * {
+    font-family: var(--font-family) !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+[data-filament-panel-id="petugas"] h1,
+[data-filament-panel-id="petugas"] h2,
+[data-filament-panel-id="petugas"] h3,
+[data-filament-panel-id="petugas"] h4,
+[data-filament-panel-id="petugas"] h5,
+[data-filament-panel-id="petugas"] h6 {
+    color: var(--gray-heading) !important;
+    font-weight: 600 !important;
+    line-height: 1.3 !important;
+    letter-spacing: -0.01em !important;
+    margin: 0 !important;
+    /* Remove gradient text effects */
+    background: none !important;
+    -webkit-background-clip: unset !important;
+    -webkit-text-fill-color: unset !important;
+    background-clip: unset !important;
+}
+
+[data-filament-panel-id="petugas"] h1 {
+    font-size: 1.875rem !important;
+    font-weight: 700 !important;
+}
+
+[data-filament-panel-id="petugas"] h2 {
+    font-size: 1.5rem !important;
+    font-weight: 600 !important;
+}
+
+[data-filament-panel-id="petugas"] h3 {
+    font-size: 1.25rem !important;
+    font-weight: 600 !important;
+}
+
+[data-filament-panel-id="petugas"] p,
+[data-filament-panel-id="petugas"] span,
+[data-filament-panel-id="petugas"] div,
+[data-filament-panel-id="petugas"] label {
+    color: var(--gray-text) !important;
+    font-weight: 400 !important;
+    line-height: 1.5 !important;
+}
+
+/* ===========================
+   3. PAGE HEADER
+   =========================== */
+[data-filament-panel-id="petugas"] .fi-header {
+    background: var(--white-pure) !important;
+    border-bottom: 1px solid var(--gray-ultra-light) !important;
+    padding: var(--space-2xl) !important;
+    box-shadow: var(--shadow-soft) !important;
+    margin-bottom: var(--space-xl) !important;
+    border-radius: var(--radius-large) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-header-heading {
+    color: var(--gray-heading) !important;
+    font-size: 1.875rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.025em !important;
+    margin: 0 !important;
+    /* Remove gradient text effects */
+    background: none !important;
+    -webkit-background-clip: unset !important;
+    -webkit-text-fill-color: unset !important;
+    background-clip: unset !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-header-subheading {
+    color: var(--gray-medium) !important;
+    font-size: 1rem !important;
+    font-weight: 400 !important;
+    margin-top: var(--space-sm) !important;
+    line-height: 1.5 !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-header-actions {
+    display: flex !important;
+    gap: var(--space-md) !important;
+    align-items: center !important;
+}
+
+/* Clean Header Button Styling */
+[data-filament-panel-id="petugas"] .fi-header-actions .fi-btn {
+    color: var(--gray-text) !important;
+    background: var(--white-pure) !important;
+    border: 1px solid var(--gray-light) !important;
+    border-radius: var(--radius-small) !important;
+    padding: 0.75rem 1.5rem !important;
+    font-weight: 500 !important;
+    transition: all var(--transition-fast) !important;
+    box-shadow: var(--shadow-minimal) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-header-actions .fi-btn:hover {
+    background: var(--white-soft) !important;
+    border-color: var(--gray-medium) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: var(--shadow-medium) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-header-actions .fi-btn-primary {
+    background: var(--accent-blue) !important;
+    color: var(--white-pure) !important;
+    border-color: var(--accent-blue) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-header-actions .fi-btn-primary:hover {
+    background: #3367d6 !important;
+    border-color: #3367d6 !important;
+}
+
+/* ===========================
+   4. TABLE DESIGN
+   =========================== */
+[data-filament-panel-id="petugas"] .fi-ta-content {
+    background: var(--white-pure) !important;
+    border-radius: var(--radius-large) !important;
+    box-shadow: var(--shadow-soft) !important;
+    overflow: hidden !important;
+    border: 1px solid var(--gray-ultra-light) !important;
+    margin-bottom: var(--space-xl) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-ta-header {
+    background: var(--white-pure) !important;
+    border-bottom: 1px solid var(--gray-ultra-light) !important;
+    padding: var(--space-xl) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-ta-header-toolbar {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: var(--space-md) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-ta-actions-container {
+    background: var(--white-pure) !important;
+    padding: var(--space-lg) var(--space-xl) !important;
+    border-bottom: 1px solid var(--gray-ultra-light) !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+/* Search Input */
+[data-filament-panel-id="petugas"] .fi-ta-search-field input {
+    background: var(--white-pure) !important;
+    border: 1px solid var(--gray-light) !important;
+    color: var(--gray-text) !important;
+    font-size: 0.875rem !important;
+    font-weight: 400 !important;
+    padding: 0.75rem 1rem !important;
+    border-radius: var(--radius-small) !important;
+    transition: all var(--transition-fast) !important;
+    font-family: var(--font-family) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-ta-search-field input:focus {
+    border-color: var(--accent-blue) !important;
+    box-shadow: 0 0 0 3px var(--accent-blue-light) !important;
+    outline: none !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-ta-search-field input::placeholder {
+    color: var(--gray-medium) !important;
+    font-weight: 400 !important;
+}
+
+/* Table Headers */
+[data-filament-panel-id="petugas"] .fi-ta-header-cell {
+    background: var(--gray-ultra-light) !important;
+    color: var(--gray-text) !important;
+    font-weight: 600 !important;
+    font-size: 0.75rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    padding: var(--space-md) !important;
+    border-bottom: 1px solid var(--gray-mist) !important;
+    white-space: nowrap !important;
+    font-family: var(--font-family) !important;
+}
+
+/* Table Rows */
+[data-filament-panel-id="petugas"] .fi-ta-row {
+    background: var(--white-pure) !important;
+    border-bottom: 1px solid var(--gray-ultra-light) !important;
+    transition: all var(--transition-fast) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-ta-row:hover {
+    background: var(--white-soft) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: var(--shadow-soft) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-ta-row:nth-child(even) {
+    background: var(--white-warm) !important;
+}
+
+/* Table Cells */
+[data-filament-panel-id="petugas"] .fi-ta-cell {
+    color: var(--gray-text) !important;
+    font-weight: 400 !important;
+    font-size: 0.875rem !important;
+    padding: var(--space-md) !important;
+    vertical-align: middle !important;
+    font-family: var(--font-family) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-ta-text {
+    color: var(--gray-text) !important;
+    font-weight: 400 !important;
+}
+
+/* ========================================
+   EMPTY STATE: World-Class Design
+   ======================================== */
+
+[data-filament-panel-id="petugas"] .fi-ta-empty-state {
+    padding: 4rem 2rem !important;
+    text-align: center !important;
+    background: linear-gradient(135deg, #fef3c7 0%, #ffffff 100%) !important;
+    border-radius: 12px;
+    margin: 2rem;
+}
+
+[data-filament-panel-id="petugas"] .fi-ta-empty-state-heading {
+    color: var(--text-primary) !important;
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 0.5rem !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-ta-empty-state-description {
+    color: var(--text-secondary) !important;
+    font-size: 1rem !important;
+    font-weight: 500 !important;
+    margin-bottom: 2rem !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-ta-empty-state-icon {
+    width: 80px !important;
+    height: 80px !important;
+    margin: 0 auto 2rem !important;
+    color: var(--text-accent) !important;
+    opacity: 0.8;
+}
+
+/* ========================================
+   BADGES: Healthcare Status Indicators
+   ======================================== */
+
+[data-filament-panel-id="petugas"] .fi-badge {
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    padding: 0.375rem 0.875rem !important;
+    border-radius: 9999px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.375rem !important;
+    border: 1px solid transparent !important;
+}
+
+/* Success Badge */
+[data-filament-panel-id="petugas"] .fi-badge-color-success {
+    background: rgba(5, 150, 105, 0.1) !important;
+    color: var(--status-success) !important;
+    border-color: var(--status-success) !important;
+}
+
+/* Warning Badge */
+[data-filament-panel-id="petugas"] .fi-badge-color-warning {
+    background: rgba(217, 119, 6, 0.1) !important;
+    color: var(--status-warning) !important;
+    border-color: var(--status-warning) !important;
+}
+
+/* Danger Badge */
+[data-filament-panel-id="petugas"] .fi-badge-color-danger {
+    background: rgba(220, 38, 38, 0.1) !important;
+    color: var(--status-danger) !important;
+    border-color: var(--status-danger) !important;
+}
+
+/* Info Badge */
+[data-filament-panel-id="petugas"] .fi-badge-color-info,
+[data-filament-panel-id="petugas"] .fi-badge-color-primary {
+    background: rgba(37, 99, 235, 0.1) !important;
+    color: var(--status-info) !important;
+    border-color: var(--status-info) !important;
+}
+
+/* ========================================
+   BUTTONS: Professional Medical Actions
+   ======================================== */
+
+/* Primary Button - Healthcare Style */
+[data-filament-panel-id="petugas"] .fi-btn {
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    padding: 0.75rem 1.5rem !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease !important;
+    text-transform: none !important;
+    letter-spacing: 0.01em !important;
+    color: var(--text-primary) !important;
+    border: 2px solid transparent !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-btn-primary {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+    color: white !important;
+    border-color: #d97706 !important;
+    box-shadow: 0 2px 4px rgba(217, 119, 6, 0.2) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-btn-primary:hover {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 8px rgba(217, 119, 6, 0.3) !important;
+}
+
+/* World-Class Create Button - Premium Style */
+[data-filament-panel-id="petugas"] .world-class-create-btn,
+[data-filament-panel-id="petugas"] .world-class-create-btn span,
+[data-filament-panel-id="petugas"] .world-class-create-btn * {
+    color: #000000 !important;
+}
+
+[data-filament-panel-id="petugas"] .world-class-create-btn {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%) !important;
+    color: #000000 !important;
+    font-weight: 700 !important;
+    font-size: 1.1rem !important;
+    padding: 1rem 2rem !important;
+    border-radius: 12px !important;
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4) !important;
+    border: 2px solid #d97706 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.1em !important;
+    animation: pulse-glow 2s infinite !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+[data-filament-panel-id="petugas"] .world-class-create-btn::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transform: rotate(45deg);
+    animation: shine 3s infinite;
+}
+
+[data-filament-panel-id="petugas"] .world-class-create-btn:hover,
+[data-filament-panel-id="petugas"] .world-class-create-btn:hover span,
+[data-filament-panel-id="petugas"] .world-class-create-btn:hover * {
+    color: #000000 !important;
+}
+
+[data-filament-panel-id="petugas"] .world-class-create-btn:hover {
+    transform: translateY(-3px) scale(1.05) !important;
+    box-shadow: 0 8px 30px rgba(245, 158, 11, 0.6) !important;
+    background: linear-gradient(135deg, #fcd34d 0%, #fbbf24 50%, #f59e0b 100%) !important;
+}
+
+[data-filament-panel-id="petugas"] .world-class-create-btn:active {
+    transform: translateY(-1px) scale(1.02) !important;
+}
+
+/* CRITICAL: BLACK TEXT ENFORCEMENT - Maximum Specificity */
+[data-filament-panel-id="petugas"] .fi-btn-color-warning,
+[data-filament-panel-id="petugas"] .fi-btn-color-warning span,
+[data-filament-panel-id="petugas"] .fi-btn-color-warning *,
+[data-filament-panel-id="petugas"] .fi-ac-btn-action[data-action="create"] .fi-btn,
+[data-filament-panel-id="petugas"] .fi-ac-btn-action[data-action="create"] .fi-btn span,
+[data-filament-panel-id="petugas"] .fi-ac-btn-action[data-action="create"] .fi-btn *,
+/* Filament's Primary Button Override */
+[data-filament-panel-id="petugas"] .fi-btn.fi-btn-primary,
+[data-filament-panel-id="petugas"] .fi-btn.fi-btn-primary span,
+[data-filament-panel-id="petugas"] .fi-btn.fi-btn-primary *,
+/* Color-based Overrides */
+[data-filament-panel-id="petugas"] .fi-btn[data-color="primary"],
+[data-filament-panel-id="petugas"] .fi-btn[data-color="primary"] span,
+[data-filament-panel-id="petugas"] .fi-btn[data-color="primary"] *,
+/* Universal Button Text Override */
+[data-filament-panel-id="petugas"] button,
+[data-filament-panel-id="petugas"] button span,
+[data-filament-panel-id="petugas"] button * {
+    color: #000000 !important;
+    text-shadow: none !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-btn-color-warning,
+[data-filament-panel-id="petugas"] .fi-ac-btn-action[data-action="create"] .fi-btn {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%) !important;
+    color: #000000 !important;
+    font-weight: 600 !important;
+    border: 2px solid #d97706 !important;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-btn-color-warning:hover,
+[data-filament-panel-id="petugas"] .fi-btn-color-warning:hover span,
+[data-filament-panel-id="petugas"] .fi-btn-color-warning:hover *,
+[data-filament-panel-id="petugas"] .fi-ac-btn-action[data-action="create"] .fi-btn:hover,
+[data-filament-panel-id="petugas"] .fi-ac-btn-action[data-action="create"] .fi-btn:hover span,
+[data-filament-panel-id="petugas"] .fi-ac-btn-action[data-action="create"] .fi-btn:hover *,
+/* Hover States for All Buttons */
+[data-filament-panel-id="petugas"] .fi-btn:hover,
+[data-filament-panel-id="petugas"] .fi-btn:hover span,
+[data-filament-panel-id="petugas"] .fi-btn:hover *,
+[data-filament-panel-id="petugas"] button:hover,
+[data-filament-panel-id="petugas"] button:hover span,
+[data-filament-panel-id="petugas"] button:hover * {
+    color: #000000 !important;
+    text-shadow: none !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-btn-color-warning:hover,
+[data-filament-panel-id="petugas"] .fi-ac-btn-action[data-action="create"] .fi-btn:hover {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4) !important;
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+    }
+    50% {
+        box-shadow: 0 8px 30px rgba(245, 158, 11, 0.6);
+    }
+}
+
+@keyframes shine {
+    0% {
+        transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    }
+    100% {
+        transform: translateX(100%) translateY(100%) rotate(45deg);
+    }
+}
+
+/* Action Buttons in Tables */
+[data-filament-panel-id="petugas"] .fi-ta-actions {
+    display: flex !important;
+    gap: 0.5rem !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-ta-action {
+    color: var(--text-secondary) !important;
+    transition: all 0.2s ease !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-ta-action:hover {
+    color: var(--text-accent) !important;
+    transform: scale(1.1) !important;
+}
+
+/* ========================================
+   FORMS: Medical-Grade Input Design
+   ======================================== */
+
+/* Form Sections */
+[data-filament-panel-id="petugas"] .fi-fo-section {
+    background: var(--bg-primary) !important;
+    border: 1px solid var(--border-primary) !important;
+    border-radius: 12px !important;
+    padding: 1.5rem !important;
+    margin-bottom: 1.5rem !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Form Labels */
+[data-filament-panel-id="petugas"] .fi-fo-field-wrp-label,
+[data-filament-panel-id="petugas"] label {
+    color: var(--text-primary) !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    margin-bottom: 0.5rem !important;
+    display: block !important;
+}
+
+/* Form Inputs */
+[data-filament-panel-id="petugas"] .fi-input,
+[data-filament-panel-id="petugas"] input,
+[data-filament-panel-id="petugas"] textarea,
+[data-filament-panel-id="petugas"] select {
+    background: var(--bg-primary) !important;
+    border: 2px solid var(--border-secondary) !important;
+    color: var(--text-primary) !important;
+    font-weight: 500 !important;
+    font-size: 0.95rem !important;
+    padding: 0.75rem 1rem !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease !important;
+    width: 100% !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-input:focus,
+[data-filament-panel-id="petugas"] input:focus,
+[data-filament-panel-id="petugas"] textarea:focus,
+[data-filament-panel-id="petugas"] select:focus {
+    border-color: var(--border-accent) !important;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1) !important;
+    outline: none !important;
+}
+
+/* Helper Text */
+[data-filament-panel-id="petugas"] .fi-fo-field-wrp-helper-text {
+    color: var(--text-muted) !important;
+    font-size: 0.875rem !important;
+    font-weight: 400 !important;
+    margin-top: 0.25rem !important;
+}
+
+/* ========================================
+   CARDS: Professional Healthcare Cards
+   ======================================== */
+
+[data-filament-panel-id="petugas"] .fi-wi-stats-overview-stat {
+    background: linear-gradient(135deg, #ffffff 0%, #fef3c7 100%) !important;
+    border: 2px solid var(--border-accent) !important;
+    border-radius: 12px !important;
+    padding: 1.5rem !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05) !important;
+    transition: all 0.3s ease !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-wi-stats-overview-stat:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 12px rgba(245, 158, 11, 0.15) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-wi-stats-overview-stat-value {
+    color: var(--text-primary) !important;
+    font-weight: 800 !important;
+    font-size: 2rem !important;
+    line-height: 1.2 !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-wi-stats-overview-stat-label {
+    color: var(--text-secondary) !important;
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    margin-top: 0.5rem !important;
+}
+
+/* ========================================
+   NAVIGATION: Enhanced Sidebar
+   ======================================== */
+
+[data-filament-panel-id="petugas"] .fi-sidebar {
+    background: linear-gradient(180deg, #1a1a1a 0%, #0d1117 100%) !important;
+    border-right: 1px solid #30363d !important;
+    box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item {
+    color: #d0d7de !important;
+    font-weight: 500 !important;
+    padding: 0.75rem 1rem !important;
+    border-radius: 8px !important;
+    margin: 0.25rem 0.5rem !important;
+    transition: all 0.3s ease !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #ffffff !important;
+    transform: translateX(3px) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+    color: white !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3) !important;
+}
+
+/* ========================================
+   FILTERS & SEARCH: Enhanced Controls
+   ======================================== */
+
+[data-filament-panel-id="petugas"] .fi-ta-filters {
+    background: var(--bg-secondary) !important;
+    border: 1px solid var(--border-primary) !important;
+    border-radius: 8px !important;
+    padding: 1rem !important;
+    margin-bottom: 1rem !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-ta-filter-trigger {
+    color: var(--text-primary) !important;
+    font-weight: 600 !important;
+    padding: 0.5rem 1rem !important;
+    border: 2px solid var(--border-secondary) !important;
+    border-radius: 8px !important;
+    background: var(--bg-primary) !important;
+    transition: all 0.2s ease !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-ta-filter-trigger:hover {
+    border-color: var(--border-accent) !important;
+    background: var(--bg-hover) !important;
+}
+
+/* ========================================
+   PAGINATION: Clear Navigation
+   ======================================== */
+
+[data-filament-panel-id="petugas"] .fi-ta-pagination {
+    margin-top: 1.5rem !important;
+    padding-top: 1.5rem !important;
+    border-top: 2px solid var(--border-primary) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-ta-pagination-item {
+    color: var(--text-primary) !important;
+    font-weight: 500 !important;
+    padding: 0.5rem 0.75rem !important;
+    border: 1px solid var(--border-secondary) !important;
+    border-radius: 6px !important;
+    margin: 0 0.25rem !important;
+    transition: all 0.2s ease !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-ta-pagination-item:hover {
+    background: var(--bg-hover) !important;
+    border-color: var(--border-accent) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-ta-pagination-item.fi-active {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+    color: white !important;
+    border-color: transparent !important;
+}
+
+/* ========================================
+   MODALS: Professional Overlays
+   ======================================== */
+
+[data-filament-panel-id="petugas"] .fi-modal {
+    background: rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: blur(4px) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-modal-window {
+    background: var(--bg-primary) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2) !important;
+    border: 2px solid var(--border-accent) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-modal-heading {
+    color: var(--text-primary) !important;
+    font-weight: 700 !important;
+    font-size: 1.25rem !important;
+}
+
+/* ========================================
+   NOTIFICATIONS: Healthcare Alerts
+   ======================================== */
+
+[data-filament-panel-id="petugas"] .fi-notification {
+    background: var(--bg-primary) !important;
+    border: 2px solid var(--border-accent) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-notification-title {
+    color: var(--text-primary) !important;
+    font-weight: 600 !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-notification-body {
+    color: var(--text-secondary) !important;
+    font-weight: 500 !important;
+}
+
+/* ========================================
+   TOOLTIPS: Information Display
+   ======================================== */
+
+[data-filament-panel-id="petugas"] [role="tooltip"] {
+    background: var(--text-primary) !important;
+    color: white !important;
+    font-weight: 500 !important;
+    padding: 0.5rem 0.75rem !important;
+    border-radius: 6px !important;
+    font-size: 0.875rem !important;
+}
+
+/* ========================================
+   RESPONSIVE: Mobile Optimization
+   ======================================== */
+
+@media (max-width: 768px) {
+    [data-filament-panel-id="petugas"] .fi-ta-content {
+        border-radius: 8px;
+    }
+    
+    [data-filament-panel-id="petugas"] .fi-ta-header-cell,
+    [data-filament-panel-id="petugas"] .fi-ta-cell {
+        padding: 0.75rem !important;
+        font-size: 0.875rem !important;
+    }
+    
+    [data-filament-panel-id="petugas"] h1 {
+        font-size: 1.5rem !important;
+    }
+    
+    [data-filament-panel-id="petugas"] h2 {
+        font-size: 1.25rem !important;
+    }
+}
+
+/* ========================================
+   PRINT: Medical Document Styling
+   ======================================== */
+
+@media print {
+    [data-filament-panel-id="petugas"] * {
+        color: black !important;
+        background: white !important;
+    }
+    
+    [data-filament-panel-id="petugas"] .fi-ta-row {
+        border-bottom: 1px solid #000 !important;
+    }
+}
+
+/* ========================================
+   NUCLEAR OPTION: ABSOLUTE BLACK TEXT ENFORCEMENT
+   ======================================== */
+
+/* CRITICAL: Override Filament's default button colors with maximum specificity */
+[data-filament-panel-id="petugas"] *[class*="fi-btn"],
+[data-filament-panel-id="petugas"] *[class*="fi-btn"] span,
+[data-filament-panel-id="petugas"] *[class*="fi-btn"] *,
+[data-filament-panel-id="petugas"] *[class*="button"],
+[data-filament-panel-id="petugas"] *[class*="button"] span,
+[data-filament-panel-id="petugas"] *[class*="button"] * {
+    color: #000000 !important;
+    text-shadow: none !important;
+}
+
+/* NUCLEAR: Override all possible button selectors */
+[data-filament-panel-id="petugas"] .fi-ta-header-actions *,
+[data-filament-panel-id="petugas"] .fi-header-actions *,
+[data-filament-panel-id="petugas"] .fi-ta-actions *,
+[data-filament-panel-id="petugas"] [wire\:click*="create"] *,
+[data-filament-panel-id="petugas"] [wire\:click*="mountAction"] *,
+[data-filament-panel-id="petugas"] button[type="button"] *,
+[data-filament-panel-id="petugas"] .filament-button *,
+[data-filament-panel-id="petugas"] .fi-ac-btn *,
+[data-filament-panel-id="petugas"] .fi-ac-action *,
+/* Target specific "Input Pasien" button text */
+[data-filament-panel-id="petugas"] *:contains("Input Pasien"),
+[data-filament-panel-id="petugas"] *:contains("Tambah") {
+    color: #000000 !important;
+    text-shadow: none !important;
+    -webkit-text-fill-color: #000000 !important;
+}
+
+/* ABSOLUTE: Force black text on any element that might be a button */
+[data-filament-panel-id="petugas"] [role="button"],
+[data-filament-panel-id="petugas"] [role="button"] *,
+[data-filament-panel-id="petugas"] [tabindex="0"],
+[data-filament-panel-id="petugas"] [tabindex="0"] *,
+[data-filament-panel-id="petugas"] .cursor-pointer,
+[data-filament-panel-id="petugas"] .cursor-pointer * {
+    color: #000000 !important;
+    text-shadow: none !important;
+}
+
+/* ========================================
+   ACCESSIBILITY: WCAG AAA Compliance
+   ======================================== */
+
+[data-filament-panel-id="petugas"] *:focus {
+    outline: 3px solid var(--border-accent) !important;
+    outline-offset: 2px !important;
+}
+
+[data-filament-panel-id="petugas"] [aria-label],
+[data-filament-panel-id="petugas"] [aria-describedby] {
+    position: relative;
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    [data-filament-panel-id="petugas"] {
+        --text-primary: #000000;
+        --bg-primary: #ffffff;
+        --border-primary: #000000;
+    }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    [data-filament-panel-id="petugas"] * {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+/* ========================================
+   FINAL OVERRIDE: Last Resort CSS
+   ======================================== */
+
+/* CRITICAL: Apply black text to EVERYTHING in Petugas panel */
+[data-filament-panel-id="petugas"] * {
+    color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important;
+}
+
+/* Restore specific colors only where needed */
+[data-filament-panel-id="petugas"] .fi-badge-color-success {
+    color: var(--status-success) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-badge-color-warning {
+    color: var(--status-warning) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-badge-color-danger {
+    color: var(--status-danger) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-badge-color-info,
+[data-filament-panel-id="petugas"] .fi-badge-color-primary {
+    color: var(--status-info) !important;
+}
+
+/* Keep icons and special elements with their intended colors */
+[data-filament-panel-id="petugas"] .fi-ta-empty-state-icon {
+    color: var(--text-accent) !important;
+}
+
+[data-filament-panel-id="petugas"] [role="tooltip"] {
+    color: white !important;
+}
+
+/* EXCEPTION: Active sidebar items should remain white text on colored background */
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active,
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active *,
+[data-filament-panel-id="petugas"] .fi-ta-pagination-item.fi-active,
+[data-filament-panel-id="petugas"] .fi-ta-pagination-item.fi-active * {
+    color: white !important;
+    -webkit-text-fill-color: white !important;
+}

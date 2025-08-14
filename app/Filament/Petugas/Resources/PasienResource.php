@@ -78,7 +78,7 @@ class PasienResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('📋 Data Identitas Pasien')
+                Forms\Components\Section::make('Data Identitas Pasien')
                     ->description('Masukkan data lengkap pasien. Field dengan tanda (*) wajib diisi.')
                     ->extraAttributes(['class' => 'glass-card animate-slide-up'])
                     ->schema([
@@ -124,8 +124,8 @@ class PasienResource extends Resource
                             ->label('Jenis Kelamin *')
                             ->required()
                             ->options([
-                                'L' => '👨 Laki-laki',
-                                'P' => '👩 Perempuan',
+                                'L' => 'Laki-laki',
+                                'P' => 'Perempuan',
                             ])
                             ->placeholder('Pilih jenis kelamin')
                             ->native(false)
@@ -140,7 +140,7 @@ class PasienResource extends Resource
                     ->persistCollapsed(false),
                 
                 
-                Forms\Components\Section::make('💼 Informasi Personal')
+                Forms\Components\Section::make('Informasi Personal')
                     ->description('Informasi tambahan tentang pasien.')
                     ->extraAttributes(['class' => 'glass-card animate-slide-up'])
                     ->schema([
@@ -153,10 +153,10 @@ class PasienResource extends Resource
                         Forms\Components\Select::make('status_pernikahan')
                             ->label('Status Pernikahan')
                             ->options([
-                                'belum_menikah' => '👤 Belum Menikah',
-                                'menikah' => '💑 Menikah',
-                                'janda' => '👩 Janda',
-                                'duda' => '👨 Duda',
+                                'belum_menikah' => 'Belum Menikah',
+                                'menikah' => 'Menikah',
+                                'janda' => 'Janda',
+                                'duda' => 'Duda',
                             ])
                             ->placeholder('Pilih status pernikahan')
                             ->native(false),
@@ -303,7 +303,7 @@ class PasienResource extends Resource
             ->headerActions([
                 // Primary Create Action - ALWAYS VISIBLE
                 CreateAction::make()
-                    ->label('➕ Input Pasien Baru')
+                    ->label('Input Pasien Baru')
                     ->icon('heroicon-o-plus-circle')
                     ->color('primary')
                     ->size('lg')
@@ -311,10 +311,10 @@ class PasienResource extends Resource
                     
                 // Advanced Search Action
                 Tables\Actions\Action::make('advanced_search')
-                    ->label('🔍 Pencarian Lanjutan')
+                    ->label('Pencarian Lanjutan')
                     ->icon('heroicon-o-magnifying-glass')
                     ->color('info')
-                    ->modalHeading('🔍 Pencarian Lanjutan Pasien')
+                    ->modalHeading('Pencarian Lanjutan Pasien')
                     ->modalDescription('Gunakan filter lanjutan untuk mencari pasien dengan kriteria spesifik.')
                     ->modalSubmitActionLabel('Cari')
                     ->form([
@@ -390,7 +390,7 @@ class PasienResource extends Resource
                             $results = $searchService->search(Pasien::class, $searchParams);
                             
                             Notification::make()
-                                ->title('🔍 Pencarian Berhasil')
+                                ->title('Pencarian Berhasil')
                                 ->body("Ditemukan {$results['pagination']['total']} pasien")
                                 ->success()
                                 ->send();
@@ -406,10 +406,10 @@ class PasienResource extends Resource
                 
                 // Saved Searches Action
                 Tables\Actions\Action::make('saved_searches')
-                    ->label('💾 Pencarian Tersimpan')
+                    ->label('Pencarian Tersimpan')
                     ->icon('heroicon-o-bookmark')
                     ->color('success')
-                    ->modalHeading('💾 Pencarian Tersimpan')
+                    ->modalHeading('Pencarian Tersimpan')
                     ->modalDescription('Akses pencarian yang telah disimpan sebelumnya.')
                     ->modalSubmitActionLabel('Gunakan')
                     ->form([
@@ -439,7 +439,7 @@ class PasienResource extends Resource
                                 $results = $searchService->search(Pasien::class, $selectedSearch['search_params']);
                                 
                                 Notification::make()
-                                    ->title('💾 Pencarian Berhasil')
+                                    ->title('Pencarian Berhasil')
                                     ->body("Menggunakan pencarian '{$selectedSearch['name']}' - Ditemukan {$results['pagination']['total']} pasien")
                                     ->success()
                                     ->send();
@@ -456,10 +456,10 @@ class PasienResource extends Resource
                 
                 // Import Data Action
                 Tables\Actions\Action::make('import_data')
-                    ->label('📥 Import Data')
+                    ->label('Import Data')
                     ->icon('heroicon-o-arrow-up-tray')
                     ->color('warning')
-                    ->modalHeading('📥 Import Data Pasien')
+                    ->modalHeading('Import Data Pasien')
                     ->modalDescription('Upload file Excel, CSV, atau JSON untuk mengimpor data pasien.')
                     ->modalSubmitActionLabel('Import')
                     ->form([
@@ -493,7 +493,7 @@ class PasienResource extends Resource
                                     $result = $importService->validateImportData(Pasien::class, $filePath);
                                     
                                     Notification::make()
-                                        ->title('✅ Validasi Selesai')
+                                        ->title('Validasi Selesai')
                                         ->body("Valid: {$result['valid']}, Invalid: {$result['invalid']}, Total: {$result['total']}")
                                         ->success()
                                         ->send();
@@ -501,7 +501,7 @@ class PasienResource extends Resource
                                     $result = $importService->importData(Pasien::class, $filePath, $options);
                                     
                                     Notification::make()
-                                        ->title('📥 Import Berhasil')
+                                        ->title('Import Berhasil')
                                         ->body("Berhasil import {$result['imported']} pasien, Error: {$result['errors']}")
                                         ->success()
                                         ->send();
@@ -520,20 +520,20 @@ class PasienResource extends Resource
             ->actions([
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\Action::make('create_tindakan')
-                        ->label('🏥 Buat Tindakan')
+                        ->label('Buat Tindakan')
                         ->icon('heroicon-o-plus-circle')
                         ->color('primary')
                         ->url(fn (Pasien $record): string => TindakanResource::getUrl('create', [], panel: 'petugas') . '?pasien_id=' . $record->id)
                         ->tooltip('Buat tindakan untuk pasien ini'),
                     
                     Tables\Actions\ViewAction::make()
-                        ->label('👁️ Lihat'),
+                        ->label('Lihat'),
                     Tables\Actions\EditAction::make()
-                        ->label('✏️ Edit'),
+                        ->label('Edit'),
                     Tables\Actions\DeleteAction::make()
-                        ->label('🗑️ Hapus'),
+                        ->label('Hapus'),
                 ])
-                ->label('⚙️ Aksi')
+                ->label('Aksi')
                 ->icon('heroicon-o-ellipsis-vertical')
                 ->size('sm')
                 ->color('gray')
@@ -546,7 +546,7 @@ class PasienResource extends Resource
                     
                     // Export selected patients
                     Tables\Actions\BulkAction::make('export_selected')
-                        ->label('📤 Export Terpilih')
+                        ->label('Export Terpilih')
                         ->icon('heroicon-o-arrow-up-tray')
                         ->color('info')
                         ->requiresConfirmation()
@@ -591,7 +591,7 @@ class PasienResource extends Resource
                                 
                             } catch (Exception $e) {
                                 Notification::make()
-                                    ->title('❌ Export Gagal')
+                                    ->title('Export Gagal')
                                     ->body('Terjadi kesalahan: ' . $e->getMessage())
                                     ->danger()
                                     ->send();
@@ -600,7 +600,7 @@ class PasienResource extends Resource
                     
                     // Bulk update status
                     Tables\Actions\BulkAction::make('bulk_update_status')
-                        ->label('🔄 Update Status')
+                        ->label('Update Status')
                         ->icon('heroicon-o-arrow-path')
                         ->color('warning')
                         ->requiresConfirmation()
@@ -623,7 +623,7 @@ class PasienResource extends Resource
                                 $updateData = array_filter($data);
                                 if (empty($updateData)) {
                                     Notification::make()
-                                        ->title('⚠️ Tidak Ada Data')
+                                        ->title('Tidak Ada Data')
                                         ->body('Pilih minimal satu field untuk diupdate.')
                                         ->warning()
                                         ->send();
@@ -643,7 +643,7 @@ class PasienResource extends Resource
                                 );
                                 
                                 Notification::make()
-                                    ->title('✅ Update Berhasil')
+                                    ->title('Update Berhasil')
                                     ->body("Berhasil update {$result['updated']} pasien.")
                                     ->success()
                                     ->send();
@@ -659,7 +659,7 @@ class PasienResource extends Resource
                     
                     // Bulk assign to user
                     Tables\Actions\BulkAction::make('bulk_assign')
-                        ->label('👤 Assign ke User')
+                        ->label('Assign ke User')
                         ->icon('heroicon-o-user-plus')
                         ->color('success')
                         ->requiresConfirmation()
@@ -695,7 +695,7 @@ class PasienResource extends Resource
                                 );
                                 
                                 Notification::make()
-                                    ->title('✅ Assign Berhasil')
+                                    ->title('Assign Berhasil')
                                     ->body("Berhasil assign {$result['updated']} pasien.")
                                     ->success()
                                     ->send();

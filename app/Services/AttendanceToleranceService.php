@@ -281,4 +281,50 @@ class AttendanceToleranceService
         // Could check against a holidays table or use a holiday API
         return false;
     }
+    
+    /**
+     * Check if attendance has exceeded checkout tolerance
+     * Returns true if auto-close should be triggered
+     */
+    public function hasExceededCheckoutTolerance(User $user, Carbon $checkInTime, Carbon $shiftEndTime, Carbon $currentTime = null): array
+    {
+        $currentTime = $currentTime ?? Carbon::now('Asia/Jakarta');
+        $toleranceData = $this->getCheckoutTolerance($user, $checkInTime);
+        
+        // Calculate maximum allowed checkout time
+        $lateTolerance = $toleranceData['late'] ?? 60;
+        $maxCheckoutTime = $shiftEndTime->copy()->addMinutes($lateTolerance);
+        
+        $hasExceeded = $currentTime->gt($maxCheckoutTime);
+        $exceededMinutes = $hasExceeded ? $currentTime->diffInMinutes($maxCheckoutTime) : 0;
+        
+        Log::info('Checking checkout tolerance', [
+            'user_id' => $user->id,
+            'shift_end' => $shiftEndTime->format('H:i:s'),
+            'max_checkout' => $maxCheckoutTime->format('H:i:s'),
+            'current_time' => $currentTime->format('H:i:s'),
+            'tolerance_minutes' => $lateTolerance,
+            'has_exceeded' => $hasExceeded,
+            'exceeded_by_minutes' => $exceededMinutes,
+            'tolerance_source' => $toleranceData['source']
+        ]);
+        
+        return [
+            'exceeded' => $hasExceeded,
+            'max_checkout_time' => $maxCheckoutTime,
+            'tolerance_minutes' => $lateTolerance,
+            'exceeded_minutes' => $exceededMinutes,
+            'tolerance_source' => $toleranceData['source'],
+            'tolerance_data' => $toleranceData
+        ];
+    }
+    
+    /**
+     * Calculate auto-close checkout time with penalty
+     * Returns checkout time that results in 1 minute work time
+     */
+    public function calculatePenaltyCheckoutTime(Carbon $checkInTime, int $penaltyMinutes = 1): Carbon
+    {
+        return $checkInTime->copy()->addMinutes($penaltyMinutes);
+    }
 }

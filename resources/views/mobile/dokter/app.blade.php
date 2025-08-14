@@ -1,3 +1,5 @@
+<!-- Cache Buster: 1755131313 -->
+<!-- Cache Buster: 1755087185 -->
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -9,6 +11,7 @@
     <meta name="api-token" content="{{ $token ?? (auth()->user()?->createToken('mobile-app')?->plainTextToken ?? '') }}">
     <meta name="user-id" content="{{ auth()->id() ?? '' }}">
     <meta name="user-name" content="{{ auth()->user()?->name ?? '' }}">
+    <meta name="user-email" content="{{ auth()->user()?->email ?? '' }}">
     
     <!-- ULTRA AGGRESSIVE CACHE PREVENTION -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -16,6 +19,7 @@
     <meta http-equiv="Expires" content="0">
     <meta name="build-time" content="{{ time() }}">
     <meta name="cache-bust" content="{{ md5(time() . rand()) }}">
+    <meta name="force-reload" content="{{ time() }}-{{ rand(1000, 9999) }}">
     <meta name="debug-auth" content="{{ json_encode([
         'authenticated' => auth()->check(),
         'user_id' => auth()->id(),
@@ -44,6 +48,30 @@
     
     <!-- Vite Assets with Cache Busting -->
     @vite(['resources/js/dokter-mobile-app.tsx'])
+    
+    <!-- FORCE BUNDLE REFRESH -->
+    <script>
+        // Force refresh bundle if needed
+        const bundleVersion = "{{ time() }}";
+        console.log('🚀 Bundle version:', bundleVersion);
+        
+        // Check if bundle is loaded correctly
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const scripts = document.querySelectorAll('script[src*="dokter-mobile-app"]');
+                console.log('📦 Loaded dokter bundles:', scripts.length);
+                scripts.forEach(script => {
+                    console.log('📂 Bundle:', script.src);
+                });
+                
+                if (scripts.length === 0) {
+                    console.error('❌ No dokter bundle loaded!');
+                    // Force reload
+                    window.location.reload(true);
+                }
+            }, 1000);
+        });
+    </script>
     
     <!-- FORCE NEW VERSION LOAD -->
     <script>

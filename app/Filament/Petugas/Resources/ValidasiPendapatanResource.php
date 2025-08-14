@@ -23,7 +23,7 @@ class ValidasiPendapatanResource extends Resource
     
     protected static ?string $navigationLabel = 'Validasi Pendapatan';
     
-    protected static ?string $navigationGroup = '💰 Manajemen Transaksi';
+    protected static ?string $navigationGroup = 'Keuangan';
 
     protected static ?int $navigationSort = 5;
 

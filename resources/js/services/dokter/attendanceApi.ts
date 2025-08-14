@@ -5,12 +5,18 @@ import { retryWithBackoff } from '../../utils/dokter/attendanceHelpers';
 const API_BASE = '/api/v2/dashboards/dokter';
 
 /**
- * Common headers for API requests
+ * Common headers for API requests with CSRF token
  */
-const getHeaders = () => ({
-  'Accept': 'application/json',
-  'Content-Type': 'application/json',
-});
+const getHeaders = () => {
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+  
+  return {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    'X-CSRF-TOKEN': csrfToken,
+    'X-Requested-With': 'XMLHttpRequest'
+  };
+};
 
 /**
  * Fetch user dashboard data
@@ -208,5 +214,28 @@ export const fetchAttendanceHistory = async (startDate: Date, endDate: Date) => 
   }
   
   const data = await response.json();
-  return data.data;
+  
+  // 🔍 DEBUG: Log the complete response structure
+  console.log('🔍 Complete API Response:', data);
+  
+  // Fix: Handle the correct response structure
+  if (data.success && data.data) {
+    // Return both history and today_records for comprehensive data
+    return {
+      history: data.data.history || [],
+      today_records: data.data.today_records || []
+    };
+  } else if (data.success && data.history) {
+    // Fallback: direct history property
+    return {
+      history: data.history || [],
+      today_records: data.today_records || []
+    };
+  }
+  
+  // If no valid structure found, return empty arrays
+  return {
+    history: [],
+    today_records: []
+  };
 };

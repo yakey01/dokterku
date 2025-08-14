@@ -74,28 +74,28 @@ class PetugasHeroStatsWidget extends Widget
             'patients' => [
                 'value' => $todayStats['pasien_count'],
                 'label' => 'Pasien Hari Ini',
-                'icon' => '👥',
+                'icon' => 'heroicon-o-users',
                 'trend' => $this->formatTrend($trends['pasien_count']),
                 'color' => 'blue',
             ],
             'procedures' => [
                 'value' => $todayStats['tindakan_count'],
                 'label' => 'Tindakan Selesai',
-                'icon' => '🏥',
+                'icon' => 'heroicon-o-heart',
                 'trend' => $this->formatTrend($trends['tindakan_count']),
                 'color' => 'green',
             ],
             'revenue' => [
                 'value' => 'Rp ' . number_format($todayStats['pendapatan_sum'], 0, ',', '.'),
                 'label' => 'Pendapatan',
-                'icon' => '💰',
+                'icon' => 'heroicon-o-currency-dollar',
                 'trend' => $this->formatTrend($trends['pendapatan_sum']),
                 'color' => 'emerald',
             ],
             'performance' => [
                 'value' => ($performanceMetrics['efficiency_score'] ?? 85) . '%',
                 'label' => 'Performance Score',
-                'icon' => '🎯',
+                'icon' => 'heroicon-o-target',
                 'trend' => [
                     'direction' => 'up',
                     'percentage' => 5.2,
@@ -112,7 +112,7 @@ class PetugasHeroStatsWidget extends Widget
             'patients' => [
                 'value' => 15,
                 'label' => 'Pasien Hari Ini',
-                'icon' => '👥',
+                'icon' => 'heroicon-o-users',
                 'trend' => [
                     'direction' => 'up',
                     'percentage' => 12.5,
@@ -123,7 +123,7 @@ class PetugasHeroStatsWidget extends Widget
             'procedures' => [
                 'value' => 23,
                 'label' => 'Tindakan Selesai',
-                'icon' => '🏥',
+                'icon' => 'heroicon-o-heart',
                 'trend' => [
                     'direction' => 'up',
                     'percentage' => 8.3,
@@ -134,7 +134,7 @@ class PetugasHeroStatsWidget extends Widget
             'revenue' => [
                 'value' => 'Rp ' . number_format(2750000, 0, ',', '.'),
                 'label' => 'Pendapatan',
-                'icon' => '💰',
+                'icon' => 'heroicon-o-currency-dollar',
                 'trend' => [
                     'direction' => 'up',
                     'percentage' => 15.2,
@@ -145,7 +145,7 @@ class PetugasHeroStatsWidget extends Widget
             'performance' => [
                 'value' => '87%',
                 'label' => 'Performance Score',
-                'icon' => '🎯',
+                'icon' => 'heroicon-o-target',
                 'trend' => [
                     'direction' => 'up',
                     'percentage' => 5.2,
@@ -202,28 +202,28 @@ class PetugasHeroStatsWidget extends Widget
                 'patients' => [
                     'value' => 0,
                     'label' => 'Pasien Hari Ini',
-                    'icon' => '👥',
+                    'icon' => 'heroicon-o-users',
                     'trend' => ['direction' => 'stable', 'percentage' => 0, 'description' => 'Tidak ada data'],
                     'color' => 'blue',
                 ],
                 'procedures' => [
                     'value' => 0,
                     'label' => 'Tindakan Selesai',
-                    'icon' => '🏥',
+                    'icon' => 'heroicon-o-heart',
                     'trend' => ['direction' => 'stable', 'percentage' => 0, 'description' => 'Tidak ada data'],
                     'color' => 'green',
                 ],
                 'revenue' => [
                     'value' => 'Rp 0',
                     'label' => 'Pendapatan',
-                    'icon' => '💰',
+                    'icon' => 'heroicon-o-currency-dollar',
                     'trend' => ['direction' => 'stable', 'percentage' => 0, 'description' => 'Tidak ada data'],
                     'color' => 'emerald',
                 ],
                 'performance' => [
                     'value' => '0%',
                     'label' => 'Performance Score',
-                    'icon' => '🎯',
+                    'icon' => 'heroicon-o-target',
                     'trend' => ['direction' => 'stable', 'percentage' => 0, 'description' => 'Tidak ada data'],
                     'color' => 'purple',
                 ],

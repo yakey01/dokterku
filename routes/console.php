@@ -21,3 +21,12 @@ Schedule::command('system:collect-metrics --cleanup --days=30')
     ->sundays()
     ->at('02:00')
     ->appendOutputTo(storage_path('logs/system-metrics-cleanup.log'));
+
+// Schedule auto-close attendance based on tolerance
+// Runs every 5 minutes to check for attendance records that exceeded checkout tolerance
+Schedule::command('attendance:auto-close')
+    ->everyFiveMinutes()
+    ->withoutOverlapping()
+    ->runInBackground()
+    ->appendOutputTo(storage_path('logs/attendance-auto-close.log'))
+    ->description('Auto-close attendance records that exceeded checkout tolerance with 1 minute penalty');

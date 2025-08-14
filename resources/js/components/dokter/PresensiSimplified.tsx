@@ -2,7 +2,7 @@
 // Original: ~3,500 lines → Simplified: ~500 lines
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Calendar, Clock, User, Home, Wifi, History, TrendingUp, FileText } from 'lucide-react';
+import { Calendar, Clock, User, Home, Wifi, History, TrendingUp, FileText, Shield, Trophy, Star, AlertCircle, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import DynamicMap from './DynamicMap';
 import { AttendanceCard } from './AttendanceCard';
 import { useGPSLocation, useGPSAvailability, useGPSPermission } from '../../hooks/useGPSLocation';
@@ -10,6 +10,7 @@ import { GPSStrategy } from '../../utils/GPSManager';
 import { useAttendanceStatus } from '../../hooks/useAttendanceStatus';
 import * as api from '../../services/dokter/attendanceApi';
 import { formatTime, formatDate, calculateWorkingHours } from '../../utils/dokter/attendanceHelpers';
+import { safeGet } from '../../utils/SafeObjectAccess';
 import '../../../css/map-styles.css';
 
 const PresensiSimplified: React.FC = () => {
@@ -60,6 +61,9 @@ const PresensiSimplified: React.FC = () => {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
+  const [filterPeriod, setFilterPeriod] = useState('weekly');
+  
+
   
   // Clock Update
   useEffect(() => {
@@ -205,10 +209,98 @@ const PresensiSimplified: React.FC = () => {
     try {
       const endDate = new Date();
       const startDate = new Date();
-      startDate.setDate(startDate.getDate() - 30); // Last 30 days
+      // ✅ ENHANCED: Request 90 days of history instead of just 30
+      startDate.setDate(startDate.getDate() - 90);
       
-      const history = await api.fetchAttendanceHistory(startDate, endDate);
-      setAttendanceHistory(Array.isArray(history) ? history : []);
+      console.log('🔍 Requesting history from:', startDate.toISOString().split('T')[0], 'to:', endDate.toISOString().split('T')[0]);
+      
+      const historyData = await api.fetchAttendanceHistory(startDate, endDate);
+      
+      // 🔍 DEBUG: Log the received data
+      console.log('🔍 Attendance History Data Received:', historyData);
+      
+      // CRITICAL FIX: Handle both history array and today_records
+      let allRecords: any[] = [];
+      
+      if (Array.isArray(historyData)) {
+        allRecords = [...historyData];
+      } else if (historyData && typeof historyData === 'object') {
+        // If it's an object with history and today_records properties
+        const history = historyData.history || [];
+        const todayRecords = historyData.today_records || [];
+        
+        allRecords = [...history];
+        
+        // Add today's records if they're not already in history
+        const todayDate = new Date().toISOString().split('T')[0];
+        todayRecords.forEach((todayRecord: any) => {
+          const existsInHistory = history.some((h: any) => h.id === todayRecord.id);
+          if (!existsInHistory && todayRecord.time_in) {
+            // Convert today_record format to history format
+            const historyRecord = {
+              ...todayRecord,
+              date: todayRecord.date || todayDate
+            };
+            allRecords.push(historyRecord);
+          }
+        });
+      }
+      
+      console.log('🔍 Raw records count:', allRecords.length);
+      
+      // ✅ ENHANCED: Process records to ensure shift_info is properly structured
+      const processedRecords = allRecords.map((record: any) => {
+        // Ensure date is properly formatted
+        if (record.date) {
+          record.date = typeof record.date === 'string' ? record.date : new Date(record.date).toISOString().split('T')[0];
+        }
+        
+        // ✅ ENHANCED: Better shift_info handling
+        if (record.shift_info) {
+          // Ensure all required fields are present
+          record.shift_info = {
+            shift_name: record.shift_info.shift_name || 'Shift Jaga',
+            shift_start: record.shift_info.shift_start || record.shift_info.jam_masuk || '--:--',
+            shift_end: record.shift_info.shift_end || record.shift_info.jam_pulang || '--:--',
+            shift_duration: record.shift_info.shift_duration || '8j 0m',
+            jam_jaga: record.shift_info.jam_jaga || 
+                      `${record.shift_info.shift_start || '08:00'} - ${record.shift_info.shift_end || '16:00'}`,
+            unit_kerja: record.shift_info.unit_kerja || 'Dokter Jaga',
+            peran: record.shift_info.peran || 'Dokter',
+            status_jaga: record.shift_info.status_jaga || 'Aktif',
+            is_custom_schedule: record.shift_info.is_custom_schedule || false,
+            custom_reason: record.shift_info.custom_reason || null,
+            is_time_mismatch: record.shift_info.is_time_mismatch || false,
+            actual_attendance_time: record.shift_info.actual_attendance_time || record.time_in || '--:--'
+          };
+        } else {
+          // ✅ ENHANCED: Create comprehensive fallback shift_info
+          record.shift_info = {
+            shift_name: record.mission_info?.mission_title || 'Shift Default',
+            shift_start: record.shift_start || record.mission_info?.scheduled_time?.split(' - ')[0] || '08:00',
+            shift_end: record.shift_end || record.mission_info?.scheduled_time?.split(' - ')[1] || '16:00',
+            shift_duration: record.shift_duration || record.mission_info?.shift_duration || '8j 0m',
+            jam_jaga: record.shift_start && record.shift_end 
+              ? `${record.shift_start} - ${record.shift_end}`
+              : record.mission_info?.scheduled_time || '08:00 - 16:00',
+            unit_kerja: record.mission_info?.mission_subtitle || 'Dokter Jaga',
+            peran: 'Dokter',
+            status_jaga: 'Aktif',
+            is_custom_schedule: false,
+            custom_reason: null,
+            is_time_mismatch: false,
+            actual_attendance_time: record.time_in || '--:--'
+          };
+        }
+        
+        return record;
+      });
+      
+      console.log('🔍 Total records to display:', processedRecords.length);
+      console.log('🔍 Sample Record:', processedRecords[0]);
+      console.log('🔍 Shift Info in Sample:', safeGet(processedRecords[0], 'shift_info'));
+      
+      setAttendanceHistory(processedRecords);
     } catch (error) {
       console.error('Failed to load history:', error);
       setAttendanceHistory([]);
@@ -219,10 +311,11 @@ const PresensiSimplified: React.FC = () => {
   
   // Load history when tab changes
   useEffect(() => {
-    if (activeTab === 'history' && attendanceHistory.length === 0) {
+    if (activeTab === 'history') {
+      // Always load history when history tab is opened, even if data exists
       loadHistory();
     }
-  }, [activeTab]);
+  }, [activeTab, loadHistory]);
   
   // Paginated history
   const paginatedHistory = useMemo(() => {
@@ -244,17 +337,19 @@ const PresensiSimplified: React.FC = () => {
                   lng: gpsLocation.longitude,
                   accuracy: gpsAccuracy || 10
                 } : null}
-                workLocation={scheduleData.workLocation ? {
+                hospitalLocation={scheduleData.workLocation ? {
                   lat: scheduleData.workLocation.latitude,
                   lng: scheduleData.workLocation.longitude,
                   radius: scheduleData.workLocation.radius,
-                  name: scheduleData.workLocation.name
+                  name: scheduleData.workLocation.name,
+                  address: scheduleData.workLocation.name
                 } : {
                   // Default location (RS. Kediri Medical Center)
                   lat: -7.848016,
                   lng: 112.017829,
                   radius: 100,
-                  name: 'RS. Kediri Medical Center'
+                  name: 'RS. Kediri Medical Center',
+                  address: 'RS. Kediri Medical Center'
                 }}
               />
             </div>
@@ -280,55 +375,172 @@ const PresensiSimplified: React.FC = () => {
         
       case 'history':
         return (
-          <div className="bg-gradient-to-br from-slate-800/60 via-slate-700/60 to-slate-800/60 backdrop-blur-xl rounded-2xl p-6 border border-cyan-400/30">
-            <h2 className="text-xl font-bold text-white mb-4">Riwayat Presensi</h2>
+          <div className="space-y-6">
+            {/* Header dengan Filter */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+              <h3 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                Riwayat Presensi
+              </h3>
+              <div className="flex items-center space-x-2">
+                <Filter className="w-3 h-3 sm:w-4 sm:h-4 text-purple-300" />
+                <select 
+                  value={filterPeriod}
+                  onChange={(e) => {
+                    setFilterPeriod(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg sm:rounded-xl px-2 sm:px-3 py-1 text-xs sm:text-sm text-white focus:outline-none focus:border-purple-400"
+                >
+                  <option value="weekly" className="bg-gray-800">7 Hari</option>
+                  <option value="monthly" className="bg-gray-800">30 Hari</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Gaming Stats Dashboard */}
+            {attendanceHistory.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {/* Total Missions */}
+                <div className="bg-gradient-to-br from-blue-600/30 to-blue-800/30 backdrop-blur-xl rounded-xl p-3 border border-blue-400/20">
+                  <div className="flex items-center justify-between mb-1">
+                    <Clock className="w-5 h-5 text-blue-400" />
+                    <span className="text-xl font-bold text-white">{attendanceHistory.length}</span>
+                  </div>
+                  <p className="text-blue-300 text-xs">Total Missions</p>
+                </div>
+                
+                {/* Perfect Rate */}
+                <div className="bg-gradient-to-br from-green-600/30 to-green-800/30 backdrop-blur-xl rounded-xl p-3 border border-green-400/20">
+                  <div className="flex items-center justify-between mb-1">
+                    <Trophy className="w-5 h-5 text-green-400" />
+                    <span className="text-xl font-bold text-white">
+                      {Math.round((attendanceHistory.filter(r => r.status === 'perfect' || r.status === 'good').length / attendanceHistory.length) * 100)}%
+                    </span>
+                  </div>
+                  <p className="text-green-300 text-xs">Success Rate</p>
+                </div>
+                
+                {/* Total XP */}
+                <div className="bg-gradient-to-br from-amber-600/30 to-amber-800/30 backdrop-blur-xl rounded-xl p-3 border border-amber-400/20">
+                  <div className="flex items-center justify-between mb-1">
+                    <Star className="w-5 h-5 text-amber-400" />
+                    <span className="text-xl font-bold text-white">
+                      {attendanceHistory.reduce((sum, r) => sum + (r.points_earned || 0), 0)}
+                    </span>
+                  </div>
+                  <p className="text-amber-300 text-xs">Total XP</p>
+                </div>
+                
+                {/* Streak */}
+                <div className="bg-gradient-to-br from-purple-600/30 to-purple-800/30 backdrop-blur-xl rounded-xl p-3 border border-purple-400/20">
+                  <div className="flex items-center justify-between mb-1">
+                    <TrendingUp className="w-5 h-5 text-purple-400" />
+                    <span className="text-xl font-bold text-white">
+                      {attendanceHistory.filter(r => r.status === 'perfect').length}
+                    </span>
+                  </div>
+                  <p className="text-purple-300 text-xs">Perfect Streak</p>
+                </div>
+              </div>
+            )}
             
             {historyLoading ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto"></div>
+                <p className="text-gray-400 mt-2">Memuat riwayat presensi...</p>
+              </div>
+            ) : attendanceHistory.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="text-gray-400 text-lg mb-2">📋</div>
+                <p className="text-gray-400">Belum ada riwayat presensi</p>
+                <p className="text-gray-500 text-sm mt-1">Riwayat akan muncul setelah Anda melakukan check-in/check-out</p>
               </div>
             ) : (
-              <div className="space-y-3">
-                {paginatedHistory.map((record, index) => (
-                  <div key={index} className="bg-slate-900/40 rounded-lg p-4 border border-purple-500/20">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className="text-white font-semibold">{formatDate(record.date)}</div>
-                        <div className="text-cyan-300 text-sm mt-1">
-                          Check-in: {record.time_in || '--:--'} | Check-out: {record.time_out || '--:--'}
+              <div className="space-y-4">
+                {paginatedHistory.map((record, index) => {
+                  // Format data sesuai script user
+                  // Format: DD-MM-YY (contoh: 13-08-25)
+                  const dateObj = new Date(record.date);
+                  const day = String(dateObj.getDate()).padStart(2, '0');
+                  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                  const year = String(dateObj.getFullYear()).slice(-2);
+                  const formattedDate = `${day}-${month}-${year}`;
+                  
+                  const shiftTime = record.mission_info?.scheduled_time || '08:00-16:00';
+                  
+                  const checkInTime = record.check_in_time ? 
+                    new Date(record.check_in_time).toLocaleTimeString('id-ID', {hour: '2-digit', minute: '2-digit'}) :
+                    record.actual_check_in || record.time_in || '--:--';
+                    
+                  const checkOutTime = record.check_out_time ? 
+                    new Date(record.check_out_time).toLocaleTimeString('id-ID', {hour: '2-digit', minute: '2-digit'}) :
+                    record.actual_check_out || record.time_out || '--:--';
+                  
+                  const duration = record.working_duration || '8h 0m';
+                  
+                  const status = record.status === 'perfect' || record.status === 'good' || record.status_legacy === 'present' ? 'Hadir' : 
+                              record.status_legacy === 'late' ? 'Terlambat' : 'Tidak Hadir';
+                  
+                  // ✅ SOPHISTICATED: Use calculated shortage from backend (multiple field support)
+                  const shortageMinutes = record.shortage_minutes || record.shortfall_minutes || 0;
+                  
+                  return (
+                    <div key={index} className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 sm:p-5 border border-white/20 relative">
+                      {/* Gaming accent line di pojok kiri atas */}
+                      <div className="absolute top-0 left-0 w-12 sm:w-16 h-1 bg-gradient-to-r from-cyan-500/60 to-purple-500/60 rounded-tr-2xl"></div>
+                      
+                      {/* Emoji badge di pojok kanan atas */}
+                      <div className="absolute -top-1 sm:-top-2 -right-1 sm:-right-2 w-6 h-6 sm:w-8 sm:h-8 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center border-2 border-white/30 shadow-lg">
+                        <span className="text-sm sm:text-lg">
+                          {shortageMinutes === 0 ? '👍' : '👎'}
+                        </span>
+                      </div>
+                      
+                      {/* Header dengan tanggal, jam jaga dan status */}
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4 mb-4">
+                        <div className="flex items-center space-x-2 sm:space-x-3 flex-wrap">
+                          <div className="text-white font-bold text-base sm:text-lg">{formattedDate}</div>
+                          <span className="text-xs px-2 py-1 rounded-lg font-medium bg-orange-500/20 text-orange-400 whitespace-nowrap">
+                            {shiftTime}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className={`text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-lg font-medium ${
+                            status === 'Hadir' ? 'bg-green-500/20 text-green-400' :
+                            status === 'Terlambat' ? 'bg-yellow-500/20 text-yellow-400' :
+                            'bg-red-500/20 text-red-400'
+                          }`}>
+                            {status}
+                          </span>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-purple-400 text-sm">{record.status || 'Hadir'}</div>
-                        <div className="text-gray-400 text-xs mt-1">
-                          {calculateWorkingHours(
-                            record.time_in ? new Date(record.date + ' ' + record.time_in) : null,
-                            record.time_out ? new Date(record.date + ' ' + record.time_out) : null
-                          )}
+
+                      {/* Detail informasi dalam grid responsive */}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-xs sm:text-sm">
+                        <div className="text-center">
+                          <span className="text-gray-400 block mb-1">Masuk:</span>
+                          <span className="text-white font-semibold text-sm sm:text-base">{checkInTime}</span>
+                        </div>
+                        <div className="text-center">
+                          <span className="text-gray-400 block mb-1">Keluar:</span>
+                          <span className="text-white font-semibold text-sm sm:text-base">{checkOutTime}</span>
+                        </div>
+                        <div className="text-center">
+                          <span className="text-gray-400 block mb-1">Durasi:</span>
+                          <span className="text-white font-semibold text-sm sm:text-base">{duration}</span>
+                        </div>
+                        <div className="text-center">
+                          <span className="text-gray-400 block mb-1">Kekurangan:</span>
+                          <span className={`font-semibold text-xs sm:text-sm ${
+                            shortageMinutes === 0 ? 'text-green-400' : 'text-red-400'
+                          }`}>
+                            {shortageMinutes} menit
+                          </span>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-                
-                {/* Pagination */}
-                {attendanceHistory.length > itemsPerPage && (
-                  <div className="flex justify-center space-x-2 mt-4">
-                    {Array.from({ length: Math.ceil(attendanceHistory.length / itemsPerPage) }, (_, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setCurrentPage(i + 1)}
-                        className={`px-3 py-1 rounded ${
-                          currentPage === i + 1
-                            ? 'bg-cyan-500 text-white'
-                            : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
-                        }`}
-                      >
-                        {i + 1}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                  );
+                })}
               </div>
             )}
           </div>

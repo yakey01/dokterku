@@ -1,0 +1,479 @@
+/* World-Class CRUD UI/UX Enhancements */
+/* Based on Top 10 UI/UX Trends 2024-2025 */
+
+:root {
+    --spatial-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    --spatial-hover: 0 30px 60px rgba(0, 0, 0, 0.15);
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --neu-light: #ffffff;
+    --neu-dark: #e0e5ec;
+    --neu-shadow: 9px 9px 16px #a3b1c6, -9px -9px 16px #ffffff;
+    --neu-inset: inset 9px 9px 16px #a3b1c6, inset -9px -9px 16px #ffffff;
+}
+
+/* 1. SPATIAL DESIGN - 3D Table Effects */
+[data-filament-panel-id="petugas"] .fi-ta-table {
+    transform-style: preserve-3d;
+    perspective: 1000px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: var(--spatial-shadow);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-filament-panel-id="petugas"] .fi-ta-table:hover {
+    transform: rotateX(2deg) translateY(-5px);
+    box-shadow: var(--spatial-hover);
+}
+
+/* 2. MODERN SKEUOMORPHISM - Form Inputs */
+[data-filament-panel-id="petugas"] .fi-input,
+[data-filament-panel-id="petugas"] .fi-select-input,
+[data-filament-panel-id="petugas"] .fi-textarea-input {
+    background: var(--neu-dark) !important;
+    border: none !important;
+    border-radius: 15px !important;
+    padding: 12px 20px !important;
+    box-shadow: var(--neu-inset) !important;
+    transition: all 0.3s ease !important;
+    font-weight: 500 !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-input:focus,
+[data-filament-panel-id="petugas"] .fi-select-input:focus,
+[data-filament-panel-id="petugas"] .fi-textarea-input:focus {
+    box-shadow: inset 12px 12px 20px #a3b1c6, 
+                inset -12px -12px 20px #ffffff !important;
+    outline: none !important;
+    transform: scale(1.02);
+}
+
+/* 3. AI-DRIVEN PERSONALIZATION - Smart Suggestions */
+.ai-suggestion-box {
+    position: relative;
+    padding: 12px;
+    margin: 8px 0;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+    border-left: 3px solid;
+    border-image: linear-gradient(135deg, #667eea, #764ba2) 1;
+    border-radius: 8px;
+    animation: aiPulse 3s ease infinite;
+}
+
+@keyframes aiPulse {
+    0%, 100% { opacity: 0.8; }
+    50% { opacity: 1; }
+}
+
+.ai-suggestion-box::before {
+    content: '✨ AI Suggestion';
+    position: absolute;
+    top: -8px;
+    left: 12px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+/* 4. MICRO-INTERACTIONS - Buttons */
+[data-filament-panel-id="petugas"] .fi-btn {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    border-radius: 12px !important;
+    font-weight: 600 !important;
+    text-transform: none !important;
+    letter-spacing: 0.5px;
+}
+
+[data-filament-panel-id="petugas"] .fi-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+[data-filament-panel-id="petugas"] .fi-btn:active::before {
+    width: 300px;
+    height: 300px;
+}
+
+[data-filament-panel-id="petugas"] .fi-btn:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+}
+
+/* Primary Button Special Effect */
+[data-filament-panel-id="petugas"] .fi-btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    border: none !important;
+    color: white !important;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+[data-filament-panel-id="petugas"] .fi-btn-primary:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+/* 5. NEUMORPHISM - Cards and Panels */
+[data-filament-panel-id="petugas"] .fi-section,
+[data-filament-panel-id="petugas"] .fi-card {
+    background: var(--neu-dark) !important;
+    border-radius: 20px !important;
+    padding: 24px !important;
+    box-shadow: var(--neu-shadow) !important;
+    border: none !important;
+    transition: all 0.3s ease !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-section:hover,
+[data-filament-panel-id="petugas"] .fi-card:hover {
+    box-shadow: 12px 12px 20px #a3b1c6, 
+                -12px -12px 20px #ffffff !important;
+}
+
+/* 6. BENTO GRID - Table Layout */
+[data-filament-panel-id="petugas"] .fi-ta-content {
+    display: grid;
+    gap: 16px;
+    padding: 16px;
+}
+
+/* Enhanced Table Rows */
+[data-filament-panel-id="petugas"] .fi-ta-row {
+    background: linear-gradient(145deg, #ffffff, #f3f4f6);
+    border-radius: 12px !important;
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+[data-filament-panel-id="petugas"] .fi-ta-row:hover {
+    transform: translateX(8px);
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    background: linear-gradient(145deg, #f3f4f6, #ffffff);
+}
+
+/* 7. GLASSMORPHISM 2.0 - Modal and Overlays */
+[data-filament-panel-id="petugas"] .fi-modal-window {
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border-radius: 24px !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2) !important;
+}
+
+/* 8. DARK/LIGHT MODE - Toggle Switch */
+.theme-toggle {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 60px;
+    height: 30px;
+    background: var(--neu-dark);
+    border-radius: 50px;
+    box-shadow: var(--neu-inset);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.theme-toggle::after {
+    content: '☀️';
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: white;
+    top: 2px;
+    left: 2px;
+    box-shadow: var(--neu-shadow);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+.theme-toggle.dark::after {
+    content: '🌙';
+    left: 32px;
+    background: #1f2937;
+}
+
+/* 9. DATA VISUALIZATION - Enhanced Stats */
+[data-filament-panel-id="petugas"] .fi-stats-card {
+    background: linear-gradient(145deg, #ffffff, #f0f0f0);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: var(--neu-shadow);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+[data-filament-panel-id="petugas"] .fi-stats-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    opacity: 0.05;
+    transform: rotate(45deg);
+}
+
+[data-filament-panel-id="petugas"] .fi-stats-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 15px 30px rgba(102, 126, 234, 0.2);
+}
+
+/* 10. VARIABLE TYPOGRAPHY - Dynamic Font Weights */
+[data-filament-panel-id="petugas"] h1,
+[data-filament-panel-id="petugas"] .fi-header-heading {
+    font-weight: 800 !important;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: clamp(1.5rem, 3vw, 2.5rem);
+}
+
+[data-filament-panel-id="petugas"] h2,
+[data-filament-panel-id="petugas"] .fi-section-heading {
+    font-weight: 700 !important;
+    color: #1f2937;
+    font-size: clamp(1.25rem, 2.5vw, 1.875rem);
+}
+
+[data-filament-panel-id="petugas"] .fi-ta-header-cell {
+    font-weight: 600 !important;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+/* Enhanced Form Layout */
+[data-filament-panel-id="petugas"] .fi-form {
+    display: grid;
+    gap: 24px;
+}
+
+[data-filament-panel-id="petugas"] .fi-form-field {
+    position: relative;
+    animation: slideInUp 0.5s ease forwards;
+    opacity: 0;
+}
+
+[data-filament-panel-id="petugas"] .fi-form-field:nth-child(1) { animation-delay: 0.1s; }
+[data-filament-panel-id="petugas"] .fi-form-field:nth-child(2) { animation-delay: 0.2s; }
+[data-filament-panel-id="petugas"] .fi-form-field:nth-child(3) { animation-delay: 0.3s; }
+[data-filament-panel-id="petugas"] .fi-form-field:nth-child(4) { animation-delay: 0.4s; }
+[data-filament-panel-id="petugas"] .fi-form-field:nth-child(5) { animation-delay: 0.5s; }
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Enhanced Labels */
+[data-filament-panel-id="petugas"] .fi-field-label {
+    font-weight: 600 !important;
+    color: #374151 !important;
+    margin-bottom: 8px !important;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+[data-filament-panel-id="petugas"] .fi-field-label::before {
+    content: '';
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Success/Error States */
+[data-filament-panel-id="petugas"] .fi-input-error {
+    border: 2px solid #ef4444 !important;
+    animation: shake 0.3s ease;
+}
+
+[data-filament-panel-id="petugas"] .fi-input-success {
+    border: 2px solid #22c55e !important;
+    animation: success-pulse 0.5s ease;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+@keyframes success-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+/* Loading States */
+.loading-skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Floating Labels */
+[data-filament-panel-id="petugas"] .fi-field-wrapper {
+    position: relative;
+}
+
+[data-filament-panel-id="petugas"] .floating-label {
+    position: absolute;
+    top: 12px;
+    left: 20px;
+    transition: all 0.3s ease;
+    pointer-events: none;
+    color: #6b7280;
+}
+
+[data-filament-panel-id="petugas"] .fi-input:focus ~ .floating-label,
+[data-filament-panel-id="petugas"] .fi-input:not(:placeholder-shown) ~ .floating-label {
+    top: -8px;
+    left: 16px;
+    font-size: 12px;
+    color: #667eea;
+    background: white;
+    padding: 0 4px;
+}
+
+/* Enhanced Tooltips */
+[data-filament-panel-id="petugas"] [data-tooltip] {
+    position: relative;
+}
+
+[data-filament-panel-id="petugas"] [data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    padding: 8px 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 8px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s ease;
+}
+
+[data-filament-panel-id="petugas"] [data-tooltip]:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-12px);
+}
+
+/* Progress Indicators */
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--neu-dark);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: var(--neu-inset);
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+}
+
+/* Enhanced Pagination */
+[data-filament-panel-id="petugas"] .fi-pagination {
+    display: flex;
+    gap: 8px;
+    padding: 16px;
+    justify-content: center;
+}
+
+[data-filament-panel-id="petugas"] .fi-pagination-item {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: var(--neu-dark);
+    box-shadow: var(--neu-shadow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+[data-filament-panel-id="petugas"] .fi-pagination-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+[data-filament-panel-id="petugas"] .fi-pagination-item.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+/* Dark Mode Overrides */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --neu-dark: #1f2937;
+        --neu-light: #374151;
+        --neu-shadow: 5px 5px 10px #0a0a0a, -5px -5px 10px #2a2a2a;
+        --neu-inset: inset 5px 5px 10px #0a0a0a, inset -5px -5px 10px #2a2a2a;
+        --glass-bg: rgba(30, 30, 30, 0.7);
+    }
+    
+    [data-filament-panel-id="petugas"] .fi-section,
+    [data-filament-panel-id="petugas"] .fi-card {
+        background: var(--neu-dark) !important;
+        color: #e5e7eb !important;
+    }
+    
+    [data-filament-panel-id="petugas"] .fi-ta-row {
+        background: linear-gradient(145deg, #1f2937, #111827);
+    }
+    
+    [data-filament-panel-id="petugas"] h2,
+    [data-filament-panel-id="petugas"] .fi-section-heading {
+        color: #e5e7eb;
+    }
+}

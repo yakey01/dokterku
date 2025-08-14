@@ -35,7 +35,7 @@
     }
 
     /* ===================================
-       2. BASE STYLES & TYPOGRAPHY
+       2. BASE STYLES & TYPOGRAPHY - ENHANCED READABILITY
     =================================== */
     body {
         font-family: var(--font-sans);
@@ -44,12 +44,41 @@
         -moz-osx-font-smoothing: grayscale;
     }
     
+    /* CRITICAL: Force BLACK text for maximum readability */
+    [data-filament-panel-id="petugas"] * {
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+        text-shadow: none !important;
+    }
+    
+    /* NUCLEAR OPTION: Override ALL button text */
+    [data-filament-panel-id="petugas"] button,
+    [data-filament-panel-id="petugas"] button *,
+    [data-filament-panel-id="petugas"] .fi-btn,
+    [data-filament-panel-id="petugas"] .fi-btn *,
+    [data-filament-panel-id="petugas"] [class*="btn"],
+    [data-filament-panel-id="petugas"] [class*="btn"] *,
+    [data-filament-panel-id="petugas"] [role="button"],
+    [data-filament-panel-id="petugas"] [role="button"] * {
+        color: #000000 !important;
+        -webkit-text-fill-color: #000000 !important;
+        text-shadow: none !important;
+    }
+    
+    [data-filament-panel-id="petugas"] .text-gray-500,
+    [data-filament-panel-id="petugas"] .text-gray-600,
+    [data-filament-panel-id="petugas"] .text-gray-700 {
+        color: #1f2937 !important;
+        font-weight: 500 !important;
+    }
+    
     h1, h2, h3, h4, h5, h6,
     .fi-header-heading,
     .fi-modal-heading {
         font-family: var(--font-display) !important;
         font-weight: 700 !important;
         letter-spacing: -0.02em;
+        color: #000000 !important;
     }
 
     /* ===================================
@@ -77,61 +106,83 @@
     }
 
     /* ===================================
-       4. ENHANCED TABLES
+       4. ENHANCED TABLES - WORLD-CLASS CRUD
     =================================== */
     
     /* Table Container */
-    .fi-ta-table-wrp {
-        background: var(--glass-white) !important;
+    [data-filament-panel-id="petugas"] .fi-ta-content,
+    [data-filament-panel-id="petugas"] .fi-ta-table-wrp {
+        background: #ffffff !important;
         backdrop-filter: blur(12px) !important;
         border-radius: 16px !important;
-        box-shadow: var(--glass-shadow) !important;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08) !important;
         overflow: hidden !important;
-        border: 1px solid var(--glass-border) !important;
+        border: 2px solid #f59e0b !important;
     }
     
-    /* Table Header */
-    .fi-ta-header-cell {
-        background: linear-gradient(135deg, 
-            rgba(59, 130, 246, 0.1) 0%, 
-            rgba(16, 185, 129, 0.05) 100%) !important;
-        backdrop-filter: blur(10px) !important;
-        border-bottom: 2px solid var(--medical-blue) !important;
-        font-weight: 600 !important;
+    /* Table Header - Premium Healthcare Style */
+    [data-filament-panel-id="petugas"] .fi-ta-header-cell {
+        background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%) !important;
+        border-bottom: 3px solid #f59e0b !important;
+        font-weight: 700 !important;
         text-transform: uppercase !important;
-        letter-spacing: 0.05em !important;
-        color: var(--medical-blue) !important;
-        padding: 1rem 1.25rem !important;
+        letter-spacing: 0.08em !important;
+        color: #000000 !important;
+        padding: 1.25rem 1.5rem !important;
+        font-size: 0.875rem !important;
         position: sticky;
         top: 0;
         z-index: 10;
     }
     
-    /* Table Rows */
-    .fi-ta-row {
-        transition: all var(--transition-fast) !important;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+    /* Table Rows - Enhanced Contrast */
+    [data-filament-panel-id="petugas"] .fi-ta-row {
+        background: #ffffff !important;
+        transition: all 0.2s ease !important;
+        border-bottom: 1px solid #e5e7eb !important;
     }
     
-    .fi-ta-row:hover {
-        background: linear-gradient(90deg, 
-            rgba(59, 130, 246, 0.05) 0%, 
-            rgba(16, 185, 129, 0.03) 100%) !important;
+    [data-filament-panel-id="petugas"] .fi-ta-row:nth-child(even) {
+        background: #fffbf5 !important;
+    }
+    
+    [data-filament-panel-id="petugas"] .fi-ta-row:hover {
+        background: linear-gradient(90deg, #fef3c7 0%, #fed7aa 100%) !important;
         transform: translateX(4px);
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+        box-shadow: 0 4px 16px rgba(245, 158, 11, 0.2);
     }
     
-    /* Table Cells */
-    .fi-ta-cell {
-        padding: 1rem 1.25rem !important;
-    }
-    
-    /* Make No. RM stand out */
-    .fi-ta-text[data-column="no_rekam_medis"] {
-        font-family: 'Monaco', 'Courier New', monospace !important;
-        font-weight: 600 !important;
-        color: var(--medical-blue) !important;
+    /* Table Cells - Maximum Readability */
+    [data-filament-panel-id="petugas"] .fi-ta-cell {
+        padding: 1.25rem 1.5rem !important;
+        color: #000000 !important;
+        font-weight: 500 !important;
         font-size: 0.95rem !important;
+    }
+    
+    [data-filament-panel-id="petugas"] .fi-ta-text {
+        color: #000000 !important;
+        font-weight: 500 !important;
+    }
+    
+    /* Empty State - Professional Design */
+    [data-filament-panel-id="petugas"] .fi-ta-empty-state {
+        padding: 5rem 2rem !important;
+        background: linear-gradient(135deg, #fef3c7 0%, #ffffff 100%) !important;
+        text-align: center !important;
+    }
+    
+    [data-filament-panel-id="petugas"] .fi-ta-empty-state-heading {
+        font-size: 1.75rem !important;
+        font-weight: 700 !important;
+        color: #000000 !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    [data-filament-panel-id="petugas"] .fi-ta-empty-state-description {
+        font-size: 1.125rem !important;
+        color: #374151 !important;
+        font-weight: 500 !important;
     }
 
     /* ===================================
@@ -249,12 +300,19 @@
        8. BLACK ELEGANT SIDEBAR & LAYOUT
     =================================== */
     
-    /* Sidebar Styling */
-    .fi-sidebar {
-        background: linear-gradient(180deg, #0f172a 0%, #1e293b 50%, #334155 100%) !important;
-        backdrop-filter: blur(20px) !important;
-        border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
-        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15) !important;
+    /* FORCE BLACK SIDEBAR - ULTRA PRIORITY WITH MAXIMUM SPECIFICITY */
+    body [data-filament-panel-id="petugas"] .fi-sidebar,
+    html body [data-filament-panel-id="petugas"] .fi-sidebar,
+    .fi-layout [data-filament-panel-id="petugas"] .fi-sidebar,
+    [data-filament-panel-id="petugas"] aside.fi-sidebar,
+    [data-filament-panel-id="petugas"] .fi-sidebar-nav,
+    [data-filament-panel-id="petugas"] .fi-sidebar > * {
+        background: #000000 !important;
+        background-color: #000000 !important;
+        background-image: none !important;
+        backdrop-filter: none !important;
+        border-right: 1px solid #1a1a1a !important;
+        box-shadow: 6px 0 30px rgba(0, 0, 0, 0.5) !important;
     }
     
     .fi-sidebar-nav {
@@ -262,17 +320,17 @@
     }
     
     /* Sidebar Brand */
-    .fi-sidebar-header {
-        background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    [data-filament-panel-id="petugas"] .fi-sidebar-header {
+        background: #000000 !important;
+        border-bottom: 1px solid #1a1a1a !important;
         padding: 2rem 1.5rem !important;
     }
     
-    .fi-sidebar-header .fi-logo {
-        color: #f8fafc !important;
+    [data-filament-panel-id="petugas"] .fi-sidebar-header .fi-logo {
+        color: #ffffff !important;
         font-weight: 700 !important;
         font-size: 1.25rem !important;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
     }
     
     /* Navigation Items */
@@ -509,6 +567,38 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // FORCE BLACK SIDEBAR IMMEDIATELY
+    function forceBlackSidebar() {
+        const sidebar = document.querySelector('.fi-sidebar');
+        if (sidebar) {
+            sidebar.style.setProperty('background', '#000000', 'important');
+            sidebar.style.setProperty('background-color', '#000000', 'important');
+            sidebar.style.setProperty('background-image', 'none', 'important');
+            sidebar.style.setProperty('border-right', '1px solid #1a1a1a', 'important');
+            sidebar.style.setProperty('box-shadow', '6px 0 30px rgba(0, 0, 0, 0.5)', 'important');
+            
+            // Also force the header to be black
+            const header = sidebar.querySelector('.fi-sidebar-header');
+            if (header) {
+                header.style.setProperty('background', '#000000', 'important');
+                header.style.setProperty('background-color', '#000000', 'important');
+                header.style.setProperty('background-image', 'none', 'important');
+            }
+        }
+    }
+    
+    // Apply immediately
+    forceBlackSidebar();
+    
+    // Apply after any DOM changes
+    const observer = new MutationObserver(forceBlackSidebar);
+    if (document.body) {
+        observer.observe(document.body, { childList: true, subtree: true });
+    }
+    
+    // Apply on Livewire navigation
+    document.addEventListener('livewire:navigated', forceBlackSidebar);
+    
     // Fix ResizeObserver errors
     const resizeObserverErrorHandler = (e) => {
         if (e.message === 'ResizeObserver loop completed with undelivered notifications.' ||
@@ -549,7 +639,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Add animation classes to elements as they appear
-    const observer = new IntersectionObserver((entries) => {
+    const intersectionObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('animate-fade-in');
@@ -558,8 +648,63 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     document.querySelectorAll('.fi-section, .fi-ta-row').forEach(el => {
-        observer.observe(el);
+        intersectionObserver.observe(el);
     });
+    
+    // CRITICAL: Force black text on all buttons via JavaScript
+    function forceBlackText() {
+        const petugasPanel = document.querySelector('[data-filament-panel-id="petugas"]');
+        if (petugasPanel) {
+            // Target all buttons and their children
+            const buttons = petugasPanel.querySelectorAll('button, .fi-btn, [role="button"], [class*="btn"]');
+            buttons.forEach(button => {
+                button.style.setProperty('color', '#000000', 'important');
+                button.style.setProperty('-webkit-text-fill-color', '#000000', 'important');
+                button.style.setProperty('text-shadow', 'none', 'important');
+                
+                // Force on all children too
+                const children = button.querySelectorAll('*');
+                children.forEach(child => {
+                    child.style.setProperty('color', '#000000', 'important');
+                    child.style.setProperty('-webkit-text-fill-color', '#000000', 'important');
+                    child.style.setProperty('text-shadow', 'none', 'important');
+                });
+            });
+            
+            // Special targeting for "Input Pasien" text
+            const allElements = petugasPanel.querySelectorAll('*');
+            allElements.forEach(element => {
+                if (element.textContent && (element.textContent.includes('Input Pasien') || element.textContent.includes('Tambah'))) {
+                    element.style.setProperty('color', '#000000', 'important');
+                    element.style.setProperty('-webkit-text-fill-color', '#000000', 'important');
+                    element.style.setProperty('text-shadow', 'none', 'important');
+                }
+            });
+        }
+    }
+    
+    // Apply black text immediately
+    forceBlackText();
+    
+    // Re-apply after Livewire updates
+    document.addEventListener('livewire:navigated', forceBlackText);
+    document.addEventListener('livewire:update', forceBlackText);
+    
+    // Use MutationObserver to catch dynamic content - FIXED variable name conflict
+    if (!window.petugasMutationObserver && document.querySelector('[data-filament-panel-id="petugas"]')) {
+        window.petugasMutationObserver = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                    setTimeout(forceBlackText, 50);
+                }
+            });
+        });
+        
+        window.petugasMutationObserver.observe(document.querySelector('[data-filament-panel-id="petugas"]'), {
+            childList: true,
+            subtree: true
+        });
+    }
     
     // Keyboard shortcuts
     document.addEventListener('keydown', function(e) {
@@ -585,15 +730,18 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Ripple animation CSS
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes ripple {
-        to {
-            transform: scale(4);
-            opacity: 0;
+if (!document.getElementById('ripple-animation-style')) {
+    const rippleStyle = document.createElement('style');
+    rippleStyle.id = 'ripple-animation-style';
+    rippleStyle.textContent = `
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
         }
-    }
-`;
-document.head.appendChild(style);
+    `;
+    document.head.appendChild(rippleStyle);
+}
 </script>
 @endpush

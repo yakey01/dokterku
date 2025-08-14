@@ -33,7 +33,7 @@ class PengeluaranHarianResource extends Resource
     
     protected static ?string $modelLabel = 'Pengeluaran Harian';
     
-    protected static ?string $navigationGroup = '📊 Data Entry Harian';
+    protected static ?string $navigationGroup = 'Keuangan';
 
     protected static ?int $navigationSort = 3;
 
@@ -104,30 +104,30 @@ class PengeluaranHarianResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->heading('💸 Pengeluaran Harian Saya')
+            ->heading('Pengeluaran Harian Saya')
             ->description('Kelola pengeluaran harian Anda dengan mudah dan efisien')
             ->headerActions([
                 Tables\Actions\Action::make('summary')
-                    ->label('📊 Ringkasan')
+                    ->label('Ringkasan')
                     ->icon('heroicon-o-chart-bar')
                     ->color('info')
                     ->button()
                     ->outlined()
-                    ->modalHeading('📊 Ringkasan Pengeluaran Harian')
+                    ->modalHeading('Ringkasan Pengeluaran Harian')
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Tutup'),
                 // Remove duplicate CreateAction - it's already in ListPengeluaranHarians page
             ])
             ->columns([
                 Tables\Columns\TextColumn::make('tanggal_input')
-                    ->label('📅 Tanggal')
+                    ->label('Tanggal')
                     ->date('d/m/Y')
                     ->sortable()
                     ->icon('heroicon-o-calendar-days')
                     ->color('primary')
                     ->weight('semibold'),
                 Tables\Columns\TextColumn::make('shift')
-                    ->label('⏰ Shift')
+                    ->label('Shift')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'Pagi' => 'success',
@@ -138,12 +138,12 @@ class PengeluaranHarianResource extends Resource
                         'Sore' => 'heroicon-o-moon',
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'Pagi' => '🌅 Pagi',
-                        'Sore' => '🌆 Sore',
+                        'Pagi' => 'Pagi',
+                        'Sore' => 'Sore',
                         default => $state,
                     }),
                 Tables\Columns\TextColumn::make('pengeluaran.nama_pengeluaran')
-                    ->label('💼 Jenis Pengeluaran')
+                    ->label('Jenis Pengeluaran')
                     ->searchable()
                     ->sortable()
                     ->icon('heroicon-o-document-text')
@@ -152,7 +152,7 @@ class PengeluaranHarianResource extends Resource
                     ->limit(30)
                     ->wrap(),
                 Tables\Columns\TextColumn::make('nominal')
-                    ->label('💸 Nominal')
+                    ->label('Nominal')
                     ->money('IDR')
                     ->sortable()
                     ->icon('heroicon-o-banknotes')
@@ -162,10 +162,10 @@ class PengeluaranHarianResource extends Resource
                     ->summarize([
                         Tables\Columns\Summarizers\Sum::make()
                             ->money('IDR')
-                            ->label('🎯 Total Pengeluaran'),
+                            ->label('Total Pengeluaran'),
                     ]),
                 Tables\Columns\BadgeColumn::make('status_validasi')
-                    ->label('📋 Status Validasi')
+                    ->label('Status Validasi')
                     ->color(fn (string $state): string => match ($state) {
                         'pending' => 'warning',
                         'disetujui' => 'success',
@@ -179,41 +179,41 @@ class PengeluaranHarianResource extends Resource
                         default => 'heroicon-o-question-mark-circle',
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'pending' => '⏳ Menunggu',
-                        'disetujui' => '✅ Disetujui',
-                        'ditolak' => '❌ Ditolak',
+                        'pending' => 'Menunggu',
+                        'disetujui' => 'Disetujui',
+                        'ditolak' => 'Ditolak',
                         default => ucfirst($state),
                     }),
                 Tables\Columns\TextColumn::make('deskripsi')
-                    ->label('📝 Deskripsi')
+                    ->label('Deskripsi')
                     ->limit(40)
                     ->placeholder('Tidak ada deskripsi')
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('🕒 Dibuat')
+                    ->label('Dibuat')
                     ->dateTime('d/m/Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('shift')
-                    ->label('⏰ Filter Shift')
+                    ->label('Filter Shift')
                     ->options([
-                        'Pagi' => '🌅 Shift Pagi',
-                        'Sore' => '🌆 Shift Sore',
+                        'Pagi' => 'Shift Pagi',
+                        'Sore' => 'Shift Sore',
                     ])
                     ->placeholder('Semua Shift')
                     ->multiple(),
                 Tables\Filters\SelectFilter::make('status_validasi')
-                    ->label('📋 Status Validasi')
+                    ->label('Status Validasi')
                     ->options([
-                        'pending' => '⏳ Menunggu Validasi',
-                        'disetujui' => '✅ Disetujui',
-                        'ditolak' => '❌ Ditolak',
+                        'pending' => 'Menunggu Validasi',
+                        'disetujui' => 'Disetujui',
+                        'ditolak' => 'Ditolak',
                     ])
                     ->placeholder('Semua Status'),
                 Tables\Filters\Filter::make('tanggal_input')
-                    ->label('📅 Rentang Tanggal')
+                    ->label('Rentang Tanggal')
                     ->form([
                         Forms\Components\Grid::make(2)
                             ->schema([
@@ -238,30 +238,30 @@ class PengeluaranHarianResource extends Resource
             ->actions([
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\ViewAction::make()
-                        ->label('👁️ Lihat')
+                        ->label('Lihat')
                         ->color('info')
                         ->icon('heroicon-o-eye'),
                     
                     Tables\Actions\EditAction::make()
-                        ->label('✏️ Edit')
+                        ->label('Edit')
                         ->color('warning')
                         ->icon('heroicon-o-pencil-square')
                         ->visible(fn ($record): bool => $record->status_validasi === 'pending')
                         ->successNotification(
                             Notification::make()
                                 ->success()
-                                ->title('✅ Berhasil!')
+                                ->title('Berhasil!')
                                 ->body('Pengeluaran harian berhasil diperbarui.')
                         ),
                     
                     // Submit for validation
                     Tables\Actions\Action::make('submit_validation')
-                        ->label('📤 Ajukan Validasi')
+                        ->label('Ajukan Validasi')
                         ->icon('heroicon-o-paper-airplane')
                         ->color('primary')
                         ->visible(fn ($record): bool => $record->status_validasi === 'pending' && !$record->submitted_at)
                         ->requiresConfirmation()
-                        ->modalHeading('📤 Ajukan Validasi Pengeluaran')
+                        ->modalHeading('Ajukan Validasi Pengeluaran')
                         ->modalDescription('Pastikan semua data sudah benar sebelum mengajukan validasi.')
                         ->modalSubmitActionLabel('Ajukan')
                         ->action(function ($record) {
@@ -271,20 +271,20 @@ class PengeluaranHarianResource extends Resource
                                 
                                 if ($result['auto_approved']) {
                                     Notification::make()
-                                        ->title('✅ Auto-Approved')
+                                        ->title('Auto-Approved')
                                         ->body('Pengeluaran berhasil disetujui otomatis')
                                         ->success()
                                         ->send();
                                 } else {
                                     Notification::make()
-                                        ->title('📤 Berhasil Diajukan')
+                                        ->title('Berhasil Diajukan')
                                         ->body('Pengeluaran berhasil diajukan untuk validasi')
                                         ->success()
                                         ->send();
                                 }
                             } catch (Exception $e) {
                                 Notification::make()
-                                    ->title('❌ Gagal')
+                                    ->title('Gagal')
                                     ->body('Terjadi kesalahan: ' . $e->getMessage())
                                     ->danger()
                                     ->send();
@@ -293,7 +293,7 @@ class PengeluaranHarianResource extends Resource
                     
                     // Approve action
                     Tables\Actions\Action::make('approve')
-                        ->label('✅ Setujui')
+                        ->label('Setujui')
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
                         ->visible(fn ($record): bool => 
@@ -302,7 +302,7 @@ class PengeluaranHarianResource extends Resource
                             auth()->user()->hasAnyRole(['supervisor', 'manager', 'admin'])
                         )
                         ->requiresConfirmation()
-                        ->modalHeading('✅ Setujui Pengeluaran')
+                        ->modalHeading('Setujui Pengeluaran')
                         ->modalDescription('Apakah Anda yakin ingin menyetujui pengeluaran ini?')
                         ->modalSubmitActionLabel('Setujui')
                         ->form([
@@ -319,13 +319,13 @@ class PengeluaranHarianResource extends Resource
                                 ]);
                                 
                                 Notification::make()
-                                    ->title('✅ Berhasil Disetujui')
+                                    ->title('Berhasil Disetujui')
                                     ->body('Pengeluaran berhasil disetujui')
                                     ->success()
                                     ->send();
                             } catch (Exception $e) {
                                 Notification::make()
-                                    ->title('❌ Gagal')
+                                    ->title('Gagal')
                                     ->body('Terjadi kesalahan: ' . $e->getMessage())
                                     ->danger()
                                     ->send();
@@ -334,7 +334,7 @@ class PengeluaranHarianResource extends Resource
                     
                     // Reject action
                     Tables\Actions\Action::make('reject')
-                        ->label('❌ Tolak')
+                        ->label('Tolak')
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
                         ->visible(fn ($record): bool => 
@@ -343,7 +343,7 @@ class PengeluaranHarianResource extends Resource
                             auth()->user()->hasAnyRole(['supervisor', 'manager', 'admin'])
                         )
                         ->requiresConfirmation()
-                        ->modalHeading('❌ Tolak Pengeluaran')
+                        ->modalHeading('Tolak Pengeluaran')
                         ->modalDescription('Berikan alasan penolakan yang jelas.')
                         ->modalSubmitActionLabel('Tolak')
                         ->form([
@@ -359,13 +359,13 @@ class PengeluaranHarianResource extends Resource
                                 $result = $validationService->reject($record, $data['rejection_reason']);
                                 
                                 Notification::make()
-                                    ->title('❌ Berhasil Ditolak')
+                                    ->title('Berhasil Ditolak')
                                     ->body('Pengeluaran berhasil ditolak')
                                     ->success()
                                     ->send();
                             } catch (Exception $e) {
                                 Notification::make()
-                                    ->title('❌ Gagal')
+                                    ->title('Gagal')
                                     ->body('Terjadi kesalahan: ' . $e->getMessage())
                                     ->danger()
                                     ->send();
@@ -392,7 +392,7 @@ class PengeluaranHarianResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     // Export selected records
                     Tables\Actions\BulkAction::make('export_selected')
-                        ->label('📊 Export Terpilih')
+                        ->label('Export Terpilih')
                         ->icon('heroicon-o-arrow-down-tray')
                         ->color('info')
                         ->requiresConfirmation()

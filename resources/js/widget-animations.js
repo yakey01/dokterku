@@ -154,8 +154,14 @@ class WidgetAnimationController {
         if (glowElement) {
             glowElement.style.opacity = '0';
             setTimeout(() => {
-                if (glowElement.parentNode) {
-                    glowElement.parentNode.removeChild(glowElement);
+                try {
+                    if (glowElement && glowElement.parentNode && document.contains(glowElement)) {
+                        glowElement.parentNode.removeChild(glowElement);
+                    }
+                } catch (error) {
+                    if (error.name !== 'NotFoundError') {
+                        console.warn('⚠️ Glow element removal failed:', error.message);
+                    }
                 }
             }, 300);
         }
@@ -224,8 +230,14 @@ class WidgetAnimationController {
         if (element._tooltip) {
             element._tooltip.classList.remove('show');
             setTimeout(() => {
-                if (element._tooltip && element._tooltip.parentNode) {
-                    element._tooltip.parentNode.removeChild(element._tooltip);
+                try {
+                    if (element._tooltip && element._tooltip.parentNode && document.contains(element._tooltip)) {
+                        element._tooltip.parentNode.removeChild(element._tooltip);
+                    }
+                } catch (error) {
+                    if (error.name !== 'NotFoundError') {
+                        console.warn('⚠️ Tooltip removal failed:', error.message);
+                    }
                 }
                 element._tooltip = null;
             }, 200);

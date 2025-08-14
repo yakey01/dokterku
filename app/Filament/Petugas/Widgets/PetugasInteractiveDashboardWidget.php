@@ -26,12 +26,12 @@ class PetugasInteractiveDashboardWidget extends Widget implements HasForms
     public ?string $selectedPeriod = 'today';
     
     public array $period_options = [
-        'today' => '📅 Hari Ini',
-        'yesterday' => '📋 Kemarin',
-        'this_week' => '📊 Minggu Ini',
-        'this_month' => '📈 Bulan Ini',
-        'last_month' => '📉 Bulan Lalu',
-        'this_year' => '🗓️ Tahun Ini',
+        'today' => 'Hari Ini',
+        'yesterday' => 'Kemarin',
+        'this_week' => 'Minggu Ini',
+        'this_month' => 'Bulan Ini',
+        'last_month' => 'Bulan Lalu',
+        'this_year' => 'Tahun Ini',
     ];
     
     public bool $error = false;

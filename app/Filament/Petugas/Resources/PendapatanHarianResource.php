@@ -34,7 +34,7 @@ class PendapatanHarianResource extends Resource
     
     protected static ?string $modelLabel = 'Pendapatan Harian';
     
-    protected static ?string $navigationGroup = '📊 Data Entry Harian';
+    protected static ?string $navigationGroup = 'Keuangan';
     
     protected static ?int $navigationSort = 2;
 
@@ -106,21 +106,21 @@ class PendapatanHarianResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->heading('💰 Pendapatan Harian Saya')
+            ->heading('Pendapatan Harian Saya')
             ->description('Kelola pendapatan harian Anda dengan mudah dan efisien')
             ->headerActions([
                 Tables\Actions\Action::make('summary')
-                    ->label('📊 Ringkasan')
+                    ->label('Ringkasan')
                     ->icon('heroicon-o-chart-bar')
                     ->color('info')
                     ->button()
                     ->outlined()
-                    ->modalHeading('📊 Ringkasan Pendapatan Harian')
+                    ->modalHeading('Ringkasan Pendapatan Harian')
                     ->modalContent(fn () => view('filament.widgets.pendapatan-summary'))
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Tutup'),
                 Tables\Actions\CreateAction::make()
-                    ->label('➕ Tambah Pendapatan')
+                    ->label('Tambah Pendapatan')
                     ->icon('heroicon-o-plus-circle')
                     ->color('success')
                     ->button()
@@ -161,7 +161,7 @@ class PendapatanHarianResource extends Resource
                     ->tooltip(fn ($record) => $record->pendapatan?->nama_pendapatan)
                     ->wrap(),
                 Tables\Columns\TextColumn::make('nominal')
-                    ->label('💰 Nominal')
+                    ->label('Nominal')
                     ->money('IDR')
                     ->sortable()
                     ->icon('heroicon-o-banknotes')
@@ -171,10 +171,10 @@ class PendapatanHarianResource extends Resource
                     ->summarize([
                         Tables\Columns\Summarizers\Sum::make()
                             ->money('IDR')
-                            ->label('🎯 Total Pendapatan'),
+                            ->label('Total Pendapatan'),
                     ]),
                 Tables\Columns\BadgeColumn::make('status_validasi')
-                    ->label('📋 Status Validasi')
+                    ->label('Status Validasi')
                     ->color(fn (string $state): string => match ($state) {
                         'pending' => 'warning',
                         'disetujui' => 'success',
@@ -227,7 +227,7 @@ class PendapatanHarianResource extends Resource
                     ->placeholder('Semua Shift')
                     ->multiple(),
                 Tables\Filters\SelectFilter::make('status_validasi')
-                    ->label('📋 Status Validasi')
+                    ->label('Status Validasi')
                     ->options([
                         'pending' => '⏳ Menunggu Validasi',
                         'disetujui' => '✅ Disetujui',
@@ -273,7 +273,7 @@ class PendapatanHarianResource extends Resource
                         return $indicators;
                     }),
                 Tables\Filters\Filter::make('nominal')
-                    ->label('💰 Rentang Nominal')
+                    ->label('Rentang Nominal')
                     ->form([
                         Forms\Components\Grid::make(2)
                             ->schema([
@@ -488,7 +488,7 @@ class PendapatanHarianResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     // Export selected records
                     Tables\Actions\BulkAction::make('export_selected')
-                        ->label('📊 Export Terpilih')
+                        ->label('Export Terpilih')
                         ->icon('heroicon-o-arrow-down-tray')
                         ->color('info')
                         ->requiresConfirmation()

@@ -14,7 +14,7 @@ class DetailPasienPage extends Page
     
     protected static string $view = 'filament.petugas.pages.detail-pasien';
     
-    protected static ?string $navigationGroup = '👥 Manajemen Pasien';
+    protected static ?string $navigationGroup = 'Manajemen Pasien';
     
     protected static ?int $navigationSort = 3;
     

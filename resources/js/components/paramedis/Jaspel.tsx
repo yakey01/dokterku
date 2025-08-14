@@ -42,6 +42,73 @@ interface JaspelApiResponse {
 
 export function Jaspel() {
   const [jaspelData, setJaspelData] = useState<JaspelItem[]>([]);
+  
+  // BULLETPROOF: Data normalization methods to handle different API formats
+  const normalizeJaspelItems = (items: any[]): JaspelItem[] => {
+    if (!Array.isArray(items)) return [];
+    
+    return items.map(item => {
+      if (!item || typeof item !== 'object') return null;
+      
+      return {
+        id: String(item.id || Math.random()),
+        tanggal: String(item.tanggal || new Date().toISOString().split('T')[0]),
+        jenis: String(item.jenis_jaspel || item.jenis || ''),
+        jumlah: Number(item.nominal || item.jumlah) || 0,
+        status: String(item.status_validasi || item.status || 'pending'),
+        keterangan: String(item.keterangan || ''),
+        validated_by: item.validated_by || null,
+        validated_at: item.validated_at || null
+      };
+    }).filter(Boolean) as JaspelItem[];
+  };
+  
+  const normalizeLegacyJaspelItems = (items: any[]): JaspelItem[] => {
+    if (!Array.isArray(items)) return [];
+    
+    return items.map(item => {
+      if (!item || typeof item !== 'object') return null;
+      
+      return {
+        id: String(item.id || Math.random()),
+        tanggal: String(item.tanggal || new Date().toISOString().split('T')[0]),
+        jenis: String(item.jenis || ''),
+        jumlah: Number(item.jumlah) || 0,
+        status: String(item.status || 'pending'),
+        keterangan: String(item.keterangan || ''),
+        validated_by: item.validated_by || null,
+        validated_at: item.validated_at || null
+      };
+    }).filter(Boolean) as JaspelItem[];
+  };
+  
+  const calculateSummaryFromItems = (items: JaspelItem[]): JaspelSummary => {
+    const summary = {
+      total_paid: 0,
+      total_pending: 0,
+      total_rejected: 0,
+      count_paid: 0,
+      count_pending: 0,
+      count_rejected: 0
+    };
+    
+    items.forEach(item => {
+      const amount = item.jumlah || 0;
+      
+      if (item.status === 'paid' || item.status === 'disetujui') {
+        summary.total_paid += amount;
+        summary.count_paid++;
+      } else if (item.status === 'pending') {
+        summary.total_pending += amount;
+        summary.count_pending++;
+      } else if (item.status === 'rejected' || item.status === 'ditolak') {
+        summary.total_rejected += amount;
+        summary.count_rejected++;
+      }
+    });
+    
+    return summary;
+  };
   const [summary, setSummary] = useState<JaspelSummary>({
     total_paid: 0,
     total_pending: 0,
@@ -73,10 +140,11 @@ export function Jaspel() {
       if (month) params.append('month', month.toString());
       if (year) params.append('year', year.toString());
 
-      // WORLD-CLASS: Try multiple endpoints for maximum reliability
+      // WORLD-CLASS: Try multiple endpoints for maximum reliability (FIXED ROUTING)
       const urls = [
-        `/paramedis/api/v2/jaspel/mobile-data?${params}`,
-        `/api/v2/jaspel/mobile-data-alt?${params}`
+        `/paramedis/api/v2/jaspel/mobile-data?${params}`, // Now exists! Fixed in routes/web.php
+        `/api/v2/jaspel/mobile-data-alt?${params}`,       // Fallback universal endpoint
+        `/api/v2/dashboards/paramedis/jaspel?${params}`   // Legacy paramedis endpoint
       ];
       
       console.log('🔍 [DEEP DEBUG] All URLs to try:', urls);
@@ -135,17 +203,47 @@ export function Jaspel() {
             continue;
           }
 
-          const result: JaspelApiResponse = await response.json();
+          const result: any = await response.json();
           console.log('✅ [JASPEL DEBUG] API Success with', url, ':', result);
           
-          if (result.success) {
-            console.log('📋 [JASPEL DEBUG] Setting data:', {
-              items: result.data.jaspel_items.length,
-              summary: result.data.summary,
-              endpoint_used: url
+          // BULLETPROOF: Handle different API response formats
+          if (result.success || result.jaspel) {
+            // Normalize different API response formats
+            let jaspelItems: JaspelItem[] = [];
+            let summaryData = {
+              total_paid: 0,
+              total_pending: 0, 
+              total_rejected: 0,
+              count_paid: 0,
+              count_pending: 0,
+              count_rejected: 0
+            };
+            
+            // Handle unified format (from new endpoint)
+            if (result.data && result.data.jaspel_items) {
+              jaspelItems = normalizeJaspelItems(result.data.jaspel_items);
+              summaryData = result.data.summary || summaryData;
+            }
+            // Handle legacy paramedis format 
+            else if (result.jaspel) {
+              jaspelItems = normalizeLegacyJaspelItems(result.jaspel);
+              summaryData = calculateSummaryFromItems(jaspelItems);
+            }
+            // Handle direct data array
+            else if (Array.isArray(result.data)) {
+              jaspelItems = normalizeJaspelItems(result.data);
+              summaryData = calculateSummaryFromItems(jaspelItems);
+            }
+            
+            console.log('📋 [JASPEL DEBUG] Normalized data:', {
+              items: jaspelItems.length,
+              summary: summaryData,
+              endpoint_used: url,
+              original_format: result.data ? 'unified' : result.jaspel ? 'legacy' : 'unknown'
             });
-            setJaspelData(result.data.jaspel_items);
-            setSummary(result.data.summary);
+            
+            setJaspelData(jaspelItems);
+            setSummary(summaryData);
             return; // Success, exit the function
           } else {
             lastError = new Error(result.message || 'Gagal mengambil data Jaspel');

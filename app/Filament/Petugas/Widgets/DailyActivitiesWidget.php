@@ -115,7 +115,7 @@ class DailyActivitiesWidget extends Widget
     {
         return [
             [
-                'title' => '➕ Input Pasien Baru',
+                'title' => 'Input Pasien Baru',
                 'description' => 'Registrasi pasien baru',
                 'url' => '/petugas/pasien/create',
                 'icon' => 'heroicon-o-user-plus',
@@ -123,7 +123,7 @@ class DailyActivitiesWidget extends Widget
                 'count' => null,
             ],
             [
-                'title' => '🩺 Catat Tindakan',
+                'title' => 'Catat Tindakan',
                 'description' => 'Input tindakan medis',
                 'url' => '/petugas/tindakan/create',
                 'icon' => 'heroicon-o-heart',
@@ -131,7 +131,7 @@ class DailyActivitiesWidget extends Widget
                 'count' => null,
             ],
             [
-                'title' => '💰 Input Pendapatan',
+                'title' => 'Input Pendapatan',
                 'description' => 'Catat pendapatan harian',
                 'url' => '/petugas/pendapatan-harian/create',
                 'icon' => 'heroicon-o-banknotes',
@@ -139,7 +139,7 @@ class DailyActivitiesWidget extends Widget
                 'count' => null,
             ],
             [
-                'title' => '📋 Validasi Data',
+                'title' => 'Validasi Data',
                 'description' => 'Review data pending',
                 'url' => '/petugas/validasi-pendapatan',
                 'icon' => 'heroicon-o-clipboard-document-check',

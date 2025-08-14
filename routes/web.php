@@ -1380,6 +1380,11 @@ Route::get('/api/v2/jaspel/mobile-data-alt', [App\Http\Controllers\Api\V2\Jaspel
     ->middleware(['auth:web,sanctum', 'throttle:60,1'])
     ->name('jaspel.mobile-data-alt');
 
+// WORLD-CLASS: Jumlah Pasien endpoint for Jaspel Jaga integration
+Route::get('/api/v2/jumlah-pasien/jaspel-jaga', [App\Http\Controllers\Api\V2\JumlahPasienController::class, 'getJumlahPasienForJaspel'])
+    ->middleware(['auth:web,sanctum', 'throttle:60,1'])
+    ->name('jumlah-pasien.jaspel-jaga');
+
 Route::get('/', function () {
     if (Auth::check()) {
         return redirect('/dashboard');
@@ -1867,6 +1872,11 @@ Route::middleware(['auth'])->group(function () {
         // Mobile app Jaspel data endpoint - WORLD-CLASS authentication support  
         Route::get('/api/v2/jaspel/mobile-data', [App\Http\Controllers\Api\V2\Jaspel\JaspelController::class, 'getMobileJaspelData'])
             ->middleware(['auth:web,sanctum', 'throttle:60,1']);
+            
+        // CRITICAL FIX: Missing Paramedis Jaspel endpoint that was causing the JavaScript error
+        Route::get('/paramedis/api/v2/jaspel/mobile-data', [App\Http\Controllers\Api\V2\Jaspel\JaspelController::class, 'getMobileJaspelData'])
+            ->middleware(['auth:web,sanctum', 'role:paramedis', 'throttle:60,1'])
+            ->name('paramedis.jaspel.mobile-data');
             
         // BACKUP endpoint for mobile-data with enhanced debugging
         Route::get('/api/v2/jaspel/mobile-data-debug', function () {

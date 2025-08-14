@@ -1,7 +1,3 @@
-@php
-    $loginUrl = filament()->getLoginUrl();
-@endphp
-
 <x-filament-panels::page.simple>
     @if (filament()->hasRegistration())
         <x-slot name="subheading">
@@ -13,7 +9,7 @@
 
     {{ \Filament\Support\Facades\FilamentView::renderHook(\Filament\View\PanelsRenderHook::AUTH_LOGIN_FORM_BEFORE, scopes: $this->getRenderHookScopes()) }}
 
-    <x-filament-panels::form wire:submit="authenticate">
+    <x-filament-panels::form id="form" wire:submit="authenticate">
         {{ $this->form }}
 
         <x-filament-panels::form.actions

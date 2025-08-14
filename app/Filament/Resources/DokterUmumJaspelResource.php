@@ -72,6 +72,18 @@ class DokterUmumJaspelResource extends Resource
                             ->helperText('Fee yang diterima per pasien BPJS')
                             ->columnSpan(1),
 
+                        Forms\Components\TextInput::make('uang_duduk')
+                            ->label('Uang Duduk')
+                            ->numeric()
+                            ->prefix('Rp')
+                            ->minValue(0)
+                            ->maxValue(1000000)
+                            ->step(1000)
+                            ->default(0)
+                            ->placeholder('50000')
+                            ->helperText('Uang duduk dasar untuk shift (tetap tanpa melihat jumlah pasien)')
+                            ->columnSpan(1),
+
                         Forms\Components\Grid::make(1)
                             ->schema([
                                 Forms\Components\Toggle::make('status_aktif')
@@ -94,7 +106,7 @@ class DokterUmumJaspelResource extends Resource
                             ->extraAttributes(['class' => 'status-toggle-container'])
                             ->columnSpan(1),
                     ])
-                    ->columns(3),
+                    ->columns(4),
 
                 Forms\Components\Section::make('📝 Informasi Tambahan')
                     ->schema([
@@ -139,6 +151,13 @@ class DokterUmumJaspelResource extends Resource
                     ->label('Fee BPJS')
                     ->alignEnd()
                     ->color('info')
+                    ->weight(FontWeight::Medium),
+
+                Tables\Columns\TextColumn::make('uang_duduk_formatted')
+                    ->getStateUsing(fn ($record) => $record->uang_duduk_formatted)
+                    ->label('Uang Duduk')
+                    ->alignEnd()
+                    ->color('success')
                     ->weight(FontWeight::Medium),
 
                 Tables\Columns\TextColumn::make('status_text')
@@ -280,5 +299,15 @@ class DokterUmumJaspelResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return true;
+    }
+
+    public static function canViewAny(): bool
+    {
+        return true;
     }
 }

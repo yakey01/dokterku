@@ -13,8 +13,12 @@ class JumlahPasienHarian extends Model
     protected $fillable = [
         'tanggal',
         'poli',
+        'shift',
+        'dokter_umum_jaspel_id', // Optional - for future use if manual selection needed
+        'jadwal_jaga_id', // Links to specific duty schedule
         'jumlah_pasien_umum',
         'jumlah_pasien_bpjs',
+        'jaspel_rupiah',
         'dokter_id',
         'input_by',
         'status_validasi',
@@ -28,6 +32,7 @@ class JumlahPasienHarian extends Model
         'tanggal' => 'date',
         'jumlah_pasien_umum' => 'integer',
         'jumlah_pasien_bpjs' => 'integer',
+        'jaspel_rupiah' => 'decimal:2',
         'validasi_at' => 'datetime',
     ];
 
@@ -46,6 +51,16 @@ class JumlahPasienHarian extends Model
         return $this->belongsTo(User::class, 'validasi_by');
     }
 
+    public function dokterUmumJaspel(): BelongsTo
+    {
+        return $this->belongsTo(DokterUmumJaspel::class);
+    }
+
+    public function jadwalJaga(): BelongsTo
+    {
+        return $this->belongsTo(JadwalJaga::class);
+    }
+
     // Accessor untuk total pasien
     public function getTotalPasienAttribute(): int
     {
@@ -60,6 +75,102 @@ class JumlahPasienHarian extends Model
             'gigi' => 'success',
             default => 'gray',
         };
+    }
+
+    // Accessor untuk badge color shift
+    public function getShiftBadgeColorAttribute(): string
+    {
+        return match ($this->shift) {
+            'Pagi' => 'info',
+            'Sore' => 'warning',
+            'Hari Libur Besar' => 'success',
+            default => 'gray',
+        };
+    }
+
+    // Helper method untuk mendapatkan opsi shift
+    public static function getShiftOptions(): array
+    {
+        return [
+            'Pagi' => '🌅 Pagi',
+            'Sore' => '🌇 Sore',
+            'Hari Libur Besar' => '🏖️ Hari Libur Besar',
+        ];
+    }
+
+    // Helper method untuk mendapatkan formula berdasarkan shift dengan jadwal jaga context
+    public function getActiveFormula(): ?DokterUmumJaspel
+    {
+        // First try to get from relationship if explicitly set
+        if ($this->dokterUmumJaspel) {
+            return $this->dokterUmumJaspel;
+        }
+
+        // If linked to jadwal jaga, get shift from there for better accuracy
+        if ($this->jadwalJaga && $this->jadwalJaga->shiftTemplate) {
+            $shiftNama = $this->jadwalJaga->shiftTemplate->nama_shift;
+            return DokterUmumJaspel::where('jenis_shift', $shiftNama)
+                ->where('status_aktif', true)
+                ->first();
+        }
+
+        // Otherwise, auto-select based on stored shift field
+        if ($this->shift) {
+            return DokterUmumJaspel::where('jenis_shift', $this->shift)
+                ->where('status_aktif', true)
+                ->first();
+        }
+
+        // Fallback to any active formula
+        return DokterUmumJaspel::where('status_aktif', true)->first();
+    }
+
+    // Helper method untuk menghitung jaspel berdasarkan formula yang dipilih otomatis
+    public function calculateJaspel(): array
+    {
+        $formula = $this->getActiveFormula();
+        
+        if (!$formula) {
+            return [
+                'fee_umum' => 0,
+                'fee_bpjs' => 0,
+                'uang_duduk' => 0,
+                'total' => 0,
+            ];
+        }
+
+        $totalPasien = $this->total_pasien;
+
+        if ($totalPasien <= $formula->ambang_pasien) {
+            return [
+                'fee_umum' => 0,
+                'fee_bpjs' => 0,
+                'uang_duduk' => $formula->uang_duduk,
+                'total' => $formula->uang_duduk,
+                'formula' => $formula,
+            ];
+        }
+
+        // Hitung dengan proporsi berdasarkan threshold
+        $totalPasienDihitung = $totalPasien - $formula->ambang_pasien;
+        $proporsiUmum = $totalPasien > 0 ? $this->jumlah_pasien_umum / $totalPasien : 0;
+        $proporsiBpjs = $totalPasien > 0 ? $this->jumlah_pasien_bpjs / $totalPasien : 0;
+
+        $pasienUmumDihitung = round($totalPasienDihitung * $proporsiUmum);
+        $pasienBpjsDihitung = round($totalPasienDihitung * $proporsiBpjs);
+
+        $feeUmum = $pasienUmumDihitung * $formula->fee_pasien_umum;
+        $feeBpjs = $pasienBpjsDihitung * $formula->fee_pasien_bpjs;
+
+        return [
+            'fee_umum' => $feeUmum,
+            'fee_bpjs' => $feeBpjs,
+            'uang_duduk' => $formula->uang_duduk,
+            'total' => $formula->uang_duduk + $feeUmum + $feeBpjs,
+            'pasien_umum_dihitung' => $pasienUmumDihitung,
+            'pasien_bpjs_dihitung' => $pasienBpjsDihitung,
+            'formula' => $formula,
+        ];
     }
 
     // Scope untuk filter berdasarkan tanggal
@@ -102,7 +213,7 @@ class JumlahPasienHarian extends Model
     }
 
     // Helper methods untuk validasi
-    public function approve(User $validator, string $catatan = null): self
+    public function approve(User $validator, ?string $catatan = null): self
     {
         $this->update([
             'status_validasi' => 'approved',
@@ -114,7 +225,7 @@ class JumlahPasienHarian extends Model
         return $this;
     }
 
-    public function reject(User $validator, string $catatan = null): self
+    public function reject(User $validator, ?string $catatan = null): self
     {
         $this->update([
             'status_validasi' => 'rejected',

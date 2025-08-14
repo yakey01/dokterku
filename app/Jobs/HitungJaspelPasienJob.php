@@ -59,13 +59,14 @@ class HitungJaspelPasienJob implements ShouldQueue
             // Get shift information based on current time or set default
             $shift = Shift::where('nama', 'Pagi')->first(); // Default shift
             
-            // Calculate jaspel based on patient count and formula
-            $totalPasien = $pasienHarian->total_pasien;
-            $jaspelFormula = $this->getJaspelFormula($pasienHarian->poli, $shift->id ?? 1);
+            // Calculate jaspel based on patient count and formula using corrected logic
+            $jaspelFormula = $this->getJaspelFormula($pasienHarian->poli);
             
-            $nominalJaspel = $this->calculateJaspel($totalPasien, $jaspelFormula);
+            $nominalJaspel = $this->calculateJaspel($pasienHarian, $jaspelFormula);
 
             if ($nominalJaspel > 0) {
+                $totalPasien = $pasienHarian->jumlah_pasien_umum + $pasienHarian->jumlah_pasien_bpjs;
+                
                 // Create jaspel record
                 Jaspel::create([
                     'user_id' => $pasienHarian->dokter->user_id,
@@ -73,7 +74,7 @@ class HitungJaspelPasienJob implements ShouldQueue
                     'shift_id' => $shift->id ?? 1,
                     'jenis_jaspel' => 'pasien_harian',
                     'nominal' => $nominalJaspel,
-                    'keterangan' => "Jaspel {$pasienHarian->poli} - {$totalPasien} pasien (Umum: {$pasienHarian->jumlah_pasien_umum}, BPJS: {$pasienHarian->jumlah_pasien_bpjs})",
+                    'keterangan' => "Jaspel {$pasienHarian->poli} - Total: {$totalPasien} pasien (Umum: {$pasienHarian->jumlah_pasien_umum}, BPJS: {$pasienHarian->jumlah_pasien_bpjs}) | Threshold: {$jaspelFormula->ambang_pasien} | Formula: {$jaspelFormula->jenis_shift}",
                     'status_validasi' => 'approved', // Auto approve jaspel dari validasi bendahara
                     'input_by' => $pasienHarian->validasi_by,
                     'validasi_by' => $pasienHarian->validasi_by,
@@ -94,52 +95,67 @@ class HitungJaspelPasienJob implements ShouldQueue
     }
 
     /**
-     * Get jaspel formula based on poli and shift
+     * Get jaspel formula based on poli and current time (shift)
      */
-    private function getJaspelFormula(string $poli, int $shiftId): ?DokterUmumJaspel
+    private function getJaspelFormula(string $poli, int $shiftId = null): ?DokterUmumJaspel
     {
-        // Map poli to dokter type
-        $jenisLayanan = match ($poli) {
-            'umum' => 'umum',
-            'gigi' => 'gigi',
-            default => 'umum'
+        // Determine shift based on current time
+        $currentHour = now()->hour;
+        $jenisShift = match(true) {
+            $currentHour >= 7 && $currentHour < 14 => 'Pagi',
+            $currentHour >= 14 && $currentHour < 21 => 'Sore', 
+            default => 'Pagi' // Default fallback
         };
 
-        return DokterUmumJaspel::where('shift_id', $shiftId)
-            ->where('jenis_layanan', $jenisLayanan)
-            ->where('is_active', true)
-            ->orderBy('threshold_pasien', 'desc')
+        // Get active Jaspel formula for current shift
+        $jaspeFormula = DokterUmumJaspel::where('jenis_shift', $jenisShift)
+            ->where('status_aktif', true)
             ->first();
+        
+        // Fallback to any active formula if shift-specific not found
+        if (!$jaspeFormula) {
+            $jaspeFormula = DokterUmumJaspel::where('status_aktif', true)->first();
+        }
+
+        return $jaspeFormula;
     }
 
     /**
-     * Calculate jaspel based on patient count and formula
+     * Calculate jaspel based on patient count and formula using corrected threshold logic
      */
-    private function calculateJaspel(int $totalPasien, ?DokterUmumJaspel $formula): float
+    private function calculateJaspel(JumlahPasienHarian $pasienHarian, ?DokterUmumJaspel $formula): float
     {
         if (!$formula) {
-            Log::warning("Formula jaspel tidak ditemukan untuk jumlah pasien: {$totalPasien}");
+            Log::warning("Formula jaspel tidak ditemukan untuk pasien harian ID: {$pasienHarian->id}");
             return 0;
         }
 
-        // Check if patient count meets threshold
-        if ($totalPasien < $formula->threshold_pasien) {
-            Log::info("Jumlah pasien ({$totalPasien}) belum mencapai threshold ({$formula->threshold_pasien})");
+        $totalPasien = $pasienHarian->jumlah_pasien_umum + $pasienHarian->jumlah_pasien_bpjs;
+        $pasienUmum = $pasienHarian->jumlah_pasien_umum;
+        $pasienBpjs = $pasienHarian->jumlah_pasien_bpjs;
+
+        // Check if total patient count meets threshold
+        if ($totalPasien <= $formula->ambang_pasien) {
+            Log::info("Total pasien ({$totalPasien}) belum mencapai ambang minimum ({$formula->ambang_pasien})");
             return 0;
         }
 
-        // Calculate based on formula type
-        if ($formula->tipe_perhitungan === 'fixed') {
-            return $formula->nominal_jaspel;
-        } elseif ($formula->tipe_perhitungan === 'per_pasien') {
-            return $totalPasien * $formula->nominal_jaspel;
-        } elseif ($formula->tipe_perhitungan === 'progressive') {
-            // Progressive calculation: base amount + (excess patients * per patient rate)
-            $excessPatients = $totalPasien - $formula->threshold_pasien;
-            return $formula->nominal_jaspel + ($excessPatients * ($formula->multiplier ?? 0));
-        }
+        // Use the corrected calculation method: check total for threshold, but calculate all individual patients
+        $feeUmum = $formula->calculateFeeByTotal($totalPasien, $pasienUmum, 'umum');
+        $feeBpjs = $formula->calculateFeeByTotal($totalPasien, $pasienBpjs, 'bpjs');
+        $totalFee = $feeUmum + $feeBpjs;
 
-        return $formula->nominal_jaspel;
+        Log::info("Jaspel calculation details", [
+            'total_pasien' => $totalPasien,
+            'pasien_umum' => $pasienUmum,
+            'pasien_bpjs' => $pasienBpjs,
+            'ambang_pasien' => $formula->ambang_pasien,
+            'fee_umum' => $feeUmum,
+            'fee_bpjs' => $feeBpjs,
+            'total_fee' => $totalFee
+        ]);
+
+        return $totalFee;
     }
 
     /**

@@ -8,7 +8,7 @@ class StaticDashboard extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-home';
     
-    protected static ?string $navigationGroup = '🏠 Dashboard';
+    protected static ?string $navigationGroup = 'Dashboard';
     
     protected static ?string $title = 'Dashboard';
     

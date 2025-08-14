@@ -1,13 +1,25 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { Calendar, Clock, DollarSign, User, Home, MapPin, CheckCircle, XCircle, Zap, Heart, Brain, Shield, Target, Award, TrendingUp, Sun, Moon, Coffee, Star, Crown, Hand, Camera, Wifi, WifiOff, AlertTriangle, AlertCircle, History, UserCheck, FileText, Settings, Bell, ChevronLeft, ChevronRight, Filter, Plus, Send, Navigation } from 'lucide-react';
+import { Calendar, Clock, User, Home, Wifi, History, TrendingUp, FileText, MapPin, AlertTriangle, AlertCircle, CheckCircle, XCircle, Info, Sun, Moon, Navigation, Filter, ChevronLeft, ChevronRight, Plus, Send } from 'lucide-react';
 import DynamicMap from './DynamicMap';
+import { AttendanceCard } from './AttendanceCard';
 import { useGPSLocation, useGPSAvailability, useGPSPermission } from '../../hooks/useGPSLocation';
-import { GPSStatus, GPSStrategy } from '../../utils/GPSManager';
-import getUnifiedAuthInstance from '../../utils/UnifiedAuth';
+import { GPSStrategy, GPSStatus } from '../../utils/GPSManager';
+import { useAttendanceStatus } from '../../hooks/useAttendanceStatus';
+import * as api from '../../services/dokter/attendanceApi';
+import { formatTime, formatDate as formatShortDate, calculateWorkingHours } from '../../utils/dokter/attendanceHelpers';
+import { safeGet, safeHas } from '../../utils/SafeObjectAccess';
+import ErrorBoundary from '../ErrorBoundary';
 import AttendanceCalculator from '../../utils/AttendanceCalculator';
+import getUnifiedAuthInstance from '../../utils/UnifiedAuth';
+import GlobalDOMSafety from '../../utils/GlobalDOMSafety';
 import '../../../css/map-styles.css';
 
 const CreativeAttendanceDashboard = () => {
+  // Initialize DOM safety immediately
+  React.useEffect(() => {
+    GlobalDOMSafety.patchNativeRemoveChild();
+  }, []);
+
   const [currentTime, setCurrentTime] = useState(new Date());
   // CRITICAL: Always start with false, only set to true if we have confirmed attendance for TODAY
   const [isCheckedIn, setIsCheckedIn] = useState(false);
@@ -70,7 +82,7 @@ const CreativeAttendanceDashboard = () => {
     role: string;
   } | null>(null);
 
-  // Jadwal Jaga dan Work Location State
+  // Jadwal Jaga dan Work Location State with loading protection
   const [scheduleData, setScheduleData] = useState({
     todaySchedule: null as any,
     currentShift: null as any,
@@ -78,7 +90,9 @@ const CreativeAttendanceDashboard = () => {
     isOnDuty: false,
     canCheckIn: true, // DEFAULT TO TRUE - ALWAYS ENABLED
     canCheckOut: true, // DEFAULT TO TRUE - ALWAYS ENABLED
-    validationMessage: ''
+    validationMessage: '',
+    isLoading: true, // Add loading state to prevent premature access
+    isInitialized: false // Add initialization flag
   });
 
   // Add flags to prevent race conditions during operations
@@ -220,8 +234,8 @@ const CreativeAttendanceDashboard = () => {
 
   // Derive current shift's attendance record (multi-shift aware)
   const currentShiftRecord = useMemo(() => {
-    // Ensure scheduleData and todayRecords are properly initialized
-    if (!scheduleData?.currentShift || !Array.isArray(todayRecords)) {
+    // Enhanced safety checks for scheduleData and todayRecords
+    if (!scheduleData || !scheduleData.currentShift || !Array.isArray(todayRecords)) {
       return null;
     }
     
@@ -275,15 +289,22 @@ const CreativeAttendanceDashboard = () => {
   const computeTargetHours = (): number | null => {
     // Ensure scheduleData.currentShift is properly initialized
     if (!scheduleData?.currentShift?.shift_template) {
-      return null;
+      // Only log warning once per minute to avoid spam
+      const nowTimestamp = Date.now();
+      const lastWarning = computeTargetHours.lastWarningTime || 0;
+      if (nowTimestamp - lastWarning > 60000) { // 60 seconds
+        console.log('⚠️ No shift template found for target hours calculation');
+        computeTargetHours.lastWarningTime = nowTimestamp;
+      }
+      return 8; // Return 8-hour default instead of null
     }
     
-    const shift = scheduleData.currentShift.shift_template;
+    const shift = scheduleData.currentShift.shift_template || scheduleData.currentShift.shift_info;
     if (typeof shift.durasi_jam === 'number' && isFinite(shift.durasi_jam) && shift.durasi_jam > 0) {
       return shift.durasi_jam;
     }
-    const jamMasuk = shift.jam_masuk as string | undefined;
-    const jamPulang = shift.jam_pulang as string | undefined;
+    const jamMasuk = (shift.jam_masuk || shift.jam_masuk_format) as string | undefined;
+    const jamPulang = (shift.jam_pulang || shift.jam_pulang_format) as string | undefined;
     if (jamMasuk && jamPulang) {
       const [sh, sm] = jamMasuk.split(':').map(Number);
       const [eh, em] = jamPulang.split(':').map(Number);
@@ -295,12 +316,29 @@ const CreativeAttendanceDashboard = () => {
     }
     return null;
   };
-  // Compute worked time within shift window per operational rules
+  // Compute worked time within shift window per operational rules  
   const computeShiftStats = () => {
+    // Enhanced safety: Return early if scheduleData is not initialized or still loading
+    if (!scheduleData || scheduleData.isLoading || !scheduleData.isInitialized) {
+      return { workedMs: 0, durasiMs: 8 * 60 * 60 * 1000 }; // 8 hours default, no warning during loading
+    }
+    
     // Ensure scheduleData.currentShift is properly initialized
-    if (!scheduleData?.currentShift?.shift_template) {
-      // FALLBACK: Use default 8-hour shift if no shift template
-      console.log('⚠️ No shift template found, using default 8-hour shift');
+    const currentShift = scheduleData?.currentShift;
+    const shiftTemplate = currentShift?.shift_template;
+    const shiftInfo = currentShift?.shift_info; // Fallback to shift_info
+    
+    if (!shiftTemplate && !shiftInfo) {
+      // FALLBACK: Use default 8-hour shift if no shift template or info
+      // Only log warning once per minute to avoid spam AND only when we actually have attendanceData AND data is fully loaded
+      if (attendanceData?.checkInTime && scheduleData.isInitialized) {
+        const nowTimestamp = Date.now();
+        const lastWarning = computeShiftStats.lastWarningTime || 0;
+        if (nowTimestamp - lastWarning > 60000) { // 60 seconds
+          console.log('⚠️ No shift template or shift_info found, using default 8-hour shift');
+          computeShiftStats.lastWarningTime = nowTimestamp;
+        }
+      }
       const now = new Date();
       const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 8, 0, 0); // 8:00 AM
       const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 16, 0, 0); // 4:00 PM
@@ -317,10 +355,13 @@ const CreativeAttendanceDashboard = () => {
       return { workedMs: 0, durasiMs };
     }
     
-    const shift = scheduleData.currentShift.shift_template;
+    // Use shift_template or fallback to shift_info
+    const shift = shiftTemplate || shiftInfo;
     const now = new Date();
-    const [sh, sm] = (shift.jam_masuk || '00:00').split(':').map(Number);
-    const [eh, em] = (shift.jam_pulang || '00:00').split(':').map(Number);
+    const jamMasuk = shift?.jam_masuk || shift?.jam_masuk_format || '08:00';
+    const jamPulang = shift?.jam_pulang || shift?.jam_pulang_format || '16:00';
+    const [sh, sm] = jamMasuk.split(':').map(Number);
+    const [eh, em] = jamPulang.split(':').map(Number);
     const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), sh || 0, sm || 0, 0);
     let end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), eh || 0, em || 0, 0);
     if (end.getTime() < start.getTime()) end = new Date(end.getTime() + 24 * 60 * 60 * 1000);
@@ -505,7 +546,7 @@ const CreativeAttendanceDashboard = () => {
     };
     tick();
     return () => { if (t) { window.clearTimeout(t); } };
-  }, [scheduleData.currentShift?.shift_template?.jam_masuk, scheduleData.currentShift?.shift_template?.jam_pulang]);
+  }, [scheduleData.currentShift?.shift_template?.jam_masuk || scheduleData.currentShift?.shift_info?.jam_masuk, scheduleData.currentShift?.shift_template?.jam_pulang || scheduleData.currentShift?.shift_info?.jam_pulang]);
   
   // Hospital Location Data (Dynamic - dari API)
   const [hospitalLocation, setHospitalLocation] = useState({
@@ -1007,10 +1048,13 @@ const CreativeAttendanceDashboard = () => {
             : (Array.isArray(scheduleData.todaySchedule) ? scheduleData.todaySchedule : []);
           const finalCurrentShift = currentShift || scheduleData.currentShift;
 
+          
           setScheduleData(prev => ({
             ...prev,
             todaySchedule: finalTodaySchedule,
-            currentShift: finalCurrentShift
+            currentShift: finalCurrentShift,
+            isLoading: false,
+            isInitialized: true
           }));
         } else {
 
@@ -1042,7 +1086,9 @@ const CreativeAttendanceDashboard = () => {
           // Update schedule data
           setScheduleData(prev => ({
             ...prev,
-            workLocation: wl
+            workLocation: wl,
+            isLoading: false,
+            isInitialized: true
           }));
           // CRITICAL: Sync hospitalLocation used for distance checks and map pin
           if (wl && wl.coordinates && typeof wl.coordinates.latitude === 'number' && typeof wl.coordinates.longitude === 'number') {
@@ -1165,21 +1211,55 @@ const CreativeAttendanceDashboard = () => {
     });
     
 
-    // Force fresh load on first mount to avoid any stale data
-    loadScheduleAndWorkLocation(true);
-    loadTodayAttendance();
-    loadAttendanceHistory(filterPeriod); // Load attendance history on mount
+    // Sequential loading to prevent race conditions
+    const initializeComponent = async () => {
+      try {
+        // Step 1: Load schedule and work location first
+        await loadScheduleAndWorkLocation(true);
+        
+        // Step 2: Load today's attendance
+        await loadTodayAttendance();
+        
+        // Step 3: Load attendance history
+        await loadAttendanceHistory(filterPeriod);
+        
+        // Step 4: Load multi-shift status
+        await validateMultiShiftStatus();
+        
+        console.log('✅ Component initialization completed');
+      } catch (error) {
+        console.error('❌ Component initialization failed:', error);
+        // Set fallback state
+        setScheduleData(prev => ({ 
+          ...prev, 
+          isLoading: false, 
+          isInitialized: true,
+          validationMessage: 'Gagal memuat data. Menggunakan mode fallback.' 
+        }));
+      }
+    };
     
-    // Load multi-shift status
-    validateMultiShiftStatus();
+    initializeComponent();
 
     // Start smart polling
     startSmartPolling();
 
     return () => {
+      // Enhanced cleanup to prevent DOM manipulation errors
       if (pollingIntervalRef.current) {
         window.clearInterval(pollingIntervalRef.current);
       }
+      
+      // Clean up any remaining loading alerts using GlobalDOMSafety
+      try {
+        const alerts = document.querySelectorAll('[id^="gps-loading-alert-"]');
+        alerts.forEach(alert => GlobalDOMSafety.safeRemoveElement(alert));
+      } catch (e) {
+        console.warn('Cleanup warning:', e);
+      }
+      
+      // Mark as unmounted to prevent state updates
+      setScheduleData(prev => ({ ...prev, isLoading: false, isInitialized: false }));
     };
   }, []);
 
@@ -1702,9 +1782,7 @@ const CreativeAttendanceDashboard = () => {
         });
       }
     } catch {}
-  }, [scheduleData, isCheckedIn]);  useEffect(() => {
-
-  }, [scheduleData]);
+  }, [scheduleData, isCheckedIn]);
 
   // Removed the problematic 5-second interval timer that was causing premature checkout messages
   // According to new spec: Check-out is allowed anytime after check-in, no "too early" validation needed
@@ -1767,7 +1845,7 @@ const CreativeAttendanceDashboard = () => {
     
     // Ensure scheduleData.currentShift is properly initialized
     if (!scheduleData?.currentShift?.shift_template) {
-      // Fallback to simple calculation if no shift schedule
+      // Fallback to simple calculation if no shift schedule (silently)
       const endTime = attendanceData?.checkOutTime ? new Date(attendanceData.checkOutTime) : new Date();
       const workingTime: number = endTime.getTime() - new Date(attendanceData.checkInTime).getTime();
       const hours = Math.floor(workingTime / (1000 * 60 * 60));
@@ -1858,17 +1936,44 @@ const CreativeAttendanceDashboard = () => {
   // Filter attendance data based on period
   const getFilteredData = () => {
     const now = new Date();
+    
+    console.log('🔍 Filtering data:', {
+      totalRecords: attendanceHistory.length,
+      filterPeriod: filterPeriod,
+      now: now.toISOString()
+    });
+    
     const filtered = attendanceHistory.filter(record => {
-      const recordDate = new Date(record.date);
+      // ✅ FIX: Convert DD-MM-YY back to proper date for comparison
+      let recordDate;
+      if (record.date && record.date.match(/^\d{2}-\d{2}-\d{2}$/)) {
+        // DD-MM-YY format, convert to YYYY-MM-DD
+        const [day, month, year] = record.date.split('-');
+        const fullYear = `20${year}`;
+        recordDate = new Date(`${fullYear}-${month}-${day}`);
+      } else {
+        // Assume ISO format
+        recordDate = new Date(record.date);
+      }
+      
+      console.log('🔍 Checking record:', {
+        date: record.date,
+        recordDate: recordDate.toISOString(),
+        filterPeriod: filterPeriod
+      });
       
       if (filterPeriod === 'weekly') {
         const weekAgo = new Date(now);
         weekAgo.setDate(now.getDate() - 7);
-        return recordDate >= weekAgo;
+        const result = recordDate >= weekAgo;
+        console.log('Weekly filter:', { weekAgo: weekAgo.toISOString(), result });
+        return result;
       } else if (filterPeriod === 'monthly') {
         const monthAgo = new Date(now);
         monthAgo.setMonth(now.getMonth() - 1);
-        return recordDate >= monthAgo;
+        const result = recordDate >= monthAgo;
+        console.log('Monthly filter:', { monthAgo: monthAgo.toISOString(), result });
+        return result;
       }
       return true;
     });
@@ -1893,6 +1998,14 @@ const CreativeAttendanceDashboard = () => {
     // Load history with new period
     loadAttendanceHistory(period);
   };
+
+  // ✅ CRITICAL FIX: Load history when history tab is opened
+  useEffect(() => {
+    if (activeTab === 'history') {
+      console.log('🔄 History tab opened, loading attendance history...');
+      loadAttendanceHistory(filterPeriod);
+    }
+  }, [activeTab, filterPeriod]); // Remove loadAttendanceHistory from deps to prevent circular reference
   
   // Function to load attendance history from API
   const loadAttendanceHistory = async (period: string = 'weekly') => {
@@ -1900,9 +2013,8 @@ const CreativeAttendanceDashboard = () => {
     setHistoryError(null);
     
     try {
-      // Use UnifiedAuth for proper authentication
-      const unifiedAuth = getUnifiedAuthInstance();
-      const authHeaders = unifiedAuth.getAuthHeaders();
+      // ✅ FIX: Use web session authentication (no Bearer token needed)
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
       
       // Calculate date range based on period
       const endDate = new Date();
@@ -1914,12 +2026,14 @@ const CreativeAttendanceDashboard = () => {
         startDate.setDate(endDate.getDate() - 30);
       }
       
-      // Fetch attendance history from API
+      // Fetch attendance history from API with proper web session auth
       const response = await fetch(`/api/v2/dashboards/dokter/presensi?start=${startDate.toISOString().split('T')[0]}&end=${endDate.toISOString().split('T')[0]}`, {
         method: 'GET',
         headers: {
-          ...authHeaders,
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrfToken,
+          'X-Requested-With': 'XMLHttpRequest'
         },
         credentials: 'same-origin'
       });
@@ -1930,22 +2044,85 @@ const CreativeAttendanceDashboard = () => {
       
       const data = await response.json();
       
-      // Debug: Log API response
-      console.log('API Response:', data);
-      console.log('User Data:', userData);
+      // Debug: Log API response  
+      console.log('🚨 FRONTEND API CALLED:', `/api/v2/dashboards/dokter/presensi?start=${startDate.toISOString().split('T')[0]}&end=${endDate.toISOString().split('T')[0]}`);
+      console.log('🔍 FRONTEND API Response:', data);
+      
+      // 🔍 CRITICAL DEBUG: Check first record in detail
+      if (data?.data?.history && data.data.history.length > 0) {
+        const firstRecord = data.data.history[0];
+        console.log('🚨 FRONTEND First Record Full:', firstRecord);
+        console.log('🚨 SHORTAGE FIELD CHECK:', {
+          hasShortfall: 'shortfall_minutes' in firstRecord,
+          shortfallValue: firstRecord.shortfall_minutes,
+          hasShortage: 'shortage_minutes' in firstRecord, 
+          shortageValue: firstRecord.shortage_minutes,
+          hasTimeIn: 'time_in' in firstRecord,
+          timeInValue: firstRecord.time_in,
+          hasTimeOut: 'time_out' in firstRecord,
+          timeOutValue: firstRecord.time_out
+        });
+      }
       
       // Transform API data to component format
       const history = data?.data?.history || [];
-      console.log('History records received:', history.length);
       
-      const formattedHistory = history.map((record: any) => {
-        // Format date
-        const date = new Date(record.date || record.tanggal);
-        const formattedDate = date.toLocaleDateString('id-ID', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit'
-        });
+      // CRITICAL FIX: Also include today_records in history if they exist
+      const todayRecords = data?.data?.today_records || [];
+      const allRecords = [...history];
+      
+      // Add today's records if they're not already in history
+      const todayDate = new Date().toISOString().split('T')[0];
+      todayRecords.forEach((todayRecord: any) => {
+        // Check if this record is already in history
+        const existsInHistory = history.some((h: any) => h.id === todayRecord.id);
+        if (!existsInHistory && todayRecord.time_in) {
+          // Convert today_record format to history format
+          const historyRecord = {
+            ...todayRecord,
+            date: todayRecord.date || todayDate,
+            check_in: todayRecord.time_in,
+            check_out: todayRecord.time_out,
+            jam_masuk: todayRecord.time_in,
+            jam_pulang: todayRecord.time_out
+          };
+          allRecords.push(historyRecord);
+        }
+      });
+      
+      console.log('History records received:', history.length);
+      console.log('Today records found:', todayRecords.length);
+      console.log('Total records to process:', allRecords.length);
+      
+      const formattedHistory = allRecords.map((record: any, recordIndex: number) => {
+        // ENHANCED: Add comprehensive record validation
+        try {
+          if (!record || typeof record !== 'object') {
+            console.warn(`⚠️ Invalid attendance record at index ${recordIndex}:`, record);
+            return null;
+          }
+        // Format date - ENHANCED: Better date handling for today's records
+        let dateValue = record.date || record.tanggal;
+        
+        // Handle case where date might be missing - use today's date if this is a today_record
+        if (!dateValue) {
+          dateValue = new Date().toISOString().split('T')[0];
+        }
+        
+        const date = new Date(dateValue);
+        const formattedDate = formatShortDate(date);
+        
+        // Debug: Log date processing for today's records
+        if (dateValue === todayDate) {
+          console.log('🔍 Processing today record:', {
+            recordId: record.id,
+            originalDate: record.date,
+            processedDate: dateValue,
+            formattedDate: formattedDate,
+            timeIn: record.time_in,
+            timeOut: record.time_out
+          });
+        }
         
         // Format check-in time
         const checkIn = record.time_in || record.check_in || record.jam_masuk;
@@ -2011,18 +2188,111 @@ const CreativeAttendanceDashboard = () => {
           checkIn: formattedCheckIn,
           checkOut: formattedCheckOut,
           status: status,
-          hours: hours
+          hours: hours,
+          shortfall_minutes: Number(record?.shortfall_minutes || 0),
+          shortfall_formatted: String(record?.shortfall_formatted || 'Target tercapai'),
+          target_minutes: Number(record?.target_minutes || 480),
+          duration_minutes: Number(record?.duration_minutes || 0),
+          // BULLETPROOF: Ultra-safe shift_info validation with comprehensive error handling
+          shift_info: (() => {
+            try {
+              const shiftInfo = safeGet(record, 'shift_info');
+              
+              // Multi-layer safety checks
+              if (!shiftInfo || typeof shiftInfo !== 'object' || Array.isArray(shiftInfo)) {
+                return null;
+              }
+              
+              // Ultra-safe property access using SafeObjectAccess utility
+              const shiftName = safeGet(shiftInfo, 'shift_name') || safeGet(shiftInfo, 'name') || null;
+              const shiftStart = safeGet(shiftInfo, 'shift_start') || safeGet(shiftInfo, 'start_time') || safeGet(shiftInfo, 'jam_masuk') || null;
+              const shiftEnd = safeGet(shiftInfo, 'shift_end') || safeGet(shiftInfo, 'end_time') || safeGet(shiftInfo, 'jam_pulang') || null;
+              const shiftDuration = safeGet(shiftInfo, 'shift_duration') || safeGet(shiftInfo, 'duration') || null;
+              
+              // Validate essential properties with type checking
+              const hasValidName = shiftName && typeof shiftName === 'string' && shiftName.trim().length > 0;
+              const hasValidTimes = shiftStart && shiftEnd && 
+                                   typeof shiftStart === 'string' && typeof shiftEnd === 'string';
+              
+              // Only return object if we have minimum required data
+              if (!hasValidName && !hasValidTimes) {
+                return null;
+              }
+              
+              // Return sanitized object with guaranteed string types
+              return {
+                shift_name: String(shiftName || 'Shift tidak tersedia'),
+                shift_start: String(shiftStart || '--'),
+                shift_end: String(shiftEnd || '--'),
+                shift_duration: shiftDuration ? String(shiftDuration) : null
+              };
+            } catch (error) {
+              console.warn('⚠️ Error processing shift_info:', error);
+              return null;
+            }
+          })()
         };
-      });
+        } catch (error) {
+          console.error(`❌ Error processing attendance record at index ${recordIndex}:`, error, record);
+          // Return null for invalid records - they'll be filtered out
+          return null;
+        }
+      })
+      .filter(record => record !== null); // Filter out null records from processing errors
       
-      // Sort by date (most recent first)
+      // Sort by date (most recent first) - ENHANCED: Better date parsing and today priority
       formattedHistory.sort((a: any, b: any) => {
-        const dateA = new Date(a.date.split('/').reverse().join('-'));
-        const dateB = new Date(b.date.split('/').reverse().join('-'));
-        return dateB.getTime() - dateA.getTime();
+        try {
+          if (!a?.date || !b?.date) return 0; // Keep original order if dates missing
+          
+          // Handle both DD/MM/YYYY and YYYY-MM-DD formats
+          let dateA, dateB;
+          
+          if (a.date.includes('/')) {
+            dateA = new Date(a.date.split('/').reverse().join('-'));
+          } else {
+            dateA = new Date(a.date);
+          }
+          
+          if (b.date.includes('/')) {
+            dateB = new Date(b.date.split('/').reverse().join('-'));
+          } else {
+            dateB = new Date(b.date);
+          }
+          
+          // Prioritize today's records at the top
+          const today = new Date().toDateString();
+          const isAToday = dateA.toDateString() === today;
+          const isBToday = dateB.toDateString() === today;
+          
+          if (isAToday && !isBToday) return -1; // A is today, prioritize it
+          if (!isAToday && isBToday) return 1;  // B is today, prioritize it
+          
+          // Regular date sorting (most recent first)
+          return dateB.getTime() - dateA.getTime();
+        } catch (error) {
+          console.warn('⚠️ Error sorting attendance records:', error);
+          return 0; // Keep original order on error
+        }
       });
       
       setAttendanceHistory(formattedHistory);
+      
+      // Final debug: Confirm today's record is in the history
+      const todaysRecords = formattedHistory.filter(r => {
+        const recordDate = r.date.includes('/') ? 
+          new Date(r.date.split('/').reverse().join('-')) : 
+          new Date(r.date);
+        return recordDate.toDateString() === new Date().toDateString();
+      });
+      
+      console.log('✅ FINAL CHECK - Today\'s records in history:', todaysRecords.length);
+      if (todaysRecords.length > 0) {
+        console.log('✅ TODAY\'S RECORD FOUND:', todaysRecords[0]);
+      } else {
+        console.log('❌ TODAY\'S RECORD NOT FOUND in history');
+        console.log('🔍 All dates in history:', formattedHistory.map(r => r.date));
+      }
       
       // Calculate monthly statistics from attendance data
       const currentMonth = new Date();
@@ -2030,16 +2300,47 @@ const CreativeAttendanceDashboard = () => {
       const monthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
       const workingDaysInMonth = 22; // Assuming 22 working days (can be made dynamic)
       
-      // Filter data for current month
+      // Filter data for current month - ENHANCED: Better date parsing
       const monthlyData = formattedHistory.filter((record: any) => {
-        const recordDate = new Date(record.date.split('/').reverse().join('-'));
-        return recordDate >= monthStart && recordDate <= monthEnd;
+        try {
+          // Handle both DD/MM/YYYY and YYYY-MM-DD formats
+          let recordDate;
+          if (record.date.includes('/')) {
+            // DD/MM/YYYY format
+            recordDate = new Date(record.date.split('/').reverse().join('-'));
+          } else {
+            // YYYY-MM-DD format
+            recordDate = new Date(record.date);
+          }
+          
+          const isInRange = recordDate >= monthStart && recordDate <= monthEnd;
+          
+          // Debug log for today's records
+          if (record.date.includes(new Date().toISOString().split('T')[0]) || 
+              recordDate.toDateString() === new Date().toDateString()) {
+            console.log('🔍 Monthly filter check for today:', {
+              recordDate: recordDate.toISOString().split('T')[0],
+              monthStart: monthStart.toISOString().split('T')[0],
+              monthEnd: monthEnd.toISOString().split('T')[0],
+              isInRange
+            });
+          }
+          
+          return isInRange;
+        } catch (error) {
+          console.warn('⚠️ Error parsing date for monthly filter:', record.date, error);
+          return false;
+        }
       });
       
-      // Debug: Log monthly data
+      // Debug: Log monthly data and today's record inclusion
       console.log('Monthly Data for stats:', monthlyData);
       console.log('Month range:', monthStart, 'to', monthEnd);
       console.log('Status values in data:', monthlyData.map((r: any) => r.status));
+      console.log('Today records in monthly data:', monthlyData.filter((r: any) => 
+        r.date.includes(new Date().toISOString().split('T')[0]) || 
+        new Date(r.date.includes('/') ? r.date.split('/').reverse().join('-') : r.date).toDateString() === new Date().toDateString()
+      ));
       
       // Calculate statistics
       const presentCount = monthlyData.filter((r: any) => 
@@ -2065,6 +2366,11 @@ const CreativeAttendanceDashboard = () => {
       );
       
       console.log('📊 Presensi using UNIFIED attendance metrics:', unifiedMetrics);
+      console.log('📊 Total formatted history records:', formattedHistory.length);
+      console.log('📊 Today\'s date:', new Date().toISOString().split('T')[0]);
+      console.log('📊 Records for today:', formattedHistory.filter(r => 
+        r.date.includes(new Date().toISOString().split('T')[0])
+      ));
       
       // Update monthly stats with unified calculation
       setMonthlyStats({
@@ -2079,7 +2385,7 @@ const CreativeAttendanceDashboard = () => {
       });
       
     } catch (error) {
-
+      console.error('❌ Error loading attendance history:', error);
       setHistoryError('Gagal memuat riwayat presensi. Silakan coba lagi.');
       
       // Fallback to empty array
@@ -2152,10 +2458,11 @@ const CreativeAttendanceDashboard = () => {
         ]
       });
 
-      // Show loading indicator
+      // Show loading indicator with safe DOM manipulation
       const loadingAlert = document.createElement('div');
       loadingAlert.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
       loadingAlert.textContent = '📍 Mendapatkan lokasi GPS...';
+      loadingAlert.id = 'gps-loading-alert-' + Date.now(); // Unique ID for safe removal
       document.body.appendChild(loadingAlert);
 
       let location: LocationResult;
@@ -2166,8 +2473,8 @@ const CreativeAttendanceDashboard = () => {
         
         // Log the GPS strategy used for debugging
 
-        // Remove loading indicator
-        loadingAlert.remove();
+        // Ultra-safe removal using GlobalDOMSafety
+        GlobalDOMSafety.safeRemoveElement(loadingAlert);
         
         // Warn if using fallback location
         if (location.source === GPSStrategy.DEFAULT_FALLBACK) {
@@ -2179,8 +2486,8 @@ const CreativeAttendanceDashboard = () => {
 
         }
       } catch (gpsError) {
-        // Remove loading indicator
-        loadingAlert.remove();
+        // Ultra-safe removal using GlobalDOMSafety
+        GlobalDOMSafety.safeRemoveElement(loadingAlert);
         
         // If all GPS strategies fail, offer manual input
         const useManual = confirm('❌ GPS tidak dapat diakses. Apakah Anda berada di lokasi kerja dan ingin melanjutkan check-in?');
@@ -2641,9 +2948,11 @@ const CreativeAttendanceDashboard = () => {
                     <Clock className="w-4 h-4 text-blue-400" />
                     <span className="text-sm font-medium text-blue-300">Jadwal Jaga</span>
                   </div>
-                                     {scheduleData.currentShift ? (
+                                     {scheduleData.isLoading ? (
+                     <div className="text-yellow-300 text-sm">⏳ Memuat jadwal jaga...</div>
+                   ) : scheduleData.currentShift ? (
                      <div className="text-white text-sm">
-                       <div>🕐 {scheduleData.currentShift.shift_template?.jam_masuk || '08:00'} - {scheduleData.currentShift.shift_template?.jam_pulang || '16:00'}</div>
+                       <div>🕐 {scheduleData.currentShift.shift_template?.jam_masuk || scheduleData.currentShift.shift_info?.jam_masuk || '08:00'} - {scheduleData.currentShift.shift_template?.jam_pulang || scheduleData.currentShift.shift_info?.jam_pulang || '16:00'}</div>
                        <div>👨‍⚕️ {scheduleData.currentShift.peran || 'Dokter'}</div>
                        <div>⭐ {scheduleData.currentShift.shift_template?.nama_shift || 'Shift'}</div>
                        {clockNow ? (
@@ -3273,30 +3582,115 @@ const CreativeAttendanceDashboard = () => {
             )}
 
             {/* History Cards - Only show when data exists and not loading */}
-            {!historyLoading && !historyError && currentData.length > 0 && currentData.map((record, index) => (
-              <div key={index} className="bg-white/10 backdrop-blur-xl rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5 border border-white/20">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm sm:text-base md:text-lg text-white font-semibold">{record.date}</span>
-                  <span className={`text-xs sm:text-sm font-medium ${getStatusColor(record.status)}`}>
-                    {record.status}
-                  </span>
-                </div>
-                <div className="grid grid-cols-3 gap-1 sm:gap-2 text-xs sm:text-sm md:text-base">
-                  <div>
-                    <span className="text-gray-400">Masuk: </span>
-                    <span className="text-white">{record.checkIn || '-'}</span>
+            {!historyLoading && !historyError && currentData.length > 0 && currentData.map((record, index) => {
+              // BULLETPROOF: Ultra-defensive rendering with comprehensive error handling
+              try {
+                // Multi-layer validation for each record
+                if (!record || typeof record !== 'object' || Array.isArray(record)) {
+                  console.warn('⚠️ Invalid attendance record at index', index, ':', record);
+                  return null;
+                }
+                
+                // Validate essential properties exist
+                if (!record.date || !record.status) {
+                  console.warn('⚠️ Missing essential properties in record:', record);
+                  return null;
+                }
+                
+                // Format data sesuai script baru - use helper function for DD-MM-YY format
+                const formattedDate = formatShortDate(record.date);
+                
+                const shiftTime = record.shift_info?.shift_start && record.shift_info?.shift_end ? 
+                  `${record.shift_info.shift_start}-${record.shift_info.shift_end}` : '08:00-16:00';
+                
+                const checkInTime = record.checkIn || record.time_in || '--:--';
+                const checkOutTime = record.checkOut || record.time_out || '--:--';
+                const duration = record.working_duration || record.hours || '8h 0m';
+                // ✅ SOPHISTICATED: Use calculated shortage from backend (multiple field support)
+                const shortageMinutes = record.shortage_minutes || record.shortfall_minutes || 0;
+                
+                // 🔍 DEBUG: Log shortage calculation
+                console.log('🔍 SHORTAGE DEBUG:', {
+                  recordDate: record.date,
+                  rawShortage: record.shortage_minutes,
+                  rawShortfall: record.shortfall_minutes,
+                  calculatedShortage: shortageMinutes,
+                  willDisplay: `${shortageMinutes} menit`,
+                  allFields: Object.keys(record),
+                  fullRecord: record
+                });
+                
+                const status = record.status === 'Present' || record.status === 'present' || record.status === 'on_time' ? 'Hadir' :
+                              record.status === 'Late' || record.status === 'late' ? 'Terlambat' : 'Tidak Hadir';
+
+                return (
+                  <div key={index} className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 sm:p-5 border border-white/20 relative">
+                    {/* Gaming accent line di pojok kiri atas */}
+                    <div className="absolute top-0 left-0 w-12 sm:w-16 h-1 bg-gradient-to-r from-cyan-500/60 to-purple-500/60 rounded-tr-2xl"></div>
+                    
+                    {/* Emoji badge di pojok kanan atas */}
+                    <div className="absolute -top-1 sm:-top-2 -right-1 sm:-right-2 w-6 h-6 sm:w-8 sm:h-8 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center border-2 border-white/30 shadow-lg">
+                      <span className="text-sm sm:text-lg">
+                        {shortageMinutes === 0 ? '👍' : '👎'}
+                      </span>
+                    </div>
+                    
+                    {/* Header dengan tanggal, jam jaga dan status */}
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-4 mb-4">
+                      <div className="flex items-center space-x-2 sm:space-x-3 flex-wrap">
+                        <div className="text-white font-bold text-base sm:text-lg">{formattedDate}</div>
+                        <span className="text-xs px-2 py-1 rounded-lg font-medium bg-orange-500/20 text-orange-400 whitespace-nowrap">
+                          {shiftTime}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className={`text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-lg font-medium ${
+                          status === 'Hadir' ? 'bg-green-500/20 text-green-400' :
+                          status === 'Terlambat' ? 'bg-yellow-500/20 text-yellow-400' :
+                          'bg-red-500/20 text-red-400'
+                        }`}>
+                          {status}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Detail informasi dalam grid responsive */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-xs sm:text-sm">
+                      <div className="text-center">
+                        <span className="text-gray-400 block mb-1">Masuk:</span>
+                        <span className="text-white font-semibold text-sm sm:text-base">{checkInTime}</span>
+                      </div>
+                      <div className="text-center">
+                        <span className="text-gray-400 block mb-1">Keluar:</span>
+                        <span className="text-white font-semibold text-sm sm:text-base">{checkOutTime}</span>
+                      </div>
+                      <div className="text-center">
+                        <span className="text-gray-400 block mb-1">Durasi:</span>
+                        <span className="text-white font-semibold text-sm sm:text-base">{duration}</span>
+                      </div>
+                      <div className="text-center">
+                        <span className="text-gray-400 block mb-1">Kekurangan:</span>
+                        <span className={`font-semibold text-xs sm:text-sm ${
+                          shortageMinutes === 0 ? 'text-green-400' : 'text-red-400'
+                        }`}>
+                          {shortageMinutes} menit
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-gray-400">Keluar: </span>
-                    <span className="text-white">{record.checkOut || '-'}</span>
+                );
+              } catch (error) {
+                console.error('❌ Error rendering attendance record:', error, record);
+                // Return a safe fallback card for this record
+                return (
+                  <div key={`error-${index}`} className="bg-red-500/10 backdrop-blur-xl rounded-xl p-4 border border-red-500/20">
+                    <div className="text-center text-red-300">
+                      <span className="text-sm">⚠️ Error loading record {index + 1}</span>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-gray-400">Durasi: </span>
-                    <span className="text-white">{record.hours || '-'}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
+                );
+              }
+            })}
 
             {/* Pagination - Only show when there are multiple pages and data exists */}
             {!historyLoading && !historyError && totalPages > 1 && (
@@ -3593,7 +3987,54 @@ const CreativeAttendanceDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white">
+    <ErrorBoundary 
+      onError={(error) => {
+        console.error('🚨 Presensi Component Error:', error);
+        
+        // Enhanced error handling for DOM manipulation errors
+        if (error.name === 'NotFoundError' && error.message.includes('can not be found here')) {
+          console.warn('🔧 DOM manipulation error detected - cleaning up');
+          
+          // Clean up any problematic DOM elements using GlobalDOMSafety
+          try {
+            const alerts = document.querySelectorAll('[id^="gps-loading-alert-"]');
+            alerts.forEach(alert => GlobalDOMSafety.safeRemoveElement(alert));
+            
+            // Also trigger emergency cleanup for any other DOM issues
+            GlobalDOMSafety.emergencyCleanup();
+          } catch (cleanupError) {
+            console.warn('Cleanup error:', cleanupError);
+          }
+        }
+        
+        // Store specific error details
+        try {
+          localStorage.setItem('presensi_error_details', JSON.stringify({
+            error: error.message,
+            errorName: error.name,
+            component: 'CreativeAttendanceDashboard',
+            timestamp: new Date().toISOString(),
+            scheduleDataState: scheduleData ? 'loaded' : 'null',
+            isInitialized: scheduleData?.isInitialized || false
+          }));
+        } catch (e) {}
+      }}
+      fallback={
+        <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center">
+          <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-red-500/30 text-center">
+            <div className="text-red-400 text-xl mb-4">⚠️ Error Loading Component</div>
+            <div className="text-white mb-4">Terjadi kesalahan saat memuat dashboard presensi.</div>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg text-white"
+            >
+              🔄 Reload Page
+            </button>
+          </div>
+        </div>
+      }
+    >
+      <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white">
       {/* Responsive Container - Mobile First with Tablet/Desktop Breakpoints */}
       <div className="w-full max-w-full sm:max-w-sm md:max-w-2xl lg:max-w-4xl xl:max-w-6xl 2xl:max-w-7xl mx-auto min-h-screen relative overflow-hidden">
         
@@ -3770,8 +4211,9 @@ const CreativeAttendanceDashboard = () => {
             </div>
           </div>
         )}
+        </div>
       </div>
-    </div>
+    </ErrorBoundary>
   );
 };
 

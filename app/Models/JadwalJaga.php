@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 
@@ -34,6 +35,11 @@ class JadwalJaga extends Model
     public function pegawai(): BelongsTo
     {
         return $this->belongsTo(User::class, 'pegawai_id');
+    }
+
+    public function jumlahPasienHarians(): HasMany
+    {
+        return $this->hasMany(JumlahPasienHarian::class);
     }
 
     // For FullCalendar integration

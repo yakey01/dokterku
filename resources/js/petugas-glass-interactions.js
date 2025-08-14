@@ -323,8 +323,16 @@
             card.appendChild(ripple);
             
             setTimeout(() => {
-                if (ripple.parentNode) {
-                    ripple.parentNode.removeChild(ripple);
+                // Enhanced safety check for DOM element removal
+                try {
+                    if (ripple && ripple.parentNode && document.contains(ripple)) {
+                        ripple.parentNode.removeChild(ripple);
+                    }
+                } catch (error) {
+                    // Silent catch for NotFoundError race conditions
+                    if (error.name !== 'NotFoundError') {
+                        console.warn('⚠️ Ripple removal failed:', error.message);
+                    }
                 }
             }, 600);
         }
@@ -599,7 +607,15 @@
             document.body.appendChild(announcement);
             
             setTimeout(() => {
-                document.body.removeChild(announcement);
+                try {
+                    if (announcement && announcement.parentNode && document.contains(announcement)) {
+                        document.body.removeChild(announcement);
+                    }
+                } catch (error) {
+                    if (error.name !== 'NotFoundError') {
+                        console.warn('⚠️ Announcement removal failed:', error.message);
+                    }
+                }
             }, 1000);
         }
         

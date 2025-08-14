@@ -17,14 +17,14 @@ class ViewPasien extends ViewRecord
     {
         return [
             Actions\Action::make('create_tindakan')
-                ->label('🏥 Buat Tindakan')
+                ->label('Buat Tindakan')
                 ->icon('heroicon-o-plus-circle')
                 ->color('primary')
                 ->url(fn (): string => TindakanResource::getUrl('create', [], panel: 'petugas') . '?pasien_id=' . $this->record->id),
             Actions\EditAction::make()
-                ->label('✏️ Edit Data'),
+                ->label('Edit Data'),
             Actions\DeleteAction::make()
-                ->label('🗑️ Hapus'),
+                ->label('Hapus'),
         ];
     }
 
@@ -122,7 +122,7 @@ class ViewPasien extends ViewRecord
                     ])
                     ->columns(2),
 
-                Infolists\Components\Section::make('🏥 Riwayat Tindakan')
+                Infolists\Components\Section::make('Riwayat Tindakan')
                     ->schema([
                         Infolists\Components\TextEntry::make('tindakan_count')
                             ->label('Total Tindakan')
