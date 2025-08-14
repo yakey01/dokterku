@@ -49,28 +49,42 @@
     <!-- Vite Assets with Cache Busting -->
     @vite(['resources/js/dokter-mobile-app.tsx'])
     
-    <!-- FORCE BUNDLE REFRESH -->
+    <!-- ✅ FORCE BUNDLE LOADING -->
     <script>
-        // Force refresh bundle if needed
-        const bundleVersion = "{{ time() }}";
-        console.log('🚀 Bundle version:', bundleVersion);
+        console.log('🚀 FORCE BUNDLE LOAD ATTEMPT');
         
-        // Check if bundle is loaded correctly
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                const scripts = document.querySelectorAll('script[src*="dokter-mobile-app"]');
-                console.log('📦 Loaded dokter bundles:', scripts.length);
-                scripts.forEach(script => {
-                    console.log('📂 Bundle:', script.src);
-                });
-                
-                if (scripts.length === 0) {
-                    console.error('❌ No dokter bundle loaded!');
-                    // Force reload
-                    window.location.reload(true);
+        // Get latest bundle from manifest
+        fetch('/build/manifest.json')
+            .then(response => response.json())
+            .then(manifest => {
+                const dokterEntry = manifest['resources/js/dokter-mobile-app.tsx'];
+                if (dokterEntry && dokterEntry.file) {
+                    const bundlePath = '/build/' + dokterEntry.file;
+                    console.log('📦 Expected bundle:', bundlePath);
+                    
+                    // Check if bundle exists and force load
+                    const script = document.createElement('script');
+                    script.src = bundlePath + '?v=' + Date.now();
+                    script.async = true;
+                    script.onload = () => {
+                        console.log('✅ Bundle loaded successfully:', bundlePath);
+                    };
+                    script.onerror = () => {
+                        console.error('❌ Bundle failed to load:', bundlePath);
+                    };
+                    
+                    // Remove any existing dokter-mobile-app scripts
+                    document.querySelectorAll('script[src*="dokter-mobile-app"]').forEach(s => s.remove());
+                    
+                    // Add new script
+                    document.head.appendChild(script);
+                } else {
+                    console.error('❌ No dokter entry in manifest');
                 }
-            }, 1000);
-        });
+            })
+            .catch(error => {
+                console.error('❌ Failed to load manifest:', error);
+            });
     </script>
     
     <!-- FORCE NEW VERSION LOAD -->

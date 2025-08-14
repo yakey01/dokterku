@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  DollarSign, Calendar, Clock, TrendingUp, Award, Target, Activity, Star, 
+  Trophy, Calendar, Clock, TrendingUp, Award, Target, Activity, Star, 
   ChevronLeft, ChevronRight, Eye, FileText, CreditCard, Stethoscope, 
-  Users, MapPin, CheckCircle, RefreshCw, AlertCircle
+  Users, MapPin, CheckCircle, RefreshCw, AlertCircle, Gamepad2, 
+  Zap, Crown, Medal, Gem, Coins, Gift, Sparkles
 } from 'lucide-react';
 
 interface JaspelItem {
@@ -638,15 +639,23 @@ const JaspelComponent = () => {
           <div className="relative p-8">
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center">
-                <div className="w-20 h-20 bg-gradient-to-br from-emerald-400 via-green-500 to-teal-500 rounded-2xl flex items-center justify-center relative overflow-hidden shadow-2xl">
+                <div className="w-20 h-20 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 rounded-2xl flex items-center justify-center relative overflow-hidden shadow-2xl">
                   <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
-                  <DollarSign className="w-10 h-10 text-white relative z-10" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/20 via-transparent to-purple-600/20 animate-pulse"></div>
+                  <Trophy className="w-10 h-10 text-white relative z-10 drop-shadow-lg" />
+                  <Sparkles className="w-4 h-4 text-yellow-300 absolute top-2 right-2 animate-pulse" />
                 </div>
                 <div className="ml-6">
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent mb-2">
-                    Jasa Pelayanan (JASPEL)
+                  <h1 className="text-4xl font-bold bg-gradient-to-r from-yellow-400 via-pink-400 to-purple-400 bg-clip-text text-transparent mb-2 flex items-center gap-3">
+                    <Crown className="w-8 h-8 text-yellow-400 drop-shadow-lg" />
+                    REWARD
+                    <Medal className="w-8 h-8 text-purple-400 drop-shadow-lg" />
                   </h1>
-                  <p className="text-gray-300 text-lg">Dashboard Pendapatan Dokter</p>
+                  <p className="text-gray-300 text-lg flex items-center gap-2">
+                    <Gamepad2 className="w-5 h-5 text-pink-400" />
+                    Achievement System
+                    <Zap className="w-5 h-5 text-yellow-400 animate-pulse" />
+                  </p>
                 </div>
               </div>
               <div className="flex items-center space-x-3">
@@ -669,37 +678,73 @@ const JaspelComponent = () => {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="bg-gradient-to-r from-emerald-500/10 to-green-500/10 rounded-2xl p-6 border border-emerald-400/20">
+              <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-2xl p-6 border border-yellow-400/20 relative overflow-hidden">
+                <div className="absolute top-1 right-1">
+                  <Gem className="w-4 h-4 text-yellow-400 animate-pulse" />
+                </div>
                 <div className="flex items-center justify-between mb-2">
                   <div>
-                    <p className="text-emerald-300 text-sm mb-1">Total Pendapatan</p>
+                    <p className="text-yellow-300 text-sm mb-1 flex items-center gap-1">
+                      <Coins className="w-4 h-4" />
+                      Total Gold Earned
+                    </p>
                     <p className="text-3xl font-bold text-white">{formatCurrency(grandTotal)}</p>
                   </div>
-                  <CreditCard className="w-8 h-8 text-emerald-400" />
+                  <div className="relative">
+                    <Trophy className="w-8 h-8 text-yellow-400" />
+                    <Sparkles className="w-3 h-3 text-yellow-200 absolute -top-1 -right-1 animate-pulse" />
+                  </div>
                 </div>
-                <p className="text-xs text-emerald-300 mt-2">Jaga + Tindakan</p>
+                <p className="text-xs text-yellow-300 mt-2 flex items-center gap-1">
+                  <Medal className="w-3 h-3" />
+                  Quest Rewards + Bonus XP
+                </p>
               </div>
 
-              <div className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-2xl p-6 border border-blue-400/20">
+              <div className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-2xl p-6 border border-blue-400/20 relative overflow-hidden">
+                <div className="absolute top-1 right-1">
+                  <Star className="w-4 h-4 text-blue-400 animate-spin" />
+                </div>
                 <div className="flex items-center justify-between mb-2">
                   <div>
-                    <p className="text-blue-300 text-sm mb-1">Shift Selesai</p>
+                    <p className="text-blue-300 text-sm mb-1 flex items-center gap-1">
+                      <Award className="w-4 h-4" />
+                      Missions Completed
+                    </p>
                     <p className="text-3xl font-bold text-white">{completedJaga}/{jaspelJagaData.length}</p>
                   </div>
-                  <Clock className="w-8 h-8 text-blue-400" />
+                  <div className="relative">
+                    <Clock className="w-8 h-8 text-blue-400" />
+                    <Zap className="w-3 h-3 text-cyan-300 absolute -top-1 -right-1 animate-pulse" />
+                  </div>
                 </div>
-                <p className="text-xs text-blue-300 mt-2">Jaga terlaksana</p>
+                <p className="text-xs text-blue-300 mt-2 flex items-center gap-1">
+                  <Target className="w-3 h-3" />
+                  Daily Quests Progress
+                </p>
               </div>
 
-              <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-2xl p-6 border border-purple-400/20">
+              <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-2xl p-6 border border-purple-400/20 relative overflow-hidden">
+                <div className="absolute top-1 right-1">
+                  <Crown className="w-4 h-4 text-purple-400 animate-bounce" />
+                </div>
                 <div className="flex items-center justify-between mb-2">
                   <div>
-                    <p className="text-purple-300 text-sm mb-1">Tindakan Selesai</p>
+                    <p className="text-purple-300 text-sm mb-1 flex items-center gap-1">
+                      <Gift className="w-4 h-4" />
+                      Special Achievements
+                    </p>
                     <p className="text-3xl font-bold text-white">{completedTindakan}/{jaspelTindakanData.length}</p>
                   </div>
-                  <Stethoscope className="w-8 h-8 text-purple-400" />
+                  <div className="relative">
+                    <Stethoscope className="w-8 h-8 text-purple-400" />
+                    <Medal className="w-3 h-3 text-pink-300 absolute -top-1 -right-1 animate-pulse" />
+                  </div>
                 </div>
-                <p className="text-xs text-purple-300 mt-2">Prosedur medis</p>
+                <p className="text-xs text-purple-300 mt-2 flex items-center gap-1">
+                  <Star className="w-3 h-3" />
+                  Legendary Skills Unlocked
+                </p>
               </div>
             </div>
           </div>
@@ -709,9 +754,9 @@ const JaspelComponent = () => {
         <div className="bg-white/5 backdrop-blur-2xl rounded-2xl p-2 mb-8 border border-white/10">
           <div className="grid grid-cols-3 gap-2">
             {[
-              { id: 'overview', label: 'Ringkasan', icon: TrendingUp },
-              { id: 'jaga', label: 'Jaga', icon: Clock },
-              { id: 'tindakan', label: 'Tindakan', icon: Activity }
+              { id: 'overview', label: 'Dashboard', icon: TrendingUp },
+              { id: 'jaga', label: 'Daily Quests', icon: Target },
+              { id: 'tindakan', label: 'Achievements', icon: Award }
             ].map(({ id, label, icon: Icon }) => (
               <button
                 key={id}

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V2;
 use App\Http\Controllers\Controller;
 use App\Models\JumlahPasienHarian;
 use App\Models\Dokter;
+use App\Models\DokterUmumJaspel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -81,16 +82,14 @@ class JumlahPasienController extends Controller
                     'validasi_at' => $item->validasi_at ? $item->validasi_at->format('Y-m-d H:i:s') : null,
                     'catatan' => $item->catatan_validasi,
                     
-                    // Additional fields for Jaspel Jaga integration
-                    'shift' => $this->determineShiftFromPoli($item->poli, $item->tanggal),
-                    'jam' => $this->getShiftTimeFromPoli($item->poli),
-                    'lokasi' => $this->getLocationFromPoli($item->poli),
+                    // ✅ DYNAMIC: Additional fields for Jaspel Jaga integration from database
+                    ...$this->getDynamicShiftData($item),
                     'jenis_jaga' => 'jaga_' . $item->poli,
                     
-                    // Calculate estimated Jaspel based on patient count
-                    'estimated_jaspel' => $this->calculateEstimatedJaspel($item->total_pasien, $item->poli),
-                    'tarif_base' => $this->getBaseTarif($item->poli),
-                    'bonus' => $this->calculateBonus($item->total_pasien),
+                    // ✅ UNIFIED: Use Bendahara calculation logic via jaspel_rupiah field
+                    'estimated_jaspel' => $item->jaspel_rupiah ?? $this->calculateJaspelWithBendaharaLogic($item),
+                    'tarif_base' => $this->getBendaharaBaseTarif($item->poli),
+                    'bonus' => 0, // Bonus included in Bendahara calculation
                 ];
             });
             
@@ -133,40 +132,93 @@ class JumlahPasienController extends Controller
     }
     
     /**
-     * Helper: Determine shift from poli type and date
+     * ✅ DYNAMIC: Get shift data from database based on JumlahPasienHarian item
      */
-    private function determineShiftFromPoli($poli, $tanggal)
+    private function getDynamicShiftData($jumlahPasienItem)
     {
-        // Logic to determine shift based on poli and date
-        // This is a simplified version - adjust based on actual business logic
-        $dayOfWeek = Carbon::parse($tanggal)->dayOfWeek;
-        
-        if ($poli === 'umum') {
-            return 'Pagi'; // Poli umum usually morning shift
-        } elseif ($poli === 'gigi') {
-            return $dayOfWeek < 4 ? 'Siang' : 'Pagi'; // Varies by day
+        // Try to get from jadwalJaga relationship first
+        if ($jumlahPasienItem->jadwalJaga && $jumlahPasienItem->jadwalJaga->shiftTemplate) {
+            $shiftTemplate = $jumlahPasienItem->jadwalJaga->shiftTemplate;
+            return [
+                'shift' => $shiftTemplate->nama_shift,
+                'jam' => $shiftTemplate->jam_masuk . ' - ' . $shiftTemplate->jam_pulang,
+                'lokasi' => $this->getLocationFromPoli($jumlahPasienItem->poli),
+            ];
         }
         
-        return 'Pagi'; // Default
+        // Fallback: Try to find matching JadwalJaga by date, dokter, and poli logic
+        $jadwalJaga = \App\Models\JadwalJaga::with('shiftTemplate')
+            ->whereDate('tanggal_jaga', $jumlahPasienItem->tanggal)
+            ->whereHas('pegawai', function($query) use ($jumlahPasienItem) {
+                // Try to find jadwal for the same doctor
+                $query->whereHas('dokter', function($q) use ($jumlahPasienItem) {
+                    $q->where('id', $jumlahPasienItem->dokter_id);
+                });
+            })
+            ->first();
+            
+        if ($jadwalJaga && $jadwalJaga->shiftTemplate) {
+            return [
+                'shift' => $jadwalJaga->shiftTemplate->nama_shift,
+                'jam' => $jadwalJaga->shiftTemplate->jam_masuk . ' - ' . $jadwalJaga->shiftTemplate->jam_pulang,
+                'lokasi' => $this->getLocationFromPoli($jumlahPasienItem->poli),
+            ];
+        }
+        
+        // Final fallback: Use stored shift field with dynamic ShiftTemplate lookup
+        if ($jumlahPasienItem->shift) {
+            $shiftTemplate = \App\Models\ShiftTemplate::where('nama_shift', $jumlahPasienItem->shift)->first();
+            if ($shiftTemplate) {
+                return [
+                    'shift' => $shiftTemplate->nama_shift,
+                    'jam' => $shiftTemplate->jam_masuk . ' - ' . $shiftTemplate->jam_pulang,
+                    'lokasi' => $this->getLocationFromPoli($jumlahPasienItem->poli),
+                ];
+            }
+        }
+        
+        // Ultimate fallback: Intelligent poli-based shift mapping
+        return $this->getIntelligentPoliShiftMapping($jumlahPasienItem->poli);
     }
     
     /**
-     * Helper: Get shift time from poli
+     * ✅ DYNAMIC: Intelligent poli-to-shift mapping based on database
      */
-    private function getShiftTimeFromPoli($poli)
+    private function getIntelligentPoliShiftMapping($poli)
     {
-        return match($poli) {
-            'umum' => '07:00 - 14:00',
-            'gigi' => '10:00 - 17:00',
-            default => '08:00 - 15:00',
+        // Get common shift templates from database
+        $shiftTemplates = \App\Models\ShiftTemplate::whereIn('nama_shift', ['Pagi', 'Sore', 'Siang'])
+            ->get()
+            ->keyBy('nama_shift');
+        
+        $defaultShift = match($poli) {
+            'umum' => $shiftTemplates->get('Pagi') ?? $shiftTemplates->get('Siang'),
+            'gigi' => $shiftTemplates->get('Siang') ?? $shiftTemplates->get('Sore'),
+            default => $shiftTemplates->get('Pagi') ?? $shiftTemplates->first(),
         };
+        
+        if ($defaultShift) {
+            return [
+                'shift' => $defaultShift->nama_shift,
+                'jam' => $defaultShift->jam_masuk . ' - ' . $defaultShift->jam_pulang,
+                'lokasi' => $this->getLocationFromPoli($poli),
+            ];
+        }
+        
+        // Hard fallback if no database data
+        return [
+            'shift' => 'Pagi',
+            'jam' => '08:00 - 15:00',
+            'lokasi' => 'Klinik Dokterku',
+        ];
     }
     
     /**
-     * Helper: Get location from poli
+     * ✅ DYNAMIC: Get location with potential future database integration
      */
     private function getLocationFromPoli($poli)
     {
+        // TODO: Could be moved to database configuration table in future
         return match($poli) {
             'umum' => 'Poli Umum - Lantai 1',
             'gigi' => 'Poli Gigi - Lantai 2',
@@ -175,51 +227,97 @@ class JumlahPasienController extends Controller
     }
     
     /**
-     * Helper: Calculate estimated Jaspel based on patient count
+     * ✅ UNIFIED: Calculate Jaspel using Bendahara system logic (threshold-based)
      */
-    private function calculateEstimatedJaspel($totalPasien, $poli)
+    private function calculateJaspelWithBendaharaLogic($jumlahPasienItem)
     {
-        // Base tarif per patient varies by poli
-        $tarifPerPasien = match($poli) {
-            'umum' => 15000,
-            'gigi' => 25000,
-            default => 15000,
-        };
+        // Get active formula from DokterUmumJaspel (same as Bendahara system)
+        $formula = $this->getActiveDokterUmumJaspelFormula($jumlahPasienItem->poli);
         
-        // Progressive bonus for high patient count
-        $bonus = 0;
-        if ($totalPasien > 50) {
-            $bonus = ($totalPasien - 50) * 5000;
+        if (!$formula) {
+            // Fallback to old calculation if no formula found
+            return $this->calculateEstimatedJaspelFallback($jumlahPasienItem->total_pasien, $jumlahPasienItem->poli);
         }
+
+        $totalPasien = $jumlahPasienItem->total_pasien;
+        $jumlahPasienUmum = $jumlahPasienItem->jumlah_pasien_umum;
+        $jumlahPasienBpjs = $jumlahPasienItem->jumlah_pasien_bpjs;
+
+        // ✅ BENDAHARA LOGIC: Threshold-based calculation
+        if ($totalPasien <= $formula->ambang_pasien) {
+            return $formula->uang_duduk; // Hanya dapat uang duduk jika belum mencapai threshold
+        }
+
+        // Hitung pasien yang melebihi threshold
+        $totalPasienDihitung = $totalPasien - $formula->ambang_pasien;
         
-        return ($totalPasien * $tarifPerPasien) + $bonus;
+        // Hitung proporsi berdasarkan jenis pasien
+        $proporsiUmum = $totalPasien > 0 ? $jumlahPasienUmum / $totalPasien : 0;
+        $proporsiBpjs = $totalPasien > 0 ? $jumlahPasienBpjs / $totalPasien : 0;
+
+        $pasienUmumDihitung = round($totalPasienDihitung * $proporsiUmum);
+        $pasienBpjsDihitung = round($totalPasienDihitung * $proporsiBpjs);
+
+        $feeUmum = $pasienUmumDihitung * $formula->fee_pasien_umum;
+        $feeBpjs = $pasienBpjsDihitung * $formula->fee_pasien_bpjs;
+
+        // Total = uang duduk + fee berdasarkan pasien yang melebihi threshold
+        return $formula->uang_duduk + $feeUmum + $feeBpjs;
     }
     
     /**
-     * Helper: Get base tarif for poli
+     * Get active DokterUmumJaspel formula for calculation
      */
-    private function getBaseTarif($poli)
+    private function getActiveDokterUmumJaspelFormula($poli)
     {
+        // Map poli to shift (simplified logic - adjust based on business rules)
+        $shift = match($poli) {
+            'umum' => 'Pagi',
+            'gigi' => 'Sore',
+            default => 'Pagi',
+        };
+        
+        return DokterUmumJaspel::where('jenis_shift', $shift)
+            ->where('status_aktif', true)
+            ->first();
+    }
+    
+    /**
+     * Fallback calculation if no formula found
+     */
+    private function calculateEstimatedJaspelFallback($totalPasien, $poli)
+    {
+        // Simplified fallback - basic calculation
+        $tarifPerPasien = match($poli) {
+            'umum' => 7000, // Sesuai dengan tarif Bendahara
+            'gigi' => 10000,
+            default => 7000,
+        };
+        
+        // Assume threshold 10 and uang duduk 200k (default values)
+        if ($totalPasien <= 10) {
+            return 200000;
+        }
+        
+        return 200000 + (($totalPasien - 10) * $tarifPerPasien);
+    }
+    
+    /**
+     * ✅ UNIFIED: Get base tarif using Bendahara system (uang_duduk)
+     */
+    private function getBendaharaBaseTarif($poli)
+    {
+        $formula = $this->getActiveDokterUmumJaspelFormula($poli);
+        
+        if ($formula) {
+            return $formula->uang_duduk;
+        }
+        
+        // Fallback to standard uang duduk
         return match($poli) {
             'umum' => 200000,
             'gigi' => 300000,
             default => 200000,
         };
-    }
-    
-    /**
-     * Helper: Calculate bonus based on patient count
-     */
-    private function calculateBonus($totalPasien)
-    {
-        if ($totalPasien > 100) {
-            return 150000;
-        } elseif ($totalPasien > 75) {
-            return 100000;
-        } elseif ($totalPasien > 50) {
-            return 50000;
-        }
-        
-        return 0;
     }
 }

@@ -60,10 +60,9 @@ export default defineConfig({
         extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json'],
     },
     esbuild: {
-        jsxFactory: 'React.createElement',
-        jsxFragment: 'React.Fragment',
-        jsxImportSource: 'react',
         jsx: 'automatic',
+        jsxImportSource: 'react',
+        target: 'es2015',
     },
     build: {
         rollupOptions: {
@@ -77,42 +76,12 @@ export default defineConfig({
                 },
                 entryFileNames: `assets/js/[name]-[hash].js`,
                 chunkFileNames: `assets/js/[name]-[hash].js`,
-                manualChunks: undefined,
-                sourcemapFileNames: 'assets/js/[name]-[hash].js.map',
-            },
-            onwarn(warning, warn) {
-                if (warning.code === 'CIRCULAR_DEPENDENCY') {
-                    console.warn('🔄 Circular dependency detected:', warning.message);
-                    return;
-                }
-                if (warning.code === 'THIS_IS_UNDEFINED') {
-                    console.warn('⚠️ TDZ issue detected (handled by esbuild):', warning.message);
-                    return;
-                }
-                warn(warning);
             },
         },
-        sourcemap: process.env.NODE_ENV === 'development',
-        minify: process.env.NODE_ENV === 'production' ? 'esbuild' : false,
-        esbuild: {
-            keepNames: true,
-            minifyIdentifiers: process.env.NODE_ENV === 'production',
-            target: 'esnext',
-            sourcemap: process.env.NODE_ENV === 'development',
-            jsxFactory: 'React.createElement',
-            jsxFragment: 'React.Fragment',
-            jsxImportSource: 'react',
-            jsx: 'automatic',
-        },
-        assetsInclude: ['**/*.tsx', '**/*.ts', '**/*.jsx'],
-        define: {
-            __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
-            __BUILD_HASH__: JSON.stringify(Date.now().toString(36)),
-            __DEV_MODE__: JSON.stringify(process.env.NODE_ENV === 'development'),
-            __SOURCE_MAP_ENABLED__: JSON.stringify(true),
-        },
+        sourcemap: false,
+        minify: 'esbuild',
+        target: 'es2015',
         chunkSizeWarningLimit: 1600,
         manifest: true,
-        reportCompressedSize: true,
     },
 });

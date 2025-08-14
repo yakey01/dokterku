@@ -983,36 +983,6 @@ class DokterDashboardController extends Controller
                         ];
                     }
                     
-                    // ✅ ENHANCED: Mission-style performance calculation
-                    $status = 'incomplete';
-                    $points = 0;
-                    $badge = '📋 UNKNOWN';
-                    
-                    if ($attendance->time_in && $attendance->time_out && $shiftTemplate && is_object($shiftTemplate)) {
-                        $scheduledStart = \Carbon\Carbon::parse($shiftTemplate->jam_masuk ?? '08:00');
-                        $actualStart = \Carbon\Carbon::parse($attendance->time_in);
-                        $timeDiffMinutes = $actualStart->diffInMinutes($scheduledStart, false);
-                        
-                        // Gaming status determination
-                        if ($timeDiffMinutes <= 0) {
-                            $status = 'perfect';
-                            $points = 150;
-                            $badge = '🏆 PERFECT';
-                        } elseif ($timeDiffMinutes <= 15) {
-                            $status = 'good';
-                            $points = 120;
-                            $badge = '⭐ GOOD';
-                        } elseif ($timeDiffMinutes <= 30) {
-                            $status = 'late';
-                            $points = 80;
-                            $badge = '⚠️ LATE';
-                        } else {
-                            $status = 'incomplete';
-                            $points = 50;
-                            $badge = '❌ INCOMPLETE';
-                        }
-                    }
-                    
                     // ✅ SOPHISTICATED: Calculate effective duration using 5-step logic
                     $durationCalculator = new EffectiveDurationCalculatorService();
                     $effectiveDuration = null;
@@ -1049,6 +1019,57 @@ class DokterDashboardController extends Controller
                         
                         $shortageMinutes = $effectiveDuration['shortage_minutes'] ?? 0;
                     }
+                    
+                    // ✅ DYNAMIC STATUS: Calculate after we have all data
+                    $status = 'incomplete';
+                    $points = 0;
+                    $badge = '📋 UNKNOWN';
+                    $dynamicStatus = 'Tidak Hadir';
+                    
+                    $hasCheckIn = !empty($attendance->time_in);
+                    $hasCheckOut = !empty($attendance->time_out);
+                    
+                    if (!$hasCheckIn && !$hasCheckOut) {
+                        $dynamicStatus = 'Tidak Hadir';
+                        $status = 'absent';
+                        $points = 0;
+                        $badge = '❌ ABSENT';
+                    } elseif ($hasCheckIn && !$hasCheckOut) {
+                        $dynamicStatus = 'Tidak Lengkap';
+                        $status = 'incomplete';
+                        $points = 25;
+                        $badge = '⚠️ INCOMPLETE';
+                    } elseif ($hasCheckIn && $hasCheckOut) {
+                        $workingMinutes = $effectiveDuration ? $effectiveDuration['final_duration_minutes'] : 0;
+                        
+                        if ($workingMinutes < 30) {
+                            $dynamicStatus = 'Tidak Hadir';
+                            $status = 'absent';
+                            $points = 10;
+                            $badge = '❌ SHORT';
+                        } elseif ($shortageMinutes === 0) {
+                            $dynamicStatus = 'Tepat Waktu';
+                            $status = 'perfect';
+                            $points = 150;
+                            $badge = '🏆 PERFECT';
+                        } elseif ($shortageMinutes > 0) {
+                            $dynamicStatus = "Kurang Menit"; // ✅ CLEAN: No number duplication
+                            
+                            if ($shortageMinutes <= 15) {
+                                $status = 'good';
+                                $points = 120;
+                                $badge = '⭐ GOOD';
+                            } elseif ($shortageMinutes <= 60) {
+                                $status = 'late';
+                                $points = 80;
+                                $badge = '⚠️ LATE';
+                            } else {
+                                $status = 'incomplete';
+                                $points = 50;
+                                $badge = '❌ INCOMPLETE';
+                            }
+                        }
+                    }
 
                     // ✅ ENHANCED: Comprehensive response structure
                     return [
@@ -1070,6 +1091,7 @@ class DokterDashboardController extends Controller
                             'shift_duration' => $shiftInfo['shift_duration']
                         ],
                         'status' => $status,
+                        'dynamic_status' => $dynamicStatus, // ✅ DYNAMIC: New intelligent status
                         'points_earned' => $points,
                         'achievement_badge' => $badge,
                         

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { DollarSign, Calendar, TrendingUp, Eye, Wallet, CreditCard, PiggyBank, RefreshCw, AlertCircle } from 'lucide-react';
+import { Trophy, Calendar, TrendingUp, Eye, Wallet, CreditCard, PiggyBank, RefreshCw, AlertCircle, Crown, Medal, Gem, Coins, Gift, Sparkles, Gamepad2, Zap, Award } from 'lucide-react';
 
 interface JaspelItem {
   id: string;
@@ -355,17 +355,25 @@ export function Jaspel() {
     >
       {/* Header */}
       <motion.div variants={item}>
-        <Card className="bg-gradient-to-r from-emerald-500 to-emerald-600 dark:from-emerald-600 dark:to-emerald-700 border-0 shadow-xl card-enhanced">
-          <CardContent className="p-6">
+        <Card className="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 dark:from-purple-600 dark:to-orange-700 border-0 shadow-xl card-enhanced relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/10 via-transparent to-purple-600/10 animate-pulse"></div>
+          <CardContent className="p-6 relative z-10">
             <div className="flex items-center justify-between text-white">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-white/20 dark:bg-white/30 rounded-full flex items-center justify-center">
-                  <Wallet className="w-6 h-6" />
+                <div className="w-12 h-12 bg-white/20 dark:bg-white/30 rounded-full flex items-center justify-center relative">
+                  <Trophy className="w-6 h-6" />
+                  <Sparkles className="w-3 h-3 text-yellow-300 absolute -top-1 -right-1 animate-pulse" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-white text-heading-mobile">Jaspel</h2>
-                  <p className="text-emerald-100 dark:text-emerald-200 text-sm font-medium text-mobile-friendly">
-                    Sistem WORLD-CLASS - Pendapatan dari tindakan tervalidasi
+                  <h2 className="text-xl font-semibold text-white text-heading-mobile flex items-center gap-2">
+                    <Crown className="w-5 h-5 text-yellow-400" />
+                    REWARD
+                    <Medal className="w-5 h-5 text-purple-300" />
+                  </h2>
+                  <p className="text-purple-100 dark:text-purple-200 text-sm font-medium text-mobile-friendly flex items-center gap-1">
+                    <Gamepad2 className="w-4 h-4 text-pink-300" />
+                    Achievement System
+                    <Zap className="w-4 h-4 text-yellow-300 animate-pulse" />
                   </p>
                 </div>
               </div>
@@ -436,27 +444,31 @@ export function Jaspel() {
           transition={{ duration: 0.6, delay: 0.6 }}
           className="space-y-6"
         >
-          {/* Minimalist Information Card with Pink Gradient - Enlarged */}
+          {/* Gaming Empty State Card */}
           <motion.div
-            className="relative overflow-hidden rounded-xl bg-gradient-to-r from-pink-400 to-rose-500 p-6 shadow-lg"
+            className="relative overflow-hidden rounded-xl bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 p-6 shadow-lg"
             whileHover={{ 
               scale: 1.01,
-              boxShadow: "0 8px 25px -8px rgba(244, 114, 182, 0.4)"
+              boxShadow: "0 8px 25px -8px rgba(168, 85, 247, 0.4)"
             }}
           >
-            <div className="flex items-center gap-4">
-              {/* Simple Warning Icon - Enlarged */}
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-xl">⚠️</span>
+            <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/10 via-transparent to-purple-600/10 animate-pulse"></div>
+            <div className="flex items-center gap-4 relative z-10">
+              {/* Gaming Icon */}
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0 relative">
+                <Gamepad2 className="w-5 h-5 text-white" />
+                <Sparkles className="w-3 h-3 text-yellow-300 absolute -top-1 -right-1 animate-pulse" />
               </div>
               
-              {/* Compact Content - Enlarged */}
+              {/* Gaming Content */}
               <div className="flex-1">
-                <h4 className="text-white font-semibold text-base mb-2">
-                  Belum ada data Jaspel
+                <h4 className="text-white font-semibold text-base mb-2 flex items-center gap-2">
+                  <Trophy className="w-4 h-4 text-yellow-400" />
+                  No Rewards Yet!
                 </h4>
-                <p className="text-pink-50 text-sm leading-relaxed">
-                  Data muncul setelah divalidasi bendahara
+                <p className="text-purple-100 text-sm leading-relaxed flex items-center gap-1">
+                  <Gift className="w-3 h-3 text-pink-300" />
+                  Complete quests to unlock rewards
                 </p>
               </div>
             </div>
@@ -471,14 +483,21 @@ export function Jaspel() {
           whileHover={{ scale: 1.02, y: -2 }}
           transition={{ duration: 0.2 }}
         >
-          <Card className="bg-gradient-to-br from-green-500 to-green-600 dark:from-green-600 dark:to-green-700 border-0 shadow-lg card-enhanced">
+          <Card className="bg-gradient-to-br from-yellow-500 to-orange-500 dark:from-yellow-600 dark:to-orange-700 border-0 shadow-lg card-enhanced relative overflow-hidden">
+            <div className="absolute top-1 right-1">
+              <Gem className="w-3 h-3 text-yellow-200 animate-pulse" />
+            </div>
             <CardContent className="p-4">
               <div className="flex items-center gap-3 text-white">
-                <div className="w-10 h-10 bg-white/20 dark:bg-white/30 rounded-full flex items-center justify-center">
-                  <CreditCard className="w-5 h-5" />
+                <div className="w-10 h-10 bg-white/20 dark:bg-white/30 rounded-full flex items-center justify-center relative">
+                  <Trophy className="w-5 h-5" />
+                  <Sparkles className="w-2 h-2 text-yellow-200 absolute -top-0.5 -right-0.5 animate-pulse" />
                 </div>
                 <div>
-                  <p className="text-sm text-green-100 dark:text-green-200 font-medium">Total Tervalidasi</p>
+                  <p className="text-sm text-yellow-100 dark:text-yellow-200 font-medium flex items-center gap-1">
+                    <Coins className="w-3 h-3" />
+                    Gold Earned
+                  </p>
                   <p className="text-lg font-semibold">{formatCurrency(totalPaid)}</p>
                 </div>
               </div>
@@ -490,14 +509,21 @@ export function Jaspel() {
           whileHover={{ scale: 1.02, y: -2 }}
           transition={{ duration: 0.2 }}
         >
-          <Card className="bg-gradient-to-br from-yellow-500 to-yellow-600 dark:from-yellow-600 dark:to-yellow-700 border-0 shadow-lg card-enhanced">
+          <Card className="bg-gradient-to-br from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-700 border-0 shadow-lg card-enhanced relative overflow-hidden">
+            <div className="absolute top-1 right-1">
+              <Crown className="w-3 h-3 text-purple-200 animate-bounce" />
+            </div>
             <CardContent className="p-4">
               <div className="flex items-center gap-3 text-white">
-                <div className="w-10 h-10 bg-white/20 dark:bg-white/30 rounded-full flex items-center justify-center">
-                  <PiggyBank className="w-5 h-5" />
+                <div className="w-10 h-10 bg-white/20 dark:bg-white/30 rounded-full flex items-center justify-center relative">
+                  <Gift className="w-5 h-5" />
+                  <Medal className="w-2 h-2 text-pink-200 absolute -top-0.5 -right-0.5 animate-pulse" />
                 </div>
                 <div>
-                  <p className="text-sm text-yellow-100 dark:text-yellow-200 font-medium">Pending</p>
+                  <p className="text-sm text-purple-100 dark:text-purple-200 font-medium flex items-center gap-1">
+                    <Award className="w-3 h-3" />
+                    Quest Pending
+                  </p>
                   <p className="text-lg font-semibold">{formatCurrency(totalPending)}</p>
                 </div>
               </div>
@@ -513,13 +539,13 @@ export function Jaspel() {
         <Tabs defaultValue="semua" className="w-full">
           <TabsList className="grid w-full grid-cols-3 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-gray-200 dark:border-gray-700">
             <TabsTrigger value="semua" className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-900 data-[state=active]:shadow-sm font-medium transition-colors duration-300">
-              Semua
+              🎮 All Rewards
             </TabsTrigger>
             <TabsTrigger value="pending" className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-900 data-[state=active]:shadow-sm font-medium transition-colors duration-300">
-              Pending
+              ⏳ Pending XP
             </TabsTrigger>
             <TabsTrigger value="paid" className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-900 data-[state=active]:shadow-sm font-medium transition-colors duration-300">
-              Tervalidasi
+              🏆 Claimed
             </TabsTrigger>
           </TabsList>
 
@@ -542,9 +568,9 @@ export function Jaspel() {
                         </div>
                         <div className="flex flex-col items-end gap-1">
                           <Badge className={`${getStatusColor(dataItem.status)} border font-medium`}>
-                            {dataItem.status === 'pending' && 'Menunggu'}
-                            {dataItem.status === 'paid' && 'Tervalidasi'}
-                            {dataItem.status === 'rejected' && 'Ditolak'}
+                            {dataItem.status === 'pending' && '⏳ Quest Active'}
+                            {dataItem.status === 'paid' && '🏆 Reward Claimed'}
+                            {dataItem.status === 'rejected' && '❌ Mission Failed'}
                           </Badge>
                           {dataItem.validated_by && (
                             <span className="text-xs text-muted-foreground">

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { Calendar, Clock, DollarSign, Award, Brain, Star, Crown, Flame, Moon, Sun } from 'lucide-react';
+import { Calendar, Clock, DollarSign, Award, Brain, Star, Crown, Flame, Moon, Sun, HeartCrack } from 'lucide-react';
 import { JadwalJaga } from './JadwalJaga';
 import CreativeAttendanceDashboard from './Presensi';
 import JaspelComponent from './Jaspel';
@@ -883,7 +883,12 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
                 <div className="relative">
                   <div className="w-20 h-20 bg-gradient-to-br from-cyan-400 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center relative overflow-hidden">
                     <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
-                    <Crown className="w-10 h-10 text-white relative z-10 animate-bounce" />
+                    {/* Dynamic icon based on attendance rate */}
+                    {dashboardMetrics.attendance.rate >= 100 ? (
+                      <Crown className="w-10 h-10 text-white relative z-10 animate-bounce" />
+                    ) : (
+                      <HeartCrack className="w-10 h-10 text-white relative z-10 animate-bounce" />
+                    )}
                   </div>
                   <div className="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-black text-xs font-bold px-2 py-1 rounded-full border-2 border-white shadow-lg animate-pulse">
                     Lv.{doctorLevel}

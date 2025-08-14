@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Attendance Issue</title>
+</head>
+<body>
+    <h1>Debug Attendance Calculation Issue</h1>
+    <div id="results"></div>
+
+<script>
+// Replicate the AttendanceCalculator logic to test
+class AttendanceCalculator {
+  static calculateAttendanceMetrics(records, monthStart, monthEnd) {
+    console.log('🔄 Starting calculation with:', {
+      recordCount: records.length,
+      monthRange: { start: monthStart, end: monthEnd },
+      sampleRecord: records[0]
+    });
+
+    // Filter records for the month (using wide range as in Presensi)
+    const monthlyData = records.filter(record => {
+      const recordDate = new Date(record.date);
+      const isInRange = recordDate >= monthStart && recordDate <= monthEnd;
+      console.log('Date filter:', {
+        date: record.date,
+        parsedDate: recordDate.toISOString(),
+        isInRange
+      });
+      return isInRange;
+    });
+
+    console.log('Filtered data:', monthlyData.length, 'records');
+
+    // Check status values
+    console.log('Status analysis:');
+    monthlyData.forEach((record, i) => {
+      console.log(`Record ${i+1}:`, {
+        status: `"${record.status}"`,
+        isHadir: record.status === 'Hadir',
+        isTepatWaktu: record.status === 'Tepat Waktu',
+        isTerlambat: record.status === 'Terlambat',
+        actual_hours: record.actual_hours
+      });
+    });
+
+    const presentRecords = monthlyData.filter(r => 
+      r.status === 'Hadir' || r.status === 'Tepat Waktu' || r.status === 'Terlambat'
+    );
+
+    console.log('Present records found:', presentRecords.length);
+
+    let totalAttendedHours = 0;
+    let totalScheduledHours = 0;
+
+    monthlyData.forEach(record => {
+      if (record.scheduled_hours) {
+        totalScheduledHours += record.scheduled_hours;
+      }
+
+      const shouldCountAttended = (record.status === 'Hadir' || record.status === 'Tepat Waktu' || record.status === 'Terlambat') && record.actual_hours > 0;
+      if (shouldCountAttended) {
+        totalAttendedHours += record.actual_hours;
+      }
+
+      console.log('Hours calculation for', record.date, ':', {
+        status: record.status,
+        actual_hours: record.actual_hours,
+        scheduled_hours: record.scheduled_hours,
+        shouldCountAttended
+      });
+    });
+
+    const attendancePercentage = totalScheduledHours > 0 
+      ? Math.round((totalAttendedHours / totalScheduledHours) * 100)
+      : 0;
+
+    const result = {
+      presentDays: presentRecords.length,
+      totalAttendedHours,
+      totalScheduledHours,
+      attendancePercentage
+    };
+
+    console.log('Final calculation result:', result);
+    return result;
+  }
+}
+
+// Test with sample data that mimics what we might be getting
+const testData = [
+  {
+    date: '2025-01-13',
+    status: 'Hadir',
+    actual_hours: 8,
+    scheduled_hours: 8
+  },
+  {
+    date: '2025-01-14',
+    status: 'Tepat Waktu',
+    actual_hours: 8.5,
+    scheduled_hours: 8
+  },
+  {
+    date: '2025-01-15',
+    status: 'Terlambat',
+    actual_hours: 7.5,
+    scheduled_hours: 8
+  }
+];
+
+// Test with wide date range (should include all records)
+const wideStart = new Date('2020-01-01');
+const wideEnd = new Date('2030-12-31');
+
+console.log('🧪 Testing with wide date range...');
+const result = AttendanceCalculator.calculateAttendanceMetrics(testData, wideStart, wideEnd);
+
+document.getElementById('results').innerHTML = `
+<h2>Test Results:</h2>
+<p>Present Days: ${result.presentDays}</p>
+<p>Total Attended Hours: ${result.totalAttendedHours}</p>
+<p>Total Scheduled Hours: ${result.totalScheduledHours}</p>
+<p>Attendance Percentage: ${result.attendancePercentage}%</p>
+<h3>Expected: 3 present days, 24 attended hours, 24 scheduled hours, 100%</h3>
+`;
+
+// Now test with zero values (what might be happening)
+console.log('🧪 Testing with potentially problematic data...');
+const problematicData = [
+  {
+    date: '2025-01-13',
+    status: 'Present', // Different status value
+    actual_hours: 8,
+    scheduled_hours: 8
+  },
+  {
+    date: '2025-01-14',
+    status: 'Hadir',
+    actual_hours: 0, // Zero hours
+    scheduled_hours: 8
+  }
+];
+
+const result2 = AttendanceCalculator.calculateAttendanceMetrics(problematicData, wideStart, wideEnd);
+console.log('Problematic data result:', result2);
+
+</script>
+</body>
+</html>

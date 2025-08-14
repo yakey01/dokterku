@@ -478,8 +478,49 @@ const PresensiSimplified: React.FC = () => {
                   
                   const duration = record.working_duration || '8h 0m';
                   
-                  const status = record.status === 'perfect' || record.status === 'good' || record.status_legacy === 'present' ? 'Hadir' : 
-                              record.status_legacy === 'late' ? 'Terlambat' : 'Tidak Hadir';
+                  // Helper function to parse duration string to minutes
+                  const parseDurationToMinutes = (duration) => {
+                    if (!duration || duration === '0j 0m') return 0;
+                    const match = duration.match(/(\d+)j\s*(\d+)m/);
+                    if (match) {
+                      return parseInt(match[1]) * 60 + parseInt(match[2]);
+                    }
+                    return 0;
+                  };
+                  
+                  // ✅ DYNAMIC STATUS: Use backend calculated status or fallback to frontend calculation
+                  const status = record.dynamic_status || (() => {
+                    // Fallback calculation if backend doesn't provide dynamic_status
+                    const hasCheckIn = record.time_in || record.checkIn || record.check_in_time || record.actual_check_in;
+                    const hasCheckOut = record.time_out || record.checkOut || record.check_out_time || record.actual_check_out;
+                    
+                    if (!hasCheckIn && !hasCheckOut) return 'Tidak Hadir';
+                    if (hasCheckIn && !hasCheckOut) return 'Tidak Lengkap';
+                    
+                    const shortageMinutes = record.shortage_minutes || record.shortfall_minutes || 0;
+                    
+                    // ✅ FIX: Priority to shortage-based status
+                    if (shortageMinutes === 0) return 'Tepat Waktu';
+                    if (shortageMinutes > 0) return 'Kurang Menit'; // ✅ CLEAN: No number duplication
+                    
+                    // Only check working duration if no shortage data  
+                    const workingMinutes = record.effective_duration?.final_duration_minutes || 
+                                         record.duration_minutes || 
+                                         parseDurationToMinutes(record.working_duration || '0j 0m');
+                    
+                    if (workingMinutes < 30) return 'Tidak Hadir';
+                    
+                    return 'Hadir';
+                  })();
+                  
+                  // ✅ DYNAMIC COLORS: Color coding based on dynamic status
+                  const getStatusColor = (status) => {
+                    if (status === 'Tepat Waktu') return 'bg-green-500/20 text-green-400';
+                    if (status === 'Tidak Hadir') return 'bg-red-500/20 text-red-400';
+                    if (status === 'Tidak Lengkap') return 'bg-orange-500/20 text-orange-400';
+                    if (status === 'Kurang Menit') return 'bg-yellow-500/20 text-yellow-400'; // ✅ CLEAN: Simplified
+                    return 'bg-blue-500/20 text-blue-400'; // Default/Hadir
+                  };
                   
                   // ✅ SOPHISTICATED: Use calculated shortage from backend (multiple field support)
                   const shortageMinutes = record.shortage_minutes || record.shortfall_minutes || 0;
@@ -505,11 +546,7 @@ const PresensiSimplified: React.FC = () => {
                           </span>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <span className={`text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-lg font-medium ${
-                            status === 'Hadir' ? 'bg-green-500/20 text-green-400' :
-                            status === 'Terlambat' ? 'bg-yellow-500/20 text-yellow-400' :
-                            'bg-red-500/20 text-red-400'
-                          }`}>
+                          <span className={`text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-lg font-medium ${getStatusColor(status)}`}>
                             {status}
                           </span>
                         </div>

@@ -125,7 +125,7 @@ const CreativeAttendanceDashboard = () => {
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
-  const [filterPeriod, setFilterPeriod] = useState('weekly');
+  const [filterPeriod, setFilterPeriod] = useState('monthly'); // ✅ FIXED: Default to monthly like Dashboard
   
   // Leave form state
   const [leaveForm, setLeaveForm] = useState({
@@ -1933,49 +1933,107 @@ const CreativeAttendanceDashboard = () => {
     });
   };
 
-  // Filter attendance data based on period
+  // 🐛 ENHANCED Filter attendance data based on period
   const getFilteredData = () => {
     const now = new Date();
     
     console.log('🔍 Filtering data:', {
       totalRecords: attendanceHistory.length,
       filterPeriod: filterPeriod,
-      now: now.toISOString()
+      now: now.toISOString(),
+      sampleRecords: attendanceHistory.slice(0, 2).map(r => ({ date: r.date, status: r.status }))
     });
     
-    const filtered = attendanceHistory.filter(record => {
-      // ✅ FIX: Convert DD-MM-YY back to proper date for comparison
+    const filtered = attendanceHistory.filter((record, index) => {
       let recordDate;
-      if (record.date && record.date.match(/^\d{2}-\d{2}-\d{2}$/)) {
-        // DD-MM-YY format, convert to YYYY-MM-DD
-        const [day, month, year] = record.date.split('-');
-        const fullYear = `20${year}`;
-        recordDate = new Date(`${fullYear}-${month}-${day}`);
-      } else {
-        // Assume ISO format
-        recordDate = new Date(record.date);
+      let parseMethod = 'unknown';
+      
+      try {
+        // ✅ ENHANCED: Handle multiple date formats
+        if (record.date && record.date.match(/^\d{2}-\d{2}-\d{2}$/)) {
+          // DD-MM-YY format, convert to YYYY-MM-DD
+          const [day, month, year] = record.date.split('-');
+          const fullYear = `20${year}`;
+          recordDate = new Date(`${fullYear}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
+          parseMethod = 'DD-MM-YY';
+        } else if (record.date && record.date.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+          // DD/MM/YYYY format
+          const [day, month, year] = record.date.split('/');
+          recordDate = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
+          parseMethod = 'DD/MM/YYYY';
+        } else if (record.date && record.date.match(/^\d{2}\/\d{2}\/\d{2}$/)) {
+          // DD/MM/YY format
+          const [day, month, year] = record.date.split('/');
+          const fullYear = `20${year}`;
+          recordDate = new Date(`${fullYear}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
+          parseMethod = 'DD/MM/YY';
+        } else {
+          // Assume ISO format or other standard format
+          recordDate = new Date(record.date);
+          parseMethod = 'ISO_or_other';
+        }
+        
+        // Validate the parsed date
+        if (isNaN(recordDate.getTime())) {
+          console.error(`⚠️ Invalid date parsed for record ${index}:`, record.date);
+          return false;
+        }
+        
+      } catch (error) {
+        console.error(`⚠️ Error parsing date for record ${index}:`, record.date, error);
+        return false;
       }
       
-      console.log('🔍 Checking record:', {
-        date: record.date,
-        recordDate: recordDate.toISOString(),
-        filterPeriod: filterPeriod
-      });
+      // Show detailed debug info for first few records
+      if (index < 3) {
+        console.log(`🔍 Record ${index + 1} filter check:`, {
+          originalDate: record.date,
+          parseMethod,
+          parsedDate: recordDate.toISOString(),
+          status: record.status,
+          filterPeriod: filterPeriod
+        });
+      }
+      
+      let isInPeriod = true;
       
       if (filterPeriod === 'weekly') {
         const weekAgo = new Date(now);
         weekAgo.setDate(now.getDate() - 7);
-        const result = recordDate >= weekAgo;
-        console.log('Weekly filter:', { weekAgo: weekAgo.toISOString(), result });
-        return result;
+        weekAgo.setHours(0, 0, 0, 0);
+        isInPeriod = recordDate >= weekAgo;
+        
+        if (index < 3) {
+          console.log(`Weekly filter for record ${index + 1}:`, {
+            weekAgo: weekAgo.toISOString(),
+            recordDate: recordDate.toISOString(),
+            isInPeriod
+          });
+        }
       } else if (filterPeriod === 'monthly') {
-        const monthAgo = new Date(now);
-        monthAgo.setMonth(now.getMonth() - 1);
-        const result = recordDate >= monthAgo;
-        console.log('Monthly filter:', { monthAgo: monthAgo.toISOString(), result });
-        return result;
+        // ✅ FIXED: Use CALENDAR MONTH like Dashboard instead of rolling 30 days
+        const currentMonth = new Date(now);
+        const monthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+        const monthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0, 23, 59, 59);
+        isInPeriod = recordDate >= monthStart && recordDate <= monthEnd;
+        
+        if (index < 3) {
+          console.log(`Monthly filter (CALENDAR MONTH) for record ${index + 1}:`, {
+            monthStart: monthStart.toISOString(),
+            monthEnd: monthEnd.toISOString(),
+            recordDate: recordDate.toISOString(),
+            isInPeriod
+          });
+        }
       }
-      return true;
+      
+      return isInPeriod;
+    });
+    
+    console.log('📊 Filter results:', {
+      originalCount: attendanceHistory.length,
+      filteredCount: filtered.length,
+      filteredSample: filtered.slice(0, 2).map(r => ({ date: r.date, status: r.status }))
     });
     
     return filtered;
@@ -2005,7 +2063,202 @@ const CreativeAttendanceDashboard = () => {
       console.log('🔄 History tab opened, loading attendance history...');
       loadAttendanceHistory(filterPeriod);
     }
-  }, [activeTab, filterPeriod]); // Remove loadAttendanceHistory from deps to prevent circular reference
+  }, [activeTab, filterPeriod]);
+
+  // ✅ ENHANCED FIX: Recalculate statistics when filter period changes
+  useEffect(() => {
+    if (attendanceHistory.length > 0 && activeTab === 'stats') {
+      console.log('🔄 Stats tab - recalculating with filtered data...');
+      console.log('📊 Debug: AttendanceHistory length:', attendanceHistory.length);
+      console.log('📊 Debug: FilterPeriod:', filterPeriod);
+      console.log('📊 Debug: First 3 records:', attendanceHistory.slice(0, 3));
+      
+      // Get filtered data
+      const filteredData = getFilteredData();
+      console.log('📊 Filtered records for stats:', filteredData.length);
+      console.log('📊 Debug: Filtered data sample:', filteredData.slice(0, 2));
+      
+      // ✅ FIXED: Use the ALREADY CALCULATED hours from loadAttendanceHistory - NO NEED TO RECALCULATE
+      const calculatorCompatibleData = filteredData.map(record => {
+        // The hours are ALREADY calculated properly in loadAttendanceHistory (lines 2423-2443)
+        // Just use them directly - no need to recalculate from display times
+        
+        console.log('🔍 RECORD MAPPING DEBUG:', {
+          date: record.date,
+          checkIn: record.checkIn,
+          checkOut: record.checkOut,
+          status: record.status,
+          hoursFromHistory: record.hours, // ← This is already calculated correctly!
+          recordType: typeof record
+        });
+        
+        return {
+          date: record.date,
+          checkIn: record.checkIn, 
+          checkOut: record.checkOut,
+          status: record.status,
+          hours: record.hours  // ← USE ALREADY CALCULATED HOURS FROM loadAttendanceHistory
+        };
+      });
+      
+      console.log('📊 Calculator-compatible data (full debug):', calculatorCompatibleData.slice(0, 3));
+      console.log('🔍 HOURS DEBUG - First record:');
+      if (calculatorCompatibleData.length > 0) {
+        const r = calculatorCompatibleData[0];
+        console.log('📊 Record 1 HOURS:', {
+          hours: r.hours,
+          actual_hours: r.actual_hours,
+          worked_hours: r.worked_hours,
+          time_in: r.time_in,
+          time_out: r.time_out
+        });
+        
+        // Debug hours data for console
+        console.log('📊 HOURS VERIFICATION:', `hours=${r.hours}, actual_hours=${r.actual_hours}, worked_hours=${r.worked_hours}`);
+      }
+      
+      // CRITICAL DEBUG: Check exact status values being sent to calculator
+      console.log('🔍 STATUS DEBUG: Examining status values being sent to calculator:');
+      calculatorCompatibleData.slice(0, 5).forEach((record, i) => {
+        console.log(`Calculator Record ${i + 1}:`, {
+          date: record.date,
+          status: `"${record.status}"`,
+          statusType: typeof record.status,
+          statusLength: record.status?.length,
+          actual_hours: record.actual_hours,
+          worked_hours: record.worked_hours,
+          duration_minutes_source: record.actual_hours * 60 // Show where this came from
+        });
+      });
+      
+      // CRITICAL FIX: Use wide date range since data is already filtered
+      const now = new Date();
+      const wideStart = new Date(now.getFullYear() - 1, 0, 1); // Start of last year
+      const wideEnd = new Date(now.getFullYear() + 1, 11, 31); // End of next year
+      
+      console.log('📊 Using wide date range for pre-filtered data:', {
+        wideStart: wideStart.toISOString(),
+        wideEnd: wideEnd.toISOString(),
+        filterPeriod: filterPeriod,
+        alreadyFilteredCount: calculatorCompatibleData.length
+      });
+      
+      const filteredMetrics = AttendanceCalculator.calculateAttendanceMetrics(
+        calculatorCompatibleData,
+        wideStart,
+        wideEnd
+      );
+      
+      console.log('📊 Filtered statistics calculated:', filteredMetrics);
+      
+      // ENHANCED DEBUG: Check if metrics are actually calculated
+      if (filteredMetrics.presentDays === 0 && calculatorCompatibleData.length > 0) {
+        console.error('🚨 CALCULATION ERROR: No present days calculated despite having data!');
+        console.log('🔍 Debug calculation input:', {
+          inputRecords: calculatorCompatibleData.length,
+          sampleRecord: calculatorCompatibleData[0],
+          dateRange: { wideStart, wideEnd },
+          // CRITICAL: Show what the original filtered data looked like
+          originalFilteredSample: filteredData.slice(0, 2),
+          statusValuesFromOriginal: filteredData.slice(0, 5).map(r => `"${r.status}"`)
+        });
+      }
+      
+      // ADDITIONAL DEBUG: Always log the final metrics even if not zero
+      console.log('🎯 FINAL ATTENDANCE METRICS:', {
+        presentDays: filteredMetrics.presentDays,
+        totalAttendedHours: filteredMetrics.totalAttendedHours,
+        totalScheduledHours: filteredMetrics.totalScheduledHours,
+        attendancePercentage: filteredMetrics.attendancePercentage,
+        inputDataCount: calculatorCompatibleData.length
+      });
+      
+      // Update monthly stats with filtered calculation
+      setMonthlyStats({
+        totalDays: filteredMetrics.totalDays,
+        presentDays: filteredMetrics.presentDays,
+        lateDays: filteredMetrics.lateDays,
+        absentDays: Math.max(0, filteredMetrics.totalDays - filteredMetrics.presentDays),
+        hoursShortage: filteredMetrics.hoursShortage,
+        attendancePercentage: filteredMetrics.attendancePercentage,
+        totalScheduledHours: filteredMetrics.totalScheduledHours,
+        totalAttendedHours: filteredMetrics.totalAttendedHours
+      });
+      
+      console.log('📊 Updated monthlyStats:', {
+        presentDays: filteredMetrics.presentDays,
+        lateDays: filteredMetrics.lateDays,
+        hoursShortage: filteredMetrics.hoursShortage,
+        attendancePercentage: filteredMetrics.attendancePercentage
+      });
+    }
+  }, [attendanceHistory, filterPeriod, activeTab]); // Remove loadAttendanceHistory from deps to prevent circular reference
+
+  // 🐛 DEBUG FUNCTION: Global debug function for console testing
+  useEffect(() => {
+    // Expose debug function to window for console testing
+    (window as any).debugAttendanceStats = () => {
+      console.log('🔍 ATTENDANCE DEBUG REPORT:');
+      console.log('1. attendanceHistory length:', attendanceHistory.length);
+      console.log('2. filterPeriod:', filterPeriod);
+      console.log('3. activeTab:', activeTab);
+      
+      const filteredData = getFilteredData();
+      console.log('4. filteredData length:', filteredData.length);
+      console.log('5. filteredData sample:', filteredData.slice(0, 2));
+      
+      const now = new Date();
+      let monthStart: Date;
+      let monthEnd: Date;
+      
+      if (filterPeriod === 'weekly') {
+        monthStart = new Date(now);
+        monthStart.setDate(now.getDate() - 7);
+        monthStart.setHours(0, 0, 0, 0);
+        monthEnd = new Date(now);
+      } else if (filterPeriod === 'monthly') {
+        // ✅ FIXED: Use CALENDAR MONTH like Dashboard
+        monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+      } else {
+        monthStart = new Date(now);
+        monthEnd = new Date(now);
+      }
+      
+      console.log('6. Date range:', {
+        monthStart: monthStart.toISOString(),
+        monthEnd: monthEnd.toISOString()
+      });
+      
+      const calculatorData = filteredData.map(record => ({
+        date: record.date,
+        status: record.status,
+        time_in: record.time_in || record.checkIn,
+        time_out: record.time_out || record.checkOut,
+        actual_hours: record.actual_hours || (record.duration_minutes ? record.duration_minutes / 60 : 0),
+        worked_hours: record.worked_hours || (record.duration_minutes ? record.duration_minutes / 60 : 0),
+        scheduled_hours: record.scheduled_hours || (record.target_minutes ? record.target_minutes / 60 : 8)
+      }));
+      
+      console.log('7. Calculator-compatible data sample:', calculatorData.slice(0, 2));
+      
+      const metrics = AttendanceCalculator.calculateAttendanceMetrics(
+        calculatorData,
+        monthStart,
+        monthEnd
+      );
+      
+      console.log('8. Calculated metrics:', metrics);
+      console.log('9. Current monthlyStats:', monthlyStats);
+      
+      return {
+        attendanceHistory: attendanceHistory.length,
+        filteredData: filteredData.length,
+        metrics,
+        monthlyStats
+      };
+    };
+  }, [attendanceHistory, filterPeriod, activeTab, monthlyStats]);
   
   // Function to load attendance history from API
   const loadAttendanceHistory = async (period: string = 'weekly') => {
@@ -2017,13 +2270,16 @@ const CreativeAttendanceDashboard = () => {
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
       
       // Calculate date range based on period
-      const endDate = new Date();
-      const startDate = new Date();
+      let endDate = new Date();
+      let startDate = new Date();
       
       if (period === 'weekly') {
         startDate.setDate(endDate.getDate() - 7);
       } else if (period === 'monthly') {
-        startDate.setDate(endDate.getDate() - 30);
+        // ✅ FIXED: Use CALENDAR MONTH like Dashboard - start from 1st of current month
+        const currentMonth = new Date(endDate);
+        startDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+        endDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
       }
       
       // Fetch attendance history from API with proper web session auth
@@ -2183,6 +2439,33 @@ const CreativeAttendanceDashboard = () => {
           }
         }
         
+        // CRITICAL DEBUG: Log first few records in detail
+        if (recordIndex < 2) {
+          console.log(`🐛 RECORD ${recordIndex + 1} DETAILED MAPPING:`, {
+            originalRecord: {
+              id: record.id,
+              date: record.date || record.tanggal,
+              status: record.status,
+              time_in: record.time_in,
+              time_out: record.time_out,
+              duration_minutes: record.duration_minutes,
+              target_minutes: record.target_minutes,
+              actual_hours: record.actual_hours,
+              worked_hours: record.worked_hours,
+              scheduled_hours: record.scheduled_hours
+            },
+            processedRecord: {
+              date: formattedDate,
+              status: status,
+              checkIn: formattedCheckIn,
+              checkOut: formattedCheckOut,
+              hours: hours,
+              calculatedHours: Number(record?.duration_minutes || 0) / 60,
+              scheduledHours: Number(record?.target_minutes || 480) / 60
+            }
+          });
+        }
+        
         return {
           date: formattedDate,
           checkIn: formattedCheckIn,
@@ -2193,6 +2476,12 @@ const CreativeAttendanceDashboard = () => {
           shortfall_formatted: String(record?.shortfall_formatted || 'Target tercapai'),
           target_minutes: Number(record?.target_minutes || 480),
           duration_minutes: Number(record?.duration_minutes || 0),
+          // ADD: AttendanceCalculator-compatible fields
+          time_in: record.time_in || formattedCheckIn,
+          time_out: record.time_out || formattedCheckOut,
+          actual_hours: Number(record?.duration_minutes || 0) / 60,
+          worked_hours: Number(record?.duration_minutes || 0) / 60,
+          scheduled_hours: Number(record?.target_minutes || 480) / 60,
           // BULLETPROOF: Ultra-safe shift_info validation with comprehensive error handling
           shift_info: (() => {
             try {
@@ -2342,15 +2631,22 @@ const CreativeAttendanceDashboard = () => {
         new Date(r.date.includes('/') ? r.date.split('/').reverse().join('-') : r.date).toDateString() === new Date().toDateString()
       ));
       
-      // Calculate statistics
-      const presentCount = monthlyData.filter((r: any) => 
-        r.status === 'Hadir' || r.status === 'Tepat Waktu' || r.status === 'Terlambat'
-      ).length;
+      // ✅ DYNAMIC STATISTICS: Updated for new status categories  
+      const presentCount = monthlyData.filter((r: any) => {
+        const status = r.status || 'Tidak Hadir';
+        return status === 'Tepat Waktu' || 
+               status === 'Hadir' || 
+               status === 'Terlambat' ||
+               status === 'Tidak Lengkap' ||
+               status === 'Kurang Menit'; // ✅ CLEAN: Simplified
+      }).length;
       console.log('Present count:', presentCount);
       
-      const lateCount = monthlyData.filter((r: any) => 
-        r.status === 'Terlambat'
-      ).length;
+      const lateCount = monthlyData.filter((r: any) => {
+        const status = r.status || 'Tidak Hadir';
+        return status === 'Terlambat' || 
+               status === 'Kurang Menit'; // ✅ CLEAN: Simplified
+      }).length;
       
       const absentCount = Math.max(0, workingDaysInMonth - presentCount);
       
@@ -3539,8 +3835,8 @@ const CreativeAttendanceDashboard = () => {
                   className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-lg sm:rounded-xl px-2 sm:px-3 py-1 text-xs sm:text-sm text-white focus:outline-none focus:border-purple-400"
                   disabled={historyLoading}
                 >
-                  <option value="weekly" className="bg-gray-800">7 Hari</option>
-                  <option value="monthly" className="bg-gray-800">30 Hari</option>
+                  <option value="weekly" className="bg-gray-800">7 Hari Terakhir</option>
+                  <option value="monthly" className="bg-gray-800">Bulan Ini</option>
                 </select>
               </div>
             </div>
@@ -3620,8 +3916,61 @@ const CreativeAttendanceDashboard = () => {
                   fullRecord: record
                 });
                 
-                const status = record.status === 'Present' || record.status === 'present' || record.status === 'on_time' ? 'Hadir' :
-                              record.status === 'Late' || record.status === 'late' ? 'Terlambat' : 'Tidak Hadir';
+                // ✅ DYNAMIC STATUS: Use backend calculated status or fallback to frontend calculation
+                const backendStatus = record.dynamic_status;
+                const shortageForStatus = record.shortage_minutes || record.shortfall_minutes || 0;
+                
+                console.log('🚨 STATUS CALCULATION DEBUG:', {
+                  recordDate: record.date,
+                  backendDynamicStatus: backendStatus,
+                  hasBackendStatus: !!backendStatus,
+                  shortageForStatus: shortageForStatus,
+                  timeIn: record.time_in,
+                  timeOut: record.time_out,
+                  workingDuration: record.working_duration,
+                  effectiveDurationMinutes: record.effective_duration?.final_duration_minutes
+                });
+                
+                const status = backendStatus || (() => {
+                  // Fallback calculation if backend doesn't provide dynamic_status
+                  const hasCheckIn = record.time_in || record.checkIn || record.check_in_time;
+                  const hasCheckOut = record.time_out || record.checkOut || record.check_out_time;
+                  
+                  console.log('🔧 Frontend fallback calculation:', {
+                    hasCheckIn: !!hasCheckIn,
+                    hasCheckOut: !!hasCheckOut,
+                    shortageForCalc: shortageForStatus
+                  });
+                  
+                  if (!hasCheckIn && !hasCheckOut) return 'Tidak Hadir';
+                  if (hasCheckIn && !hasCheckOut) return 'Tidak Lengkap';
+                  
+                  // ✅ FIX: Don't use workingMinutes check that causes "Tidak Hadir"
+                  // Focus on shortage-based status first
+                  if (shortageForStatus === 0) return 'Tepat Waktu';
+                  if (shortageForStatus > 0) return 'Kurang Menit'; // ✅ CLEAN: No number duplication
+                  
+                  // Only check working duration if no shortage data
+                  const workingMinutes = record.effective_duration?.final_duration_minutes || 0;
+                  if (workingMinutes < 30) return 'Tidak Hadir';
+                  
+                  return 'Hadir';
+                })();
+                
+                console.log('🎯 FINAL STATUS DETERMINED:', {
+                  finalStatus: status,
+                  usedBackend: !!backendStatus,
+                  usedFallback: !backendStatus
+                });
+                
+                // ✅ DYNAMIC COLORS: Color coding based on dynamic status
+                const getStatusColor = (status) => {
+                  if (status === 'Tepat Waktu') return 'bg-green-500/20 text-green-400';
+                  if (status === 'Tidak Hadir') return 'bg-red-500/20 text-red-400';
+                  if (status === 'Tidak Lengkap') return 'bg-orange-500/20 text-orange-400';
+                  if (status === 'Kurang Menit') return 'bg-yellow-500/20 text-yellow-400'; // ✅ CLEAN: Simplified
+                  return 'bg-blue-500/20 text-blue-400'; // Default/Hadir
+                };
 
                 return (
                   <div key={index} className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 sm:p-5 border border-white/20 relative">
@@ -3644,11 +3993,7 @@ const CreativeAttendanceDashboard = () => {
                         </span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <span className={`text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-lg font-medium ${
-                          status === 'Hadir' ? 'bg-green-500/20 text-green-400' :
-                          status === 'Terlambat' ? 'bg-yellow-500/20 text-yellow-400' :
-                          'bg-red-500/20 text-red-400'
-                        }`}>
+                        <span className={`text-xs sm:text-sm px-2 sm:px-3 py-1 rounded-lg font-medium ${getStatusColor(status)}`}>
                           {status}
                         </span>
                       </div>
