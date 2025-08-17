@@ -19,16 +19,19 @@ use App\Http\Controllers\Api\V2\HospitalLocationController;
 |
 */
 
-// API Version 2 Routes
+// 🚀 Dashboard Routes - Higher rate limits for real-time features  
+Route::prefix('v2/dashboards')->middleware(['auth:sanctum', 'throttle:240,1'])->name('api.v2.dashboards.')->group(function () {
+    // Paramedis Dashboard
+    Route::get('/paramedis', [\App\Http\Controllers\Api\V2\Dashboards\ParamedisDashboardController::class, 'index']);
+    Route::get('/paramedis/jaspel', [\App\Http\Controllers\Api\V2\Dashboards\ParamedisDashboardController::class, 'getJaspel']);
+    Route::get('/paramedis/attendance', [\App\Http\Controllers\Api\V2\Dashboards\ParamedisDashboardController::class, 'getAttendance']);
+    Route::get('/paramedis/attendance/status', [\App\Http\Controllers\Api\V2\AttendanceStatusController::class, 'dashboardStatus']);
+    Route::get('/paramedis/schedules', [\App\Http\Controllers\Api\V2\Dashboards\ParamedisDashboardController::class, 'getSchedules']);
+});
+
+// API Version 2 Routes (Non-Dashboard) - Standard rate limits
 Route::prefix('v2')->middleware(['auth:sanctum', 'throttle:api'])->name('api.v2.')->group(function () {
-    // Dashboards
-    Route::prefix('dashboards')->name('dashboards.')->group(function () {
-        Route::get('/paramedis', [\App\Http\Controllers\Api\V2\Dashboards\ParamedisDashboardController::class, 'index']);
-        Route::get('/paramedis/jaspel', [\App\Http\Controllers\Api\V2\Dashboards\ParamedisDashboardController::class, 'getJaspel']);
-        Route::get('/paramedis/attendance', [\App\Http\Controllers\Api\V2\Dashboards\ParamedisDashboardController::class, 'getAttendance']);
-        Route::get('/paramedis/attendance/status', [\App\Http\Controllers\Api\V2\AttendanceStatusController::class, 'dashboardStatus']);
-        Route::get('/paramedis/schedules', [\App\Http\Controllers\Api\V2\Dashboards\ParamedisDashboardController::class, 'getSchedules']);
-    });
+    // Non-dashboard endpoints keep normal rate limits
 });
 
 Route::middleware('auth:sanctum')->group(function () {

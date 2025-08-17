@@ -605,29 +605,21 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
         const currentMonth = currentDate.getMonth() + 1; // 1-12
         const currentYear = currentDate.getFullYear();
         
-        // Use fetch API directly to get leaderboard data with month/year params
-        const response = await fetch(`/api/v2/dashboards/dokter/leaderboard?month=${currentMonth}&year=${currentYear}`, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include'
-        });
+        // ✅ FIXED: Use authenticated API call instead of direct fetch
+        const data = await doctorApi.getLeaderboard(currentMonth, currentYear);
         
-        console.log('📊 Leaderboard response status:', response.status);
-        
-        if (!response.ok) {
-          console.error('❌ Leaderboard fetch failed with status:', response.status);
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
+        console.log('📊 Leaderboard response received successfully');
         console.log('📊 Leaderboard data received:', data);
         
-        if (data && data.success && data.data) {
+        // BULLETPROOF: Handle both response formats (wrapped and direct)
+        const isWrappedFormat = data && data.success && data.data;
+        const isDirectFormat = data && data.leaderboard && Array.isArray(data.leaderboard);
+        
+        if (isWrappedFormat || isDirectFormat) {
           // BULLETPROOF: Use SafeObjectAccess for nested data extraction
-          const leaderboard = safeGet(data, 'data.leaderboard') || safeGet(data, 'data') || [];
+          const leaderboard = isWrappedFormat 
+            ? (safeGet(data, 'data.leaderboard') || safeGet(data, 'data') || [])
+            : (safeGet(data, 'leaderboard') || []);
           
           // Get current month's data for monthly reset
           const currentDate = new Date();

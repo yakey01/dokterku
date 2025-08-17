@@ -1,6 +1,8 @@
+import React from 'react';
+
 /**
  * Performance Monitor for Dashboard
- * Tracks and reports performance metrics
+ * Tracks and reports performance metrics with React integration
  */
 
 interface PerformanceMetric {
@@ -150,6 +152,38 @@ class PerformanceMonitor {
 
 // Export singleton instance
 export const performanceMonitor = new PerformanceMonitor();
+
+// React hook for component performance monitoring
+export const usePerformanceMonitor = (componentName: string) => {
+  React.useEffect(() => {
+    const startTime = performance.now();
+    
+    return () => {
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+      
+      if (duration > 16.67) { // More than one frame at 60fps
+        console.warn(`🐌 ${componentName} exceeded 16ms render budget: ${duration.toFixed(2)}ms`);
+      }
+    };
+  });
+};
+
+// Measure async function performance
+export const measureAsync = async <T>(
+  name: string, 
+  fn: () => Promise<T>
+): Promise<T> => {
+  performanceMonitor.start(name);
+  try {
+    const result = await fn();
+    performanceMonitor.end(name, 'success');
+    return result;
+  } catch (error) {
+    performanceMonitor.end(name, 'error');
+    throw error;
+  }
+};
 
 // Auto-report on page unload
 if (typeof window !== 'undefined') {

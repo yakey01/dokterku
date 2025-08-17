@@ -297,9 +297,16 @@ class DoctorApi {
   /**
    * Get top 3 doctors leaderboard by attendance rate
    */
-  async getLeaderboard(): Promise<LeaderboardData> {
+  async getLeaderboard(month?: number, year?: number): Promise<LeaderboardData> {
     try {
-      const response = await getUnifiedAuth().makeJsonRequest('/api/v2/dashboards/dokter/leaderboard');
+      let url = '/api/v2/dashboards/dokter/leaderboard';
+      
+      // Add month/year parameters if provided
+      if (month && year) {
+        url += `?month=${month}&year=${year}`;
+      }
+      
+      const response = await getUnifiedAuth().makeJsonRequest(url);
       return response.data;
     } catch (error) {
       console.error('Error fetching leaderboard:', error);
