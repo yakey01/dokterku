@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Calendar, Clock, DollarSign, Award, Brain, Star, Crown, Flame, Moon, Sun, HeartCrack } from 'lucide-react';
-import { JadwalJaga } from './JadwalJaga';
+import JadwalJaga from './JadwalJaga';
 import CreativeAttendanceDashboard from './Presensi';
 import JaspelComponent from './Jaspel';
 import ProfileComponent from './Profil';
+import JaspelCurrentMonthProgress from './JaspelCurrentMonthProgress';
 import doctorApi from '../../utils/doctorApi';
 import { performanceMonitor } from '../../utils/PerformanceMonitor';
 import AttendanceCalculator from '../../utils/AttendanceCalculator';
 import ErrorBoundary from '../ErrorBoundary';
+import { HoursFormatter } from '../../utils/hoursFormatter';
 import { safeGet, safeHas } from '../../utils/SafeObjectAccess';
 
 interface HolisticMedicalDashboardProps {
@@ -162,6 +164,8 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
     dashboard: false,
     error: null,
   });
+  const [currentMonthJaspelData, setCurrentMonthJaspelData] = useState<any>(null);
+  const [currentMonthJaspelLoading, setCurrentMonthJaspelLoading] = useState(false);
 
   // Ref to prevent duplicate API calls
   const isDataFetchingRef = useRef(false);
@@ -653,7 +657,12 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
               xp: safeGet(doctor, 'xp') || safeGet(doctor, 'experience_points', { defaultValue: Math.floor(Math.random() * 5000) + 1000 }),
               attendance_rate: safeGet(doctor, 'attendance_rate') || safeGet(doctor, 'attendance', { defaultValue: Math.floor(Math.random() * 30) + 70 }),
               streak_days: safeGet(doctor, 'streak_days') || safeGet(doctor, 'streak', { defaultValue: 0 }),
-              total_hours: safeGet(doctor, 'total_hours', { defaultValue: Math.floor(Math.random() * 200) + 100 }),
+              total_hours: (() => {
+                const hours = safeGet(doctor, 'total_hours', { defaultValue: Math.floor(Math.random() * 200) + 100 });
+                return typeof hours === 'number' ? HoursFormatter.formatHoursMinutes(hours) : 
+                       typeof hours === 'object' && hours.formatted ? hours.formatted : 
+                       HoursFormatter.formatHoursMinutes(0);
+              })(),
               total_days: safeGet(doctor, 'total_days', { defaultValue: currentDay }),
               // Monthly accumulated medical productivity (resets each month)
               total_patients: monthlyPatients,
@@ -714,7 +723,7 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
             xp: 4250,
             attendance_rate: 98,
             streak_days: 45,
-            total_hours: 320,
+            total_hours: "320 jam",
             total_days: currentDay,
             total_patients: 12 * currentDay,  // 12 patients per day accumulated
             consultation_hours: 7 * currentDay,  // 7 hours per day accumulated
@@ -732,7 +741,7 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
             xp: 3850,
             attendance_rate: 95,
             streak_days: 30,
-            total_hours: 285,
+            total_hours: "285 jam",
             total_days: currentDay,
             total_patients: 11 * currentDay,  // 11 patients per day accumulated
             consultation_hours: 6 * currentDay,  // 6 hours per day accumulated  
@@ -750,7 +759,7 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
             xp: 3420,
             attendance_rate: 92,
             streak_days: 21,
-            total_hours: 260,
+            total_hours: "260 jam",
             total_days: currentDay,
             total_patients: 10 * currentDay,  // 10 patients per day accumulated
             consultation_hours: 6 * currentDay,  // 6 hours per day accumulated
@@ -768,7 +777,7 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
             xp: 2980,
             attendance_rate: 89,
             streak_days: 15,
-            total_hours: 230,
+            total_hours: "230 jam",
             total_days: currentDay,
             total_patients: 9 * currentDay,  // 9 patients per day accumulated
             consultation_hours: 6 * currentDay,  // 6 hours per day accumulated
@@ -786,7 +795,7 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
             xp: 2540,
             attendance_rate: 85,
             streak_days: 10,
-            total_hours: 200,
+            total_hours: "200 jam",
             total_days: currentDay,
             total_patients: 8 * currentDay,  // 8 patients per day accumulated
             consultation_hours: 5 * currentDay,  // 5 hours per day accumulated

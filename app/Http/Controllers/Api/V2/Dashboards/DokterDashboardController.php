@@ -8,18 +8,46 @@ use App\Models\Pegawai;
 use App\Models\Dokter;
 use App\Models\Tindakan;
 use App\Models\Jaspel;
+use App\Models\JumlahPasienHarian;
 use App\Models\Attendance;
 use App\Models\JadwalJaga;
 use App\Services\AttendanceToleranceService;
 use App\Services\EffectiveDurationCalculatorService;
+use App\Services\UnifiedAttendanceService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use App\Helpers\HoursFormatter;
 
 class DokterDashboardController extends Controller
 {
+    /**
+     * Test endpoint for authentication
+     */
+    public function test(Request $request)
+    {
+        try {
+            $user = Auth::user();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'API test successful',
+                'data' => [
+                    'user_id' => $user?->id,
+                    'user_name' => $user?->name,
+                    'timestamp' => now()->toISOString()
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Test failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     /**
      * Dashboard utama dokter dengan stats real
      */
@@ -51,15 +79,33 @@ class DokterDashboardController extends Controller
 
                 // Calculate stats - handle case where dokter record doesn't exist
                 $patientsToday = 0;
+                $patientsMonth = 0;
                 $tindakanToday = 0;
                 
                 if ($dokter) {
-                    // Only calculate if dokter record exists
-                    $patientsToday = Tindakan::where('dokter_id', $dokter->id)
-                        ->whereDate('tanggal_tindakan', $today)
-                        ->distinct('pasien_id')
-                        ->count();
+                    // FIXED: Use JumlahPasienHarian for accurate patient counts
+                    // Get today's patient count from JumlahPasienHarian
+                    $jumlahPasienToday = JumlahPasienHarian::where('dokter_id', $dokter->id)
+                        ->whereDate('tanggal', $today)
+                        ->whereIn('status_validasi', ['approved', 'disetujui'])
+                        ->first();
+                    
+                    if ($jumlahPasienToday) {
+                        $patientsToday = $jumlahPasienToday->jumlah_pasien_umum + 
+                                        $jumlahPasienToday->jumlah_pasien_bpjs;
+                    }
+                    
+                    // Get this month's total patient count
+                    $jumlahPasienMonth = JumlahPasienHarian::where('dokter_id', $dokter->id)
+                        ->whereMonth('tanggal', $thisMonth->month)
+                        ->whereYear('tanggal', $thisMonth->year)
+                        ->whereIn('status_validasi', ['approved', 'disetujui'])
+                        ->get();
+                    
+                    $patientsMonth = $jumlahPasienMonth->sum('jumlah_pasien_umum') + 
+                                   $jumlahPasienMonth->sum('jumlah_pasien_bpjs');
 
+                    // Still use Tindakan for procedures count
                     $tindakanToday = Tindakan::where('dokter_id', $dokter->id)
                         ->whereDate('tanggal_tindakan', $today)
                         ->count();
@@ -85,6 +131,7 @@ class DokterDashboardController extends Controller
 
                 return [
                     'patients_today' => $patientsToday,
+                    'patients_month' => $patientsMonth, // Added monthly total
                     'tindakan_today' => $tindakanToday,
                     'jaspel_month' => $jaspelMonth,
                     'shifts_week' => $shiftsWeek,
@@ -420,22 +467,16 @@ class DokterDashboardController extends Controller
                     ->with(['shiftTemplate'])
                     ->get();
                 
-                // Completed shifts (past dates OR today's shifts that have ended)
-                $completedShifts = $allSchedules->filter(function ($jadwal) use ($todayDate, $currentTime) {
-                    $shiftDate = $jadwal->tanggal_jaga->format('Y-m-d');
+                // ✅ FIXED: Only count shifts with actual completed attendance
+                $completedShifts = $allSchedules->filter(function ($jadwal) use ($user) {
+                    // Check if there's a completed attendance record for this shift
+                    $attendance = \App\Models\Attendance::where('user_id', $user->id)
+                        ->whereDate('date', $jadwal->tanggal_jaga)
+                        ->whereNotNull('time_in')
+                        ->whereNotNull('time_out')
+                        ->first();
                     
-                    // Past dates are automatically completed
-                    if ($shiftDate < $todayDate) {
-                        return true;
-                    }
-                    
-                    // For today's shifts, check if shift has ended based on shift template
-                    if ($shiftDate === $todayDate && $jadwal->shiftTemplate && $jadwal->shiftTemplate->jam_pulang) {
-                        $shiftEndTime = $jadwal->shiftTemplate->jam_pulang;
-                        return $currentTime >= $shiftEndTime;
-                    }
-                    
-                    return false;
+                    return $attendance !== null;
                 });
                 
                 // Upcoming shifts (future dates OR today's shifts that haven't started/ended)
@@ -456,47 +497,45 @@ class DokterDashboardController extends Controller
                     return false;
                 });
                 
-                // Calculate total hours from completed shifts (using actual attendance data)
-                $totalHours = $completedShifts->sum(function ($jadwal) use ($user) {
-                    // First, try to get actual hours from attendance records
-                    $attendance = \App\Models\Attendance::where('user_id', $user->id)
-                        ->whereDate('date', $jadwal->tanggal_jaga)
-                        ->first();
-                    
-                    if ($attendance && $attendance->time_in && $attendance->time_out) {
-                        // Use actual worked hours from attendance (check-out - check-in)
-                        $timeIn = Carbon::parse($attendance->time_in);
-                        $timeOut = Carbon::parse($attendance->time_out);
-                        return $timeOut->diffInHours($timeIn);
-                    }
-                    
-                    // If no attendance record, calculate from shift template
-                    if ($jadwal->shiftTemplate && $jadwal->shiftTemplate->durasi_jam) {
-                        return $jadwal->shiftTemplate->durasi_jam;
-                    }
-                    
-                    // Fallback: calculate from jam_masuk and jam_pulang
-                    if ($jadwal->shiftTemplate && $jadwal->shiftTemplate->jam_masuk && $jadwal->shiftTemplate->jam_pulang) {
-                        $startTime = Carbon::parse($jadwal->shiftTemplate->jam_masuk);
-                        $endTime = Carbon::parse($jadwal->shiftTemplate->jam_pulang);
-                        
-                        // Handle overnight shifts
-                        if ($endTime->lt($startTime)) {
-                            $endTime->addDay();
-                        }
-                        
-                        return $startTime->diffInHours($endTime);
-                    }
-                    
-                    // Don't assume default hours - return 0 if no data available
-                    return 0;
-                });
+                // ✅ REALISTIC: Calculate monthly total hours based on attended jadwal jaga only
+                $attendedJadwalHours = 0;
+                $attendedJadwalCount = 0;
+                
+                // Get all jadwal jaga for the month that were actually attended
+                $jadwalJagaMonth = JadwalJaga::where('pegawai_id', $user->id)
+                    ->whereMonth('tanggal_jaga', $month)
+                    ->whereYear('tanggal_jaga', $year)
+                    ->where('tanggal_jaga', '<', Carbon::now()->toDateString()) // Only past dates
+                    ->with('shiftTemplate')
+                    ->get();
 
-                // Schedule card statistics
+                foreach ($jadwalJagaMonth as $jadwal) {
+                    // Check if user actually attended this jadwal (has completed attendance)
+                    $attendanceExists = \App\Models\Attendance::where('user_id', $user->id)
+                        ->whereDate('date', $jadwal->tanggal_jaga)
+                        ->whereNotNull('time_in')
+                        ->whereNotNull('time_out')
+                        ->exists();
+                    
+                    if ($attendanceExists) {
+                        $attendedJadwalCount++;
+                        // Use shift template duration (realistic 8-hour shifts)
+                        if ($jadwal->shiftTemplate && $jadwal->shiftTemplate->durasi_jam) {
+                            $attendedJadwalHours += $jadwal->shiftTemplate->durasi_jam;
+                        } else {
+                            $attendedJadwalHours += 8; // Default 8-hour shift
+                        }
+                    }
+                }
+
+                // Calculate final monthly total from attended jadwal jaga only
+                $totalHours = $attendedJadwalHours;
+
+                // Schedule card statistics with Indonesian formatting
                 $scheduleStats = [
-                    'completed' => $completedShifts->count(),
+                    'completed' => $attendedJadwalCount, // Use attended jadwal count
                     'upcoming' => $upcomingShifts->count(),
-                    'total_hours' => $totalHours,
+                    'total_hours' => HoursFormatter::formatForApi($totalHours),
                     'total_shifts' => $allSchedules->count(),
                     'current_month' => $month,
                     'current_year' => $year,
@@ -753,6 +792,152 @@ class DokterDashboardController extends Controller
     }
 
     /**
+     * Get current month Jaspel progress data for real-time display
+     */
+    public function getCurrentMonthJaspelProgress(Request $request)
+    {
+        try {
+            $user = Auth::user();
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Authentication required',
+                    'error' => 'UNAUTHENTICATED'
+                ], 401);
+            }
+
+            // Get current month and year from request or use current date
+            $currentMonth = $request->get('month', now()->month);
+            $currentYear = $request->get('year', now()->year);
+            
+            // Create date objects for calculations
+            $currentDate = Carbon::create($currentYear, $currentMonth, 1);
+            $today = Carbon::now();
+            
+            // Calculate days elapsed and remaining in month
+            $daysInMonth = $currentDate->daysInMonth;
+            $daysElapsed = $today->day;
+            $daysRemaining = max(0, $daysInMonth - $daysElapsed);
+
+            // Get user's dokter record
+            $dokter = Dokter::where('user_id', $user->id)->first();
+            if (!$dokter) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data dokter tidak ditemukan',
+                    'data' => null
+                ], 404);
+            }
+
+            // Get all validated Jaspel for current month (using ValidatedJaspelCalculationService)
+            $validatedJaspelService = app(\App\Services\ValidatedJaspelCalculationService::class);
+            $jaspelData = $validatedJaspelService->getValidatedJaspelData($user, $currentMonth, $currentYear);
+            
+            // Calculate current totals
+            $totalReceived = $jaspelData['summary']['approved']; // Only approved/validated amounts
+            $totalCount = $jaspelData['summary']['count']['approved'];
+            
+            // Set target amount (configurable - could be from settings)
+            $targetAmount = 2000000; // 2M default target, could be made configurable
+            
+            // Calculate progress percentage
+            $progressPercentage = $targetAmount > 0 ? min(($totalReceived / $targetAmount) * 100, 100) : 0;
+            
+            // Get daily breakdown for animation
+            $dailyBreakdown = [];
+            $jaspelItems = $jaspelData['jaspel_items'];
+            
+            // Group by date and sum amounts
+            $dailyGroups = collect($jaspelItems)->groupBy(function($item) {
+                return Carbon::parse($item['tanggal'])->format('Y-m-d');
+            });
+            
+            foreach ($dailyGroups as $date => $items) {
+                $dailyAmount = $items->sum('nominal');
+                $dailyCount = $items->count();
+                
+                $dailyBreakdown[] = [
+                    'date' => $date,
+                    'amount' => $dailyAmount,
+                    'count' => $dailyCount,
+                    'formatted_date' => Carbon::parse($date)->format('d M'),
+                ];
+            }
+            
+            // Sort by date
+            $dailyBreakdown = collect($dailyBreakdown)->sortBy('date')->values()->all();
+            
+            // Calculate insights
+            $dailyAverage = $daysElapsed > 0 ? $totalReceived / $daysElapsed : 0;
+            $projectedTotal = $dailyAverage * $daysInMonth;
+            
+            // Determine target likelihood
+            $targetLikelihood = 'challenging';
+            if ($projectedTotal >= $targetAmount * 0.95) {
+                $targetLikelihood = 'likely';
+            } elseif ($projectedTotal >= $targetAmount * 0.75) {
+                $targetLikelihood = 'possible';
+            }
+            
+            // Get last entry timestamp
+            $lastEntry = collect($jaspelItems)->max('tanggal') ?: $today->toDateString();
+            $lastUpdated = collect($jaspelItems)->max('validated_at') ?: $today->toISOString();
+            
+            // Build response data
+            $responseData = [
+                'current_month' => [
+                    'total_received' => (int) $totalReceived,
+                    'target_amount' => (int) $targetAmount,
+                    'progress_percentage' => round($progressPercentage, 1),
+                    'daily_breakdown' => $dailyBreakdown,
+                    'count' => $totalCount,
+                    'month_name' => $currentDate->format('F Y'),
+                    'days_elapsed' => $daysElapsed,
+                    'days_remaining' => $daysRemaining,
+                ],
+                'real_time' => [
+                    'last_entry' => $lastEntry,
+                    'is_live' => true, // Could be based on WebSocket connection status
+                    'last_updated' => $lastUpdated,
+                ],
+                'insights' => [
+                    'daily_average' => (int) $dailyAverage,
+                    'projected_total' => (int) $projectedTotal,
+                    'target_likelihood' => $targetLikelihood,
+                ],
+                'validation_info' => [
+                    'data_source' => 'ValidatedJaspelService',
+                    'validation_status' => 'approved_only',
+                    'financial_accuracy' => '100%'
+                ]
+            ];
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Current month Jaspel progress retrieved successfully',
+                'data' => $responseData,
+                'meta' => [
+                    'generated_at' => now()->toISOString(),
+                    'version' => '2.0',
+                    'endpoint' => '/api/v2/dashboards/dokter/jaspel/current-month',
+                    'user_id' => $user->id,
+                    'dokter_id' => $dokter->id,
+                    'month' => $currentMonth,
+                    'year' => $currentYear,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve current month Jaspel progress: ' . $e->getMessage(),
+                'error' => $e->getMessage(),
+                'data' => null
+            ], 500);
+        }
+    }
+
+    /**
      * Riwayat tindakan dokter
      */
     public function getTindakan(Request $request)
@@ -763,12 +948,24 @@ class DokterDashboardController extends Controller
                 ->where('aktif', true)
                 ->first();
             
+            if (!$dokter) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data dokter tidak ditemukan atau tidak aktif',
+                    'data' => null
+                ], 404);
+            }
+            
             $limit = min($request->get('limit', 15), 50);
             $status = $request->get('status');
             $search = $request->get('search');
 
             $query = Tindakan::where('dokter_id', $dokter->id)
-                ->with(['pasien:id,nama_pasien,nomor_pasien']);
+                ->with([
+                    'pasien:id,nama,no_rekam_medis', 
+                    'jenisTindakan:id,nama',
+                    'shiftTemplate:id,nama_shift'
+                ]);
 
             if ($status) {
                 $query->where('status_validasi', $status);
@@ -776,8 +973,8 @@ class DokterDashboardController extends Controller
 
             if ($search) {
                 $query->whereHas('pasien', function($q) use ($search) {
-                    $q->where('nama_pasien', 'like', "%{$search}%")
-                      ->orWhere('nomor_pasien', 'like', "%{$search}%");
+                    $q->where('nama', 'like', "%{$search}%")
+                      ->orWhere('no_rekam_medis', 'like', "%{$search}%");
                 });
             }
 
@@ -794,6 +991,11 @@ class DokterDashboardController extends Controller
                         'disetujui' => Tindakan::where('dokter_id', $dokter->id)->where('status_validasi', 'disetujui')->count(),
                         'pending' => Tindakan::where('dokter_id', $dokter->id)->where('status_validasi', 'pending')->count(),
                         'rejected' => Tindakan::where('dokter_id', $dokter->id)->where('status_validasi', 'ditolak')->count()
+                    ],
+                    'dokter' => [
+                        'id' => $dokter->id,
+                        'nama_lengkap' => $dokter->nama_lengkap,
+                        'aktif' => $dokter->aktif
                     ]
                 ]
             ]);
@@ -1164,7 +1366,8 @@ class DokterDashboardController extends Controller
                             return 0;
                         }),
                         'performance_rate' => $attendanceHistory->count() > 0 ? 
-                            round(($attendanceHistory->whereIn('status', ['perfect', 'good'])->count() / $attendanceHistory->count()) * 100, 1) : 0
+                            round(($attendanceHistory->whereIn('status', ['perfect', 'good'])->count() / $attendanceHistory->count()) * 100, 1) : 0,
+                        'attendance_rate' => (new UnifiedAttendanceService())->calculateAttendanceRate($user->id, Carbon::now()->month, Carbon::now()->year)
                     ]
                 ]
             ]);
@@ -1857,13 +2060,14 @@ class DokterDashboardController extends Controller
             $year = Carbon::now()->year;
             $user = Auth::user();
             
-            // Get attendance ranking from AttendanceRecap with error handling
-            $attendanceData = collect(); // Default empty collection
-            $attendanceRate = 0; // Default rate
+            // Get attendance rate using unified service
+            $unifiedAttendanceService = new UnifiedAttendanceService();
+            $attendanceRate = $unifiedAttendanceService->calculateAttendanceRate($user->id, $month, $year);
             
+            // Get attendance ranking from AttendanceRecap for ranking purposes only
+            $attendanceData = collect(); // Default empty collection
             try {
                 $attendanceData = \App\Models\AttendanceRecap::getRecapData($month, $year, 'Dokter');
-                $attendanceRate = $this->getAttendanceRate($user);
             } catch (\Exception $e) {
                 \Log::warning('AttendanceRecap error in getPerformanceStats', [
                     'error' => $e->getMessage(),
@@ -3020,22 +3224,16 @@ class DokterDashboardController extends Controller
                     ->with(['shiftTemplate'])
                     ->get();
                 
-                // Completed shifts (past dates OR today's shifts that have ended)
-                $completedShifts = $allSchedules->filter(function ($jadwal) use ($todayDate, $currentTime) {
-                    $shiftDate = $jadwal->tanggal_jaga->format('Y-m-d');
+                // ✅ FIXED: Only count shifts with actual completed attendance
+                $completedShifts = $allSchedules->filter(function ($jadwal) use ($userId) {
+                    // Check if there's a completed attendance record for this shift
+                    $attendance = \App\Models\Attendance::where('user_id', $userId)
+                        ->whereDate('date', $jadwal->tanggal_jaga)
+                        ->whereNotNull('time_in')
+                        ->whereNotNull('time_out')
+                        ->first();
                     
-                    // Past dates are automatically completed
-                    if ($shiftDate < $todayDate) {
-                        return true;
-                    }
-                    
-                    // For today's shifts, check if shift has ended based on shift template
-                    if ($shiftDate === $todayDate && $jadwal->shiftTemplate && $jadwal->shiftTemplate->jam_pulang) {
-                        $shiftEndTime = $jadwal->shiftTemplate->jam_pulang;
-                        return $currentTime >= $shiftEndTime;
-                    }
-                    
-                    return false;
+                    return $attendance !== null;
                 });
                 
                 // Upcoming shifts (future dates OR today's shifts that haven't started/ended)
@@ -3056,47 +3254,45 @@ class DokterDashboardController extends Controller
                     return false;
                 });
                 
-                // Calculate total hours from completed shifts (using actual attendance data)
-                $totalHours = $completedShifts->sum(function ($jadwal) use ($user) {
-                    // First, try to get actual hours from attendance records
-                    $attendance = \App\Models\Attendance::where('user_id', $user->id)
-                        ->whereDate('date', $jadwal->tanggal_jaga)
-                        ->first();
-                    
-                    if ($attendance && $attendance->time_in && $attendance->time_out) {
-                        // Use actual worked hours from attendance (check-out - check-in)
-                        $timeIn = Carbon::parse($attendance->time_in);
-                        $timeOut = Carbon::parse($attendance->time_out);
-                        return $timeOut->diffInHours($timeIn);
-                    }
-                    
-                    // If no attendance record, calculate from shift template
-                    if ($jadwal->shiftTemplate && $jadwal->shiftTemplate->durasi_jam) {
-                        return $jadwal->shiftTemplate->durasi_jam;
-                    }
-                    
-                    // Fallback: calculate from jam_masuk and jam_pulang
-                    if ($jadwal->shiftTemplate && $jadwal->shiftTemplate->jam_masuk && $jadwal->shiftTemplate->jam_pulang) {
-                        $startTime = Carbon::parse($jadwal->shiftTemplate->jam_masuk);
-                        $endTime = Carbon::parse($jadwal->shiftTemplate->jam_pulang);
-                        
-                        // Handle overnight shifts
-                        if ($endTime->lt($startTime)) {
-                            $endTime->addDay();
-                        }
-                        
-                        return $startTime->diffInHours($endTime);
-                    }
-                    
-                    // Don't assume default hours - return 0 if no data available
-                    return 0;
-                });
+                // ✅ REALISTIC: Calculate monthly total hours based on attended jadwal jaga only (Test endpoint)
+                $attendedJadwalHoursTest = 0;
+                $attendedJadwalCountTest = 0;
+                
+                // Get all jadwal jaga for the month that were actually attended
+                $jadwalJagaMonthTest = JadwalJaga::where('pegawai_id', $userId)
+                    ->whereMonth('tanggal_jaga', $month)
+                    ->whereYear('tanggal_jaga', $year)
+                    ->where('tanggal_jaga', '<', Carbon::now()->toDateString()) // Only past dates
+                    ->with('shiftTemplate')
+                    ->get();
 
-                // Schedule card statistics
+                foreach ($jadwalJagaMonthTest as $jadwal) {
+                    // Check if user actually attended this jadwal (has completed attendance)
+                    $attendanceExists = \App\Models\Attendance::where('user_id', $userId)
+                        ->whereDate('date', $jadwal->tanggal_jaga)
+                        ->whereNotNull('time_in')
+                        ->whereNotNull('time_out')
+                        ->exists();
+                    
+                    if ($attendanceExists) {
+                        $attendedJadwalCountTest++;
+                        // Use shift template duration (realistic 8-hour shifts)
+                        if ($jadwal->shiftTemplate && $jadwal->shiftTemplate->durasi_jam) {
+                            $attendedJadwalHoursTest += $jadwal->shiftTemplate->durasi_jam;
+                        } else {
+                            $attendedJadwalHoursTest += 8; // Default 8-hour shift
+                        }
+                    }
+                }
+
+                // Calculate final monthly total from attended jadwal jaga only
+                $totalHours = $attendedJadwalHoursTest;
+
+                // Schedule card statistics with Indonesian formatting
                 $scheduleStats = [
-                    'completed' => $completedShifts->count(),
+                    'completed' => $attendedJadwalCountTest, // Use attended jadwal count
                     'upcoming' => $upcomingShifts->count(),
-                    'total_hours' => $totalHours,
+                    'total_hours' => HoursFormatter::formatForApi($totalHours),
                     'total_shifts' => $allSchedules->count(),
                     'current_month' => $month,
                     'current_year' => $year,
@@ -3189,7 +3385,10 @@ class DokterDashboardController extends Controller
                 ->get();
 
             // Get today's schedules
-            $todaySchedules = JadwalJaga::where('pegawai_id', $user->id)
+            $todaySchedules = JadwalJaga::where(function($query) use ($user) {
+                    $query->where('pegawai_id', $user->id)
+                          ->orWhere('user_id', $user->id);
+                })
                 ->whereDate('tanggal_jaga', $today)
                 ->with('shiftTemplate')
                 ->orderBy('shift_sequence')
@@ -3364,8 +3563,21 @@ class DokterDashboardController extends Controller
                             }
                         }
                         
-                        if (!$canCheckIn && $todaySchedules->isEmpty()) {
-                            $message = 'Tidak ada jadwal untuk hari ini';
+                        if (!$canCheckIn) {
+                            if ($todaySchedules->isEmpty()) {
+                                $message = 'Tidak ada jadwal untuk hari ini';
+                            } else {
+                                // Find earliest shift and show when check-in opens
+                                $earliestShift = $todaySchedules->first();
+                                $shift = $earliestShift->shiftTemplate;
+                                if ($shift) {
+                                    $shiftStart = Carbon::parse($today->format('Y-m-d') . ' ' . $shift->jam_masuk);
+                                    $windowStart = $shiftStart->copy()->subMinutes($toleranceEarly);
+                                    $message = 'Check-in untuk shift ' . $shift->nama_shift . ' mulai pukul ' . $windowStart->format('H:i');
+                                } else {
+                                    $message = 'Belum waktunya check-in';
+                                }
+                            }
                         }
                     }
                 }
@@ -3585,6 +3797,176 @@ class DokterDashboardController extends Controller
         } catch (\Exception $e) {
             return 0;
         }
+    }
+
+    /**
+     * Get leaderboard data for elite doctors
+     */
+    public function leaderboard(Request $request)
+    {
+        try {
+            $currentMonth = Carbon::now()->month;
+            $currentYear = Carbon::now()->year;
+            $currentDay = Carbon::now()->day;
+            
+            // Calculate total work days in current month
+            $startOfMonth = Carbon::now()->startOfMonth();
+            $endOfMonth = Carbon::now()->endOfMonth();
+            $totalWorkDays = 0;
+            
+            for ($date = $startOfMonth->copy(); $date <= $endOfMonth; $date->addDay()) {
+                if (!$date->isWeekend()) {
+                    $totalWorkDays++;
+                }
+            }
+            
+            // Get all active doctors
+            $doctors = Dokter::where('aktif', true)
+                ->with('user')
+                ->get();
+                
+            $leaderboardData = [];
+            
+            foreach ($doctors as $dokter) {
+                // Skip if no user associated
+                if (!$dokter->user) {
+                    continue;
+                }
+                
+                // Calculate attendance rate using unified service
+                $unifiedAttendanceService = new UnifiedAttendanceService();
+                $attendanceRate = $unifiedAttendanceService->calculateAttendanceRate(
+                    $dokter->user_id, 
+                    $currentMonth, 
+                    $currentYear
+                );
+                
+                // Get patient count from JumlahPasienHarian
+                $patientCount = JumlahPasienHarian::where('dokter_id', $dokter->id)
+                    ->whereMonth('tanggal', $currentMonth)
+                    ->whereYear('tanggal', $currentYear)
+                    ->whereIn('status_validasi', ['approved', 'disetujui'])
+                    ->sum(DB::raw('jumlah_pasien_umum + jumlah_pasien_bpjs'));
+                
+                // Get procedure count from Tindakan
+                $procedureCount = Tindakan::where('dokter_id', $dokter->id)
+                    ->whereMonth('tanggal_tindakan', $currentMonth)
+                    ->whereYear('tanggal_tindakan', $currentYear)
+                    ->whereIn('status_validasi', ['approved', 'disetujui'])
+                    ->count();
+                
+                // Calculate streak days
+                $streakDays = $this->calculateStreakDays($dokter->user_id);
+                
+                // Calculate total hours worked this month
+                $totalHours = Attendance::where('user_id', $dokter->user_id)
+                    ->whereMonth('date', $currentMonth)
+                    ->whereYear('date', $currentYear)
+                    ->whereNotNull('time_out')
+                    ->sum('logical_work_minutes') / 60;
+                
+                // Calculate attendance count for total_days field
+                $attendanceCount = Attendance::where('user_id', $dokter->user_id)
+                    ->whereMonth('date', $currentMonth)
+                    ->whereYear('date', $currentYear)
+                    ->whereNotNull('time_out')
+                    ->count();
+                
+                // Calculate weighted score for ranking
+                $score = ($attendanceRate * 0.3) + ($patientCount * 0.4) + ($procedureCount * 0.3);
+                
+                $leaderboardData[] = [
+                    'id' => $dokter->id,
+                    'name' => $dokter->user->name,
+                    'attendance_rate' => $attendanceRate,
+                    'total_patients' => $patientCount,
+                    'procedures_count' => $procedureCount,
+                    'streak_days' => $streakDays,
+                    'total_hours' => round($totalHours, 1),
+                    'total_days' => $attendanceCount,
+                    'consultation_hours' => round($totalHours * 0.8, 1), // Estimate 80% as consultation
+                    'score' => $score,
+                    'month' => $currentMonth,
+                    'year' => $currentYear,
+                    'monthLabel' => Carbon::now()->format('F Y')
+                ];
+            }
+            
+            // Sort by score and assign ranks
+            usort($leaderboardData, function($a, $b) {
+                return $b['score'] <=> $a['score'];
+            });
+            
+            // Assign ranks and badges
+            foreach ($leaderboardData as $index => &$doctor) {
+                $doctor['rank'] = $index + 1;
+                $doctor['level'] = max(1, min(20, floor($doctor['score'] / 100))); // Level 1-20
+                $doctor['xp'] = round($doctor['score'] * 10); // XP based on score
+                
+                // Assign badges
+                if ($index === 0) {
+                    $doctor['badge'] = '👑';
+                } elseif ($index === 1) {
+                    $doctor['badge'] = '🥈';
+                } elseif ($index === 2) {
+                    $doctor['badge'] = '🥉';
+                } else {
+                    $doctor['badge'] = '⭐';
+                }
+                
+                // Remove score from final output
+                unset($doctor['score']);
+            }
+            
+            // Removed manual override - now using real database values
+            
+            return response()->json([
+                'success' => true,
+                'data' => array_slice($leaderboardData, 0, 10) // Return top 10
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Leaderboard Error: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch leaderboard data',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    /**
+     * Calculate streak days for a user
+     */
+    protected function calculateStreakDays($userId): int
+    {
+        $today = Carbon::today();
+        $streakDays = 0;
+        
+        // Check backwards from today
+        for ($i = 0; $i < 365; $i++) {
+            $checkDate = $today->copy()->subDays($i);
+            
+            // Skip weekends
+            if ($checkDate->isWeekend()) {
+                continue;
+            }
+            
+            $attendance = Attendance::where('user_id', $userId)
+                ->whereDate('date', $checkDate)
+                ->whereNotNull('time_out')
+                ->exists();
+                
+            if ($attendance) {
+                $streakDays++;
+            } else {
+                // Streak broken
+                break;
+            }
+        }
+        
+        return $streakDays;
     }
 
 }

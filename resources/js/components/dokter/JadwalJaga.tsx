@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { debug, api, transform, performance, state, prodError } from '../../utils/debugLogger';
 import getUnifiedAuthInstance from '../../utils/UnifiedAuth';
+import { HoursFormatter } from '../../utils/hoursFormatter';
 import { 
   Calendar, 
   Clock, 
@@ -38,6 +39,8 @@ import {
 interface JadwalJagaProps {
   userData?: any;
   onNavigate?: (tab: string) => void;
+  jadwalData?: any; // Optional data from parent component
+  isLoading?: boolean; // Optional loading state from parent
 }
 
 interface Mission {
@@ -71,14 +74,14 @@ interface Mission {
   };
 }
 
-export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
+const JadwalJaga = ({ userData, onNavigate }: JadwalJagaProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [missions, setMissions] = useState<Mission[]>([]);
   const [totalShifts, setTotalShifts] = useState(12);
   const [completedShifts, setCompletedShifts] = useState(8);
   const [upcomingShifts, setUpcomingShifts] = useState(4);
-  const [totalHours, setTotalHours] = useState(96);
+  const [totalHours, setTotalHours] = useState('0 jam 0 menit');
   const [isIpad, setIsIpad] = useState(false);
   const [orientation, setOrientation] = useState('portrait');
   const [lastFetch, setLastFetch] = useState<number>(0);
@@ -302,14 +305,22 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
           throw new Error(data.message || 'API returned unsuccessful response');
         }
         
-        // NEW: Extract schedule statistics from API
+        // NEW: Extract schedule statistics from API with Indonesian formatting
         if (data.data?.schedule_stats) {
           const stats = data.data.schedule_stats;
           debug.log('Schedule stats from API:', stats);
           
           setCompletedShifts(stats.completed || 0);
           setUpcomingShifts(stats.upcoming || 0);
-          setTotalHours(stats.total_hours || 0);
+          
+          // Handle formatted hours from API
+          const hoursData = stats.total_hours;
+          if (typeof hoursData === 'object' && hoursData.formatted) {
+            setTotalHours(hoursData.formatted); // Use Indonesian format
+          } else {
+            setTotalHours(HoursFormatter.formatHoursMinutes(hoursData || 0));
+          }
+          
           setTotalShifts(stats.total_shifts || 0);
         }
         
@@ -1166,7 +1177,7 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
 
   // Fallback: Update stats based on loaded missions (only when API doesn't provide schedule_stats)
   useEffect(() => {
-    if (missions.length > 0 && (completedShifts === 8 && upcomingShifts === 4 && totalHours === 96)) {
+    if (missions.length > 0 && (completedShifts === 8 && upcomingShifts === 4 && totalHours === '0 jam 0 menit')) {
       // Only recalculate if we still have default values (means API didn't provide schedule_stats)
       debug.log('Calculating stats from missions as fallback');
       setTotalShifts(missions.length);
@@ -1186,7 +1197,7 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
         // Don't assume default hours - only count actual shift template data
         return sum;
       }, 0);
-      setTotalHours(Math.round(totalHoursCalc));
+      setTotalHours(HoursFormatter.formatHoursMinutes(totalHoursCalc));
     } else if (missions.length > 0) {
       debug.log('Using API-provided schedule stats, skipping mission-based calculation');
     }
@@ -1299,7 +1310,9 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
                 <Activity className="w-5 h-5 text-blue-400" />
                 <TrendingUp className="w-4 h-4 text-blue-300/50" />
               </div>
-              <div className="text-2xl font-bold text-blue-400">{totalHours}</div>
+              <div className="text-2xl font-bold text-blue-400">
+                {typeof totalHours === 'string' ? totalHours : HoursFormatter.displayHours(totalHours)}
+              </div>
               <div className="text-xs text-blue-300/80">Total Hours</div>
             </div>
           </div>
@@ -1595,4 +1608,6 @@ export function JadwalJaga({ userData, onNavigate }: JadwalJagaProps) {
       </div>
     </div>
   );
-}
+};
+
+export default JadwalJaga;
