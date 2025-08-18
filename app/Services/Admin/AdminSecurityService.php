@@ -53,8 +53,8 @@ class AdminSecurityService
             DB::table('audit_logs')->insert([
                 'user_id' => $logData['user_id'],
                 'action' => $logData['action'],
-                'auditable_type' => 'admin_activity',
-                'auditable_id' => null,
+                'model_type' => 'admin_activity',
+                'model_id' => null,
                 'old_values' => null,
                 'new_values' => json_encode($logData),
                 'ip_address' => $logData['ip_address'],

@@ -38,6 +38,7 @@ Route::get('/test-welcome-login', function () {
     return view('test-welcome-login');
 });
 
+
 // Test route for Presensi component
 Route::get('/test-presensi', function () {
     return view('test-presensi');
@@ -1463,7 +1464,7 @@ Route::get('/dashboard', DashboardController::class)->middleware(['auth'])->name
 Route::middleware(['auth'])->group(function () {
     Route::get('/legacy-admin/dashboard', [AdminDashboardController::class, 'index'])->name('legacy-admin.dashboard');
     Route::get('/manager/dashboard', function () {
-        return redirect('/manajer');
+        return redirect('/manajer/dashboard');
     })->name('manager.dashboard');
     
     // Filament notification action routes
@@ -2537,18 +2538,10 @@ Route::get('/test-ssl-fix', function () {
     return view('test-ssl-fix');
 });
 
-// 🏢 STANDALONE MANAGER DASHBOARD (No Filament Conflicts)
+// 🏢 MANAGER DASHBOARD - Redirect to new Filament panel
 Route::middleware(['auth', 'role:manajer'])->group(function () {
-    Route::get('/manager-dashboard', function () {
+    // Backup standalone dashboard (if needed for debugging)
+    Route::get('/manager-dashboard-old', function () {
         return view('manager.standalone-dashboard');
-    })->name('manager.dashboard');
-    
-    // Redirect Filament manager routes to standalone dashboard
-    Route::get('/manajer', function () {
-        return redirect('/manager-dashboard');
-    });
-    
-    Route::get('/manajer/{any}', function () {
-        return redirect('/manager-dashboard');
-    })->where('any', '.*');
+    })->name('manager.dashboard.old');
 });

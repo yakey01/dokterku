@@ -56,7 +56,8 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Session\Middleware\StartSession::class,
             \App\Http\Middleware\ForceLocalSession::class, // MOVED BEFORE ShareErrors
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
-            \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
+            // \App\Http\Middleware\PersistentCsrfToken::class, // Persistent CSRF tokens - DISABLED
+            // \App\Http\Middleware\VerifyCsrfToken::class, // CSRF verification - DISABLED
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             // \App\Http\Middleware\ClearStaleSessionMiddleware::class, // TEMPORARILY DISABLED
         ]);

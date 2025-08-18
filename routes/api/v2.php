@@ -211,16 +211,13 @@ Route::prefix('v2/dashboards/dokter')->middleware(['auth:sanctum', 'throttle:300
     // Debug endpoint untuk jadwal jaga
     Route::get('/debug-schedule', [DokterDashboardController::class, 'debugSchedule']);
     
-    // 🏢 Manajer Dashboard API Routes
+    // 🏢 Manajer Dashboard API Routes - Complete Rebuild
     Route::prefix('manajer')->name('manajer.')->middleware('role:manajer')->group(function () {
-        Route::get('/dashboard-summary', [App\Http\Controllers\Api\V2\Manajer\ManagerDashboardController::class, 'getDashboardSummary']);
-        Route::get('/analytics-data', [App\Http\Controllers\Api\V2\Manajer\ManagerDashboardController::class, 'getAnalyticsData']);
-        Route::get('/staff-performance', [App\Http\Controllers\Api\V2\Manajer\ManagerDashboardController::class, 'getStaffPerformance']);
-        Route::get('/validation-insights', [App\Http\Controllers\Api\V2\Manajer\ManagerDashboardController::class, 'getValidationInsights']);
-        Route::get('/jaspel-calculations', [App\Http\Controllers\Api\V2\Manajer\ManagerDashboardController::class, 'getJaspelCalculations']);
-        Route::get('/approval-workflows', [App\Http\Controllers\Api\V2\Manajer\ManagerDashboardController::class, 'getApprovalWorkflows']);
-        Route::get('/strategic-kpis', [App\Http\Controllers\Api\V2\Manajer\ManagerDashboardController::class, 'getStrategicKPIs']);
-        Route::post('/refresh-data', [App\Http\Controllers\Api\V2\Manajer\ManagerDashboardController::class, 'refreshData']);
-        Route::post('/export', [App\Http\Controllers\Api\V2\Manajer\ManagerDashboardController::class, 'exportData']);
+        Route::get('/dashboard', [App\Http\Controllers\Api\V2\Manajer\ManajerDashboardController::class, 'getDashboardData']);
+        Route::get('/finance', [App\Http\Controllers\Api\V2\Manajer\ManajerDashboardController::class, 'getFinanceData']);
+        Route::get('/attendance', [App\Http\Controllers\Api\V2\Manajer\ManajerDashboardController::class, 'getAttendanceData']);
+        Route::get('/jaspel', [App\Http\Controllers\Api\V2\Manajer\ManajerDashboardController::class, 'getJaspelData']);
+        Route::get('/profile', [App\Http\Controllers\Api\V2\Manajer\ManajerDashboardController::class, 'getProfileData']);
+        Route::put('/profile', [App\Http\Controllers\Api\V2\Manajer\ManajerDashboardController::class, 'updateProfile']);
     });
 });

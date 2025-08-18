@@ -1,0 +1,587 @@
+/**
+ * Healthcare Theme for Petugas Panel
+ * Professional Medical Interface Design 2025
+ * Optimized for healthcare workflows and accessibility
+ */
+
+/* =================================
+   HEALTHCARE COLOR PALETTE
+   ================================= */
+:root {
+    /* Primary Medical Colors */
+    --healthcare-primary: #3b82f6;
+    --healthcare-primary-dark: #1d4ed8;
+    --healthcare-primary-light: #93c5fd;
+    
+    /* Medical Status Colors */
+    --healthcare-success: #10b981;
+    --healthcare-success-dark: #059669;
+    --healthcare-warning: #f59e0b;
+    --healthcare-warning-dark: #d97706;
+    --healthcare-danger: #ef4444;
+    --healthcare-danger-dark: #dc2626;
+    
+    /* Neutral Medical Colors */
+    --healthcare-white: #ffffff;
+    --healthcare-gray-50: #f8fafc;
+    --healthcare-gray-100: #f1f5f9;
+    --healthcare-gray-200: #e2e8f0;
+    --healthcare-gray-300: #cbd5e1;
+    --healthcare-gray-400: #94a3b8;
+    --healthcare-gray-500: #64748b;
+    --healthcare-gray-600: #475569;
+    --healthcare-gray-700: #334155;
+    --healthcare-gray-800: #1e293b;
+    --healthcare-gray-900: #0f172a;
+    
+    /* Medical Functional Colors */
+    --healthcare-background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    --healthcare-card-bg: #ffffff;
+    --healthcare-border: #e2e8f0;
+    --healthcare-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    
+    /* Typography */
+    --healthcare-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif;
+    --healthcare-font-mono: "SF Mono", Monaco, "Cascadia Code", "Consolas", monospace;
+    
+    /* Spacing & Sizing */
+    --healthcare-radius-sm: 6px;
+    --healthcare-radius-md: 8px;
+    --healthcare-radius-lg: 12px;
+    --healthcare-radius-xl: 16px;
+    
+    /* Animation & Transitions */
+    --healthcare-transition: all 0.15s ease;
+    --healthcare-transition-slow: all 0.3s ease;
+}
+
+/* =================================
+   ACCESSIBILITY ENHANCEMENTS
+   ================================= */
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    :root {
+        --healthcare-border: #000000;
+        --healthcare-gray-500: #000000;
+        --healthcare-primary: #0000ff;
+    }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Focus Visible Enhancement */
+*:focus-visible {
+    outline: 2px solid var(--healthcare-primary) !important;
+    outline-offset: 2px !important;
+    border-radius: var(--healthcare-radius-sm) !important;
+}
+
+/* =================================
+   HEALTHCARE UI COMPONENTS
+   ================================= */
+
+/* Medical Cards */
+.healthcare-card {
+    background: var(--healthcare-card-bg);
+    border: 1px solid var(--healthcare-border);
+    border-radius: var(--healthcare-radius-lg);
+    box-shadow: var(--healthcare-shadow);
+    padding: 24px;
+    transition: var(--healthcare-transition);
+}
+
+.healthcare-card:hover {
+    border-color: var(--healthcare-primary-light);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+}
+
+/* Medical Buttons */
+.healthcare-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    font-family: var(--healthcare-font-family);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+    border: none;
+    border-radius: var(--healthcare-radius-md);
+    cursor: pointer;
+    transition: var(--healthcare-transition);
+    text-decoration: none;
+    min-height: 44px; /* Touch-friendly minimum */
+}
+
+.healthcare-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Primary Medical Button */
+.healthcare-btn-primary {
+    background: linear-gradient(135deg, var(--healthcare-primary) 0%, var(--healthcare-primary-dark) 100%);
+    color: var(--healthcare-white);
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+.healthcare-btn-primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
+/* Success Medical Button */
+.healthcare-btn-success {
+    background: linear-gradient(135deg, var(--healthcare-success) 0%, var(--healthcare-success-dark) 100%);
+    color: var(--healthcare-white);
+    box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+}
+
+.healthcare-btn-success:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+}
+
+/* Warning Medical Button */
+.healthcare-btn-warning {
+    background: linear-gradient(135deg, var(--healthcare-warning) 0%, var(--healthcare-warning-dark) 100%);
+    color: var(--healthcare-white);
+    box-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);
+}
+
+.healthcare-btn-warning:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+}
+
+/* Ghost Medical Button */
+.healthcare-btn-ghost {
+    background: var(--healthcare-white);
+    color: var(--healthcare-gray-700);
+    border: 2px solid var(--healthcare-border);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.healthcare-btn-ghost:hover:not(:disabled) {
+    background: var(--healthcare-gray-50);
+    border-color: var(--healthcare-gray-300);
+    transform: translateY(-1px);
+}
+
+/* Medical Input Fields */
+.healthcare-input {
+    width: 100%;
+    padding: 12px 16px;
+    font-family: var(--healthcare-font-family);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--healthcare-gray-800);
+    background: var(--healthcare-white);
+    border: 2px solid var(--healthcare-border);
+    border-radius: var(--healthcare-radius-md);
+    transition: var(--healthcare-transition);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    min-height: 44px; /* Touch-friendly minimum */
+}
+
+.healthcare-input:focus {
+    outline: none;
+    border-color: var(--healthcare-primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    transform: translateY(-1px);
+}
+
+.healthcare-input::placeholder {
+    color: var(--healthcare-gray-400);
+    font-weight: 400;
+}
+
+/* Medical Labels */
+.healthcare-label {
+    display: block;
+    font-family: var(--healthcare-font-family);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--healthcare-gray-700);
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.healthcare-label.required::after {
+    content: " *";
+    color: var(--healthcare-danger);
+    font-weight: 700;
+}
+
+/* Medical Badges */
+.healthcare-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    font-family: var(--healthcare-font-family);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    border-radius: var(--healthcare-radius-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.healthcare-badge-success {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--healthcare-success-dark);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.healthcare-badge-warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--healthcare-warning-dark);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.healthcare-badge-danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--healthcare-danger-dark);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.healthcare-badge-info {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--healthcare-primary-dark);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+/* =================================
+   MEDICAL FORM ENHANCEMENTS
+   ================================= */
+
+/* Form Sections */
+.healthcare-form-section {
+    background: var(--healthcare-card-bg);
+    border: 1px solid var(--healthcare-border);
+    border-radius: var(--healthcare-radius-lg);
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    transition: var(--healthcare-transition);
+}
+
+.healthcare-form-section:hover {
+    border-color: var(--healthcare-primary-light);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Form Headers */
+.healthcare-form-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--healthcare-border);
+}
+
+.healthcare-form-header-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--healthcare-primary);
+    color: var(--healthcare-white);
+    border-radius: var(--healthcare-radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.healthcare-form-header-title {
+    font-family: var(--healthcare-font-family);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--healthcare-gray-800);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.healthcare-form-header-subtitle {
+    font-family: var(--healthcare-font-family);
+    font-size: 14px;
+    color: var(--healthcare-gray-500);
+    margin: 4px 0 0 0;
+    line-height: 1.4;
+}
+
+/* Form Grid */
+.healthcare-form-grid {
+    display: grid;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.healthcare-form-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.healthcare-form-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.healthcare-form-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+/* Form Field Groups */
+.healthcare-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.healthcare-field-hint {
+    font-family: var(--healthcare-font-family);
+    font-size: 12px;
+    color: var(--healthcare-gray-500);
+    line-height: 1.4;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.healthcare-field-hint::before {
+    content: "💡";
+    font-size: 10px;
+}
+
+.healthcare-field-error {
+    font-family: var(--healthcare-font-family);
+    font-size: 12px;
+    color: var(--healthcare-danger);
+    font-weight: 500;
+    line-height: 1.4;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.healthcare-field-error::before {
+    content: "⚠️";
+    font-size: 10px;
+}
+
+/* =================================
+   MEDICAL DATA DISPLAY
+   ================================= */
+
+/* Medical Stats Cards */
+.healthcare-stat-card {
+    background: var(--healthcare-card-bg);
+    border: 1px solid var(--healthcare-border);
+    border-radius: var(--healthcare-radius-lg);
+    padding: 20px;
+    text-align: center;
+    transition: var(--healthcare-transition);
+    box-shadow: var(--healthcare-shadow);
+}
+
+.healthcare-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.healthcare-stat-value {
+    font-family: var(--healthcare-font-mono);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--healthcare-primary);
+    line-height: 1;
+    margin-bottom: 8px;
+}
+
+.healthcare-stat-label {
+    font-family: var(--healthcare-font-family);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--healthcare-gray-600);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Medical Progress Bars */
+.healthcare-progress {
+    width: 100%;
+    height: 8px;
+    background: var(--healthcare-gray-100);
+    border-radius: var(--healthcare-radius-sm);
+    overflow: hidden;
+}
+
+.healthcare-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--healthcare-primary) 0%, var(--healthcare-primary-dark) 100%);
+    border-radius: var(--healthcare-radius-sm);
+    transition: width 0.3s ease;
+}
+
+/* =================================
+   RESPONSIVE DESIGN
+   ================================= */
+
+/* Tablet Breakpoint */
+@media (max-width: 1024px) {
+    .healthcare-form-grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .healthcare-form-grid-3 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Mobile Breakpoint */
+@media (max-width: 768px) {
+    .healthcare-form-grid-2,
+    .healthcare-form-grid-3,
+    .healthcare-form-grid-4 {
+        grid-template-columns: 1fr;
+    }
+    
+    .healthcare-card,
+    .healthcare-form-section {
+        padding: 16px;
+    }
+    
+    .healthcare-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .healthcare-form-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 8px;
+    }
+}
+
+/* =================================
+   HEALTHCARE SPECIFIC UTILITIES
+   ================================= */
+
+/* Medical Alert Banners */
+.healthcare-alert {
+    padding: 16px;
+    border-radius: var(--healthcare-radius-md);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-family: var(--healthcare-font-family);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.healthcare-alert-success {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    color: var(--healthcare-success-dark);
+}
+
+.healthcare-alert-warning {
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    color: var(--healthcare-warning-dark);
+}
+
+.healthcare-alert-danger {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: var(--healthcare-danger-dark);
+}
+
+.healthcare-alert-info {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    color: var(--healthcare-primary-dark);
+}
+
+/* Medical Loading States */
+.healthcare-loading {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--healthcare-font-family);
+    font-size: 14px;
+    color: var(--healthcare-gray-600);
+}
+
+.healthcare-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--healthcare-gray-200);
+    border-top: 2px solid var(--healthcare-primary);
+    border-radius: 50%;
+    animation: healthcare-spin 1s linear infinite;
+}
+
+@keyframes healthcare-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Medical Tooltips */
+.healthcare-tooltip {
+    position: relative;
+    cursor: help;
+}
+
+.healthcare-tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 12px;
+    background: var(--healthcare-gray-800);
+    color: var(--healthcare-white);
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: var(--healthcare-radius-sm);
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--healthcare-transition);
+    z-index: 1000;
+}
+
+.healthcare-tooltip:hover::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Print Styles for Medical Reports */
+@media print {
+    .healthcare-card,
+    .healthcare-form-section {
+        box-shadow: none !important;
+        border: 1px solid #000 !important;
+    }
+    
+    .healthcare-btn {
+        display: none !important;
+    }
+    
+    * {
+        transition: none !important;
+        animation: none !important;
+    }
+}

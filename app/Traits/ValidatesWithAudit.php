@@ -58,11 +58,11 @@ trait ValidatesWithAudit
         // Log to audit log table
         AuditLog::create([
             'user_id' => $userId,
-            'auditable_type' => get_class($model),
-            'auditable_id' => $model->id,
-            'event' => 'validation_status_changed',
-            'old_values' => json_encode(['status_validasi' => $oldStatus]),
-            'new_values' => json_encode(['status_validasi' => $newStatus]),
+            'model_type' => get_class($model),
+            'model_id' => $model->id,
+            'action' => AuditLog::ACTION_VALIDATION_STATUS_CHANGED,
+            'old_values' => ['status_validasi' => $oldStatus],
+            'new_values' => ['status_validasi' => $newStatus],
             'url' => request()->fullUrl(),
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent(),

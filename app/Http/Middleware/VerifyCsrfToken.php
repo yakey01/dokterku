@@ -20,12 +20,9 @@ class VerifyCsrfToken extends Middleware
         'api/v2/dashboards/dokter/*',
         'api/v2/dashboards/dokter/checkin',
         'api/v2/dashboards/dokter/checkout',
-        // Only exclude test routes, keep login protected
+        // Only exclude test routes
         'test-login',
         'test-csrf-post',
-        // Temporarily exclude login to fix CSRF issues
-        'login',        
-        'unified-login',
     ];
     
     /**
@@ -37,20 +34,6 @@ class VerifyCsrfToken extends Middleware
      */
     public function handle($request, \Closure $next)
     {
-        // Log CSRF token information for debugging
-        if ($request->is('login') || $request->is('unified-login')) {
-            Log::info('Login route accessed', [
-                'url' => $request->fullUrl(),
-                'method' => $request->method(),
-                'session_id' => $request->session()->getId(),
-                'has_session_token' => $request->session()->has('_token'),
-                'session_token' => $request->session()->token() ? substr($request->session()->token(), 0, 10) . '...' : 'null',
-                'request_token' => $request->input('_token') ? substr($request->input('_token'), 0, 10) . '...' : 'null',
-                'header_token' => $request->header('X-CSRF-TOKEN') ? substr($request->header('X-CSRF-TOKEN'), 0, 10) . '...' : 'null',
-                'all_headers' => $request->headers->all(),
-            ]);
-        }
-
         try {
             return parent::handle($request, $next);
         } catch (TokenMismatchException $e) {

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug React Charts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-6">
+        <h1 class="text-3xl font-bold mb-6">🔍 Debug React Charts</h1>
+        
+        <!-- Debug Info -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">1. Check Build Files</h2>
+            <div id="build-check" class="space-y-2"></div>
+        </div>
+
+        <!-- React Mount Test -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">2. React Mount Test</h2>
+            <div id="react-test" class="p-4 border-2 border-dashed border-gray-300">
+                <p class="text-gray-500">Waiting for React mount...</p>
+            </div>
+        </div>
+
+        <!-- Console Output -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">3. Console Logs</h2>
+            <pre id="console-output" class="bg-gray-100 p-4 rounded max-h-64 overflow-y-auto text-xs"></pre>
+        </div>
+
+        <!-- Manual Chart Test -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">4. Manual Recharts Test</h2>
+            <div id="manual-chart-root"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        const logs = [];
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+
+        // Capture console output
+        console.log = function(...args) {
+            logs.push('[LOG] ' + args.join(' '));
+            updateConsole();
+            originalLog.apply(console, args);
+        };
+        console.error = function(...args) {
+            logs.push('[ERROR] ' + args.join(' '));
+            updateConsole();
+            originalError.apply(console, args);
+        };
+        console.warn = function(...args) {
+            logs.push('[WARN] ' + args.join(' '));
+            updateConsole();
+            originalWarn.apply(console, args);
+        };
+
+        function updateConsole() {
+            const output = document.getElementById('console-output');
+            if (output) {
+                output.textContent = logs.join('\n');
+                output.scrollTop = output.scrollHeight;
+            }
+        }
+
+        // Check build files
+        async function checkBuildFiles() {
+            const buildCheck = document.getElementById('build-check');
+            const files = [
+                '/build/manifest.json',
+                '/build/assets/js/manajer-analytics-app-CEqcMINp.js'
+            ];
+
+            for (const file of files) {
+                try {
+                    const response = await fetch(file);
+                    if (response.ok) {
+                        buildCheck.innerHTML += `<div class="text-green-600">✅ ${file} - Found (${response.status})</div>`;
+                        
+                        if (file.includes('manifest')) {
+                            const manifest = await response.json();
+                            console.log('Manifest:', manifest);
+                            
+                            // Check for our app entry
+                            if (manifest['resources/js/manajer-analytics-app.tsx']) {
+                                const entry = manifest['resources/js/manajer-analytics-app.tsx'];
+                                buildCheck.innerHTML += `<div class="text-blue-600">📦 App entry: ${entry.file}</div>`;
+                            }
+                        }
+                    } else {
+                        buildCheck.innerHTML += `<div class="text-red-600">❌ ${file} - Not found (${response.status})</div>`;
+                    }
+                } catch (error) {
+                    buildCheck.innerHTML += `<div class="text-red-600">❌ ${file} - Error: ${error.message}</div>`;
+                }
+            }
+        }
+
+        // Test React mount
+        function testReactMount() {
+            const testDiv = document.getElementById('react-test');
+            
+            // Check if React is available
+            if (typeof window.React !== 'undefined') {
+                testDiv.innerHTML = '<div class="text-green-600">✅ React is loaded globally</div>';
+            } else {
+                testDiv.innerHTML = '<div class="text-yellow-600">⚠️ React not found globally (might be bundled)</div>';
+            }
+
+            // Check if ReactDOM is available
+            if (typeof window.ReactDOM !== 'undefined') {
+                testDiv.innerHTML += '<div class="text-green-600">✅ ReactDOM is loaded globally</div>';
+            } else {
+                testDiv.innerHTML += '<div class="text-yellow-600">⚠️ ReactDOM not found globally (might be bundled)</div>';
+            }
+
+            // Create a test mount point
+            const mountPoint = document.createElement('div');
+            mountPoint.id = 'manajer-analytics-root';
+            mountPoint.innerHTML = '<div class="p-4 bg-blue-100 rounded">Mount point created - waiting for React app...</div>';
+            testDiv.appendChild(mountPoint);
+
+            // Try to load the Vite module
+            loadViteModule();
+        }
+
+        async function loadViteModule() {
+            try {
+                // Check if Vite dev server is running
+                const viteResponse = await fetch('http://127.0.0.1:5173/@vite/client');
+                if (viteResponse.ok) {
+                    console.log('Vite dev server detected');
+                    
+                    // Try to import the module
+                    const module = await import('http://127.0.0.1:5173/resources/js/manajer-analytics-app.tsx');
+                    console.log('Module loaded:', module);
+                } else {
+                    console.log('Vite dev server not running, checking build files...');
+                    
+                    // Try to load from build
+                    const manifestResponse = await fetch('/build/manifest.json');
+                    if (manifestResponse.ok) {
+                        const manifest = await manifestResponse.json();
+                        const appEntry = manifest['resources/js/manajer-analytics-app.tsx'];
+                        
+                        if (appEntry) {
+                            console.log('Loading built module:', appEntry.file);
+                            
+                            // Load the script
+                            const script = document.createElement('script');
+                            script.type = 'module';
+                            script.src = '/build/' + appEntry.file;
+                            script.onload = () => console.log('Script loaded successfully');
+                            script.onerror = (e) => console.error('Script load error:', e);
+                            document.head.appendChild(script);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading module:', error);
+            }
+        }
+
+        // Initialize debug
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('Debug page loaded');
+            checkBuildFiles();
+            setTimeout(testReactMount, 1000);
+        });
+
+        // Global error handler
+        window.addEventListener('error', (e) => {
+            console.error('Global error:', e.message, e.filename, e.lineno);
+        });
+    </script>
+
+    <!-- Try loading React and Recharts from CDN for testing -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/recharts@2.5.0/dist/Recharts.js"></script>
+    
+    <script>
+        // Manual test after libraries load
+        setTimeout(() => {
+            if (window.React && window.ReactDOM && window.Recharts) {
+                console.log('✅ All libraries loaded via CDN');
+                
+                const { useState, useEffect } = React;
+                const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = Recharts;
+                
+                function TestChart() {
+                    const data = [
+                        { name: 'Jan', revenue: 4000, profit: 2400 },
+                        { name: 'Feb', revenue: 3000, profit: 1398 },
+                        { name: 'Mar', revenue: 2000, profit: 9800 },
+                        { name: 'Apr', revenue: 2780, profit: 3908 },
+                        { name: 'May', revenue: 1890, profit: 4800 },
+                        { name: 'Jun', revenue: 2390, profit: 3800 },
+                    ];
+
+                    return React.createElement('div', { className: 'p-4' },
+                        React.createElement('h3', { className: 'text-lg font-bold mb-4' }, '✅ Recharts is working!'),
+                        React.createElement(ResponsiveContainer, { width: '100%', height: 300 },
+                            React.createElement(LineChart, { data: data },
+                                React.createElement(CartesianGrid, { strokeDasharray: '3 3' }),
+                                React.createElement(XAxis, { dataKey: 'name' }),
+                                React.createElement(YAxis, null),
+                                React.createElement(Tooltip, null),
+                                React.createElement(Legend, null),
+                                React.createElement(Line, { type: 'monotone', dataKey: 'revenue', stroke: '#8884d8' }),
+                                React.createElement(Line, { type: 'monotone', dataKey: 'profit', stroke: '#82ca9d' })
+                            )
+                        )
+                    );
+                }
+
+                const manualRoot = document.getElementById('manual-chart-root');
+                if (manualRoot) {
+                    const root = ReactDOM.createRoot(manualRoot);
+                    root.render(React.createElement(TestChart));
+                    console.log('✅ Manual chart rendered');
+                }
+            } else {
+                console.error('❌ Libraries not loaded:', {
+                    React: !!window.React,
+                    ReactDOM: !!window.ReactDOM,
+                    Recharts: !!window.Recharts
+                });
+            }
+        }, 3000);
+    </script>
+</body>
+</html>

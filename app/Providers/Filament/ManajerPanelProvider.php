@@ -62,26 +62,12 @@ class ManajerPanelProvider extends PanelProvider
                 \App\Filament\Manajer\Resources\FinancialOversightResource::class,
             ])
             ->pages([
-                Pages\Dashboard::class,
-                \App\Filament\Manajer\Pages\ExecutiveDashboard::class,
-                \App\Filament\Manajer\Pages\AdvancedAnalyticsDashboard::class,
-                \App\Filament\Manajer\Pages\DebugCharts::class,
-                \App\Filament\Manajer\Pages\SimpleChartTest::class,
+                // New unified dashboard
+                \App\Filament\Manajer\Pages\Dashboard::class,
             ])
             ->widgets([
+                // Minimal widgets - dashboard is handled by React
                 Widgets\AccountWidget::class,
-                // Executive Dashboard Widgets - Enhanced
-                \App\Filament\Manajer\Widgets\ManajerHeroStatsWidget::class,
-                \App\Filament\Manajer\Widgets\ManajerFinancialInsightsWidget::class,
-                \App\Filament\Manajer\Widgets\ManajerTeamPerformanceWidget::class,
-                \App\Filament\Manajer\Widgets\ManajerOperationalDashboardWidget::class,
-                \App\Filament\Manajer\Widgets\ManajerStrategicMetricsWidget::class,
-                \App\Filament\Manajer\Widgets\ManajerApprovalWorkflowWidget::class,
-                
-                // Legacy Widgets (for backwards compatibility)
-                \App\Filament\Manajer\Widgets\ExecutiveKPIWidget::class,
-                \App\Filament\Manajer\Widgets\FinancialOverviewWidget::class,
-                \App\Filament\Manajer\Widgets\TeamPerformanceWidget::class,
             ])
             ->navigationGroups([
                 NavigationGroup::make('📊 Dashboard & Analytics')

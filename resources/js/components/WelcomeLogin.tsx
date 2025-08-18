@@ -10,6 +10,7 @@ const WelcomeLogin = ({ onLogin }: WelcomeLoginProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loginSuccess, setLoginSuccess] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -140,7 +141,7 @@ const WelcomeLogin = ({ onLogin }: WelcomeLoginProps) => {
           _token: csrfToken,
           email_or_username: email,
           password: password,
-          remember: false
+          remember: rememberMe
         }),
         credentials: 'same-origin'
       });
@@ -347,6 +348,20 @@ const WelcomeLogin = ({ onLogin }: WelcomeLoginProps) => {
                       </div>
                     </button>
                   </div>
+                </div>
+
+                {/* Remember Me Checkbox */}
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="remember"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="w-4 h-4 bg-white/10 border border-white/20 rounded text-purple-500 focus:ring-purple-400 focus:ring-2"
+                  />
+                  <label htmlFor="remember" className="ml-2 text-sm text-gray-300 select-none cursor-pointer">
+                    Ingat saya di perangkat ini
+                  </label>
                 </div>
 
                 {/* Login Button */}

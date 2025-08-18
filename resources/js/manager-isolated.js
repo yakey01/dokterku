@@ -7,9 +7,9 @@
 import '../css/manajer-white-smoke-ui.css';
 
 // Import and mount React app
-import('./manajer-dashboard-app-fixed.tsx').then((module) => {
+import('./manajer-dashboard.tsx').then((module) => {
   // React app will self-mount when imported
-  console.log('✅ Fixed Manager Dashboard loaded successfully');
+  console.log('✅ Manager Dashboard loaded successfully');
 }).catch((error) => {
   console.error('❌ Failed to load Manager Dashboard:', error);
   

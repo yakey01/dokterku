@@ -33,11 +33,11 @@ class PetugasPanelProvider extends PanelProvider
                 'resources/css/filament/petugas/theme.css',
             ])
             ->colors([
-                'primary' => Color::Amber,
-                'success' => Color::Green,
-                'warning' => Color::Orange,
+                'primary' => Color::Blue,
+                'success' => Color::Emerald,
+                'warning' => Color::Amber,
                 'danger' => Color::Red,
-                'info' => Color::Blue,
+                'info' => Color::Indigo,
                 'gray' => Color::Slate,
             ])
             ->maxContentWidth('full')

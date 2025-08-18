@@ -38,11 +38,8 @@ export default defineConfig({
                 'resources/js/components/dashboard-interactivity.js',
                 'resources/js/petugas-dashboard-app.tsx',
                 'resources/js/world-class-form-enhancer.js',
-                'resources/js/manajer-dashboard-app.tsx',
-                'resources/js/manajer-dashboard-app-simple.tsx',
-                'resources/js/manajer-dashboard-app-full.tsx',
-                'resources/js/manajer-dashboard-app-test.tsx',
-                'resources/js/manajer-dashboard-app-fixed.tsx',
+                // New unified Manajer Dashboard
+                'resources/js/manajer-dashboard.tsx',
                 'resources/css/manajer-white-smoke-ui.css',
             ],
             refresh: true,

@@ -6,12 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Log;
 use App\Providers\CustomEloquentUserProvider;
+use App\Services\SessionManagementService;
 
 class UnifiedAuthController extends Controller
 {
@@ -26,7 +28,7 @@ class UnifiedAuthController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request)
     {
         // CSRF protection is handled by middleware exclusion for this route
 
@@ -35,25 +37,44 @@ class UnifiedAuthController extends Controller
         $maxAttempts = 5;
         $decayTime = 60; // 1 minute
 
-        Log::info('Login attempt started', [
+        // Check if request is JSON/AJAX
+        $isJsonRequest = $request->expectsJson() || $request->header('Content-Type') === 'application/json';
+
+        Log::info('LOGIN ATTEMPT STARTED - DEBUG', [
             'email_or_username' => $request->input('email_or_username'),
             'ip' => $request->ip(),
             'has_token' => $request->has('_token'),
             'session_id' => $request->session()->getId(),
             'csrf_token' => $request->input('_token') ? substr($request->input('_token'), 0, 10) . '...' : 'null',
-            'user_agent' => $request->userAgent()
+            'user_agent' => $request->userAgent(),
+            'request_method' => $request->method(),
+            'request_url' => $request->fullUrl(),
+            'all_input' => $request->except(['password', '_token']),
+            'is_json_request' => $isJsonRequest,
+            'content_type' => $request->header('Content-Type')
         ]);
 
         try {
             $request->validate([
                 'email_or_username' => ['required', 'string', 'max:255'],
                 'password' => ['required', 'string', 'min:6'],
+                'remember' => ['nullable', 'boolean'],
             ]);
         } catch (ValidationException $e) {
             Log::error('Validation failed during login', [
                 'errors' => $e->errors(),
-                'email_or_username' => $request->input('email_or_username')
+                'email_or_username' => $request->input('email_or_username'),
+                'is_json_request' => $isJsonRequest
             ]);
+            
+            if ($isJsonRequest) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $e->errors()
+                ], 422);
+            }
+            
             throw $e;
         }
 
@@ -276,13 +297,11 @@ class UnifiedAuthController extends Controller
                     'username' => $pegawai->username
                 ]);
             } else {
-                // Regular Auth::attempt for normal users
-                // IMPORTANT: Use the correct field for authentication to avoid multi-role conflicts
+                // Regular Auth::attempt for normal users (including admin)
                 if ($isEmail) {
-                    // If user provided email, authenticate by email AND user ID to ensure correct user
+                    // If user provided email, authenticate by email only
                     $loginSuccessful = Auth::attempt([
-                        'email' => $user->email, 
-                        'id' => $user->id,  // Add ID to ensure we get the exact user
+                        'email' => $user->email,
                         'password' => $password
                     ], $remember);
                 } else {
@@ -313,8 +332,17 @@ class UnifiedAuthController extends Controller
             if (!$user->is_active) {
                 Auth::logout();
                 Log::warning('Inactive user attempted login', ['email' => $user->email]);
+                
+                if ($isJsonRequest) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Akun Anda tidak aktif. Silakan hubungi administrator.',
+                        'errors' => ['email_or_username' => 'Akun Anda tidak aktif. Silakan hubungi administrator.']
+                    ], 422);
+                }
+                
                 throw ValidationException::withMessages([
-                    'email' => 'Akun Anda tidak aktif. Silakan hubungi administrator.',
+                    'email_or_username' => 'Akun Anda tidak aktif. Silakan hubungi administrator.',
                 ]);
             }
             
@@ -336,32 +364,33 @@ class UnifiedAuthController extends Controller
                 'has_non_paramedis' => $user->hasRole('non_paramedis'),
             ]);
 
-            // Redirect based on user role - ORDER MATTERS: most specific roles first
+            // Determine redirect URL based on user role - ORDER MATTERS: most specific roles first
+            $redirectUrl = null;
             if ($user->hasRole('admin')) {
                 Log::info('Redirecting admin user to /admin');
-                return redirect('/admin');
+                $redirectUrl = '/admin';
             } elseif ($user->hasRole('bendahara')) {
                 Log::info('Redirecting bendahara user to /bendahara', [
                     'user_id' => $user->id,
                     'username' => $user->username
                 ]);
-                return redirect('/bendahara');
+                $redirectUrl = '/bendahara';
             } elseif ($user->hasRole('manajer')) {
                 Log::info('Redirecting manajer user to /manajer');
-                return redirect('/manajer');
+                $redirectUrl = '/manajer';
             } elseif ($user->hasRole('dokter')) {
                 Log::info('Redirecting dokter user to /dokter/mobile-app');
-                return redirect('/dokter/mobile-app');
+                $redirectUrl = '/dokter/mobile-app';
             } elseif ($user->hasRole('paramedis')) {
                 Log::info('Redirecting paramedis user to /paramedis');
-                return redirect('/paramedis');
+                $redirectUrl = '/paramedis';
             } elseif ($user->hasRole('non_paramedis')) {
                 Log::info('Redirecting non_paramedis user to /nonparamedis/dashboard', [
                     'user_id' => $user->id,
                     'route_exists' => \Route::has('nonparamedis.dashboard'),
                     'route_url' => route('nonparamedis.dashboard')
                 ]);
-                return redirect()->route('nonparamedis.dashboard');
+                $redirectUrl = route('nonparamedis.dashboard');
             } elseif ($user->hasRole('petugas')) {
                 // Check if this petugas user should be redirected to non-paramedis interface
                 // This handles legacy users who were mapped to 'petugas' but are actually non-paramedis
@@ -372,15 +401,34 @@ class UnifiedAuthController extends Controller
                         'username' => $user->username,
                         'email' => $user->email
                     ]);
-                    return redirect()->route('nonparamedis.dashboard');
+                    $redirectUrl = route('nonparamedis.dashboard');
+                } else {
+                    Log::info('Redirecting petugas user to /petugas');
+                    $redirectUrl = '/petugas';
                 }
-                Log::info('Redirecting petugas user to /petugas');
-                return redirect('/petugas');
+            } else {
+                // Default fallback
+                Log::info('Redirecting user to default /dashboard');
+                $redirectUrl = '/dashboard';
             }
-
-            // Default fallback
-            Log::info('Redirecting user to default /dashboard');
-            return redirect()->intended('/dashboard');
+            
+            // Handle JSON/AJAX requests
+            if ($isJsonRequest) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Login berhasil',
+                    'url' => $redirectUrl,
+                    'user' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'role' => $user->role ? $user->role->name : null
+                    ]
+                ]);
+            }
+            
+            // Handle regular form requests
+            return redirect($redirectUrl);
         }
 
         // Record failed attempt
@@ -409,6 +457,15 @@ class UnifiedAuthController extends Controller
         // Add delay for failed attempts to prevent brute force
         sleep(rand(1, 3));
         
+        // Handle JSON/AJAX requests
+        if ($isJsonRequest) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Login failed. Please check your credentials.',
+                'errors' => ['email_or_username' => 'Email/username atau password salah.']
+            ], 422);
+        }
+        
         throw ValidationException::withMessages([
             'email_or_username' => 'Email/username atau password salah.',
         ]);
@@ -419,36 +476,14 @@ class UnifiedAuthController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
-        // Log the logout event for audit purposes
-        $user = Auth::user();
-        if ($user) {
-            Log::info('User logout initiated via UnifiedAuthController', [
-                'user_id' => $user->id,
-                'email' => $user->email,
-                'role' => $user->role ? $user->role->name : 'no_role',
-                'ip' => $request->ip(),
-                'user_agent' => $request->userAgent(),
-                'session_id' => $request->session()->getId()
-            ]);
-        }
-
-        // Logout from web guard to ensure complete session cleanup
-        Auth::guard('web')->logout();
-
-        // Invalidate the session completely
-        $request->session()->invalidate();
-
-        // Regenerate CSRF token to prevent token reuse
-        $request->session()->regenerateToken();
+        // Use unified session management service for logout
+        $sessionService = new SessionManagementService();
         
-        // Clear any cached user data or remember me tokens
-        $request->session()->flush();
-
-        // Log successful logout
-        Log::info('User logout completed successfully', [
-            'ip' => $request->ip(),
-            'session_cleared' => true
-        ]);
+        // Get user role before logout
+        $userRole = Auth::user()?->role?->name;
+        
+        // Perform unified logout
+        $sessionService->logout($request, $userRole);
 
         // Redirect to unified login page for consistency
         return redirect('/login')->with('status', 'Anda telah berhasil logout.');

@@ -55,6 +55,9 @@ class AuditLog extends Model
     public const ACTION_BACKUP_CREATED = 'backup_created';
     public const ACTION_BACKUP_RESTORED = 'backup_restored';
     public const ACTION_SECURITY_EVENT = 'security_event';
+    public const ACTION_VALIDATION_STATUS_CHANGED = 'validation_status_changed';
+    public const ACTION_APPROVED = 'approved';
+    public const ACTION_REJECTED = 'rejected';
 
     public function user(): BelongsTo
     {
@@ -106,6 +109,9 @@ class AuditLog extends Model
             self::ACTION_BACKUP_CREATED => 'Created backup',
             self::ACTION_BACKUP_RESTORED => 'Restored backup',
             self::ACTION_SECURITY_EVENT => 'Security event',
+            self::ACTION_VALIDATION_STATUS_CHANGED => 'Changed validation status',
+            self::ACTION_APPROVED => 'Approved',
+            self::ACTION_REJECTED => 'Rejected',
         ];
 
         return $descriptions[$this->action] ?? ucfirst(str_replace('_', ' ', $this->action));
@@ -135,6 +141,9 @@ class AuditLog extends Model
             self::ACTION_DATA_EXPORT,
             self::ACTION_DATA_IMPORT,
             self::ACTION_BACKUP_CREATED,
+            self::ACTION_VALIDATION_STATUS_CHANGED,
+            self::ACTION_APPROVED,
+            self::ACTION_REJECTED,
         ];
 
         if (in_array($this->action, $highRiskActions)) {

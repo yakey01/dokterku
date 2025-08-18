@@ -68,8 +68,8 @@ class JumlahPasienHarianResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Data Pasien Harian')
-                    ->description('Input data jumlah pasien per hari untuk perhitungan jaspel')
+                Forms\Components\Section::make('📊 Data Pasien Harian')
+                    ->description('🩺 Input data jumlah pasien per hari untuk perhitungan jasa pelayanan medis')
                     ->schema([
                         Forms\Components\Grid::make(2)
                             ->schema([
@@ -215,8 +215,8 @@ class JumlahPasienHarianResource extends Resource
                             ->maxLength(500),
                     ]),
 
-                Forms\Components\Section::make('Informasi Perhitungan Jaspel')
-                    ->description('Rumus perhitungan jasa pelayanan')
+                Forms\Components\Section::make('💰 Informasi Perhitungan Jaspel')
+                    ->description('📋 Rumus dan estimasi perhitungan jasa pelayanan dokter')
                     ->schema([
                         Forms\Components\Placeholder::make('info_jaspel')
                             ->content(fn ($get, $record) => view('filament.petugas.components.jaspel-info-auto', [
