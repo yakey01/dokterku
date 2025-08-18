@@ -118,9 +118,43 @@
         </div>
     </div>
 
+    <!-- Advanced Analytics Card -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Analytics Integration Card -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-lg border dark:border-gray-700 transition-all duration-200">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">📊 Advanced Analytics</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">ApexCharts integration ready</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    <button onclick="window.location.href='{{ route('filament.manajer.pages.advanced-analytics') }}'" class="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center gap-2 transition-all hover:scale-105 transform">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        📈 Load Charts
+                    </button>
+                    <button onclick="viewTrends()" class="w-full px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center justify-center gap-2 transition-all hover:scale-105 transform">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                        📈 View Trends
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Financial Trends Chart -->
-        <div class="lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-lg border dark:border-gray-700 transition-all duration-200">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-lg border dark:border-gray-700 transition-all duration-200">
             <div class="p-6 border-b border-gray-200 dark:border-gray-700">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Financial Trends - 6 Bulan Terakhir</h3>
             </div>
@@ -217,6 +251,21 @@
     @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script>
+        // View Trends function
+        function viewTrends() {
+            // Smooth scroll to financial trends chart
+            const chartElement = document.getElementById('financialTrendsChart');
+            if (chartElement) {
+                chartElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Add a highlight effect
+                chartElement.parentElement.parentElement.classList.add('ring-4', 'ring-blue-500', 'ring-opacity-50');
+                setTimeout(() => {
+                    chartElement.parentElement.parentElement.classList.remove('ring-4', 'ring-blue-500', 'ring-opacity-50');
+                }, 2000);
+            }
+        }
+
         // Dark mode detection and chart theme management
         function detectDarkMode() {
             return document.documentElement.classList.contains('dark') || 
@@ -287,6 +336,31 @@
         function createFinancialChart() {
             const theme = getChartTheme();
             
+            // Validate and sanitize data
+            const financialData = {
+                months: @json($financialTrends['months'] ?? []),
+                revenue: @json($financialTrends['revenue'] ?? []),
+                expenses: @json($financialTrends['expenses'] ?? []),
+                netProfit: @json($financialTrends['net_profit'] ?? []),
+                profitMargin: @json($financialTrends['profit_margin'] ?? [])
+            };
+            
+            // Ensure all arrays have the same length and contain valid numbers
+            const dataLength = Math.max(
+                financialData.months.length,
+                financialData.revenue.length,
+                financialData.expenses.length,
+                financialData.netProfit.length,
+                financialData.profitMargin.length
+            );
+            
+            // Fill missing data with zeros
+            while (financialData.months.length < dataLength) financialData.months.push('N/A');
+            while (financialData.revenue.length < dataLength) financialData.revenue.push(0);
+            while (financialData.expenses.length < dataLength) financialData.expenses.push(0);
+            while (financialData.netProfit.length < dataLength) financialData.netProfit.push(0);
+            while (financialData.profitMargin.length < dataLength) financialData.profitMargin.push(0);
+            
             const financialOptions = {
                 chart: {
                     type: 'line',
@@ -313,23 +387,23 @@
                 series: [
                     {
                         name: 'Revenue',
-                        data: @json($financialTrends['revenue'])
+                        data: financialData.revenue
                     },
                     {
                         name: 'Expenses',
-                        data: @json($financialTrends['expenses'])
+                        data: financialData.expenses
                     },
                     {
                         name: 'Net Profit',
-                        data: @json($financialTrends['net_profit'])
+                        data: financialData.netProfit
                     },
                     {
                         name: 'Profit Margin (%)',
-                        data: @json($financialTrends['profit_margin'])
+                        data: financialData.profitMargin
                     }
                 ],
                 xaxis: {
-                    categories: @json($financialTrends['months']),
+                    categories: financialData.months,
                     labels: {
                         style: theme.xaxis.labels.style
                     },
@@ -428,16 +502,64 @@
             return new ApexCharts(document.querySelector("#financialTrendsChart"), financialOptions);
         }
 
-        // Initialize chart
-        let financialChart = createFinancialChart();
-        financialChart.render();
+        // Initialize chart with error handling
+        let financialChart;
+        
+        // Initialize chart when page and ApexCharts are ready
+        function initializeCharts() {
+            if (typeof ApexCharts === 'undefined') {
+                console.log('ApexCharts not loaded yet, retrying...');
+                setTimeout(initializeCharts, 500);
+                return;
+            }
+            
+            try {
+                financialChart = createFinancialChart();
+                if (financialChart && typeof financialChart.render === 'function') {
+                    financialChart.render();
+                    console.log('✅ Financial chart rendered successfully');
+                }
+            } catch (error) {
+                console.error('Error initializing financial chart:', error);
+                const chartContainer = document.querySelector("#financialTrendsChart");
+                if (chartContainer) {
+                    chartContainer.innerHTML = '<div class="flex items-center justify-center h-64 text-gray-500"><p>Error loading chart. Please refresh the page.</p></div>';
+                }
+            }
+        }
+        
+        // Try multiple initialization methods
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeCharts);
+        } else {
+            // DOM is already loaded
+            initializeCharts();
+        }
+        
+        // Also try on window load as backup
+        window.addEventListener('load', function() {
+            if (!financialChart) {
+                initializeCharts();
+            }
+        });
 
         // Theme change detection and chart update
         function updateChartTheme() {
-            if (financialChart) {
-                financialChart.destroy();
+            try {
+                if (financialChart && typeof financialChart.destroy === 'function') {
+                    financialChart.destroy();
+                }
                 financialChart = createFinancialChart();
-                financialChart.render();
+                if (financialChart && typeof financialChart.render === 'function') {
+                    financialChart.render();
+                }
+            } catch (error) {
+                console.error('Error updating chart theme:', error);
+                // Hide chart container if there's an error
+                const chartContainer = document.querySelector("#financialTrendsChart");
+                if (chartContainer) {
+                    chartContainer.innerHTML = '<div class="flex items-center justify-center h-64 text-gray-500"><p>Chart temporarily unavailable</p></div>';
+                }
             }
         }
 

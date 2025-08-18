@@ -10,6 +10,7 @@ use App\Models\JenisTindakan;
 use App\Models\JumlahPasienHarian;
 use App\Models\Dokter;
 use App\Services\Jaspel\UnifiedJaspelCalculationService;
+use App\Services\ValidatedJaspelCalculationService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -17,10 +18,12 @@ use Illuminate\Support\Facades\Log;
 class EnhancedJaspelService
 {
     private $unifiedCalculationService;
+    private $validatedJaspelService;
     
     public function __construct()
     {
         $this->unifiedCalculationService = app(UnifiedJaspelCalculationService::class);
+        $this->validatedJaspelService = app(ValidatedJaspelCalculationService::class);
     }
     /**
      * Get comprehensive Jaspel data for user including orphan records
@@ -50,8 +53,22 @@ class EnhancedJaspelService
             'status_filter' => $status
         ]);
 
-        // NEW: Use UnifiedJaspelCalculationService for consistent calculations
+        // NEW: Use ValidatedJaspelCalculationService for gaming UI safety
+        if ($status === 'disetujui' || $status === 'validated_only') {
+            return $this->validatedJaspelService->getValidatedJaspelData($user, $month, $year);
+        }
+        
+        // Fallback: Use UnifiedJaspelCalculationService for comprehensive data
         return $this->getUnifiedJaspelData($user, $month, $year, $status);
+    }
+    
+    /**
+     * Get ONLY validated Jaspel data for gaming UI
+     * Ensures financial accuracy by showing only bendahara-approved amounts
+     */
+    public function getValidatedJaspelDataForGaming(User $user, $month = null, $year = null): array
+    {
+        return $this->validatedJaspelService->getValidatedJaspelData($user, $month, $year);
     }
 
     /**
@@ -561,5 +578,23 @@ class EnhancedJaspelService
             'issues' => $issues,
             'audit_time' => now()->toISOString()
         ];
+    }
+    
+    /**
+     * Get validation transparency for users
+     */
+    public function getValidationTransparency(User $user, $month = null, $year = null): array
+    {
+        return $this->validatedJaspelService->getValidationStatus($user, $month, $year);
+    }
+    
+    /**
+     * Check if gaming UI is safe to display
+     * Returns true only if all JASPEL amounts are validated
+     */
+    public function isGamingUISafe(User $user, $month = null, $year = null): bool
+    {
+        $validationStatus = $this->validatedJaspelService->getValidationStatus($user, $month, $year);
+        return $validationStatus['gaming_ui_safe'] ?? false;
     }
 }

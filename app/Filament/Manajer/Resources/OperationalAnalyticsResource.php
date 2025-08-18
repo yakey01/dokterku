@@ -21,7 +21,7 @@ class OperationalAnalyticsResource extends Resource
     
     protected static ?string $navigationLabel = 'Operations Analytics';
     
-    protected static ?string $navigationGroup = '🏥 Operations Analytics';
+    protected static ?string $navigationGroup = '📊 Performance Analytics';
 
     public static function table(Table $table): Table
     {

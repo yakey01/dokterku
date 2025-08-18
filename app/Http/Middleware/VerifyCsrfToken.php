@@ -23,8 +23,8 @@ class VerifyCsrfToken extends Middleware
         // Only exclude test routes, keep login protected
         'test-login',
         'test-csrf-post',
-        // Temporarily exclude for ngrok testing
-        'login',
+        // Temporarily exclude login to fix CSRF issues
+        'login',        
         'unified-login',
     ];
     

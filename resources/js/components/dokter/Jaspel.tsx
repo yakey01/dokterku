@@ -3,8 +3,16 @@ import {
   Trophy, Calendar, Clock, TrendingUp, Award, Target, Activity, Star, 
   ChevronLeft, ChevronRight, Eye, FileText, CreditCard, Stethoscope, 
   Users, MapPin, CheckCircle, RefreshCw, AlertCircle, Gamepad2, 
-  Zap, Crown, Medal, Gem, Coins, Gift, Sparkles
+  Zap, Crown, Medal, Gem, Coins, Gift, Sparkles, Bell, Wifi
 } from 'lucide-react';
+
+// Real-time WebSocket integration
+declare global {
+  interface Window {
+    Echo: any;
+    Pusher: any;
+  }
+}
 
 interface JaspelItem {
   id: number;
@@ -40,6 +48,8 @@ interface JaspelSummary {
     pending: number;
     rejected: number;
   };
+  // ✅ ADDED: For coordinating Jumlah Pasien data without double counting
+  jumlah_pasien_total?: number;
 }
 
 const JaspelComponent = () => {
@@ -66,13 +76,24 @@ const JaspelComponent = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
+  // Validation status state
+  const [validationStatus, setValidationStatus] = useState<any>(null);
+  const [pendingSummary, setPendingSummary] = useState<any>(null);
+  
   // Separate jaga and tindakan data
   const [jaspelJagaData, setJaspelJagaData] = useState<JaspelItem[]>([]);
   const [jaspelTindakanData, setJaspelTindakanData] = useState<JaspelItem[]>([]);
   
-  // State for Jumlah Pasien data integration
-  const [jumlahPasienData, setJumlahPasienData] = useState<any[]>([]);
-  const [loadingJumlahPasien, setLoadingJumlahPasien] = useState(false);
+  // 🔧 REMOVED: Jumlah Pasien data integration - ValidatedJaspel API now includes all data
+  // const [jumlahPasienData, setJumlahPasienData] = useState<any[]>([]);
+  // const [loadingJumlahPasien, setLoadingJumlahPasien] = useState(false);
+  
+  // 🚀 Real-time WebSocket state
+  const [realtimeConnected, setRealtimeConnected] = useState(false);
+  const [realtimeNotifications, setRealtimeNotifications] = useState<any[]>([]);
+  const [lastUpdateTime, setLastUpdateTime] = useState<string>('Never');
+  const [newDataAvailable, setNewDataAvailable] = useState(false);
+  
 
   useEffect(() => {
     // Detect iPad for layout adjustments
@@ -81,16 +102,140 @@ const JaspelComponent = () => {
     
     // Fetch Jaspel data on component mount
     fetchJaspelData();
-    // Fetch Jumlah Pasien data for Jaga integration
-    fetchJumlahPasienData();
+    
+    // 🚀 REAL-TIME: WebSocket connection for instant updates
+    const setupRealtimeConnection = () => {
+      try {
+        // Check if Echo is available (WebSocket)
+        if (typeof window !== 'undefined' && window.Echo) {
+          console.log('🔌 Setting up real-time WebSocket connection...');
+          
+          // Get current user ID from meta tag or localStorage
+          const userId = document.querySelector('meta[name="user-id"]')?.getAttribute('content') ||
+                        localStorage.getItem('user_id') ||
+                        '13'; // Fallback to Yaya's ID for testing
+          
+          // Listen to private dokter channel
+          window.Echo.private(`dokter.${userId}`)
+            .listen('tindakan.validated', (event: any) => {
+              console.log('🎯 Real-time validation received:', event);
+              
+              // Show notification
+              showRealtimeNotification(event.notification);
+              
+              // Fetch fresh data immediately
+              fetchJaspelData();
+              
+              // Update UI state
+              setLastUpdateTime(new Date().toLocaleTimeString());
+              setNewDataAvailable(true);
+              
+              // Clear "new data" indicator after 5 seconds
+              setTimeout(() => setNewDataAvailable(false), 5000);
+            });
+            
+          // Listen to connection status
+          window.Echo.connector.pusher.connection.bind('connected', () => {
+            console.log('✅ WebSocket connected');
+            setRealtimeConnected(true);
+          });
+          
+          window.Echo.connector.pusher.connection.bind('disconnected', () => {
+            console.log('❌ WebSocket disconnected');
+            setRealtimeConnected(false);
+          });
+          
+        } else {
+          console.log('⚠️ Echo not available, falling back to polling...');
+          setRealtimeConnected(false);
+        }
+      } catch (error) {
+        console.error('❌ Failed to setup WebSocket:', error);
+        setRealtimeConnected(false);
+      }
+    };
+    
+    // Setup real-time connection
+    setupRealtimeConnection();
+    
+    // 🔄 INTELLIGENT POLLING: Smart rate-limit-aware auto-refresh
+    let refreshAttempts = 0;
+    let lastSuccessfulRefresh = Date.now();
+    let rateLimitBackoff = 1; // Multiplier for backoff
+    
+    // 🔄 SIMPLIFIED: Auto-refresh with rate limit protection
+    const refreshInterval = setInterval(() => {
+      if (!realtimeConnected && !isCurrentlyFetching) {
+        const timeSinceLastSuccess = Date.now() - lastSuccessfulRefresh;
+        
+        // Only refresh if enough time has passed (60 seconds minimum)
+        if (timeSinceLastSuccess >= 60000) {
+          console.log('🔄 Auto-refreshing JASPEL data (rate-limit protected)...');
+          
+          fetchJaspelData()
+            .then(() => {
+              lastSuccessfulRefresh = Date.now();
+              console.log('✅ Auto-refresh successful');
+            })
+            .catch((error) => {
+              console.warn('⚠️ Auto-refresh failed:', error.message);
+              // Don't retry automatically - wait for next interval
+            });
+        } else {
+          console.log('⏱️ Skipping refresh - rate limit protection active');
+        }
+      }
+    }, 60000); // 60 seconds - safer for rate limits
+    
+    // Cleanup on unmount
+    return () => {
+      clearInterval(refreshInterval);
+      
+      if (window.Echo) {
+        try {
+          window.Echo.leave(`dokter.${userId}`);
+        } catch (error) {
+          console.log('Echo cleanup error:', error);
+        }
+      }
+    };
   }, []);
 
+  // Real-time notification handler
+  const showRealtimeNotification = (notification: any) => {
+    console.log('📢 Showing real-time notification:', notification);
+    
+    // Add to notifications array
+    const newNotification = {
+      id: Date.now(),
+      ...notification,
+      timestamp: new Date().toLocaleTimeString(),
+    };
+    
+    setRealtimeNotifications(prev => [newNotification, ...prev.slice(0, 4)]); // Keep last 5
+    
+    // Auto-remove after 10 seconds
+    setTimeout(() => {
+      setRealtimeNotifications(prev => prev.filter(n => n.id !== newNotification.id));
+    }, 10000);
+  };
+
+  // 🛡️ Request deduplication to prevent multiple simultaneous requests
+  const [isCurrentlyFetching, setIsCurrentlyFetching] = useState(false);
+  
   const fetchJaspelData = async () => {
+    // Prevent duplicate requests
+    if (isCurrentlyFetching) {
+      console.log('⚠️ Fetch already in progress, skipping duplicate request');
+      return;
+    }
+    
     try {
+      setIsCurrentlyFetching(true);
       setLoading(true);
       setError(null);
       
-      console.log('📊 Fetching Jaspel data...');
+      console.log('📊 Fetching VALIDATED Jaspel data only...');
       
       // Get current month and year
       const currentDate = new Date();
@@ -128,8 +273,8 @@ const JaspelComponent = () => {
         headers['X-CSRF-TOKEN'] = csrfToken;
       }
       
-      // Fetch comprehensive jaspel data from correct endpoint
-      const response = await fetch(`/api/v2/jaspel/mobile-data-alt?month=${currentMonth}&year=${currentYear}`, {
+      // Fetch VALIDATED jaspel data from new secure endpoint
+      const response = await fetch(`/api/v2/jaspel/validated/gaming-data?month=${currentMonth}&year=${currentYear}`, {
         method: 'GET',
         headers,
         credentials: 'include'
@@ -155,52 +300,64 @@ const JaspelComponent = () => {
         // Continue with empty data rather than failing
       }
       
-      if (data.success && (data.data || data.success)) {
-        console.log('✅ Jaspel data received:', data);
+      if (data.success && data.data) {
+        console.log('✅ VALIDATED Jaspel data received:', data);
         
-        // SAFE DATA EXTRACTION: Handle undefined/null jaspel_items
-        const jaspelItems = Array.isArray(data.data.jaspel_items) ? data.data.jaspel_items : [];
+        // GAMING UI VALIDATION: Only validated data is received
+        const gamingStats = data.data.gaming_stats || {};
+        const jagaQuests = Array.isArray(data.data.jaga_quests) ? data.data.jaga_quests : [];
+        const achievementTindakan = Array.isArray(data.data.achievement_tindakan) ? data.data.achievement_tindakan : [];
         const summaryData = data.data.summary || {
           total: 0, approved: 0, pending: 0, rejected: 0,
           count: { total: 0, approved: 0, pending: 0, rejected: 0 }
         };
         
-        console.log('📊 Jaspel items count:', jaspelItems.length);
+        console.log('🎮 Gaming stats:', gamingStats);
+        console.log('🏆 Validated jaga quests:', jagaQuests.length);
+        console.log('🎯 Validated achievements:', achievementTindakan.length);
         
-        // BULLETPROOF TRANSFORMATION: Comprehensive validation for each item
-        const transformedData: JaspelItem[] = jaspelItems.map((item: any) => {
-          // Validate each item is an object
-          if (!item || typeof item !== 'object') {
-            console.warn('⚠️ Invalid jaspel item detected:', item);
-            return null;
+        // Validation guarantee check
+        if (data.data.validation_guarantee?.all_amounts_validated) {
+          console.log('✅ FINANCIAL ACCURACY GUARANTEED: All amounts are bendahara-validated');
+        }
+        
+        // VALIDATED DATA TRANSFORMATION: Only validated items are processed
+        const transformedJagaData: JaspelItem[] = jagaQuests.map((item: any) => {
+          const jenisField = item.jenis_jaspel || 'jaga_umum';
+          
+          // Clean up keterangan to remove duplicate BENDAHARA OFICIAL text
+          let cleanKeterangan = item.keterangan || 'Validated by Bendahara';
+          let extractedTotalPasien = item.total_pasien;
+          
+          // Remove redundant BENDAHARA OFICIAL prefix and financial details
+          if (cleanKeterangan.includes('BENDAHARA OFICIAL')) {
+            // Extract just the essential info (e.g., "Jaspel jaga 08/08/2025 (100 total pasien)")
+            const match = cleanKeterangan.match(/Jaspel jaga \d{2}\/\d{2}\/\d{4} \(\d+ total pasien\)/);
+            if (match) {
+              cleanKeterangan = match[0];
+            } else {
+              // Fallback: remove BENDAHARA OFICIAL prefix and amount suffix
+              cleanKeterangan = cleanKeterangan
+                .replace(/^BENDAHARA OFICIAL\s*-\s*/, '')
+                .replace(/\s*-\s*Rp\s*[\d,\.]+$/, '');
+            }
           }
           
-          // Extract and validate jenis field (handle both jenis_jaspel and jenis)
-          const jenisField = (item.jenis_jaspel && typeof item.jenis_jaspel === 'string') 
-                           ? item.jenis_jaspel 
-                           : (item.jenis && typeof item.jenis === 'string')
-                           ? item.jenis
-                           : '';
-          
-          // 🔍 DEBUG: Log each item transformation
-          console.log('🔍 Transforming jaspel item:', {
-            original: item,
-            jenisField,
-            nominal: item.nominal || item.jumlah,
-            jenis_jaspel: item.jenis_jaspel
-          });
+          // Extract total_pasien from keterangan if not already provided
+          if (!extractedTotalPasien && cleanKeterangan.includes('total pasien')) {
+            const pasienMatch = cleanKeterangan.match(/(\d+)\s*total pasien/);
+            if (pasienMatch) {
+              extractedTotalPasien = parseInt(pasienMatch[1]);
+            }
+          }
           
           return {
             id: Number(item.id) || 0,
-            tanggal: (item.tanggal && typeof item.tanggal === 'string') 
-                    ? item.tanggal 
-                    : new Date().toISOString().split('T')[0],
+            tanggal: item.tanggal || new Date().toISOString().split('T')[0],
             jenis_jaspel: jenisField,
-            nominal: Number(item.nominal || item.jumlah) || 0, // Handle both nominal and jumlah
-            status_validasi: String(item.status_validasi || item.status || 'pending'),
-            keterangan: String(item.keterangan || ''),
-            
-            // BULLETPROOF HELPER CALLS: All helper functions now handle any input type
+            nominal: Number(item.nominal) || 0,
+            status_validasi: 'disetujui', // Always approved since validated
+            keterangan: cleanKeterangan,
             shift: mapJenisToShift(jenisField),
             jam: getShiftTime(jenisField),
             lokasi: getLocationFromJenis(jenisField),
@@ -208,56 +365,96 @@ const JaspelComponent = () => {
             jenis: jenisField,
             durasi: getDurationFromJenis(jenisField),
             complexity: getComplexityFromJenis(jenisField),
-            tim: ['dr. ' + String(item.user_name || 'Dokter')]
+            tim: ['dr. ' + String(item.user_name || 'Dokter')],
+            validation_guaranteed: true, // Flag for UI display
+            total_pasien: extractedTotalPasien
           };
-        }).filter(Boolean) as JaspelItem[]; // Remove null entries and assert type
-        
-        // 🔍 DEBUG: Log final transformed data
-        console.log('🔍 Final transformed data:', transformedData);
-        console.log('🔍 Data structure check:', {
-          hasTarif: transformedData.some(item => 'tarif' in item),
-          hasBonus: transformedData.some(item => 'bonus' in item),
-          hasJenisJaspel: transformedData.some(item => 'jenis_jaspel' in item),
-          sampleItem: transformedData[0]
         });
         
-        // BULLETPROOF DATA SEPARATION: Ultra-safe string operations
-        const jagaData = transformedData.filter(item => {
-          if (!item || typeof item !== 'object') return false;
-          const jenis = (item.jenis_jaspel && typeof item.jenis_jaspel === 'string') 
-                       ? item.jenis_jaspel.toLowerCase() 
-                       : '';
+        // 🔧 GROUP ACHIEVEMENTS BY TINDAKAN to match bendahara display
+        const groupedByTindakan = achievementTindakan.reduce((acc: any, item: any) => {
+          const tindakanId = item.tindakan_id || `manual_${item.id}`;
           
-          try {
-            return jenis.includes('jaga') || jenis.includes('shift');
-          } catch (error) {
-            console.warn('⚠️ Filter error in jagaData:', error, 'item:', item);
-            return false;
+          if (!acc[tindakanId]) {
+            acc[tindakanId] = {
+              tindakan_id: item.tindakan_id,
+              jenis: item.jenis,
+              tanggal: item.tanggal,
+              total_nominal: 0,
+              jaspel_breakdown: [],
+              latest_item: item
+            };
           }
+          
+          acc[tindakanId].total_nominal += Number(item.nominal) || 0;
+          acc[tindakanId].jaspel_breakdown.push({
+            jenis_jaspel: item.jenis_jaspel,
+            nominal: Number(item.nominal) || 0,
+            source: item.source
+          });
+          
+          return acc;
+        }, {});
+
+        const transformedTindakanData: JaspelItem[] = Object.values(groupedByTindakan).map((group: any) => {
+          const item = group.latest_item;
+          const jenisField = item.jenis_jaspel || 'paramedis';
+          
+          // Create detailed breakdown for keterangan
+          const breakdown = group.jaspel_breakdown.map((b: any) => 
+            `${b.jenis_jaspel}: Rp ${Number(b.nominal).toLocaleString()}`
+          ).join(', ');
+          
+          return {
+            id: Number(item.id) || 0,
+            tanggal: item.tanggal || new Date().toISOString().split('T')[0],
+            jenis_jaspel: jenisField,
+            nominal: group.total_nominal, // Combined total from all JASPEL types
+            status_validasi: 'disetujui', // Always approved since validated
+            keterangan: `${item.jenis} - Total: Rp ${group.total_nominal.toLocaleString()} (${breakdown})`,
+            shift: mapJenisToShift(jenisField),
+            jam: getShiftTime(jenisField),
+            lokasi: getLocationFromJenis(jenisField),
+            tindakan: item.jenis || mapJenisToTindakan(jenisField),
+            jenis: jenisField,
+            durasi: getDurationFromJenis(jenisField),
+            complexity: getComplexityFromJenis(jenisField),
+            tim: ['dr. ' + String(item.user_name || 'Dokter')],
+            validation_guaranteed: true,
+            // Additional fields for grouped display
+            jaspel_breakdown: group.jaspel_breakdown,
+            tindakan_id: group.tindakan_id
+          };
         });
         
-        const tindakanData = transformedData.filter(item => {
-          if (!item || typeof item !== 'object') return false;
-          const jenis = (item.jenis_jaspel && typeof item.jenis_jaspel === 'string') 
-                       ? item.jenis_jaspel.toLowerCase() 
-                       : '';
-          
-          try {
-            return !jenis.includes('jaga') && !jenis.includes('shift');
-          } catch (error) {
-            console.warn('⚠️ Filter error in tindakanData:', error, 'item:', item);
-            return false;
-          }
+        const transformedData = [...transformedJagaData, ...transformedTindakanData];
+        
+        // 🔍 DEBUG: Log validated data
+        console.log('🔍 Final validated data:', {
+          jaga: transformedJagaData.length,
+          tindakan: transformedTindakanData.length,
+          total: transformedData.length,
+          validation_guaranteed: transformedData.every(item => item.validation_guaranteed)
         });
         
         setJaspelData(transformedData);
-        setJaspelJagaData(jagaData);
-        setJaspelTindakanData(tindakanData);
+        setJaspelJagaData(transformedJagaData);
+        setJaspelTindakanData(transformedTindakanData);
         setSummary(summaryData);
         
+        // Set validation status for UI display
+        if (data.data.validation_guarantee) {
+          setValidationStatus(data.data.validation_guarantee);
+        }
+        
+        // Show validation success message
+        if (data.data.validation_guarantee?.financial_accuracy === 'guaranteed') {
+          console.log('🎯 GAMING UI SAFE: All amounts are bendahara-validated');
+        }
+        
       } else {
-        console.warn('⚠️ Invalid response structure, using fallback data');
-        // Use fallback instead of throwing error
+        console.warn('⚠️ No validated data available');
+        // No fallback - only show validated data
         setJaspelData([]);
         setJaspelJagaData([]);
         setJaspelTindakanData([]);
@@ -265,127 +462,24 @@ const JaspelComponent = () => {
           total: 0, approved: 0, pending: 0, rejected: 0,
           count: { total: 0, approved: 0, pending: 0, rejected: 0 }
         });
+        setError('No validated JASPEL data available. Please wait for bendahara approval.');
       }
     } catch (err) {
-      console.error('❌ Failed to fetch Jaspel data:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load data');
+      console.error('❌ Failed to fetch validated JASPEL data:', err);
+      setError('Failed to load validated JASPEL data. Only bendahara-approved amounts can be displayed.');
       
-      // Use fallback data if API fails
+      // No fallback data - only validated amounts allowed
+      setJaspelData([]);
       setJaspelJagaData([]);
       setJaspelTindakanData([]);
     } finally {
       setLoading(false);
+      setIsCurrentlyFetching(false); // 🛡️ Always reset fetch flag
     }
   };
   
-  // Fetch Jumlah Pasien data from Bendahara validation system
-  const fetchJumlahPasienData = async () => {
-    try {
-      setLoadingJumlahPasien(true);
-      
-      console.log('📊 Fetching Jumlah Pasien data for Jaga integration...');
-      
-      // Get current month and year
-      const currentDate = new Date();
-      const currentMonth = currentDate.getMonth() + 1;
-      const currentYear = currentDate.getFullYear();
-      
-      // Get authentication tokens
-      const token = localStorage.getItem('auth_token') || 
-                   localStorage.getItem('dokterku_auth_token') ||
-                   localStorage.getItem('api_token') ||
-                   sessionStorage.getItem('auth_token') ||
-                   sessionStorage.getItem('dokterku_auth_token') ||
-                   sessionStorage.getItem('api_token') ||
-                   document.querySelector('meta[name="api-token"]')?.getAttribute('content');
-                   
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-      
-      // Build headers with authentication
-      const headers: Record<string, string> = {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
-      };
-      
-      // Add Bearer token if available
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-      
-      // Add CSRF token if available
-      if (csrfToken) {
-        headers['X-CSRF-TOKEN'] = csrfToken;
-      }
-      
-      // Fetch Jumlah Pasien data from new endpoint
-      const response = await fetch(`/api/v2/jumlah-pasien/jaspel-jaga?month=${currentMonth}&year=${currentYear}`, {
-        method: 'GET',
-        headers,
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      if (data.success && data.data) {
-        console.log('✅ Jumlah Pasien data received:', data);
-        
-        const jumlahPasienItems = data.data.jumlah_pasien_items || [];
-        
-        // Transform Jumlah Pasien data to Jaspel format for Jaga tab
-        // NOTE: These are only Bendahara-validated (approved) entries
-        const transformedJagaData = jumlahPasienItems.map((item: any) => ({
-          id: item.id,
-          tanggal: item.tanggal,
-          jenis_jaspel: item.jenis_jaga || 'jaga_umum',
-          nominal: item.estimated_jaspel || 0,
-          status_validasi: 'disetujui', // Always approved since API now filters for approved only
-          keterangan: `Jaga ${item.poli} - ${item.total_pasien} pasien (${item.jumlah_pasien_umum} umum, ${item.jumlah_pasien_bpjs} BPJS) ✓ Tervalidasi Bendahara`,
-          shift: item.shift,
-          jam: item.jam,
-          lokasi: item.lokasi,
-          tarif: item.tarif_base,
-          bonus: item.bonus,
-          // Additional patient data fields
-          dokter_nama: item.dokter_nama,
-          total_pasien: item.total_pasien,
-          poli: item.poli,
-          validasi_by: item.validasi_by,
-          validasi_at: item.validasi_at,
-          is_bendahara_validated: true, // Flag to indicate Bendahara validation
-        }));
-        
-        // Merge with existing jaspelJagaData or replace it
-        setJumlahPasienData(jumlahPasienItems);
-        
-        // Combine with existing Jaspel Jaga data
-        // Priority to Jumlah Pasien data as it's from Bendahara validation
-        const mergedJagaData = [...transformedJagaData, ...jaspelJagaData.filter(item => 
-          !transformedJagaData.find(jp => jp.tanggal === item.tanggal)
-        )];
-        
-        setJaspelJagaData(mergedJagaData);
-        
-        // Update summary with Jumlah Pasien statistics
-        if (data.data.summary) {
-          setSummary(prev => ({
-            ...prev,
-            total: prev.total + (data.data.summary.total_estimated_jaspel || 0),
-          }));
-        }
-      }
-    } catch (err) {
-      console.error('❌ Failed to fetch Jumlah Pasien data:', err);
-      // Don't set error state as this is supplementary data
-      // The main Jaspel data will still work
-    } finally {
-      setLoadingJumlahPasien(false);
-    }
-  };
+  // 🔧 REMOVED: fetchJumlahPasienData function - ValidatedJaspel API now includes all patient count data
+  // This prevents double counting and data conflicts
   
   // BULLETPROOF HELPER FUNCTIONS: Triple-layer safety checks
   const mapJenisToShift = (jenis: any): string => {
@@ -528,6 +622,13 @@ const JaspelComponent = () => {
 
   const totalJaspelJaga = jaspelJagaData.reduce((sum, item) => sum + (item.nominal || (item.tarif || 0) + (item.bonus || 0)), 0);
   const totalJaspelTindakan = jaspelTindakanData.reduce((sum, item) => sum + (item.nominal || item.tarif || 0), 0);
+  
+  // ✅ FIX: Proper total calculation without double counting
+  // IMPORTANT DATA COORDINATION LOGIC:
+  // 1. summary.total comes from ValidatedJaspelController (authoritative source)
+  // 2. JumlahPasien data is stored separately to prevent double counting
+  // 3. Priority: Validated API total > calculated fallback totals
+  // 4. Do NOT add jumlah_pasien_total as it may overlap with validated data
   const grandTotal = summary.total || (totalJaspelJaga + totalJaspelTindakan);
 
   const completedJaga = jaspelJagaData.filter(item => item.status_validasi === 'disetujui' || item.status === 'completed').length;
@@ -659,20 +760,45 @@ const JaspelComponent = () => {
                 </div>
               </div>
               <div className="flex items-center space-x-3">
-                {error && (
-                  <div className="text-yellow-400 text-xs bg-yellow-900/20 px-3 py-1 rounded-full border border-yellow-500/30">
-                    Data lokal
+                {validationStatus?.all_amounts_validated && (
+                  <div className="text-green-400 text-xs bg-green-900/20 px-3 py-1 rounded-full border border-green-500/30 flex items-center gap-1">
+                    <CheckCircle className="w-3 h-3" />
+                    Fully Validated
                   </div>
                 )}
+                {error && (
+                  <div className="text-red-400 text-xs bg-red-900/20 px-3 py-1 rounded-full border border-red-500/30">
+                    Validation Required
+                  </div>
+                )}
+                
+                {/* 🚀 Real-time status indicator */}
+                <div className={`text-xs px-3 py-1 rounded-full border flex items-center gap-1 ${
+                  realtimeConnected 
+                    ? 'text-green-400 bg-green-900/20 border-green-500/30' 
+                    : 'text-yellow-400 bg-yellow-900/20 border-yellow-500/30'
+                }`}>
+                  <Wifi className={`w-3 h-3 ${realtimeConnected ? '' : 'opacity-50'}`} />
+                  {realtimeConnected ? 'Live' : 'Polling'}
+                </div>
+                
+                {/* New data indicator */}
+                {newDataAvailable && (
+                  <div className="text-blue-400 text-xs bg-blue-900/20 px-3 py-1 rounded-full border border-blue-500/30 flex items-center gap-1 animate-pulse">
+                    <Bell className="w-3 h-3" />
+                    New Data
+                  </div>
+                )}
+                
                 <button 
                   onClick={() => {
                     fetchJaspelData();
-                    fetchJumlahPasienData();
+                    setLastUpdateTime(new Date().toLocaleTimeString());
                   }}
                   className="p-3 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 rounded-xl border border-emerald-500/30 transition-colors"
-                  title="Refresh data"
+                  title={`Manual refresh - Last update: ${lastUpdateTime}`}
                 >
-                  <RefreshCw className={`w-5 h-5 ${loading || loadingJumlahPasien ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
                 </button>
               </div>
             </div>
@@ -680,13 +806,20 @@ const JaspelComponent = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-2xl p-6 border border-yellow-400/20 relative overflow-hidden">
                 <div className="absolute top-1 right-1">
-                  <Gem className="w-4 h-4 text-yellow-400 animate-pulse" />
+                  {validationStatus?.all_amounts_validated ? (
+                    <CheckCircle className="w-4 h-4 text-green-400 animate-pulse" />
+                  ) : (
+                    <Gem className="w-4 h-4 text-yellow-400 animate-pulse" />
+                  )}
                 </div>
                 <div className="flex items-center justify-between mb-2">
                   <div>
                     <p className="text-yellow-300 text-sm mb-1 flex items-center gap-1">
                       <Coins className="w-4 h-4" />
                       Total Gold Earned
+                      {validationStatus?.all_amounts_validated && (
+                        <span className="text-green-400 text-xs ml-2">✓ Validated</span>
+                      )}
                     </p>
                     <p className="text-3xl font-bold text-white">{formatCurrency(grandTotal)}</p>
                   </div>
@@ -697,7 +830,7 @@ const JaspelComponent = () => {
                 </div>
                 <p className="text-xs text-yellow-300 mt-2 flex items-center gap-1">
                   <Medal className="w-3 h-3" />
-                  Quest Rewards + Bonus XP
+                  {validationStatus?.bendahara_approved ? 'Bendahara Approved' : 'Quest Rewards + Bonus XP'}
                 </p>
               </div>
 
@@ -709,9 +842,9 @@ const JaspelComponent = () => {
                   <div>
                     <p className="text-blue-300 text-sm mb-1 flex items-center gap-1">
                       <Award className="w-4 h-4" />
-                      Missions Completed
+                      Days Worked
                     </p>
-                    <p className="text-3xl font-bold text-white">{completedJaga}/{jaspelJagaData.length}</p>
+                    <p className="text-3xl font-bold text-white">{completedJaga} Days</p>
                   </div>
                   <div className="relative">
                     <Clock className="w-8 h-8 text-blue-400" />
@@ -734,7 +867,7 @@ const JaspelComponent = () => {
                       <Gift className="w-4 h-4" />
                       Special Achievements
                     </p>
-                    <p className="text-3xl font-bold text-white">{completedTindakan}/{jaspelTindakanData.length}</p>
+                    <p className="text-3xl font-bold text-white">{jaspelTindakanData.length}</p>
                   </div>
                   <div className="relative">
                     <Stethoscope className="w-8 h-8 text-purple-400" />
@@ -776,7 +909,9 @@ const JaspelComponent = () => {
 
         {/* Content based on active tab */}
         {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-6">
+            {/* Statistics Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Statistik Jaga */}
             <div className="bg-white/5 backdrop-blur-2xl rounded-3xl p-6 border border-white/10">
               <div className="flex items-center mb-6">
@@ -832,6 +967,7 @@ const JaspelComponent = () => {
                 </div>
               </div>
             </div>
+            </div>
           </div>
         )}
 
@@ -844,20 +980,23 @@ const JaspelComponent = () => {
                   <h3 className="text-xl font-bold text-white">Jadwal Jaga</h3>
                 </div>
                 <div className="text-sm text-gray-400">
-                  {jaspelJagaData.length} total jaga • Data dinamis
-                  {jumlahPasienData.length > 0 && (
-                    <span className="ml-2 text-emerald-400">
-                      • {jumlahPasienData.length} tervalidasi Bendahara
-                    </span>
-                  )}
+                  {jaspelJagaData.length} total jaga • Bendahara validated data
                 </div>
               </div>
-              {/* Bendahara Validation Notice */}
-              {jumlahPasienData.length > 0 && (
+              {/* Validation Guarantee Notice */}
+              {validationStatus && (
                 <div className="mt-3 bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-2 flex items-center">
                   <CheckCircle className="w-4 h-4 text-green-400 mr-2 flex-shrink-0" />
                   <span className="text-green-300 text-sm">
-                    Hanya menampilkan data jaga yang sudah divalidasi dan disetujui oleh Bendahara untuk perhitungan Jaspel
+                    ✅ JAMINAN FINANSIAL: Hanya menampilkan JASPEL yang sudah divalidasi dan disetujui Bendahara
+                  </span>
+                </div>
+              )}
+              {pendingSummary?.pending_count > 0 && (
+                <div className="mt-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg px-3 py-2 flex items-center">
+                  <AlertCircle className="w-4 h-4 text-yellow-400 mr-2 flex-shrink-0" />
+                  <span className="text-yellow-300 text-sm">
+                    ⏳ Ada {pendingSummary.pending_count} item JASPEL menunggu validasi Bendahara
                   </span>
                 </div>
               )}
@@ -889,11 +1028,11 @@ const JaspelComponent = () => {
                               {item.total_pasien} pasien
                             </span>
                           </div>
-                          {item.is_bendahara_validated && (
+                          {item.validation_guaranteed && (
                             <div className="flex items-center bg-green-500/20 px-2 py-1 rounded-full">
                               <CheckCircle className="w-4 h-4 text-green-400 mr-1" />
                               <span className="text-green-300 text-xs font-medium">
-                                ✓ Tervalidasi Bendahara
+                                ✅ BENDAHARA VALIDATED
                               </span>
                             </div>
                           )}
@@ -942,7 +1081,7 @@ const JaspelComponent = () => {
                   <h3 className="text-xl font-bold text-white">Tindakan Medis</h3>
                 </div>
                 <div className="text-sm text-gray-400">
-                  {jaspelTindakanData.length} total tindakan • Data dinamis
+                  {jaspelTindakanData.length} total tindakan • {validationStatus?.bendahara_approved ? 'Bendahara Validated' : 'Data dinamis'}
                 </div>
               </div>
             </div>
@@ -957,20 +1096,10 @@ const JaspelComponent = () => {
                         <span className="text-white font-semibold">{item.tindakan}</span>
                       </div>
                       <div className="flex items-center mb-2">
-                        <Target className="w-4 h-4 text-blue-400 mr-2" />
-                        <span className="text-blue-300">{item.jenis}</span>
-                        <span className="mx-2 text-gray-400">•</span>
-                        <span className="text-gray-300">{item.durasi}</span>
+                        <Clock className="w-4 h-4 text-blue-400 mr-2" />
+                        <span className="text-blue-300">{item.shift}</span>
                         <span className="mx-2 text-gray-400">•</span>
                         <span className="text-gray-300">{item.tanggal}</span>
-                      </div>
-                      <div className="flex items-center mb-2">
-                        <Users className="w-4 h-4 text-purple-400 mr-2" />
-                        <span className="text-gray-300 text-sm">Tim: {item.tim.join(', ')}</span>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        {getComplexityBadge(item.complexity)}
-                        {getStatusBadge(item.status_validasi || item.status)}
                       </div>
                     </div>
                     <div className="text-right ml-6">
@@ -991,10 +1120,45 @@ const JaspelComponent = () => {
           </div>
         )}
 
+        {/* 🚀 Real-time Notifications */}
+        {realtimeNotifications.length > 0 && (
+          <div className="mt-8 space-y-3">
+            <h3 className="text-white font-bold text-lg flex items-center gap-2">
+              <Bell className="w-5 h-5 text-blue-400" />
+              Real-time Updates
+            </h3>
+            {realtimeNotifications.slice(0, 3).map((notification) => (
+              <div
+                key={notification.id}
+                className={`p-4 rounded-xl border backdrop-blur-sm transition-all duration-500 ${
+                  notification.type === 'success' 
+                    ? 'bg-green-500/10 border-green-500/30 text-green-300' 
+                    : notification.type === 'error'
+                    ? 'bg-red-500/10 border-red-500/30 text-red-300'
+                    : 'bg-blue-500/10 border-blue-500/30 text-blue-300'
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="font-semibold mb-1">{notification.title}</div>
+                    <div className="text-sm opacity-90">{notification.message}</div>
+                  </div>
+                  <div className="text-xs opacity-70 ml-4">
+                    {notification.timestamp}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Footer Info */}
         <div className="mt-8 text-center">
           <p className="text-gray-500 text-sm">
             JASPEL • Jasa Pelayanan Medis • Dashboard Dokter
+            {realtimeConnected && (
+              <span className="ml-2 text-green-400">• 🔴 Live Updates</span>
+            )}
           </p>
         </div>
 

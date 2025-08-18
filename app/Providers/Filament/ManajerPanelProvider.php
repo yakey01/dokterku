@@ -27,38 +27,46 @@ class ManajerPanelProvider extends PanelProvider
         return $panel
             ->id('manajer')
             ->path('manajer')
-            ->login(false)
-            ->brandName('📊 Executive Dashboard')
+            ->login()
+            ->brandName('🏢 Executive Suite')
             ->viteTheme('resources/css/filament/manajer/theme.css')
+            ->assets([
+                // Disable default Filament assets to prevent conflicts
+            ])
             ->colors([
-                'primary' => Color::hex('#6366F1'), // Professional Indigo
-                'secondary' => Color::hex('#8B5CF6'), // Purple accent
-                'success' => Color::hex('#10B981'), // Success green
-                'warning' => Color::hex('#F59E0B'), // Warning amber
-                'danger' => Color::hex('#EF4444'), // Error red
-                'info' => Color::hex('#06B6D4'), // Info cyan
+                'primary' => Color::hex('#6366F1'), // Elegant Indigo
+                'secondary' => Color::hex('#818CF8'), // Indigo Light
+                'success' => Color::hex('#22C55E'), // Modern Green
+                'warning' => Color::hex('#FBBF24'), // Refined Amber
+                'danger' => Color::hex('#EF4444'), // Elegant Red
+                'info' => Color::hex('#3B82F6'), // Professional Blue
+                'gray' => Color::hex('#6B7280'), // Sophisticated Gray
             ])
             ->darkMode(true)
             ->resources([
-                // 👥 Personnel Management Group
+                // 🎯 Strategic Planning & Goals
+                \App\Filament\Manajer\Resources\StrategicGoalResource::class,
+                
+                // 📊 Performance Analytics  
+                \App\Filament\Manajer\Resources\DepartmentPerformanceResource::class,
+                \App\Filament\Manajer\Resources\OperationalAnalyticsResource::class,
+                
+                // ✅ Approval Workflows
+                \App\Filament\Manajer\Resources\HighValueApprovalResource::class,
+                
+                // 👥 Staff Management
                 \App\Filament\Manajer\Resources\EmployeePerformanceResource::class,
                 \App\Filament\Manajer\Resources\LeaveApprovalResource::class,
                 
-                // 📊 Strategic Planning Group
-                \App\Filament\Manajer\Resources\StrategicPlanningResource::class,
-                
-                // 🏥 Operations Analytics Group
-                \App\Filament\Manajer\Resources\OperationalAnalyticsResource::class,
-                
-                // 💰 Financial Oversight Group
+                // 💰 Financial Control
                 \App\Filament\Manajer\Resources\FinancialOversightResource::class,
-                
-                // ⚡ Workflow Management Group
-                \App\Filament\Manajer\Resources\ApprovalWorkflowResource::class,
             ])
             ->pages([
+                Pages\Dashboard::class,
                 \App\Filament\Manajer\Pages\ExecutiveDashboard::class,
-                \App\Filament\Manajer\Pages\EnhancedManajerDashboard::class,
+                \App\Filament\Manajer\Pages\AdvancedAnalyticsDashboard::class,
+                \App\Filament\Manajer\Pages\DebugCharts::class,
+                \App\Filament\Manajer\Pages\SimpleChartTest::class,
             ])
             ->widgets([
                 Widgets\AccountWidget::class,
@@ -76,15 +84,17 @@ class ManajerPanelProvider extends PanelProvider
                 \App\Filament\Manajer\Widgets\TeamPerformanceWidget::class,
             ])
             ->navigationGroups([
-                NavigationGroup::make('📊 Executive Overview')
+                NavigationGroup::make('📊 Dashboard & Analytics')
                     ->collapsed(false),
-                NavigationGroup::make('💼 Strategic Planning')
+                NavigationGroup::make('🎯 Strategic Planning')
                     ->collapsed(false),
-                NavigationGroup::make('👥 Team Management')
+                NavigationGroup::make('📊 Performance Analytics')
+                    ->collapsed(false),
+                NavigationGroup::make('✅ Approval Workflows')
+                    ->collapsed(false),
+                NavigationGroup::make('👥 Staff Management')
                     ->collapsed(true),
                 NavigationGroup::make('💰 Financial Control')
-                    ->collapsed(true),
-                NavigationGroup::make('⚡ Workflow Automation')
                     ->collapsed(true),
             ])
             ->middleware([

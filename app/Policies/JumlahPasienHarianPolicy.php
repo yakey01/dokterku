@@ -13,7 +13,10 @@ class JumlahPasienHarianPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasPermissionTo('view-patients') || 
+        // Allow petugas role and medical staff 
+        return $user->hasRole('petugas') || 
+               $user->hasRole(['admin', 'manajer', 'dokter']) ||
+               $user->hasPermissionTo('view-patients') || 
                $user->hasPermissionTo('create-patients') ||
                $user->hasPermissionTo('validate_transactions');
     }

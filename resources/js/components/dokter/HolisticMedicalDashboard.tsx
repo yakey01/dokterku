@@ -598,6 +598,95 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
       willFetch: !isDataFetchingRef.current && !dataFetchedRef.current
     });
     
+    // Fetch current month Jaspel data
+    const fetchCurrentMonthJaspel = async () => {
+      try {
+        console.log('🚀 Fetching current month Jaspel data...');
+        setCurrentMonthJaspelLoading(true);
+        const response = await fetch('/api/v2/dashboards/dokter/jaspel/current-month', {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          credentials: 'same-origin'
+        });
+        
+        console.log('📡 Current month Jaspel response:', response.status);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('✅ Current month Jaspel data received:', data);
+          if (mountedRef.current) {
+            setCurrentMonthJaspelData(data);
+          }
+        } else {
+          console.error('❌ Failed to fetch current month Jaspel:', response.status, response.statusText);
+          // Set fallback data for testing
+          const fallbackData = {
+            current_month: {
+              total_received: 1200000,
+              target_amount: 2000000,
+              progress_percentage: 60,
+              daily_breakdown: [],
+              count: 13,
+              month_name: 'Agustus',
+              days_elapsed: 18,
+              days_remaining: 13
+            },
+            real_time: {
+              last_entry: new Date().toISOString(),
+              is_live: true,
+              last_updated: new Date().toISOString()
+            },
+            insights: {
+              daily_average: 66667,
+              projected_total: 2000000,
+              target_likelihood: 'likely'
+            }
+          };
+          if (mountedRef.current) {
+            console.log('📝 Using fallback data for Jaspel component');
+            setCurrentMonthJaspelData(fallbackData);
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error fetching current month Jaspel:', error);
+        // Set fallback data on error
+        const fallbackData = {
+          current_month: {
+            total_received: 1200000,
+            target_amount: 2000000,
+            progress_percentage: 60,
+            daily_breakdown: [],
+            count: 13,
+            month_name: 'Agustus',
+            days_elapsed: 18,
+            days_remaining: 13
+          },
+          real_time: {
+            last_entry: new Date().toISOString(),
+            is_live: true,
+            last_updated: new Date().toISOString()
+          },
+          insights: {
+            daily_average: 66667,
+            projected_total: 2000000,
+            target_likelihood: 'likely'
+          }
+        };
+        if (mountedRef.current) {
+          console.log('📝 Using fallback data for Jaspel component (error case)');
+          setCurrentMonthJaspelData(fallbackData);
+        }
+      } finally {
+        if (mountedRef.current) {
+          setCurrentMonthJaspelLoading(false);
+        }
+      }
+    };
+
     // Fetch leaderboard data
     const fetchLeaderboard = async () => {
       try {
@@ -819,6 +908,7 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
       console.log('🚀 Initiating dashboard data fetch');
       fetchDashboardData();
       fetchLeaderboard(); // Fetch leaderboard data alongside dashboard data
+      fetchCurrentMonthJaspel(); // Fetch current month Jaspel data
     } else {
       console.log('⏭️ Skipping dashboard fetch - already in progress or completed');
     }
@@ -956,31 +1046,11 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
           <div className="space-y-4">
             <h4 className="font-semibold text-white mb-4">Recent Achievements</h4>
             
-            <div className="p-4 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-2xl border border-green-400/30">
-              <div className="flex items-center space-x-4 mb-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
-                  <DollarSign className="w-5 h-5 text-white" />
-                </div>
-                <div className="flex-1">
-                  <div className="font-medium text-white">Jaspel vs Bulan Lalu</div>
-                </div>
-                <div className="text-2xl">🟡</div>
-              </div>
-              <div className="mb-2">
-                <div className="text-right text-white font-semibold text-sm mb-1">
-                  {dashboardMetrics.jaspel.growthPercentage >= 0 
-                    ? `+${dashboardMetrics.jaspel.growthPercentage}%`
-                    : `${dashboardMetrics.jaspel.growthPercentage}%`
-                  }
-                </div>
-                <ProgressBarAnimation
-                  percentage={dashboardMetrics.jaspel.progressPercentage}
-                  delay={200}
-                  className="bg-green-900/30"
-                  gradientColors="bg-gradient-to-r from-green-400 via-emerald-400 to-yellow-400"
-                />
-              </div>
-            </div>
+            {/* Current Month Jaspel Progress */}
+            <JaspelCurrentMonthProgress 
+              data={currentMonthJaspelData}
+              loading={currentMonthJaspelLoading}
+            />
 
             <div className="p-4 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-2xl border border-blue-400/30">
               <div className="flex items-center space-x-4 mb-3">

@@ -85,6 +85,54 @@ class Jaspel extends Model
     }
 
     /**
+     * Scope for validated (approved) JASPEL only
+     * This enforces bendahara validation as single source of truth
+     */
+    public function scopeValidated($query)
+    {
+        return $query->where('status_validasi', 'disetujui');
+    }
+
+    /**
+     * Scope for rejected JASPEL
+     */
+    public function scopeRejected($query)
+    {
+        return $query->where('status_validasi', 'ditolak');
+    }
+
+    /**
+     * Get only validated JASPEL for a user and period
+     */
+    public function scopeValidatedForUser($query, $userId, $month = null, $year = null)
+    {
+        $month = $month ?? now()->month;
+        $year = $year ?? now()->year;
+        
+        return $query->where('user_id', $userId)
+                    ->whereMonth('tanggal', $month)
+                    ->whereYear('tanggal', $year)
+                    ->where('status_validasi', 'disetujui');
+    }
+
+    /**
+     * Check if this JASPEL is validated by bendahara
+     */
+    public function isValidated(): bool
+    {
+        return $this->status_validasi === 'disetujui';
+    }
+
+    /**
+     * Check if this JASPEL is safe for gaming UI
+     * Only validated amounts should be shown in gaming interface
+     */
+    public function isSafeForGaming(): bool
+    {
+        return $this->isValidated();
+    }
+
+    /**
      * Accessor for compatibility with views
      */
     public function getStatusAttribute()

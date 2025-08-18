@@ -31,9 +31,9 @@ class TindakanResource extends Resource
 {
     protected static ?string $model = Tindakan::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-hand-raised';
+    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
 
-    protected static ?string $navigationLabel = 'Input Tindakan';
+    protected static ?string $navigationLabel = '🩺 Input Tindakan';
     
     protected static ?string $navigationGroup = 'Tindakan Medis';
 
@@ -48,66 +48,75 @@ class TindakanResource extends Resource
         return true;
     }
 
-    public static function canViewAny(): bool
-    {
-        return true;
-    }
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Input Tindakan Medis')
+                // Informasi Dasar Tindakan
+                Forms\Components\Section::make('📋 Informasi Dasar Tindakan')
+                    ->description('Pilih jenis tindakan dan pasien yang akan menjalani tindakan')
                     ->schema([
                         Forms\Components\Select::make('jenis_tindakan_id')
-                            ->label('Jenis Tindakan')
+                            ->label('🩺 Jenis Tindakan')
                             ->required()
                             ->relationship('jenisTindakan', 'nama', fn (Builder $query) => $query->where('is_active', true)->orderBy('nama'))
                             ->searchable()
                             ->preload()
-                            ->placeholder('Pilih jenis tindakan')
-                            ->getSearchResultsUsing(function (string $search): array {
-                                return JenisTindakan::where('nama', 'like', "%{$search}%")
-                                    ->where('is_active', true)
-                                    ->orderBy('nama')
-                                    ->limit(50)
-                                    ->pluck('nama', 'id')
-                                    ->toArray();
-                            })
+                            ->placeholder('Ketik untuk mencari jenis tindakan...')
+                            ->helperText('Pilih jenis tindakan yang akan dilakukan')
                             ->reactive()
-                            ->afterStateUpdated(function ($state, callable $set) {
+                            ->live()
+                            ->afterStateUpdated(function ($state, callable $set, callable $get) {
                                 if ($state) {
                                     $jenisTindakan = JenisTindakan::find($state);
                                     if ($jenisTindakan) {
                                         $tarif = $jenisTindakan->tarif;
-
-                                        // Get JASPEL percentage from config or use default
                                         $persentaseJaspel = config('app.default_jaspel_percentage', 40);
-
-                                        // Calculate JASPEL Petugas (same as admin calculation)
                                         $jasaPetugas = $tarif * ($persentaseJaspel / 100);
 
                                         $set('tarif', $tarif);
-                                        $set('calculated_jaspel', $jasaPetugas); // Store calculated JASPEL
-
-                                        // Reset all jasa fields initially
-                                        $set('jasa_dokter', 0);
-                                        $set('jasa_paramedis', 0);
-                                        $set('jasa_non_paramedis', $jenisTindakan->jasa_non_paramedis);
-
-                                        // Set hidden field to show the percentage used
+                                        $set('calculated_jaspel', $jasaPetugas);
                                         $set('persentase_jaspel_info', $persentaseJaspel);
+                                        
+                                        // Re-calculate and allocate JASPEL based on current staff selection
+                                        $dokterId = $get('dokter_id');
+                                        $paramedisId = $get('paramedis_id');
+                                        $nonParamedisId = $get('non_paramedis_id');
+                                        
+                                        if ($dokterId) {
+                                            // Doctor selected - give JASPEL to doctor
+                                            $set('jasa_dokter', $jasaPetugas);
+                                            $set('jasa_paramedis', 0);
+                                            $set('jasa_non_paramedis', 0);
+                                        } elseif ($paramedisId) {
+                                            // Only paramedis selected - give JASPEL to paramedis
+                                            $set('jasa_dokter', 0);
+                                            $set('jasa_paramedis', $jasaPetugas);
+                                            $set('jasa_non_paramedis', 0);
+                                        } elseif ($nonParamedisId) {
+                                            // Only non-paramedis selected - give base fee to non-paramedis
+                                            $set('jasa_dokter', 0);
+                                            $set('jasa_paramedis', 0);
+                                            $set('jasa_non_paramedis', $jenisTindakan->jasa_non_paramedis);
+                                        } else {
+                                            // No staff selected - all fees are 0
+                                            $set('jasa_dokter', 0);
+                                            $set('jasa_paramedis', 0);
+                                            $set('jasa_non_paramedis', 0);
+                                        }
                                     }
                                 }
                             }),
 
                         Forms\Components\Select::make('pasien_id')
-                            ->label('Pasien')
+                            ->label('👤 Pasien')
                             ->required()
                             ->relationship('pasien', 'nama')
                             ->searchable()
                             ->preload(false)
-                            ->placeholder('Pilih pasien')
+                            ->placeholder('Ketik nama atau nomor rekam medis...')
+                            ->helperText('Cari berdasarkan nama atau nomor rekam medis')
                             ->getSearchResultsUsing(function (string $search): array {
                                 return Pasien::where('nama', 'like', "%{$search}%")
                                     ->orWhere('no_rekam_medis', 'like', "%{$search}%")
@@ -121,15 +130,24 @@ class TindakanResource extends Resource
                                 $pasien = Pasien::find($value);
                                 return $pasien ? "{$pasien->no_rekam_medis} - {$pasien->nama}" : null;
                             }),
+                    ])
+                    ->columns(2)
+                    ->collapsible(),
 
+                // Waktu dan Shift
+                Forms\Components\Section::make('🕐 Waktu dan Shift')
+                    ->description('Tentukan waktu pelaksanaan tindakan dan shift kerja')
+                    ->schema([
                         Forms\Components\DateTimePicker::make('tanggal_tindakan')
-                            ->label('Tanggal Tindakan')
+                            ->label('📅 Tanggal & Waktu Tindakan')
                             ->required()
                             ->default(now())
-                            ->maxDate(now()),
+                            ->maxDate(now())
+                            ->helperText('Maksimal tanggal hari ini')
+                            ->native(false),
 
                         Forms\Components\Select::make('shift_id')
-                            ->label('Shift')
+                            ->label('⏰ Shift Kerja')
                             ->options(function () {
                                 return ShiftTemplate::query()
                                     ->orderBy('nama_shift')
@@ -138,182 +156,243 @@ class TindakanResource extends Resource
                             ->required()
                             ->native(false)
                             ->preload()
-                            ->placeholder('Pilih shift')
+                            ->placeholder('Pilih shift kerja...')
                             ->helperText('Data shift dikelola di Admin → Template Shift'),
+                    ])
+                    ->columns(2)
+                    ->collapsible(),
 
+                // Tim Pelaksana
+                Forms\Components\Section::make('👥 Tim Pelaksana Tindakan')
+                    ->description('Pilih tim medis yang akan melaksanakan tindakan (opsional)')
+                    ->schema([
                         Forms\Components\Select::make('dokter_id')
-                            ->label('Dokter Pelaksana')
-                            ->relationship('dokter', 'nama_lengkap')
+                            ->label('👨‍⚕️ Dokter Pelaksana')
+                            ->options(function () {
+                                return \App\Models\Dokter::where('aktif', true)
+                                    ->orderBy('nama_lengkap')
+                                    ->pluck('nama_lengkap', 'id');
+                            })
                             ->searchable()
                             ->preload()
-                            ->placeholder('Pilih dokter (opsional)')
-                            ->getSearchResultsUsing(function (string $search): array {
-                                return \App\Models\Dokter::where('nama_lengkap', 'like', "%{$search}%")
-                                    ->where('aktif', true)
-                                    ->orderBy('nama_lengkap')
-                                    ->limit(50)
-                                    ->get()
-                                    ->mapWithKeys(fn ($dokter) => [
-                                        $dokter->id => $dokter->nama_lengkap.
-                                        ($dokter->spesialisasi ? ' ('.$dokter->spesialisasi.')' : ''),
-                                    ])
-                                    ->toArray();
-                            })
-                            ->getOptionLabelUsing(function ($value): ?string {
-                                $dokter = \App\Models\Dokter::find($value);
-                                return $dokter ? $dokter->nama_lengkap . ($dokter->spesialisasi ? ' ('.$dokter->spesialisasi.')' : '') : null;
-                            })
+                            ->placeholder('Pilih dokter (opsional)...')
+                            ->helperText('Jika dipilih, JASPEL akan diberikan ke dokter')
                             ->reactive()
+                            ->live()
                             ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                                $calculatedJaspel = $get('calculated_jaspel') ?? 0;
-
                                 if ($state) {
-                                    // Doctor selected, give JASPEL to doctor
-                                    $set('jasa_dokter', $calculatedJaspel);
-                                    $set('jasa_paramedis', 0); // Remove from paramedic
+                                    // Doctor selected - calculate JASPEL from current jenis_tindakan
+                                    $jenisTindakanId = $get('jenis_tindakan_id');
+                                    if ($jenisTindakanId) {
+                                        $jenisTindakan = JenisTindakan::find($jenisTindakanId);
+                                        if ($jenisTindakan) {
+                                            $tarif = $jenisTindakan->tarif;
+                                            $persentaseJaspel = config('app.default_jaspel_percentage', 40);
+                                            $calculatedJaspel = $tarif * ($persentaseJaspel / 100);
+                                            
+                                            // Give JASPEL to doctor only
+                                            $set('jasa_dokter', $calculatedJaspel);
+                                            $set('jasa_paramedis', 0);
+                                            $set('jasa_non_paramedis', 0);
+                                            
+                                            // Update calculated_jaspel for consistency
+                                            $set('calculated_jaspel', $calculatedJaspel);
+                                        }
+                                    }
                                 } else {
-                                    // No doctor selected, remove JASPEL from doctor
                                     $set('jasa_dokter', 0);
-
-                                    // Check if paramedic is selected to give them JASPEL
+                                    
+                                    // If paramedis exists, give JASPEL to paramedis
                                     if ($get('paramedis_id')) {
-                                        $set('jasa_paramedis', $calculatedJaspel);
+                                        $jenisTindakanId = $get('jenis_tindakan_id');
+                                        if ($jenisTindakanId) {
+                                            $jenisTindakan = JenisTindakan::find($jenisTindakanId);
+                                            if ($jenisTindakan) {
+                                                $tarif = $jenisTindakan->tarif;
+                                                $persentaseJaspel = config('app.default_jaspel_percentage', 40);
+                                                $calculatedJaspel = $tarif * ($persentaseJaspel / 100);
+                                                
+                                                $set('jasa_paramedis', $calculatedJaspel);
+                                                $set('jasa_non_paramedis', 0);
+                                            }
+                                        }
+                                    } else {
+                                        // No doctor, no paramedis - give fee to non-paramedis if selected
+                                        $set('jasa_paramedis', 0);
+                                        if ($get('non_paramedis_id')) {
+                                            $jenisTindakanId = $get('jenis_tindakan_id');
+                                            if ($jenisTindakanId) {
+                                                $jenisTindakan = JenisTindakan::find($jenisTindakanId);
+                                                if ($jenisTindakan) {
+                                                    $set('jasa_non_paramedis', $jenisTindakan->jasa_non_paramedis);
+                                                }
+                                            }
+                                        } else {
+                                            $set('jasa_non_paramedis', 0);
+                                        }
                                     }
                                 }
                             }),
 
                         Forms\Components\Select::make('paramedis_id')
-                            ->label('Paramedis Pelaksana')
-                            ->relationship('paramedis', 'nama_lengkap')
-                            ->searchable()
-                            ->preload()
-                            ->placeholder('Pilih paramedis (opsional)')
-                            ->getSearchResultsUsing(function (string $search): array {
-                                return \App\Models\Pegawai::where('nama_lengkap', 'like', "%{$search}%")
-                                    ->where('jenis_pegawai', 'Paramedis')
+                            ->label('👩‍⚕️ Paramedis Pelaksana')
+                            ->options(function () {
+                                return \App\Models\Pegawai::where('jenis_pegawai', 'Paramedis')
                                     ->where('aktif', true)
                                     ->orderBy('nama_lengkap')
-                                    ->limit(50)
-                                    ->get()
-                                    ->mapWithKeys(fn ($pegawai) => [
-                                        $pegawai->id => $pegawai->nama_lengkap.
-                                        ($pegawai->jabatan ? ' ('.$pegawai->jabatan.')' : ''),
-                                    ])
-                                    ->toArray();
+                                    ->pluck('nama_lengkap', 'id');
                             })
-                            ->getOptionLabelUsing(function ($value): ?string {
-                                $pegawai = \App\Models\Pegawai::find($value);
-                                return $pegawai ? $pegawai->nama_lengkap . ($pegawai->jabatan ? ' ('.$pegawai->jabatan.')' : '') : null;
-                            })
+                            ->searchable()
+                            ->preload()
+                            ->placeholder('Pilih paramedis (opsional)...')
+                            ->helperText('Jika tidak ada dokter, JASPEL akan diberikan ke paramedis')
                             ->reactive()
+                            ->live()
                             ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                                $calculatedJaspel = $get('calculated_jaspel') ?? 0;
-
                                 if ($state && ! $get('dokter_id')) {
-                                    // Paramedic selected and no doctor selected, give JASPEL to paramedic
-                                    $set('jasa_paramedis', $calculatedJaspel);
+                                    // Only paramedis selected - calculate JASPEL from current jenis_tindakan
+                                    $jenisTindakanId = $get('jenis_tindakan_id');
+                                    if ($jenisTindakanId) {
+                                        $jenisTindakan = JenisTindakan::find($jenisTindakanId);
+                                        if ($jenisTindakan) {
+                                            $tarif = $jenisTindakan->tarif;
+                                            $persentaseJaspel = config('app.default_jaspel_percentage', 40);
+                                            $calculatedJaspel = $tarif * ($persentaseJaspel / 100);
+                                            
+                                            $set('jasa_paramedis', $calculatedJaspel);
+                                            $set('jasa_non_paramedis', 0);
+                                            
+                                            // Update calculated_jaspel for consistency
+                                            $set('calculated_jaspel', $calculatedJaspel);
+                                        }
+                                    }
                                 } elseif (! $state) {
-                                    // No paramedic selected, remove JASPEL from paramedic
                                     $set('jasa_paramedis', 0);
+                                    // If no paramedis and no doctor, give fee to non-paramedis if selected
+                                    if (!$get('dokter_id') && $get('non_paramedis_id')) {
+                                        $jenisTindakanId = $get('jenis_tindakan_id');
+                                        if ($jenisTindakanId) {
+                                            $jenisTindakan = JenisTindakan::find($jenisTindakanId);
+                                            if ($jenisTindakan) {
+                                                $set('jasa_non_paramedis', $jenisTindakan->jasa_non_paramedis);
+                                            }
+                                        }
+                                    } else {
+                                        $set('jasa_non_paramedis', 0);
+                                    }
                                 } elseif ($get('dokter_id')) {
-                                    // Doctor has priority, remove JASPEL from paramedic
                                     $set('jasa_paramedis', 0);
                                 }
                             }),
 
                         Forms\Components\Select::make('non_paramedis_id')
-                            ->label('Non-Paramedis Pelaksana')
-                            ->relationship('nonParamedis', 'nama_lengkap')
-                            ->searchable()
-                            ->preload()
-                            ->placeholder('Pilih non-paramedis (opsional)')
-                            ->getSearchResultsUsing(function (string $search): array {
-                                return \App\Models\Pegawai::where('nama_lengkap', 'like', "%{$search}%")
-                                    ->where('jenis_pegawai', 'Non-Paramedis')
+                            ->label('👨‍💼 Non-Paramedis Pelaksana')
+                            ->options(function () {
+                                return \App\Models\Pegawai::where('jenis_pegawai', 'Non-Paramedis')
                                     ->where('aktif', true)
                                     ->orderBy('nama_lengkap')
-                                    ->limit(50)
-                                    ->get()
-                                    ->mapWithKeys(fn ($pegawai) => [
-                                        $pegawai->id => $pegawai->nama_lengkap.
-                                        ($pegawai->jabatan ? ' ('.$pegawai->jabatan.')' : ''),
-                                    ])
-                                    ->toArray();
+                                    ->pluck('nama_lengkap', 'id');
                             })
-                            ->getOptionLabelUsing(function ($value): ?string {
-                                $pegawai = \App\Models\Pegawai::find($value);
-                                return $pegawai ? $pegawai->nama_lengkap . ($pegawai->jabatan ? ' ('.$pegawai->jabatan.')' : '') : null;
+                            ->searchable()
+                            ->preload()
+                            ->placeholder('Pilih non-paramedis (opsional)...')
+                            ->helperText('Staff pendukung yang terlibat dalam tindakan')
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                // Only give fee to non-paramedis if no doctor or paramedis is selected
+                                if ($state && !$get('dokter_id') && !$get('paramedis_id')) {
+                                    $jenisTindakanId = $get('jenis_tindakan_id');
+                                    if ($jenisTindakanId) {
+                                        $jenisTindakan = JenisTindakan::find($jenisTindakanId);
+                                        if ($jenisTindakan) {
+                                            $set('jasa_non_paramedis', $jenisTindakan->jasa_non_paramedis);
+                                        }
+                                    }
+                                } elseif (!$state) {
+                                    $set('jasa_non_paramedis', 0);
+                                }
                             }),
+                    ])
+                    ->columns(3)
+                    ->collapsible(),
 
+                // Informasi Keuangan
+                Forms\Components\Section::make('💰 Informasi Keuangan')
+                    ->description('Tarif dan pembagian jasa pelayanan (JASPEL) - dihitung otomatis')
+                    ->schema([
                         Forms\Components\TextInput::make('tarif')
-                            ->label('Tarif (Rp)')
+                            ->label('💵 Tarif Tindakan')
                             ->required()
                             ->numeric()
                             ->prefix('Rp')
-                            ->placeholder('100000')
-                            ->minValue(0)
+                            ->placeholder('Otomatis terisi dari jenis tindakan')
                             ->disabled()
-                            ->dehydrated(),
-
-                        Forms\Components\Hidden::make('persentase_jaspel_info')
-                            ->default(config('app.default_jaspel_percentage', 40)),
-
-                        Forms\Components\Hidden::make('calculated_jaspel')
-                            ->default(0),
+                            ->dehydrated()
+                            ->helperText('Tarif otomatis dari master jenis tindakan'),
 
                         Forms\Components\TextInput::make('jasa_dokter')
-                            ->label('Jasa Dokter (Rp)')
-                            ->helperText('JASPEL diberikan kepada dokter pelaksana (jika dipilih)')
+                            ->label('👨‍⚕️ Jasa Dokter')
                             ->numeric()
                             ->prefix('Rp')
                             ->default(0)
-                            ->minValue(0)
                             ->disabled()
-                            ->dehydrated(),
+                            ->dehydrated()
+                            ->helperText('JASPEL untuk dokter pelaksana'),
 
                         Forms\Components\TextInput::make('jasa_paramedis')
-                            ->label('Jasa Paramedis (Rp)')
-                            ->helperText('JASPEL diberikan kepada paramedis pelaksana (jika tidak ada dokter)')
+                            ->label('👩‍⚕️ Jasa Paramedis')
                             ->numeric()
                             ->prefix('Rp')
                             ->default(0)
-                            ->minValue(0)
                             ->disabled()
-                            ->dehydrated(),
+                            ->dehydrated()
+                            ->helperText('JASPEL untuk paramedis pelaksana'),
 
                         Forms\Components\TextInput::make('jasa_non_paramedis')
-                            ->label('Jasa Non-Paramedis (Rp)')
-                            ->helperText('Jasa untuk non-paramedis yang terlibat')
+                            ->label('👨‍💼 Jasa Non-Paramedis')
                             ->numeric()
                             ->prefix('Rp')
                             ->default(0)
-                            ->minValue(0)
                             ->disabled()
-                            ->dehydrated(),
+                            ->dehydrated()
+                            ->helperText('Jasa untuk non-paramedis'),
+                    ])
+                    ->columns(2)
+                    ->collapsible(),
 
-                        Forms\Components\Textarea::make('catatan')
-                            ->label('Catatan')
-                            ->maxLength(500)
-                            ->placeholder('Catatan tindakan (opsional)')
-                            ->columnSpanFull(),
-
+                // Status dan Catatan
+                Forms\Components\Section::make('📝 Status dan Catatan')
+                    ->description('Status tindakan dan catatan tambahan')
+                    ->schema([
                         Forms\Components\Select::make('status')
-                            ->label('Status Tindakan')
+                            ->label('📊 Status Tindakan')
                             ->options([
-                                'pending' => 'Pending',
-                                'selesai' => 'Selesai',
-                                'batal' => 'Batal',
+                                'pending' => '⏳ Menunggu',
+                                'selesai' => '✅ Selesai',
+                                'batal' => '❌ Batal',
                             ])
                             ->default('pending')
-                            ->required(),
+                            ->required()
+                            ->helperText('Status pelaksanaan tindakan'),
 
-                        Forms\Components\Hidden::make('input_by')
-                            ->default(fn () => Auth::id()),
-
-                        Forms\Components\Hidden::make('status_validasi')
-                            ->default('pending'),
+                        Forms\Components\Textarea::make('catatan')
+                            ->label('📋 Catatan Tambahan')
+                            ->maxLength(500)
+                            ->placeholder('Masukkan catatan atau keterangan khusus (opsional)...')
+                            ->helperText('Maksimal 500 karakter'),
                     ])
-                    ->columns(3),
+                    ->columns(2)
+                    ->collapsible(),
+
+                // Hidden Fields
+                Forms\Components\Hidden::make('persentase_jaspel_info')
+                    ->default(config('app.default_jaspel_percentage', 40)),
+                Forms\Components\Hidden::make('calculated_jaspel')
+                    ->default(0),
+                Forms\Components\Hidden::make('input_by')
+                    ->default(fn () => Auth::id()),
+                Forms\Components\Hidden::make('status_validasi')
+                    ->default('pending'),
             ]);
     }
 
@@ -322,51 +401,75 @@ class TindakanResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('tanggal_tindakan')
-                    ->label('Tanggal')
+                    ->label('📅 Tanggal Tindakan')
                     ->dateTime('d/m/Y H:i')
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable()
+                    ->weight('medium')
+                    ->copyable(),
 
                 Tables\Columns\TextColumn::make('jenisTindakan.nama')
-                    ->label('Jenis Tindakan')
+                    ->label('🩺 Jenis Tindakan')
                     ->searchable()
-                    ->limit(30),
+                    ->limit(35)
+                    ->tooltip(fn (Tindakan $record): string => $record->jenisTindakan->nama ?? '')
+                    ->weight('bold')
+                    ->color('primary'),
 
                 Tables\Columns\TextColumn::make('pasien.nama')
-                    ->label('Pasien')
+                    ->label('👤 Pasien')
                     ->searchable()
-                    ->limit(30)
-                    ->description(fn (Tindakan $record): string => $record->pasien->no_rekam_medis ?? ''),
+                    ->limit(25)
+                    ->description(fn (Tindakan $record): string => 
+                        '📋 RM: ' . ($record->pasien->no_rekam_medis ?? '-')
+                    )
+                    ->weight('medium'),
 
                 Tables\Columns\TextColumn::make('dokter.nama_lengkap')
-                    ->label('Dokter')
+                    ->label('👨‍⚕️ Dokter')
                     ->searchable()
-                    ->placeholder('-')
-                    ->toggleable(),
+                    ->placeholder('➖ Tidak ada')
+                    ->toggleable()
+                    ->limit(20)
+                    ->color('success')
+                    ->default('➖'),
 
                 Tables\Columns\TextColumn::make('paramedis.nama_lengkap')
-                    ->label('Paramedis')
+                    ->label('👩‍⚕️ Paramedis')
                     ->searchable()
-                    ->placeholder('-')
-                    ->toggleable(),
+                    ->placeholder('➖ Tidak ada')
+                    ->toggleable()
+                    ->limit(20)
+                    ->color('info')
+                    ->default('➖'),
 
                 Tables\Columns\TextColumn::make('shift.nama_shift')
-                    ->label('Shift')
+                    ->label('⏰ Shift')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'Pagi' => 'info',
                         'Siang' => 'warning',
-                        'Sore' => 'warning',
+                        'Sore' => 'warning', 
                         'Malam' => 'primary',
                         default => 'gray'
+                    })
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'Pagi' => '🌅 Pagi',
+                        'Siang' => '☀️ Siang',
+                        'Sore' => '🌇 Sore',
+                        'Malam' => '🌙 Malam',
+                        default => $state
                     }),
 
                 Tables\Columns\TextColumn::make('tarif')
-                    ->label('Tarif')
+                    ->label('💰 Tarif')
                     ->money('IDR')
-                    ->sortable(),
+                    ->sortable()
+                    ->weight('bold')
+                    ->color('warning'),
 
                 Tables\Columns\TextColumn::make('status')
-                    ->label('Status')
+                    ->label('📊 Status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'pending' => 'warning',
@@ -374,16 +477,35 @@ class TindakanResource extends Resource
                         'batal' => 'danger',
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'pending' => 'Menunggu',
-                        'selesai' => 'Selesai',
-                        'batal' => 'Batal',
+                        'pending' => '⏳ Menunggu',
+                        'selesai' => '✅ Selesai',
+                        'batal' => '❌ Batal',
+                        default => $state
                     }),
 
+                Tables\Columns\TextColumn::make('status_validasi')
+                    ->label('✔️ Validasi')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'pending' => 'gray',
+                        'approved' => 'success',
+                        'rejected' => 'danger',
+                        default => 'gray'
+                    })
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'pending' => '⏳ Pending',
+                        'approved' => '✅ Disetujui',
+                        'rejected' => '❌ Ditolak',
+                        default => $state
+                    })
+                    ->toggleable(),
+
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Dibuat')
+                    ->label('📝 Dibuat')
                     ->dateTime('d/m/Y H:i')
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->color('gray'),
             ])
             ->filters([
                 Tables\Filters\Filter::make('tanggal_tindakan')
@@ -421,20 +543,30 @@ class TindakanResource extends Resource
                     ->options(\App\Models\Dokter::where('aktif', true)->orderBy('nama_lengkap')->pluck('nama_lengkap', 'id')),
             ])
             ->actions([
+                // Quick actions (visible)
+                Tables\Actions\ViewAction::make()
+                    ->label('👁️')
+                    ->tooltip('Lihat Detail')
+                    ->color('info')
+                    ->size('sm'),
+                    
+                Tables\Actions\EditAction::make()
+                    ->label('✏️')
+                    ->tooltip('Edit Tindakan')
+                    ->color('warning')
+                    ->size('sm')
+                    ->visible(fn (Tindakan $record): bool => 
+                        $record->status === 'pending' && $record->status_validasi !== 'approved'
+                    ),
+                
+                // More actions in dropdown
                 Tables\Actions\ActionGroup::make([
-                    Tables\Actions\ViewAction::make()
-                        ->label('👁️ Lihat')
-                        ->color('info'),
-                    
-                    Tables\Actions\EditAction::make()
-                        ->label('✏️ Edit')
-                        ->color('warning')
-                        ->visible(fn (Tindakan $record): bool => $record->status === 'pending' && $record->status_validasi !== 'approved'),
-                    
                     Tables\Actions\DeleteAction::make()
                         ->label('🗑️ Hapus')
                         ->color('danger')
-                        ->visible(fn (Tindakan $record): bool => $record->status === 'pending' && $record->status_validasi !== 'approved'),
+                        ->visible(fn (Tindakan $record): bool => 
+                            $record->status === 'pending' && $record->status_validasi !== 'approved'
+                        ),
                     
                     // Submit for validation
                     Tables\Actions\Action::make('submit_validation')
@@ -821,8 +953,18 @@ class TindakanResource extends Resource
                         }),
                 ]),
             ])
+            ->emptyStateIcon('heroicon-o-clipboard-document-list')
+            ->emptyStateHeading('📋 Belum Ada Data Tindakan')
+            ->emptyStateDescription('Mulai dengan menambahkan tindakan medis pertama Anda')
+            ->emptyStateActions([
+                Tables\Actions\CreateAction::make()
+                    ->label('🩺 Tambah Tindakan Pertama')
+                    ->color('primary'),
+            ])
             ->defaultSort('tanggal_tindakan', 'desc')
-            ->poll('30s');
+            ->poll('30s')
+            ->striped()
+            ->defaultPaginationPageOption(25);
     }
 
     public static function getEloquentQuery(): Builder

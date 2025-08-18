@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { RobustJsonParser } from '../../utils/robustJsonParser';
+import { ApiClient } from '../../utils/apiClient';
 import { 
   User, 
   Edit, 
@@ -7,27 +9,11 @@ import {
   Mail, 
   MapPin, 
   Calendar, 
-  Award, 
-  Star, 
-  Crown, 
-  Shield, 
-  Target, 
-  Activity, 
-  Heart, 
-  Brain, 
-  Zap, 
-  TrendingUp,
-  Users,
-  Clock,
-  CheckCircle,
   Settings,
   Lock,
   Bell,
   Stethoscope,
-  BookOpen,
-  GraduationCap,
   Building,
-  FileText,
   Eye,
   EyeOff,
   Save,
@@ -40,6 +26,20 @@ const ProfileComponent = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isIpad, setIsIpad] = useState(false);
   const [orientation, setOrientation] = useState('portrait');
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [show2FAModal, setShow2FAModal] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    current_password: '',
+    new_password: '',
+    new_password_confirmation: ''
+  });
+  const [twoFactorData, setTwoFactorData] = useState({
+    qr_code: '',
+    secret: '',
+    backup_codes: [],
+    verification_code: ''
+  });
+  const [securityLoading, setSecurityLoading] = useState(false);
   const [profileData, setProfileData] = useState({
     name: 'Loading...',
     email: 'loading@example.com',
@@ -53,7 +53,6 @@ const ProfileComponent = () => {
     spesialisasi: '',
     tanggal_bergabung: '',
     status_akun: '',
-    bio: ''
   });
 
   const [editData, setEditData] = useState({
@@ -63,7 +62,6 @@ const ProfileComponent = () => {
     address: '',
     birthDate: '',
     gender: '',
-    bio: '',
     nik: '',
     nomor_sip: '',
     jabatan: '',
@@ -114,8 +112,7 @@ const ProfileComponent = () => {
               address: user.address || prev.address,
               birthDate: user.date_of_birth || prev.birthDate,
               gender: user.gender || prev.gender,
-              bio: user.bio || prev.bio,
-              nik: user.nik || prev.nik,
+                            nik: user.nik || prev.nik,
               nomor_sip: user.nomor_sip || prev.nomor_sip,
               jabatan: user.jabatan || prev.jabatan,
               spesialisasi: user.spesialisasi || prev.spesialisasi,
@@ -131,8 +128,7 @@ const ProfileComponent = () => {
               address: user.address || '',
               birthDate: user.date_of_birth || '',
               gender: user.gender === 'Laki-laki' ? 'male' : user.gender === 'Perempuan' ? 'female' : '',
-              bio: user.bio || '',
-              nik: user.nik || '',
+                            nik: user.nik || '',
               nomor_sip: user.nomor_sip || '',
               jabatan: user.jabatan || '',
               spesialisasi: user.spesialisasi || ''
@@ -147,116 +143,9 @@ const ProfileComponent = () => {
     loadUserData();
   }, []);
 
-  const achievements = [
-    {
-      id: 1,
-      title: "Perfect Attendance",
-      description: "100% hadir selama 3 bulan berturut-turut",
-      icon: Award,
-      color: "from-yellow-500 to-orange-500",
-      date: "Juli 2025",
-      rarity: "Gold"
-    },
-    {
-      id: 2,
-      title: "Patient Care Excellence",
-      description: "Rating 5.0 dari 100+ pasien",
-      icon: Heart,
-      color: "from-pink-500 to-red-500",
-      date: "Juni 2025",
-      rarity: "Platinum"
-    },
-    {
-      id: 3,
-      title: "Emergency Hero",
-      description: "Menangani 50+ kasus darurat",
-      icon: Shield,
-      color: "from-blue-500 to-cyan-500",
-      date: "Mei 2025",
-      rarity: "Diamond"
-    },
-    {
-      id: 4,
-      title: "Knowledge Master",
-      description: "Menyelesaikan 20 pelatihan medis",
-      icon: Brain,
-      color: "from-purple-500 to-indigo-500",
-      date: "April 2025",
-      rarity: "Gold"
-    },
-    {
-      id: 5,
-      title: "Team Player",
-      description: "Kolaborasi terbaik dengan tim medis",
-      icon: Users,
-      color: "from-green-500 to-emerald-500",
-      date: "Maret 2025",
-      rarity: "Silver"
-    },
-    {
-      id: 6,
-      title: "Innovation Pioneer",
-      description: "Mengimplementasikan 3 prosedur baru",
-      icon: Star,
-      color: "from-cyan-500 to-blue-500",
-      date: "Februari 2025",
-      rarity: "Platinum"
-    }
-  ];
 
-  const certifications = [
-    {
-      id: 1,
-      name: "Basic Life Support (BLS)",
-      issuer: "American Heart Association",
-      issueDate: "Januari 2023",
-      expiryDate: "Januari 2025",
-      status: "Valid"
-    },
-    {
-      id: 2,
-      name: "Advanced Cardiac Life Support (ACLS)",
-      issuer: "American Heart Association",
-      issueDate: "Maret 2023",
-      expiryDate: "Maret 2025",
-      status: "Valid"
-    },
-    {
-      id: 3,
-      name: "Pediatric Advanced Life Support (PALS)",
-      issuer: "American Heart Association",
-      issueDate: "Juni 2023",
-      expiryDate: "Juni 2025",
-      status: "Valid"
-    },
-    {
-      id: 4,
-      name: "Emergency Medicine Certification",
-      issuer: "Indonesian Medical Association",
-      issueDate: "September 2022",
-      expiryDate: "September 2025",
-      status: "Valid"
-    }
-  ];
 
-  const stats = [
-    { label: "Jam Kerja Total", value: "2,847", icon: Clock, color: "text-blue-400" },
-    { label: "Pasien Ditangani", value: "1,234", icon: Users, color: "text-green-400" },
-    { label: "Rating Kepuasan", value: "4.9/5", icon: Star, color: "text-yellow-400" },
-    { label: "Sertifikasi", value: "12", icon: Award, color: "text-purple-400" },
-    { label: "Pelatihan", value: "28", icon: BookOpen, color: "text-cyan-400" },
-    { label: "Pengalaman", value: "5 Tahun", icon: TrendingUp, color: "text-orange-400" }
-  ];
 
-  const getRarityColor = (rarity: string) => {
-    switch (rarity) {
-      case 'Silver': return 'text-gray-300 bg-gray-400/20 border-gray-400/50';
-      case 'Gold': return 'text-yellow-400 bg-yellow-400/20 border-yellow-400/50';
-      case 'Platinum': return 'text-cyan-400 bg-cyan-400/20 border-cyan-400/50';
-      case 'Diamond': return 'text-purple-400 bg-purple-400/20 border-purple-400/50';
-      default: return 'text-gray-400 bg-gray-400/20 border-gray-400/50';
-    }
-  };
 
   const handleSave = async () => {
     try {
@@ -284,8 +173,7 @@ const ProfileComponent = () => {
             address: editData.address || prev.address,
             birthDate: editData.birthDate || prev.birthDate,
             gender: editData.gender || prev.gender,
-            bio: editData.bio || prev.bio,
-            nik: editData.nik || prev.nik,
+                        nik: editData.nik || prev.nik,
             nomor_sip: editData.nomor_sip || prev.nomor_sip,
             jabatan: editData.jabatan || prev.jabatan,
             spesialisasi: editData.spesialisasi || prev.spesialisasi
@@ -308,12 +196,117 @@ const ProfileComponent = () => {
       address: profileData.address,
       birthDate: profileData.birthDate,
       gender: profileData.gender,
-      bio: profileData.bio,
       nik: profileData.nik,
       nomor_sip: profileData.nomor_sip,
       jabatan: profileData.jabatan,
       spesialisasi: profileData.spesialisasi
     });
+  };
+
+  const handlePasswordChange = async () => {
+    try {
+      setSecurityLoading(true);
+      const token = localStorage.getItem('auth_token') || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      
+      const response = await fetch('/api/v2/auth/change-password', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-CSRF-TOKEN': token || '',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(passwordData)
+      });
+
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        alert('Password berhasil diubah!');
+        setShowPasswordModal(false);
+        setPasswordData({
+          current_password: '',
+          new_password: '',
+          new_password_confirmation: ''
+        });
+      } else {
+        alert(data.message || 'Gagal mengubah password');
+      }
+    } catch (error) {
+      console.error('Error changing password:', error);
+      alert('Terjadi kesalahan saat mengubah password');
+    } finally {
+      setSecurityLoading(false);
+    }
+  };
+
+  const handleSetup2FA = async () => {
+    try {
+      setSecurityLoading(true);
+      
+      console.log('🚀 Starting 2FA setup...');
+      
+      const result = await ApiClient.post('/api/v2/auth/setup-2fa');
+
+      if (!result.success) {
+        console.error('2FA Setup API Error:', result.error);
+        alert(result.error || 'Gagal setup 2FA');
+        return;
+      }
+
+      const data = result.data;
+      if (data && data.success) {
+        console.log('✅ 2FA Setup successful');
+        setTwoFactorData({
+          qr_code: data.data.qr_code,
+          secret: data.data.secret,
+          backup_codes: data.data.backup_codes || [],
+          verification_code: ''
+        });
+        setShow2FAModal(true);
+      } else {
+        alert(data?.message || 'Gagal setup 2FA');
+      }
+    } catch (error) {
+      console.error('Error setting up 2FA:', error);
+      alert('Terjadi kesalahan saat setup 2FA');
+    } finally {
+      setSecurityLoading(false);
+    }
+  };
+
+  const handleVerify2FA = async () => {
+    try {
+      setSecurityLoading(true);
+      const token = localStorage.getItem('auth_token') || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+      
+      const response = await fetch('/api/v2/auth/verify-2fa', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-CSRF-TOKEN': token || '',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          code: twoFactorData.verification_code
+        })
+      });
+
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        alert('2FA berhasil diaktifkan!');
+        setShow2FAModal(false);
+        // Refresh page to update 2FA status
+        window.location.reload();
+      } else {
+        alert(data.message || 'Kode verifikasi salah');
+      }
+    } catch (error) {
+      console.error('Error verifying 2FA:', error);
+      alert('Terjadi kesalahan saat verifikasi 2FA');
+    } finally {
+      setSecurityLoading(false);
+    }
   };
 
   return (
@@ -346,8 +339,6 @@ const ProfileComponent = () => {
               <div className="flex space-x-2 md:space-x-4">
                 {[
                   { id: 'profile', label: 'Profile', icon: User },
-                  { id: 'achievements', label: 'Achievements', icon: Award },
-                  { id: 'certifications', label: 'Certifications', icon: GraduationCap },
                   { id: 'settings', label: 'Settings', icon: Settings }
                 ].map((tab) => {
                   const Icon = tab.icon;
@@ -492,10 +483,10 @@ const ProfileComponent = () => {
                   
                   <div className="space-y-4">
                     {[
-                      { icon: Award, label: 'NIK', value: profileData.nik || 'Tidak ditentukan' },
+                      { icon: User, label: 'NIK', value: profileData.nik || 'Tidak ditentukan' },
                       { icon: Building, label: 'Nomor SIP', value: profileData.nomor_sip || 'Tidak ditentukan' },
-                      { icon: Clock, label: 'Tanggal Bergabung', value: profileData.tanggal_bergabung || 'Tidak ditentukan' },
-                      { icon: Target, label: 'Jabatan', value: profileData.jabatan === 'dokter_umum' ? 'Dokter Umum' : 
+                      { icon: Calendar, label: 'Tanggal Bergabung', value: profileData.tanggal_bergabung || 'Tidak ditentukan' },
+                      { icon: Stethoscope, label: 'Jabatan', value: profileData.jabatan === 'dokter_umum' ? 'Dokter Umum' : 
                                                            profileData.jabatan === 'dokter_gigi' ? 'Dokter Gigi' : 
                                                            profileData.jabatan === 'dokter_spesialis' ? 'Dokter Spesialis' : 
                                                            profileData.jabatan }
@@ -515,118 +506,11 @@ const ProfileComponent = () => {
                 </div>
               </div>
 
-              {/* Bio */}
-              <div className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-white/30 transition-all duration-300">
-                <h3 className={`font-bold text-white mb-4 flex items-center ${isIpad ? 'text-xl md:text-2xl' : 'text-lg sm:text-xl'}`}>
-                  <FileText className={`mr-2 text-green-400 ${isIpad ? 'w-6 h-6' : 'w-5 h-5'}`} />
-                  Bio
-                </h3>
-                <p className={`text-gray-300 leading-relaxed ${isIpad ? 'text-base md:text-lg' : 'text-sm sm:text-base'}`}>{profileData.bio}</p>
-              </div>
 
-              {/* Statistics Grid - JadwalJaga Pattern Applied */}
-              <div className={`
-                grid gap-4 md:gap-6
-                ${isIpad && orientation === 'landscape' 
-                  ? 'grid-cols-3 lg:grid-cols-6 xl:grid-cols-6 2xl:grid-cols-6' 
-                  : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-6'
-                }
-              `}>
-                {stats.map((stat, index) => {
-                  const Icon = stat.icon;
-                  return (
-                    <div key={index} className="bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-white/20 hover:border-white/30 transition-all duration-300 text-center">
-                      <Icon className={`mx-auto mb-2 ${stat.color} ${isIpad ? 'w-8 h-8' : 'w-6 h-6 sm:w-8 sm:h-8'}`} />
-                      <div className={`font-bold text-white ${isIpad ? 'text-lg md:text-xl' : 'text-base sm:text-lg'}`}>{stat.value}</div>
-                      <div className={`text-gray-400 ${isIpad ? 'text-xs' : 'text-xs sm:text-xs'}`}>{stat.label}</div>
-                    </div>
-                  );
-                })}
-              </div>
             </div>
           )}
 
-          {/* Achievements Tab */}
-          {activeTab === 'achievements' && (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-white text-center mb-6">
-                Doctor Achievements
-              </h2>
-              
-              <div className={`
-                grid gap-6 md:gap-8
-                ${isIpad && orientation === 'landscape' 
-                  ? 'lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-3' 
-                  : 'sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3'
-                }
-              `}>
-                {achievements.map((achievement) => {
-                  const Icon = achievement.icon;
-                  return (
-                    <div key={achievement.id} className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-purple-400/50 transition-all duration-300 group">
-                      <div className="flex items-start space-x-4 mb-4">
-                        <div className={`w-12 h-12 bg-gradient-to-br ${achievement.color} rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
-                          <Icon className="w-6 h-6 text-white" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-lg font-bold text-white">{achievement.title}</h3>
-                            <div className={`px-2 py-1 rounded-full text-xs font-medium border ${getRarityColor(achievement.rarity)}`}>
-                              {achievement.rarity}
-                            </div>
-                          </div>
-                          <p className="text-gray-300 text-sm mb-2">{achievement.description}</p>
-                          <p className="text-gray-400 text-xs">{achievement.date}</p>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
 
-          {/* Certifications Tab */}
-          {activeTab === 'certifications' && (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-white text-center mb-6">
-                Medical Certifications
-              </h2>
-              
-              <div className="space-y-4">
-                {certifications.map((cert) => (
-                  <div key={cert.id} className="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:border-green-400/50 transition-all duration-300">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
-                          <GraduationCap className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-bold text-white">{cert.name}</h3>
-                          <p className="text-green-300">{cert.issuer}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2 bg-green-500/20 px-3 py-1.5 rounded-full border border-green-400/50">
-                        <CheckCircle className="w-4 h-4 text-green-400" />
-                        <span className="text-green-400 text-sm font-medium">{cert.status}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <div className="text-gray-400 text-sm">Issue Date</div>
-                        <div className="text-white font-medium">{cert.issueDate}</div>
-                      </div>
-                      <div>
-                        <div className="text-gray-400 text-sm">Expiry Date</div>
-                        <div className="text-white font-medium">{cert.expiryDate}</div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Settings Tab */}
           {activeTab === 'settings' && (
@@ -650,7 +534,11 @@ const ProfileComponent = () => {
                   </h3>
                   
                   <div className="space-y-4">
-                    <button className="w-full flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10 hover:border-purple-400/50 transition-colors">
+                    <button 
+                      onClick={() => setShowPasswordModal(true)}
+                      disabled={securityLoading}
+                      className="w-full flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10 hover:border-purple-400/50 transition-colors disabled:opacity-50"
+                    >
                       <div className="flex items-center space-x-3">
                         <Lock className="w-5 h-5 text-gray-400" />
                         <span className="text-white">Change Password</span>
@@ -658,12 +546,16 @@ const ProfileComponent = () => {
                       <Settings className="w-4 h-4 text-gray-400" />
                     </button>
                     
-                    <button className="w-full flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10 hover:border-purple-400/50 transition-colors">
+                    <button 
+                      onClick={handleSetup2FA}
+                      disabled={securityLoading}
+                      className="w-full flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10 hover:border-purple-400/50 transition-colors disabled:opacity-50"
+                    >
                       <div className="flex items-center space-x-3">
-                        <Shield className="w-5 h-5 text-gray-400" />
+                        <Lock className="w-5 h-5 text-gray-400" />
                         <span className="text-white">Two-Factor Authentication</span>
                       </div>
-                      <div className="text-green-400 text-sm">Enabled</div>
+                      <div className="text-orange-400 text-sm">Setup</div>
                     </button>
                   </div>
                 </div>
@@ -695,6 +587,181 @@ const ProfileComponent = () => {
             </div>
           )}
         </div>
+
+        {/* Password Change Modal */}
+        {showPasswordModal && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white/10 backdrop-blur-2xl rounded-3xl border border-white/20 w-full max-w-md">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-white">Change Password</h2>
+                  <button
+                    onClick={() => setShowPasswordModal(false)}
+                    className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
+                  >
+                    <X className="w-5 h-5 text-white" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-gray-300 mb-2 text-sm">Current Password</label>
+                    <input
+                      type="password"
+                      value={passwordData.current_password}
+                      onChange={(e) => setPasswordData(prev => ({ ...prev, current_password: e.target.value }))}
+                      className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 hover:border-white/30 focus:border-purple-400/50 transition-colors"
+                      placeholder="Enter current password"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-300 mb-2 text-sm">New Password</label>
+                    <input
+                      type="password"
+                      value={passwordData.new_password}
+                      onChange={(e) => setPasswordData(prev => ({ ...prev, new_password: e.target.value }))}
+                      className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 hover:border-white/30 focus:border-purple-400/50 transition-colors"
+                      placeholder="Enter new password (min 8 characters)"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-gray-300 mb-2 text-sm">Confirm New Password</label>
+                    <input
+                      type="password"
+                      value={passwordData.new_password_confirmation}
+                      onChange={(e) => setPasswordData(prev => ({ ...prev, new_password_confirmation: e.target.value }))}
+                      className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 hover:border-white/30 focus:border-purple-400/50 transition-colors"
+                      placeholder="Confirm new password"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex space-x-4 mt-6">
+                  <button
+                    onClick={handlePasswordChange}
+                    disabled={securityLoading || !passwordData.current_password || !passwordData.new_password || passwordData.new_password !== passwordData.new_password_confirmation}
+                    className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 text-white py-3 rounded-xl transition-colors"
+                  >
+                    {securityLoading ? 'Changing...' : 'Change Password'}
+                  </button>
+                  <button
+                    onClick={() => setShowPasswordModal(false)}
+                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-3 rounded-xl transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 2FA Setup Modal */}
+        {show2FAModal && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 flex items-start justify-center pt-4 pb-28 px-4">
+            <div className="bg-white/10 backdrop-blur-2xl rounded-3xl border border-white/20 w-full max-w-2xl max-h-[75vh] overflow-y-auto scroll-smooth shadow-2xl" style={{scrollBehavior: 'smooth', scrollPaddingTop: '2rem'}}>
+              <div className="p-6 relative">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-bold text-white">Setup Two-Factor Authentication</h2>
+                  <button
+                    onClick={() => setShow2FAModal(false)}
+                    className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
+                  >
+                    <X className="w-5 h-5 text-white" />
+                  </button>
+                </div>
+
+                <div className="space-y-8">
+                  {/* QR Code */}
+                  <div className="text-center transform transition-all duration-500 ease-out">
+                    <h3 className="text-lg font-semibold text-white mb-3">Step 1: Scan QR Code</h3>
+                    <p className="text-gray-300 mb-6">Scan this QR code with your authenticator app:</p>
+                    <div className="bg-white p-6 rounded-2xl mx-auto w-fit shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 group">
+                      <div 
+                        className="transition-transform duration-300 group-hover:rotate-2"
+                        dangerouslySetInnerHTML={{ __html: twoFactorData.qr_code }} 
+                      />
+                    </div>
+                    <p className="text-gray-400 text-xs mt-3 opacity-60">Click to view larger</p>
+                  </div>
+
+                  {/* Manual Secret */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-white mb-3">Step 2: Manual Entry (Alternative)</h3>
+                    <label className="block text-gray-300 mb-3 text-sm">If you can't scan the QR code, enter this secret manually:</label>
+                    <div className="bg-white/15 border border-white/30 rounded-xl px-6 py-4 text-white font-mono text-base break-all tracking-wider">
+                      {twoFactorData.secret}
+                    </div>
+                  </div>
+
+                  {/* Verification Code */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-white mb-3">Step 3: Verify Setup</h3>
+                    <label className="block text-gray-300 mb-4 text-sm">Enter the 6-digit code from your authenticator app:</label>
+                    <input
+                      type="text"
+                      value={twoFactorData.verification_code}
+                      onChange={(e) => setTwoFactorData(prev => ({ ...prev, verification_code: e.target.value }))}
+                      className="w-full bg-white/15 border-2 border-white/30 rounded-xl px-6 py-4 text-white placeholder-gray-400 hover:border-white/40 focus:border-purple-400/70 focus:ring-2 focus:ring-purple-400/20 transition-all text-center font-mono text-xl tracking-widest"
+                      placeholder="123456"
+                      maxLength={6}
+                    />
+                  </div>
+
+                  {/* Backup Codes */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-white mb-3">📋 Backup Codes</h3>
+                    <p className="text-gray-300 mb-4 text-sm">Save these codes safely! Use them if you lose access to your authenticator app:</p>
+                    <div className="bg-white/15 border border-white/30 rounded-xl px-6 py-4">
+                      <div className="grid grid-cols-2 gap-3">
+                        {twoFactorData.backup_codes.map((code, index) => (
+                          <div key={index} className="bg-white/10 rounded-lg px-4 py-3 text-center">
+                            <span className="text-white font-mono text-sm tracking-wider">{code}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-4 p-3 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
+                        <p className="text-yellow-200 text-xs text-center">
+                          ⚠️ Each code can only be used once. Store them securely!
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4 mt-8 pt-6 border-t border-white/20">
+                  <button
+                    onClick={handleVerify2FA}
+                    disabled={securityLoading || twoFactorData.verification_code.length !== 6}
+                    className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 disabled:from-gray-600 disabled:to-gray-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:cursor-not-allowed"
+                  >
+                    <span className="flex items-center justify-center gap-2">
+                      {securityLoading ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                          Verifying...
+                        </>
+                      ) : (
+                        <>
+                          🔐 Verify & Enable 2FA
+                        </>
+                      )}
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => setShow2FAModal(false)}
+                    className="flex-1 bg-white/10 hover:bg-white/20 border border-white/30 hover:border-white/40 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                
+                {/* Extra padding for bottom navigation */}
+                <div className="h-8"></div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Edit Profile Modal */}
         {isEditing && (
@@ -782,16 +849,6 @@ const ProfileComponent = () => {
                         value={editData.birthDate}
                         onChange={(e) => setEditData(prev => ({ ...prev, birthDate: e.target.value }))}
                         className={`w-full bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 hover:border-white/30 focus:border-purple-400/50 transition-colors ${isIpad ? 'px-4 py-3' : 'px-3 py-2 sm:px-4 sm:py-3'}`}
-                      />
-                    </div>
-                    <div>
-                      <label className={`block text-gray-300 mb-2 ${isIpad ? 'text-sm' : 'text-xs sm:text-sm'}`}>Bio</label>
-                      <textarea
-                        value={editData.bio}
-                        onChange={(e) => setEditData(prev => ({ ...prev, bio: e.target.value }))}
-                        rows={4}
-                        className={`w-full bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 hover:border-white/30 focus:border-purple-400/50 transition-colors ${isIpad ? 'px-4 py-3' : 'px-3 py-2 sm:px-4 sm:py-3'}`}
-                        placeholder="Enter bio"
                       />
                     </div>
                   </div>

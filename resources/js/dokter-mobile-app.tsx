@@ -4,6 +4,7 @@ import OriginalDokterDashboard from './components/dokter/OriginalDashboard';
 import RefactoredDashboard from './components/dokter/RefactoredDashboard';
 import HolisticMedicalDashboard from './components/dokter/HolisticMedicalDashboard';
 import HolisticMedicalDashboardOptimized from './components/dokter/HolisticMedicalDashboardOptimized';
+import OptimizedOriginalDashboard from './components/dokter/OptimizedOriginalDashboard';
 import ErrorBoundary from './components/ErrorBoundary';
 import getUnifiedAuth from './utils/UnifiedAuth';
 import { performanceMonitor } from './utils/PerformanceMonitor';
@@ -32,6 +33,9 @@ class SafeDOM {
     }
 }
 
+// Store React root globally to prevent multiple roots
+let globalRoot: any = null;
+
 // Main application initialization
 if (typeof window !== 'undefined') {
     // Initialize authentication
@@ -52,12 +56,19 @@ if (typeof window !== 'undefined') {
                 return;
             }
             
+            // Check if root already exists to prevent React Error #306
+            if (globalRoot) {
+                console.warn('React root already exists, reusing existing root');
+                return;
+            }
+            
             // Check for performance comparison mode (dev only)
             const isComparisonMode = window.location.search.includes('compare=true') || 
                                     localStorage.getItem('dashboard-comparison') === 'true';
 
-            // Create React root and render
+            // Create React root and render (only once)
             const root = createRoot(appContainer);
+            globalRoot = root;
             
             // Start performance monitoring
             performanceMonitor.start('app-initialization');
@@ -93,14 +104,14 @@ if (typeof window !== 'undefined') {
                     performanceMonitor.end('app-initialization');
                     console.log('✅ DOKTERKU Mobile App initialized with ORIGINAL Dashboard (Jaspel, Presensi, Profil)');
                 } else if (useOptimized) {
-                    // Use OPTIMIZED HolisticMedicalDashboard for better performance
+                    // Use OPTIMIZED Dashboard with ORIGINAL UI (bottom navigation)
                     root.render(
                         <ErrorBoundary>
-                            <HolisticMedicalDashboardOptimized userData={undefined} />
+                            <OptimizedOriginalDashboard />
                         </ErrorBoundary>
                     );
                     performanceMonitor.end('app-initialization');
-                    console.log('🚀 DOKTERKU Mobile App initialized with OPTIMIZED Dashboard (70% faster loading)');
+                    console.log('🚀 DOKTERKU Mobile App initialized with OPTIMIZED Dashboard + Original UI (Bottom Navigation)');
                 } else {
                     // Use legacy HolisticMedicalDashboard (fallback)
                     root.render(

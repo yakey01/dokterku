@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+use App\Services\UnifiedAttendanceService;
 use Carbon\Carbon;
 
 class DokterStatsController extends Controller
@@ -21,7 +23,7 @@ class DokterStatsController extends Controller
         try {
             Log::info('Dokter stats API called');
             
-            // Get basic stats
+            // Get basic stats using unified attendance service
             $stats = $this->getDashboardStats();
             
             // Get performance data
@@ -34,7 +36,7 @@ class DokterStatsController extends Controller
                 'success' => true,
                 'data' => [
                     'attendance_current' => $stats['attendance_current'],
-                    'attendance_rate_raw' => $stats['attendance_rate'],
+                    'attendance_rate' => $stats['attendance_rate'],
                     'performance_data' => $performanceData,
                     'patients_today' => $stats['patients_today'],
                     'patients_week' => $stats['patients_week'],
@@ -79,8 +81,11 @@ class DokterStatsController extends Controller
         $monthStart = Carbon::now()->startOfMonth();
         
         try {
-            // Attendance stats
-            $attendanceStats = $this->getAttendanceStats($today);
+            // Attendance stats using unified service
+            $user = Auth::user();
+            $unifiedAttendanceService = new UnifiedAttendanceService();
+            $attendanceRate = $user ? $unifiedAttendanceService->calculateAttendanceRate($user->id, $today->month, $today->year) : 0;
+            $attendanceStats = ['current' => 1, 'rate' => $attendanceRate]; // Simplified
             
             // Patient stats from tindakan
             $patientStats = DB::table('tindakan')
@@ -267,7 +272,7 @@ class DokterStatsController extends Controller
             'success' => true,
             'data' => [
                 'attendance_current' => 0,
-                'attendance_rate_raw' => 0,
+                'attendance_rate' => 0,
                 'performance_data' => [
                     'attendance_trend' => [],
                     'patient_trend' => []

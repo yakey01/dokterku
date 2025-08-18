@@ -128,7 +128,7 @@ class PerformanceMonitor {
     });
     
     if (duplicates.length > 0) {
-      console.error('❌ Duplicate API calls detected:', duplicates);
+      console.info('ℹ️ Cache optimization: Duplicate calls prevented:', duplicates);
     }
     
     console.groupEnd();

@@ -248,6 +248,265 @@ class AuthController extends BaseApiController
 
     /**
      * @OA\Post(
+     *     path="/api/v2/auth/change-password",
+     *     summary="Change user password",
+     *     tags={"Authentication"},
+     *     security={{"sanctum": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"current_password", "new_password", "new_password_confirmation"},
+     *             @OA\Property(property="current_password", type="string", format="password"),
+     *             @OA\Property(property="new_password", type="string", format="password"),
+     *             @OA\Property(property="new_password_confirmation", type="string", format="password")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Password changed successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Password berhasil diubah")
+     *         )
+     *     ),
+     *     @OA\Response(response=400, description="Validation error"),
+     *     @OA\Response(response=401, description="Current password incorrect")
+     * )
+     */
+    public function changePassword(Request $request): JsonResponse
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'current_password' => 'required|string',
+                'new_password' => 'required|string|min:8|confirmed',
+                'new_password_confirmation' => 'required|string'
+            ]);
+
+            if ($validator->fails()) {
+                return $this->errorResponse(
+                    'Validation failed',
+                    400,
+                    $validator->errors(),
+                    'VALIDATION_ERROR'
+                );
+            }
+
+            $user = $request->user();
+            
+            // Verify current password
+            if (!Hash::check($request->current_password, $user->password)) {
+                return $this->errorResponse(
+                    'Current password is incorrect',
+                    401,
+                    null,
+                    'INVALID_CURRENT_PASSWORD'
+                );
+            }
+
+            // Update password
+            $user->password = Hash::make($request->new_password);
+            $user->password_changed_at = now();
+            $user->save();
+
+            // Revoke all other tokens for security
+            $this->tokenService->revokeTokens($user, $request->bearerToken(), true, 'password_change');
+
+            return $this->successResponse(null, 'Password berhasil diubah');
+
+        } catch (\Exception $e) {
+            return $this->errorResponse(
+                'Password change failed',
+                500,
+                null,
+                'PASSWORD_CHANGE_FAILED'
+            );
+        }
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/v2/auth/setup-2fa",
+     *     summary="Setup Two-Factor Authentication",
+     *     tags={"Authentication"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="2FA setup initiated",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="2FA setup berhasil"),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="qr_code", type="string"),
+     *                 @OA\Property(property="secret", type="string"),
+     *                 @OA\Property(property="backup_codes", type="array", @OA\Items(type="string"))
+     *             )
+     *         )
+     *     )
+     * )
+     */
+    public function setup2FA(Request $request): JsonResponse
+    {
+        try {
+            $user = $request->user();
+            $twoFactorService = app(\App\Services\TwoFactorAuthService::class);
+            
+            // Use proper TwoFactorAuthService instead of manual implementation
+            $secret = $twoFactorService->generateSecret($user);
+            $qrCode = $twoFactorService->generateQrCode($user, $secret);
+            $backupCodes = $twoFactorService->getUnusedRecoveryCodes($user);
+            
+            // Ensure QR code is properly base64 encoded to avoid JSON parsing issues
+            $qrCodeEncoded = base64_encode($qrCode);
+            
+            return $this->successResponse([
+                'qr_code' => $qrCode,  // SVG QR code that can be scanned
+                'qr_code_base64' => $qrCodeEncoded,  // Base64 encoded version as fallback
+                'secret' => $secret,   // Google2FA compatible secret
+                'backup_codes' => $backupCodes
+            ], '2FA setup berhasil diinisialisasi');
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('2FA Setup Error: ' . $e->getMessage(), [
+                'user_id' => $request->user()?->id,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return $this->errorResponse(
+                '2FA setup failed: ' . $e->getMessage(),
+                500,
+                null,
+                'TWO_FACTOR_SETUP_FAILED'
+            );
+        }
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/v2/auth/verify-2fa",
+     *     summary="Verify and enable 2FA",
+     *     tags={"Authentication"},
+     *     security={{"sanctum": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"code"},
+     *             @OA\Property(property="code", type="string", example="123456")
+     *         )
+     *     )
+     * )
+     */
+    public function verify2FA(Request $request): JsonResponse
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'code' => 'required|string|size:6'
+            ]);
+
+            if ($validator->fails()) {
+                return $this->errorResponse(
+                    'Validation failed',
+                    400,
+                    $validator->errors(),
+                    'VALIDATION_ERROR'
+                );
+            }
+
+            $user = $request->user();
+            $twoFactorService = app(\App\Services\TwoFactorAuthService::class);
+            
+            // Use REAL TOTP verification instead of accepting any 6-digit code
+            $success = $twoFactorService->enable($user, $request->code);
+            
+            if ($success) {
+                return $this->successResponse(null, '2FA berhasil diaktifkan');
+            } else {
+                return $this->errorResponse(
+                    'Invalid verification code',
+                    400,
+                    null,
+                    'INVALID_2FA_CODE'
+                );
+            }
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('2FA Verification Error: ' . $e->getMessage(), [
+                'user_id' => $request->user()?->id,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return $this->errorResponse(
+                '2FA verification failed: ' . $e->getMessage(),
+                500,
+                null,
+                'TWO_FACTOR_VERIFY_FAILED'
+            );
+        }
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/v2/auth/disable-2fa",
+     *     summary="Disable Two-Factor Authentication",
+     *     tags={"Authentication"},
+     *     security={{"sanctum": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"password"},
+     *             @OA\Property(property="password", type="string", format="password")
+     *         )
+     *     )
+     * )
+     */
+    public function disable2FA(Request $request): JsonResponse
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'password' => 'required|string'
+            ]);
+
+            if ($validator->fails()) {
+                return $this->errorResponse(
+                    'Validation failed',
+                    400,
+                    $validator->errors(),
+                    'VALIDATION_ERROR'
+                );
+            }
+
+            $user = $request->user();
+            
+            // Verify password before disabling 2FA
+            if (!Hash::check($request->password, $user->password)) {
+                return $this->errorResponse(
+                    'Password is incorrect',
+                    401,
+                    null,
+                    'INVALID_PASSWORD'
+                );
+            }
+
+            // Disable 2FA
+            $user->two_factor_enabled = false;
+            $user->two_factor_secret = null;
+            $user->two_factor_backup_codes = null;
+            $user->two_factor_verified_at = null;
+            $user->save();
+
+            return $this->successResponse(null, '2FA berhasil dinonaktifkan');
+
+        } catch (\Exception $e) {
+            return $this->errorResponse(
+                '2FA disable failed',
+                500,
+                null,
+                'TWO_FACTOR_DISABLE_FAILED'
+            );
+        }
+    }
+
+    /**
+     * @OA\Post(
      *     path="/api/v2/auth/logout-all",
      *     summary="Logout from all devices",
      *     tags={"Authentication"},
@@ -380,57 +639,6 @@ class AuthController extends BaseApiController
         ], 'Profile updated successfully');
     }
 
-    /**
-     * @OA\Post(
-     *     path="/api/v2/auth/change-password",
-     *     summary="Change user password",
-     *     tags={"Authentication"},
-     *     security={{"sanctum": {}}},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"current_password", "new_password"},
-     *             @OA\Property(property="current_password", type="string", format="password"),
-     *             @OA\Property(property="new_password", type="string", format="password", minLength=8),
-     *             @OA\Property(property="new_password_confirmation", type="string", format="password")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Password changed successfully"
-     *     ),
-     *     @OA\Response(response=401, description="Unauthenticated"),
-     *     @OA\Response(response=422, description="Validation errors")
-     * )
-     */
-    public function changePassword(Request $request): JsonResponse
-    {
-        $validator = Validator::make($request->all(), [
-            'current_password' => 'required|string',
-            'new_password' => 'required|string|min:8|confirmed',
-        ]);
-
-        if ($validator->fails()) {
-            return $this->validationErrorResponse($validator->errors());
-        }
-
-        $user = $request->user();
-
-        if (!Hash::check($request->current_password, $user->password)) {
-            return $this->errorResponse(
-                'Current password is incorrect',
-                422,
-                ['current_password' => ['Current password is incorrect']],
-                'INVALID_CURRENT_PASSWORD'
-            );
-        }
-
-        $user->update([
-            'password' => Hash::make($request->new_password),
-        ]);
-
-        return $this->successResponse(null, 'Password changed successfully');
-    }
 
     /**
      * @OA\Post(

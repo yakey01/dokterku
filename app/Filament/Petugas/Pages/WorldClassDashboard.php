@@ -29,9 +29,41 @@ class WorldClassDashboard extends Page
     // Remove navigation group so it appears at top level
     protected static ?string $navigationGroup = null;
 
+    public static function canAccess(): bool
+    {
+        // Allow all authenticated users in petugas panel - simplified for debugging
+        return auth()->check();
+    }
+
     public function mount(): void
     {
         // Initialize world-class petugas dashboard
+    }
+
+    // Computed properties for Livewire (automatically available in view)
+    public function getMetricsProperty()
+    {
+        return $this->getMetricsSummary();
+    }
+    
+    public function getPerformanceProperty()
+    {
+        return $this->getPerformanceMetrics();
+    }
+    
+    public function getTrendsProperty()
+    {
+        return $this->getWeeklyTrends();
+    }
+    
+    public function getActivitiesProperty()
+    {
+        return $this->getRecentActivities();
+    }
+    
+    public function getCategoriesProperty()
+    {
+        return $this->getCategoryPerformance();
     }
     
     public function getHeaderActions(): array

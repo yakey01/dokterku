@@ -9,6 +9,8 @@ export default defineConfig({
                 'resources/css/app.css',
                 'resources/css/map-styles.css',
                 'resources/js/app.js',
+                // Manager Dashboard - Isolated Entry Point
+                'resources/js/manager-isolated.js',
                 'resources/js/paramedis-mobile-app.tsx',
                 'resources/js/dokter-mobile-app.tsx',
                 'resources/js/dokter-mobile-app-simple.tsx',
@@ -36,10 +38,18 @@ export default defineConfig({
                 'resources/js/components/dashboard-interactivity.js',
                 'resources/js/petugas-dashboard-app.tsx',
                 'resources/js/world-class-form-enhancer.js',
+                'resources/js/manajer-dashboard-app.tsx',
+                'resources/js/manajer-dashboard-app-simple.tsx',
+                'resources/js/manajer-dashboard-app-full.tsx',
+                'resources/js/manajer-dashboard-app-test.tsx',
+                'resources/js/manajer-dashboard-app-fixed.tsx',
+                'resources/css/manajer-white-smoke-ui.css',
             ],
             refresh: true,
             detectTls: false,
             buildDirectory: 'build',
+            // ✅ OPTIMIZE PRELOADING: Only preload critical chunks
+            valetTls: false,
         }),
     ],
     server: {
@@ -62,11 +72,12 @@ export default defineConfig({
     esbuild: {
         jsx: 'automatic',
         jsxImportSource: 'react',
-        target: 'es2015',
+        target: 'es2020', // ✅ SYNTAX FIX: es2020 supports dynamic import()
     },
     build: {
         rollupOptions: {
             output: {
+                format: 'es', // ✅ EXPLICIT ES MODULES FORMAT
                 assetFileNames: (assetInfo) => {
                     let extType = assetInfo.name.split('.').at(1);
                     if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(extType)) {
@@ -77,10 +88,11 @@ export default defineConfig({
                 entryFileNames: `assets/js/[name]-[hash].js`,
                 chunkFileNames: `assets/js/[name]-[hash].js`,
             },
+            // ✅ REMOVED external configuration that was preventing lucide-react from being bundled
         },
         sourcemap: false,
-        minify: 'esbuild',
-        target: 'es2015',
+        minify: 'esbuild', // ✅ USING ESBUILD: More reliable for import statements than terser
+        target: 'es2020',
         chunkSizeWarningLimit: 1600,
         manifest: true,
     },

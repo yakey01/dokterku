@@ -15,7 +15,7 @@ class FinancialOversightResource extends Resource
     
     protected static ?string $navigationLabel = 'Financial Overview';
     
-    protected static ?string $navigationGroup = '💰 Financial Oversight';
+    protected static ?string $navigationGroup = '💰 Financial Control';
 
     public static function table(Table $table): Table
     {

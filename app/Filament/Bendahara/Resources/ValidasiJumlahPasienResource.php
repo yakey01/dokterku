@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Filament\Tables\Actions\Action;
 use Filament\Support\Enums\Alignment;
 use Carbon\Carbon;
+use App\Constants\ValidationStatus;
 
 class ValidasiJumlahPasienResource extends Resource
 {
@@ -86,12 +87,7 @@ class ValidasiJumlahPasienResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('status_validasi')
                             ->label('Status Validasi')
-                            ->options([
-                                'pending' => 'Menunggu Validasi',
-                                'approved' => 'Disetujui',
-                                'rejected' => 'Ditolak',
-                                'need_revision' => 'Perlu Revisi',
-                            ])
+                            ->options(ValidationStatus::labels())
                             ->required(),
 
                         Forms\Components\Textarea::make('catatan_validasi')
@@ -401,12 +397,23 @@ class ValidasiJumlahPasienResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        return static::getModel()::where('status_validasi', 'pending')->count();
+        return static::getModel()::where('status_validasi', ValidationStatus::PENDING)->count();
     }
 
     public static function canAccess(): bool
     {
-        return true; // Override access control for bendahara
+        // Proper role-based access control
+        return auth()->check() && auth()->user()->hasRole('bendahara');
+    }
+    
+    public static function canViewAny(): bool
+    {
+        return static::canAccess();
+    }
+    
+    public static function shouldRegisterNavigation(): bool
+    {
+        return static::canAccess();
     }
 
     public static function getPages(): array

@@ -227,12 +227,37 @@ class AttendanceToleranceService
             ];
         }
         
-        // Too late is still allowed but logged
+        // Check if checkout is too late and enforce tolerance
         if ($currentTime->gt($latestCheckout)) {
+            $toleranceSetting = $this->getToleranceForUser($user);
+            $allowLateCheckout = $toleranceSetting ? $toleranceSetting->allow_late_checkout : false;
+            
+            $minutesLate = (int) round($currentTime->diffInMinutes($latestCheckout));
+            
+            if (!$allowLateCheckout) {
+                Log::warning('Checkout DENIED - too late', [
+                    'user_id' => $user->id,
+                    'current_time' => $currentTime->format('H:i:s'),
+                    'latest_allowed' => $latestCheckout->format('H:i:s'),
+                    'minutes_late' => $minutesLate,
+                    'tolerance_source' => $tolerance['source']
+                ]);
+                
+                return [
+                    'allowed' => false,
+                    'code' => 'CHECKOUT_TOO_LATE',
+                    'message' => "Check-out terlalu terlambat. Batas waktu check-out adalah pukul {$latestCheckout->format('H:i')} ({$minutesLate} menit yang lalu).",
+                    'latest_checkout' => $latestCheckout->format('H:i:s'),
+                    'minutes_late' => $minutesLate,
+                    'tolerance_source' => $tolerance['source']
+                ];
+            }
+            
             Log::info('Checkout after allowed window (still permitted)', [
                 'user_id' => $user->id,
                 'current_time' => $currentTime->format('H:i:s'),
                 'latest_allowed' => $latestCheckout->format('H:i:s'),
+                'minutes_late' => $minutesLate,
                 'tolerance_source' => $tolerance['source']
             ]);
         }

@@ -13,8 +13,10 @@ class TindakanPolicy
      */
     public function viewAny(User $user): bool
     {
-        // Allow users with view-procedures or view_tindakan permission to view procedures
-        return $user->can('view-procedures') || 
+        // Allow petugas role and users with view permissions to view procedures
+        return $user->hasRole('petugas') || 
+               $user->hasRole(['admin', 'manajer', 'dokter']) ||
+               $user->can('view-procedures') || 
                $user->can('view_tindakan');
     }
 
@@ -23,8 +25,10 @@ class TindakanPolicy
      */
     public function view(User $user, Tindakan $tindakan): bool
     {
-        // Allow users with view-procedures or view_tindakan permission to view procedures  
-        return $user->can('view-procedures') || 
+        // Allow petugas role and users with view permissions to view procedures  
+        return $user->hasRole('petugas') || 
+               $user->hasRole(['admin', 'manajer', 'dokter']) ||
+               $user->can('view-procedures') || 
                $user->can('view_tindakan');
     }
 
@@ -33,8 +37,11 @@ class TindakanPolicy
      */
     public function create(User $user): bool
     {
-        // Allow users with create-procedures or create_tindakan permission to create procedures
-        return $user->can('create-procedures') || $user->can('create_tindakan');
+        // Allow petugas role and users with create permissions to create procedures
+        return $user->hasRole('petugas') || 
+               $user->hasRole(['admin', 'manajer', 'dokter']) ||
+               $user->can('create-procedures') || 
+               $user->can('create_tindakan');
     }
 
     /**

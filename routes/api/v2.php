@@ -136,6 +136,18 @@ Route::middleware(['auth:sanctum', App\Http\Middleware\Api\ApiResponseHeadersMid
         Route::get('/multishift-status', [App\Http\Controllers\Api\V2\Attendance\AttendanceController::class, 'multishiftStatus']);
     });
 
+    // JASPEL Validation endpoints - ONLY validated amounts
+    Route::prefix('jaspel/validated')->group(function () {
+        Route::get('/gaming-data', [App\Http\Controllers\Api\V2\ValidatedJaspelController::class, 'getGamingData']);
+        Route::get('/data', [App\Http\Controllers\Api\V2\ValidatedJaspelController::class, 'getData']);
+        Route::get('/validation-report', [App\Http\Controllers\Api\V2\ValidatedJaspelController::class, 'getValidationReport']);
+    });
+
+    // Jumlah Pasien endpoints for JASPEL integration - ONLY validated
+    Route::prefix('jumlah-pasien')->group(function () {
+        Route::get('/jaspel-jaga', [App\Http\Controllers\Api\V2\JumlahPasienController::class, 'getJumlahPasienForJaspel']);
+    });
+
     // Dashboard endpoints
     Route::prefix('dashboards')->group(function () {
         // Paramedis dashboard
@@ -148,8 +160,8 @@ Route::middleware(['auth:sanctum', App\Http\Middleware\Api\ApiResponseHeadersMid
     });
 });
 
-// Dokter dashboard - using web session authentication (outside protected routes)
-Route::prefix('v2/dashboards/dokter')->middleware(['web'])->group(function () {
+// 🚀 Dokter dashboard - HIGHER rate limits for real-time features
+Route::prefix('v2/dashboards/dokter')->middleware(['auth:sanctum', 'throttle:300,1'])->group(function () {
     Route::get('/', [DokterDashboardController::class, 'index']);
     Route::get('/jadwal-jaga', [DokterDashboardController::class, 'getJadwalJaga']);
     Route::get('/jaspel', [DokterDashboardController::class, 'getJaspel']);
@@ -198,4 +210,17 @@ Route::prefix('v2/dashboards/dokter')->middleware(['web'])->group(function () {
     
     // Debug endpoint untuk jadwal jaga
     Route::get('/debug-schedule', [DokterDashboardController::class, 'debugSchedule']);
+    
+    // 🏢 Manajer Dashboard API Routes
+    Route::prefix('manajer')->name('manajer.')->middleware('role:manajer')->group(function () {
+        Route::get('/dashboard-summary', [App\Http\Controllers\Api\V2\Manajer\ManagerDashboardController::class, 'getDashboardSummary']);
+        Route::get('/analytics-data', [App\Http\Controllers\Api\V2\Manajer\ManagerDashboardController::class, 'getAnalyticsData']);
+        Route::get('/staff-performance', [App\Http\Controllers\Api\V2\Manajer\ManagerDashboardController::class, 'getStaffPerformance']);
+        Route::get('/validation-insights', [App\Http\Controllers\Api\V2\Manajer\ManagerDashboardController::class, 'getValidationInsights']);
+        Route::get('/jaspel-calculations', [App\Http\Controllers\Api\V2\Manajer\ManagerDashboardController::class, 'getJaspelCalculations']);
+        Route::get('/approval-workflows', [App\Http\Controllers\Api\V2\Manajer\ManagerDashboardController::class, 'getApprovalWorkflows']);
+        Route::get('/strategic-kpis', [App\Http\Controllers\Api\V2\Manajer\ManagerDashboardController::class, 'getStrategicKPIs']);
+        Route::post('/refresh-data', [App\Http\Controllers\Api\V2\Manajer\ManagerDashboardController::class, 'refreshData']);
+        Route::post('/export', [App\Http\Controllers\Api\V2\Manajer\ManagerDashboardController::class, 'exportData']);
+    });
 });

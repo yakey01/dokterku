@@ -1,706 +1,49 @@
 @import '../../../../vendor/filament/filament/resources/css/theme.css';
 
-/* WORLD-CLASS MINIMALIST WHITE UI/UX 2024-2025 */
-/* Inspired by Dribbble & Pinterest Healthcare Design Trends */
-/* Clean, Professional, Minimalist White Design System */
-
-/* ===========================
-   GLOBAL MINIMALIST VARIABLES
-   =========================== */
+/* Petugas Panel Design System - Complete Bendahara Style Rewrite */
 [data-filament-panel-id="petugas"] {
-    /* Minimalist White Color Palette */
-    --white-pure: #ffffff;
-    --white-soft: #fefefe;
-    --white-warm: #fafbfc;
-    --white-cool: #f8f9fb;
-    --gray-ultra-light: #f5f6f8;
-    --gray-whisper: #f1f3f5;
-    --gray-mist: #e9ecef;
-    --gray-light: #dee2e6;
-    --gray-medium: #6c757d;
-    --gray-text: #495057;
-    --gray-heading: #212529;
+    /* Primary Colors - Amber/Orange (Exact Match with Bendahara) */
+    --primary: 245 158 11; /* Amber */
+    --success: 34 197 94; /* Green */
+    --warning: 251 189 35; /* Yellow */
+    --danger: 239 68 68; /* Red */
+    --info: 59 130 246; /* Blue */
+    --gray: 107 114 128; /* Gray */
     
-    /* Accent Colors - Minimal & Professional */
-    --accent-blue: #4285f4;
-    --accent-blue-light: #e8f0fe;
-    --accent-green: #34a853;
-    --accent-green-light: #e6f4ea;
-    --accent-orange: #fbbc04;
-    --accent-orange-light: #fef7e0;
-    --accent-red: #ea4335;
-    --accent-red-light: #fce8e6;
+    /* Panel Variables (Exact Match with Bendahara) */
+    --panel-primary: #f59e0b;
+    --panel-primary-light: #fcd34d;
+    --panel-primary-dark: #d97706;
     
-    /* Typography Scale */
-    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Courier, monospace;
-    
-    /* Shadows - Ultra Subtle */
-    --shadow-minimal: 0 1px 2px rgba(0, 0, 0, 0.02);
-    --shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02);
-    --shadow-medium: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
-    --shadow-elevated: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
-    --shadow-floating: 0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
-    
-    /* Border Radius */
-    --radius-minimal: 6px;
-    --radius-small: 8px;
-    --radius-medium: 12px;
-    --radius-large: 16px;
-    --radius-xl: 20px;
-    
-    /* Spacing Scale */
-    --space-xs: 0.25rem;
-    --space-sm: 0.5rem;
-    --space-md: 1rem;
-    --space-lg: 1.5rem;
-    --space-xl: 2rem;
-    --space-2xl: 3rem;
-    --space-3xl: 4rem;
-    
-    /* Transitions */
-    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-normal: 200ms cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
-    
-    /* Legacy Filament Variables (for compatibility) */
-    --primary: 66 133 244; /* Blue */
-    --success: 52 168 83; /* Green */
-    --warning: 251 188 4; /* Orange */
-    --danger: 234 67 53; /* Red */
-    --info: 66 133 244; /* Blue */
-    --gray: 108 117 125; /* Gray */
+    /* Enhanced Color Palette (Exact Match with Bendahara) */
+    --primary-50: #fef3c7;
+    --primary-100: #fde68a;
+    --primary-200: #fcd34d;
+    --primary-300: #fbbf24;
+    --primary-400: #f59e0b;
+    --primary-500: #f59e0b;
+    --primary-600: #d97706;
+    --primary-700: #b45309;
+    --primary-800: #92400e;
+    --primary-900: #78350f;
+    --primary-950: #451a03;
 }
 
-/* WORLD-CLASS BLACK GLASSMORPHISM SIDEBAR - ULTIMATE FORCE */
-body .fi-panel-petugas .fi-sidebar,
-body[class*="fi-panel-petugas"] .fi-sidebar,
-.fi-panel-petugas aside.fi-sidebar,
-[data-filament-panel-id="petugas"] .fi-sidebar,
-[data-filament-panel-id="petugas"] aside,
-.fi-sidebar {
-    background: #000000 !important;
-    background-color: #000000 !important;
-    background-image: linear-gradient(135deg, 
-        rgba(0, 0, 0, 0.98) 0%, 
-        rgba(10, 10, 10, 0.95) 50%, 
-        rgba(20, 20, 20, 0.92) 100%) !important;
-    backdrop-filter: blur(30px) saturate(200%) !important;
-    -webkit-backdrop-filter: blur(30px) saturate(200%) !important;
-    border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
-    box-shadow: 
-        inset 0 0 30px rgba(100, 126, 234, 0.05),
-        4px 0 24px rgba(0, 0, 0, 0.7) !important;
+/* Petugas Branding (Exact Match with Bendahara) */
+[data-filament-panel-id="petugas"] .fi-topbar {
+    background: linear-gradient(135deg, var(--panel-primary) 0%, var(--panel-primary-dark) 100%);
 }
 
 [data-filament-panel-id="petugas"] .fi-sidebar-header {
-    background: #000000 !important;
-    background-color: #000000 !important; 
-    background-image: none !important;
-    border-bottom: 1px solid #1a1a1a !important;
+    background: linear-gradient(135deg, var(--panel-primary) 0%, var(--panel-primary-dark) 100%);
 }
 
 [data-filament-panel-id="petugas"] .fi-sidebar-header .fi-logo {
-    color: #ffffff;
-    font-weight: 700;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-/* Navigation Group Labels */
-[data-filament-panel-id="petugas"] .fi-sidebar-group-label {
-    color: #ffffff;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-size: 0.75rem;
-    padding: 0.75rem 1rem;
-    background: rgba(255, 255, 255, 0.05);
-    margin: 0.25rem 0.5rem;
-    border-radius: 0.5rem;
-    transition: all 0.3s ease;
-}
-
-[data-filament-panel-id="petugas"] .fi-sidebar-group-label:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: #ffffff;
-    transform: translateX(2px);
-}
-
-/* Navigation Items */
-[data-filament-panel-id="petugas"] .fi-sidebar-nav-item {
-    margin: 0.125rem 0.5rem;
-    border-radius: 0.5rem;
-    transition: all 0.3s ease;
-}
-
-[data-filament-panel-id="petugas"] .fi-sidebar-nav-item .fi-sidebar-nav-item-label {
-    color: #d0d7de;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-[data-filament-panel-id="petugas"] .fi-sidebar-nav-item .fi-sidebar-nav-item-icon {
-    color: #7d8590;
-    transition: all 0.3s ease;
-}
-
-[data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover {
-    background: rgba(255, 255, 255, 0.08);
-    transform: translateX(3px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-[data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover .fi-sidebar-nav-item-label {
-    color: #ffffff;
+    color: white;
     font-weight: 600;
 }
 
-[data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover .fi-sidebar-nav-item-icon {
-    color: #ffffff;
-    transform: scale(1.05);
-}
-
-/* Active Navigation Item */
-[data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active {
-    background: linear-gradient(135deg, #238636 0%, #2da44e 100%);
-    color: #ffffff;
-    box-shadow: 0 4px 12px rgba(35, 134, 54, 0.3);
-    transform: translateX(2px);
-}
-
-[data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active .fi-sidebar-nav-item-label {
-    color: #ffffff;
-    font-weight: 600;
-}
-
-[data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active .fi-sidebar-nav-item-icon {
-    color: #ffffff;
-    transform: scale(1.1);
-}
-
-/* Minimalist Topbar */
-[data-filament-panel-id="petugas"] .fi-topbar {
-    background: var(--white-pure) !important;
-    border-bottom: 1px solid var(--gray-ultra-light) !important;
-    box-shadow: var(--shadow-minimal) !important;
-}
-
-/* Global Minimalist Background */
-[data-filament-panel-id="petugas"] .fi-main {
-    background: var(--white-warm) !important;
-}
-
-[data-filament-panel-id="petugas"] .fi-main-content {
-    background: var(--white-warm) !important;
-}
-
-/* ================================
-   WORLD-CLASS CARD COMPONENTS - CUSTOM FILAMENT
-   ================================ */
-
-/* Premium Card System - Custom Filament Components */
-.fi-premium-card {
-    position: relative;
-    overflow: hidden;
-    border-radius: 1rem;
-    border: 1px solid rgb(229 231 235 / 0.8);
-    background-color: rgb(255 255 255);
-    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    backdrop-filter: blur(8px);
-}
-
-.fi-premium-card:hover {
-    box-shadow: 0 25px 50px -12px rgb(245 158 11 / 0.1);
-    transform: translateY(-4px);
-}
-
-.dark .fi-premium-card {
-    border-color: rgb(75 85 99 / 0.5);
-    background-color: rgb(31 41 55 / 0.5);
-}
-
-.dark .fi-premium-card:hover {
-    box-shadow: 0 25px 50px -12px rgb(245 158 11 / 0.2);
-}
-
-/* Card Header */
-.fi-premium-card-header {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1.5rem 1.5rem 1rem 1.5rem;
-}
-
-.fi-premium-card-title {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: rgb(17 24 39);
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.dark .fi-premium-card-title {
-    color: rgb(243 244 246);
-}
-
-.fi-premium-card-subtitle {
-    font-size: 0.875rem;
-    color: rgb(107 114 128);
-    margin-top: 0.25rem;
-}
-
-.dark .fi-premium-card-subtitle {
-    color: rgb(156 163 175);
-}
-
-/* Card Icon */
-.fi-premium-card-icon {
-    width: 3rem;
-    height: 3rem;
-    border-radius: 0.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    box-shadow: 0 8px 32px rgba(245, 158, 11, 0.3);
-}
-
-.fi-premium-card:hover .fi-premium-card-icon {
-    transform: scale(1.1) rotate(3deg);
-    box-shadow: 0 12px 40px rgba(245, 158, 11, 0.4);
-}
-
-.fi-premium-card-icon svg {
-    width: 1.5rem;
-    height: 1.5rem;
-    color: rgb(255 255 255);
-}
-
-/* Card Body */
-.fi-premium-card-body {
-    padding: 0 1.5rem 1.5rem 1.5rem;
-}
-
-.fi-premium-card-content {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-/* Premium Stats Cards */
-.fi-premium-stats-card {
-    position: relative;
-    overflow: hidden;
-    border-radius: 1rem;
-    background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%);
-    border: 1px solid rgba(245, 158, 11, 0.2);
-    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    backdrop-filter: blur(8px);
-}
-
-.fi-premium-stats-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    transition: opacity 0.3s;
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(217, 119, 6, 0.05) 100%);
-}
-
-.fi-premium-stats-card:hover::before {
-    opacity: 1;
-}
-
-.fi-premium-stats-card:hover {
-    box-shadow: 0 25px 50px -12px rgb(245 158 11 / 0.1);
-    transform: translateY(-4px);
-}
-
-.dark .fi-premium-stats-card {
-    background: linear-gradient(135deg, rgba(31, 41, 55, 0.9) 0%, rgba(17, 24, 39, 0.7) 100%);
-    border-color: rgb(75 85 99 / 0.5);
-}
-
-.fi-premium-stats-value {
-    font-size: 1.875rem;
-    font-weight: 700;
-    color: rgb(17 24 39);
-    transition: all 0.3s;
-    line-height: 1.25;
-}
-
-.dark .fi-premium-stats-value {
-    color: rgb(243 244 246);
-}
-
-.fi-premium-stats-card:hover .fi-premium-stats-value {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    transform: scale(1.05);
-}
-
-.fi-premium-stats-label {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: rgb(75 85 99);
-    margin-top: 0.25rem;
-}
-
-.dark .fi-premium-stats-label {
-    color: rgb(209 213 219);
-}
-
-.fi-premium-stats-trend {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.25rem 0.625rem;
-    border-radius: 9999px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    margin-top: 0.5rem;
-    transition: all 0.3s;
-}
-
-.fi-premium-stats-trend.positive {
-    background-color: rgb(220 252 231);
-    color: rgb(22 101 52);
-}
-
-.dark .fi-premium-stats-trend.positive {
-    background-color: rgba(34, 197, 94, 0.3);
-    color: rgb(74 222 128);
-}
-
-.fi-premium-stats-trend.negative {
-    background-color: rgb(254 226 226);
-    color: rgb(153 27 27);
-}
-
-.dark .fi-premium-stats-trend.negative {
-    background-color: rgba(239, 68, 68, 0.3);
-    color: rgb(248 113 113);
-}
-
-.fi-premium-stats-trend.neutral {
-    background-color: rgb(243 244 246);
-    color: rgb(31 41 55);
-}
-
-.dark .fi-premium-stats-trend.neutral {
-    background-color: rgb(55 65 81);
-    color: rgb(209 213 219);
-}
-
-/* Action Cards */
-.fi-premium-action-card {
-    position: relative;
-    overflow: hidden;
-    border-radius: 1rem;
-    border: 1px solid rgb(229 231 235 / 0.8);
-    background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.95) 100%);
-    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    cursor: pointer;
-    backdrop-filter: blur(8px);
-}
-
-.fi-premium-action-card:hover {
-    transform: scale(1.02) translateY(-2px);
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(217, 119, 6, 0.05) 100%);
-    box-shadow: 0 25px 50px -12px rgb(245 158 11 / 0.1);
-}
-
-.dark .fi-premium-action-card {
-    border-color: rgb(75 85 99 / 0.5);
-    background: linear-gradient(135deg, rgba(31, 41, 55, 0.95) 0%, rgba(17, 24, 39, 0.95) 100%);
-}
-
-.fi-premium-action-card:hover .fi-premium-card-icon {
-    transform: scale(1.1) rotate(6deg);
-}
-
-.fi-premium-action-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: rgb(17 24 39);
-    transition: color 0.3s;
-}
-
-.dark .fi-premium-action-title {
-    color: rgb(243 244 246);
-}
-
-.fi-premium-action-card:hover .fi-premium-action-title {
-    color: rgb(234 88 12);
-}
-
-.dark .fi-premium-action-card:hover .fi-premium-action-title {
-    color: rgb(251 146 60);
-}
-
-.fi-premium-action-description {
-    font-size: 0.875rem;
-    color: rgb(75 85 99);
-    margin-top: 0.25rem;
-}
-
-.dark .fi-premium-action-description {
-    color: rgb(156 163 175);
-}
-
-/* Data Cards */
-.fi-premium-data-card {
-    position: relative;
-    overflow: hidden;
-    border-radius: 1rem;
-    border: 1px solid rgb(229 231 235 / 0.8);
-    background-color: rgb(255 255 255);
-    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    backdrop-filter: blur(8px);
-}
-
-.fi-premium-data-card:hover {
-    box-shadow: 0 25px 50px -12px rgb(245 158 11 / 0.1);
-    transform: translateY(-2px);
-}
-
-.dark .fi-premium-data-card {
-    border-color: rgb(75 85 99 / 0.5);
-    background-color: rgb(31 41 55 / 0.5);
-}
-
-.fi-premium-data-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.fi-premium-data-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem;
-    border-radius: 0.5rem;
-    background-color: rgba(249, 250, 251, 0.5);
-    transition: all 0.2s;
-}
-
-.fi-premium-data-item:hover {
-    background-color: rgb(255 237 213);
-    transform: translateX(0.25rem);
-}
-
-.dark .fi-premium-data-item {
-    background-color: rgba(55, 65, 81, 0.3);
-}
-
-.dark .fi-premium-data-item:hover {
-    background-color: rgba(234, 88, 12, 0.2);
-}
-
-.fi-premium-data-label {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: rgb(55 65 81);
-}
-
-.dark .fi-premium-data-label {
-    color: rgb(209 213 219);
-}
-
-.fi-premium-data-value {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: rgb(17 24 39);
-}
-
-.dark .fi-premium-data-value {
-    color: rgb(243 244 246);
-}
-
-/* Progress Cards */
-.fi-premium-progress-card {
-    position: relative;
-    overflow: hidden;
-    border-radius: 1rem;
-    border: 1px solid rgb(229 231 235 / 0.8);
-    background-color: rgb(255 255 255);
-    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    backdrop-filter: blur(8px);
-}
-
-.fi-premium-progress-card:hover {
-    box-shadow: 0 25px 50px -12px rgb(245 158 11 / 0.1);
-    transform: translateY(-2px);
-}
-
-.dark .fi-premium-progress-card {
-    border-color: rgb(75 85 99 / 0.5);
-    background-color: rgb(31 41 55 / 0.5);
-}
-
-.fi-premium-progress-bar {
-    width: 100%;
-    background-color: rgb(229 231 235);
-    border-radius: 9999px;
-    height: 0.5rem;
-    overflow: hidden;
-}
-
-.dark .fi-premium-progress-bar {
-    background-color: rgb(55 65 81);
-}
-
-.fi-premium-progress-fill {
-    height: 100%;
-    border-radius: 9999px;
-    transition: all 0.5s ease-out;
-    background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
-}
-
-.fi-premium-progress-label {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
-}
-
-.fi-premium-progress-text {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: rgb(55 65 81);
-}
-
-.dark .fi-premium-progress-text {
-    color: rgb(209 213 219);
-}
-
-.fi-premium-progress-percent {
-    font-size: 0.875rem;
-    font-weight: 700;
-    color: rgb(234 88 12);
-}
-
-.dark .fi-premium-progress-percent {
-    color: rgb(251 146 60);
-}
-
-/* Notification Cards */
-.fi-premium-notification-card {
-    position: relative;
-    overflow: hidden;
-    border-radius: 1rem;
-    border: 1px solid rgb(229 231 235 / 0.8);
-    background-color: rgb(255 255 255);
-    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    backdrop-filter: blur(8px);
-    border-left-width: 0.25rem;
-}
-
-.fi-premium-notification-card:hover {
-    box-shadow: 0 25px 50px -12px rgb(245 158 11 / 0.1);
-    transform: translateY(-2px);
-}
-
-.dark .fi-premium-notification-card {
-    border-color: rgb(75 85 99 / 0.5);
-    background-color: rgb(31 41 55 / 0.5);
-}
-
-.fi-premium-notification-card.info {
-    border-left-color: rgb(59 130 246);
-    background-color: rgba(219, 234, 254, 0.5);
-}
-
-.dark .fi-premium-notification-card.info {
-    background-color: rgba(30, 58, 138, 0.1);
-}
-
-.fi-premium-notification-card.success {
-    border-left-color: rgb(34 197 94);
-    background-color: rgba(220, 252, 231, 0.5);
-}
-
-.dark .fi-premium-notification-card.success {
-    background-color: rgba(20, 83, 45, 0.1);
-}
-
-.fi-premium-notification-card.warning {
-    border-left-color: rgb(234 179 8);
-    background-color: rgba(254, 249, 195, 0.5);
-}
-
-.dark .fi-premium-notification-card.warning {
-    background-color: rgba(133, 77, 14, 0.1);
-}
-
-.fi-premium-notification-card.error {
-    border-left-color: rgb(239 68 68);
-    background-color: rgba(254, 226, 226, 0.5);
-}
-
-.dark .fi-premium-notification-card.error {
-    background-color: rgba(153, 27, 27, 0.1);
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .fi-premium-card,
-    .fi-premium-stats-card,
-    .fi-premium-action-card,
-    .fi-premium-data-card,
-    .fi-premium-progress-card,
-    .fi-premium-notification-card {
-        border-radius: 0.75rem;
-    }
-    
-    .fi-premium-card-header {
-        padding: 1rem 1rem 0.75rem 1rem;
-    }
-    
-    .fi-premium-card-body {
-        padding: 0 1rem 1rem 1rem;
-    }
-    
-    .fi-premium-card-icon {
-        width: 2.5rem;
-        height: 2.5rem;
-    }
-}
-
-/* Animation Keyframes */
-@keyframes fi-premium-pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.8; }
-}
-
-@keyframes fi-premium-bounce {
-    0%, 20%, 53%, 80%, 100% { transform: translate3d(0,0,0); }
-    40%, 43% { transform: translate3d(0,-8px,0); }
-    70% { transform: translate3d(0,-4px,0); }
-    90% { transform: translate3d(0,-2px,0); }
-}
-
-.fi-premium-animate-pulse {
-    animation: fi-premium-pulse 2s infinite;
-}
-
-.fi-premium-animate-bounce {
-    animation: fi-premium-bounce 1s infinite;
-}
-
-/* Widget Styling - Fix for Stats Overview */
+/* Widget Styling - Fix for Stats Overview (Exact Match with Bendahara) */
 [data-filament-panel-id="petugas"] .fi-wi-stats-overview-stat {
     background: rgba(251, 189, 35, 0.1);
     border-radius: 0.75rem;
@@ -730,7 +73,7 @@ body[class*="fi-panel-petugas"] .fi-sidebar,
     letter-spacing: 0.05em;
 }
 
-/* Badge Styling - Fix for Deprecated BadgeColumn */
+/* Badge Styling - Fix for Deprecated BadgeColumn (Exact Match with Bendahara) */
 [data-filament-panel-id="petugas"] .fi-badge {
     font-weight: 600;
     font-size: 0.75rem;
@@ -765,7 +108,7 @@ body[class*="fi-panel-petugas"] .fi-sidebar,
     border: 1px solid rgba(59, 130, 246, 0.2);
 }
 
-/* Card Styling - Enhanced for Dashboard */
+/* Card Styling - Enhanced for Dashboard (Exact Match with Bendahara) */
 [data-filament-panel-id="petugas"] .fi-card {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
@@ -780,7 +123,7 @@ body[class*="fi-panel-petugas"] .fi-sidebar,
     transform: translateY(-1px);
 }
 
-/* Progress Bar Styling */
+/* Progress Bar Styling (Exact Match with Bendahara) */
 [data-filament-panel-id="petugas"] .progress-bar {
     background: rgba(229, 231, 235, 1);
     border-radius: 9999px;
@@ -795,7 +138,7 @@ body[class*="fi-panel-petugas"] .fi-sidebar,
     transition: width 0.3s ease;
 }
 
-/* Button Styling - Enhanced */
+/* Button Styling - Enhanced (Exact Match with Bendahara) */
 [data-filament-panel-id="petugas"] .fi-btn-primary {
     background: linear-gradient(135deg, var(--panel-primary) 0%, var(--panel-primary-dark) 100%);
     border: none;
@@ -810,7 +153,7 @@ body[class*="fi-panel-petugas"] .fi-sidebar,
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Table Styling - Enhanced */
+/* Table Styling - Enhanced (Exact Match with Bendahara) */
 [data-filament-panel-id="petugas"] .fi-ta-header-cell {
     background: rgba(251, 189, 35, 0.05);
     font-weight: 600;
@@ -829,7 +172,7 @@ body[class*="fi-panel-petugas"] .fi-sidebar,
     border-bottom: 1px solid rgba(229, 231, 235, 0.5);
 }
 
-/* Form Styling - Enhanced */
+/* Form Styling - Enhanced (Exact Match with Bendahara) */
 [data-filament-panel-id="petugas"] .fi-input {
     border: 1px solid rgba(209, 213, 219, 1);
     border-radius: 0.5rem;
@@ -842,7 +185,7 @@ body[class*="fi-panel-petugas"] .fi-sidebar,
     box-shadow: 0 0 0 3px rgba(251, 189, 35, 0.1);
 }
 
-/* Section Styling */
+/* Section Styling (Exact Match with Bendahara) */
 [data-filament-panel-id="petugas"] .fi-section {
     background: rgba(255, 255, 255, 0.95);
     border: 1px solid rgba(229, 231, 235, 0.3);
@@ -850,7 +193,7 @@ body[class*="fi-panel-petugas"] .fi-sidebar,
     backdrop-filter: blur(10px);
 }
 
-/* Chart Container Styling */
+/* Chart Container Styling (Exact Match with Bendahara) */
 [data-filament-panel-id="petugas"] .chart-container {
     background: rgba(255, 255, 255, 0.95);
     border-radius: 0.75rem;
@@ -859,12 +202,12 @@ body[class*="fi-panel-petugas"] .fi-sidebar,
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-/* Widget Grid Styling */
+/* Widget Grid Styling (Exact Match with Bendahara) */
 [data-filament-panel-id="petugas"] .fi-wi-grid {
     gap: 1.5rem;
 }
 
-/* Icon Styling */
+/* Icon Styling (Exact Match with Bendahara) */
 [data-filament-panel-id="petugas"] .fi-icon {
     color: var(--panel-primary);
     transition: color 0.2s ease;
@@ -874,7 +217,7 @@ body[class*="fi-panel-petugas"] .fi-sidebar,
     color: var(--panel-primary-dark);
 }
 
-/* Navigation Groups Styling */
+/* Navigation Groups Styling (Exact Match with Bendahara) */
 [data-filament-panel-id="petugas"] .fi-sidebar-group {
     margin-bottom: 0.5rem;
 }
@@ -915,7 +258,7 @@ body[class*="fi-panel-petugas"] .fi-sidebar,
     transform: translateY(0);
 }
 
-/* Collapsible icon styling */
+/* Collapsible icon styling (Exact Match with Bendahara) */
 [data-filament-panel-id="petugas"] .fi-sidebar-group-label::after {
     content: '';
     width: 0;
@@ -934,7 +277,69 @@ body[class*="fi-panel-petugas"] .fi-sidebar,
     transform: rotate(0deg);
 }
 
-/* Enhanced Responsive Design */
+/* Sidebar Navigation Styling - Match Bendahara Style */
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 0.5rem;
+    margin: 0.125rem 0.5rem;
+    position: relative;
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover {
+    background: rgba(245, 158, 11, 0.1);
+    transform: translateX(3px);
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active {
+    background: linear-gradient(135deg, var(--panel-primary) 0%, var(--panel-primary-dark) 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+    transform: translateX(2px);
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active::before {
+    content: '';
+    position: absolute;
+    left: -8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 60%;
+    background: linear-gradient(180deg, var(--panel-primary), var(--panel-primary-dark));
+    border-radius: 0 2px 2px 0;
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item .fi-sidebar-nav-item-icon {
+    transition: all 0.2s ease;
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover .fi-sidebar-nav-item-icon {
+    color: var(--panel-primary);
+    transform: scale(1.05);
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active .fi-sidebar-nav-item-icon {
+    color: white;
+    transform: scale(1.1);
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item .fi-sidebar-nav-item-label {
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover .fi-sidebar-nav-item-label {
+    color: var(--panel-primary);
+    font-weight: 600;
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active .fi-sidebar-nav-item-label {
+    color: white;
+    font-weight: 600;
+}
+
+/* Responsive Design (Exact Match with Bendahara) */
 @media (max-width: 768px) {
     [data-filament-panel-id="petugas"] .fi-wi-stats-overview-stat {
         margin-bottom: 1rem;
@@ -956,756 +361,217 @@ body[class*="fi-panel-petugas"] .fi-sidebar,
     [data-filament-panel-id="petugas"] .fi-wi-grid {
         gap: 1rem;
     }
-    
-    /* Mobile Dark Mode Enhancements */
-    [data-filament-panel-id="petugas"] .dark .fi-sidebar {
-        background: var(--dark-bg-primary);
-        border-right: 1px solid var(--dark-border-primary);
-    }
-    
-    [data-filament-panel-id="petugas"] .dark .fi-topbar {
-        background: var(--dark-bg-secondary);
-        border-bottom: 1px solid var(--dark-border-primary);
-    }
-    
-    /* Mobile Widget Spacing */
-    [data-filament-panel-id="petugas"] .fi-widget {
-        margin-bottom: 1.5rem;
-    }
-    
-    /* Mobile Chart Adjustments */
-    [data-filament-panel-id="petugas"] .chart-container {
-        height: auto;
-        min-height: 250px;
-    }
-    
-    /* Mobile Navigation */
-    [data-filament-panel-id="petugas"] .fi-sidebar-nav-item {
-        padding: 0.875rem 1rem;
-        font-size: 0.875rem;
-    }
-    
-    [data-filament-panel-id="petugas"] .dark .fi-sidebar-nav-item:hover {
-        background: var(--dark-bg-hover);
-    }
 }
 
-/* Extra small devices (phones, 576px and down) */
-@media (max-width: 576px) {
-    [data-filament-panel-id="petugas"] .fi-wi-stats-overview-stat {
-        padding: 0.75rem;
-    }
-    
-    [data-filament-panel-id="petugas"] .fi-wi-stats-overview-stat-value {
-        font-size: 1.25rem;
-    }
-    
-    [data-filament-panel-id="petugas"] .fi-card {
-        padding: 1rem;
-    }
-    
-    [data-filament-panel-id="petugas"] .chart-container {
-        padding: 0.75rem;
-        min-height: 200px;
-    }
-    
-    /* Mobile Dark Mode Touch Targets */
-    [data-filament-panel-id="petugas"] .dark .fi-btn {
-        min-height: 44px;
-        padding: 0.75rem 1rem;
-    }
-    
-    [data-filament-panel-id="petugas"] .dark .fi-input {
-        min-height: 44px;
-        padding: 0.75rem;
-    }
-}
-
-/* Tablet landscape */
-@media (max-width: 1024px) and (orientation: landscape) {
-    [data-filament-panel-id="petugas"] .fi-wi-grid {
-        gap: 1.25rem;
-    }
-    
-    [data-filament-panel-id="petugas"] .chart-container {
-        padding: 1.25rem;
-    }
-}
-
-/* Enhanced Navigation - Matching Admin Panel Quality */
-[data-filament-panel-id="petugas"] .fi-sidebar-nav-item {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 0.5rem;
-    margin: 0.125rem 0;
-    position: relative;
-}
-
-[data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover {
-    background: rgba(245, 158, 11, 0.1);
-    transform: translateX(3px);
-    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
-}
-
-[data-filament-panel-id="petugas"] .fi-sidebar-nav-item.active {
-    background: linear-gradient(135deg, var(--panel-primary) 0%, var(--panel-primary-dark) 100%);
-    color: white;
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
-    transform: translateX(2px);
-}
-
-[data-filament-panel-id="petugas"] .fi-sidebar-nav-item.active::before {
-    content: '';
-    position: absolute;
-    left: -8px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 3px;
-    height: 60%;
-    background: linear-gradient(180deg, var(--panel-primary), var(--panel-primary-dark));
-    border-radius: 0 2px 2px 0;
-}
-
-/* Navigation Icons Enhancement */
-[data-filament-panel-id="petugas"] .fi-sidebar-nav-item .fi-sidebar-nav-item-icon {
-    transition: all 0.2s ease;
-}
-
-[data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover .fi-sidebar-nav-item-icon {
-    color: var(--panel-primary);
-    transform: scale(1.05);
-}
-
-[data-filament-panel-id="petugas"] .fi-sidebar-nav-item.active .fi-sidebar-nav-item-icon {
-    color: white;
-    transform: scale(1.1);
-}
-
-/* Navigation Text Enhancement */
-[data-filament-panel-id="petugas"] .fi-sidebar-nav-item .fi-sidebar-nav-item-label {
-    transition: all 0.2s ease;
-    font-weight: 500;
-}
-
-[data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover .fi-sidebar-nav-item-label {
-    color: var(--panel-primary);
-    font-weight: 600;
-}
-
-[data-filament-panel-id="petugas"] .fi-sidebar-nav-item.active .fi-sidebar-nav-item-label {
-    color: white;
-    font-weight: 600;
-}
-
-/* Enhanced Navigation Groups */
-[data-filament-panel-id="petugas"] .fi-sidebar-group-label {
-    transition: all 0.2s ease;
-    border-radius: 0.5rem;
-    padding: 0.5rem 1rem;
-}
-
-[data-filament-panel-id="petugas"] .fi-sidebar-group-label:hover {
-    background: rgba(245, 158, 11, 0.1);
-    color: var(--panel-primary);
-}
-
-/* Dark Mode Navigation Enhancement */
-[data-filament-panel-id="petugas"] .dark .fi-sidebar-nav-item {
-    color: var(--dark-text-secondary);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-sidebar-nav-item:hover {
-    background: rgba(245, 158, 11, 0.15);
-    color: var(--dark-text-primary);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-sidebar-nav-item.active {
-    background: linear-gradient(135deg, var(--dark-amber-500) 0%, var(--dark-amber-600) 100%);
-    color: white;
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-sidebar-nav-item:hover .fi-sidebar-nav-item-icon {
-    color: var(--dark-amber-500);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-sidebar-nav-item:hover .fi-sidebar-nav-item-label {
-    color: var(--dark-text-primary);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-sidebar-group-label {
-    color: var(--dark-amber-500);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-sidebar-group-label:hover {
-    background: rgba(245, 158, 11, 0.15);
-    color: var(--dark-amber-500);
-}
-
-/* Comprehensive Dark Mode Support */
-
-/* Dark Mode Color Variables */
-[data-filament-panel-id="petugas"] .dark {
-    /* Dark Background Colors */
-    --dark-bg-primary: #1f2937;
-    --dark-bg-secondary: #374151;
-    --dark-bg-tertiary: #4b5563;
-    --dark-bg-card: rgba(31, 41, 55, 0.95);
-    --dark-bg-hover: rgba(55, 65, 81, 0.8);
-    
-    /* Dark Text Colors - Enhanced for better readability */
-    --dark-text-primary: #ffffff;
-    --dark-text-secondary: #f3f4f6;
-    --dark-text-muted: #d1d5db;
-    
-    /* Dark Border Colors */
-    --dark-border-primary: rgba(75, 85, 99, 0.3);
-    --dark-border-secondary: rgba(107, 114, 128, 0.2);
-    
-    /* Dark Amber Variants for Primary Theme */
-    --dark-amber-50: rgba(254, 243, 199, 0.1);
-    --dark-amber-100: rgba(254, 243, 199, 0.2);
-    --dark-amber-200: rgba(251, 189, 35, 0.3);
-    --dark-amber-500: #f59e0b;
-    --dark-amber-600: #d97706;
-}
-
-/* Background and Main Layout */
-[data-filament-panel-id="petugas"] .dark .fi-main {
-    background: var(--dark-bg-primary);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-main-content {
-    background: transparent;
-}
-
-/* Topbar and Sidebar Dark Mode */
-[data-filament-panel-id="petugas"] .dark .fi-topbar {
-    background: linear-gradient(135deg, var(--dark-bg-secondary) 0%, var(--dark-bg-tertiary) 100%);
-    border-bottom: 1px solid var(--dark-border-primary);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-sidebar {
-    background: var(--dark-bg-secondary);
-    border-right: 1px solid var(--dark-border-primary);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-sidebar-header {
-    background: linear-gradient(135deg, var(--dark-bg-tertiary) 0%, var(--dark-bg-primary) 100%);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-sidebar-header .fi-logo {
-    color: var(--dark-text-primary);
-}
-
-/* Cards and Sections */
+/* Dark Mode Support (Exact Match with Bendahara) */
 [data-filament-panel-id="petugas"] .dark .fi-card {
-    background: var(--dark-bg-card);
-    border-color: var(--dark-border-primary);
-    backdrop-filter: blur(10px);
+    background: rgba(31, 41, 55, 0.95);
+    border-color: rgba(75, 85, 99, 0.3);
 }
 
-[data-filament-panel-id="petugas"] .dark .fi-card:hover {
-    background: var(--dark-bg-hover);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+[data-filament-panel-id="petugas"] .dark .fi-input {
+    background: rgba(31, 41, 55, 0.9);
+    border-color: rgba(75, 85, 99, 0.5);
+    color: rgba(229, 231, 235, 1);
 }
 
 [data-filament-panel-id="petugas"] .dark .fi-section {
-    background: var(--dark-bg-card);
-    border-color: var(--dark-border-primary);
+    background: rgba(31, 41, 55, 0.95);
+    border-color: rgba(75, 85, 99, 0.3);
+}
+
+[data-filament-panel-id="petugas"] .dark .chart-container {
+    background: rgba(31, 41, 55, 0.95);
+    border-color: rgba(75, 85, 99, 0.3);
+}
+
+/* Modal and Action Styling - Enhanced for Financial Validation Center (Exact Match with Bendahara) */
+[data-filament-panel-id="petugas"] .fi-modal {
+    backdrop-filter: blur(8px);
+}
+
+[data-filament-panel-id="petugas"] .fi-modal-content {
+    border-radius: 0.875rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Action Group Styling - Fix for Header Actions (Exact Match with Bendahara) */
+[data-filament-panel-id="petugas"] .fi-ac-grouped-action {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(229, 231, 235, 0.5);
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+[data-filament-panel-id="petugas"] .fi-ac-grouped-action:hover {
+    background: rgba(251, 189, 35, 0.1);
+    border-color: var(--panel-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Action Button Variants (Exact Match with Bendahara) */
+[data-filament-panel-id="petugas"] .fi-btn-success {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border: none;
+    color: white;
+}
+
+[data-filament-panel-id="petugas"] .fi-btn-success:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    transform: translateY(-1px);
+}
+
+[data-filament-panel-id="petugas"] .fi-btn-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    border: none;
+    color: white;
+}
+
+[data-filament-panel-id="petugas"] .fi-btn-danger:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    transform: translateY(-1px);
+}
+
+[data-filament-panel-id="petugas"] .fi-btn-info {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border: none;
+    color: white;
+}
+
+[data-filament-panel-id="petugas"] .fi-btn-info:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    transform: translateY(-1px);
+}
+
+[data-filament-panel-id="petugas"] .fi-btn-gray {
+    background: rgba(107, 114, 128, 0.1);
+    border: 1px solid rgba(107, 114, 128, 0.2);
+    color: rgb(107, 114, 128);
+}
+
+[data-filament-panel-id="petugas"] .fi-btn-gray:hover {
+    background: rgba(107, 114, 128, 0.15);
+    border-color: rgb(107, 114, 128);
+}
+
+/* Tab Styling - For Financial Validation Center (Exact Match with Bendahara) */
+[data-filament-panel-id="petugas"] .fi-tabs {
+    border-bottom: 2px solid rgba(229, 231, 235, 0.5);
+    margin-bottom: 1.5rem;
+}
+
+[data-filament-panel-id="petugas"] .fi-tabs-item {
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem 0.5rem 0 0;
+    transition: all 0.2s ease;
+    border-bottom: 2px solid transparent;
+    font-weight: 500;
+}
+
+[data-filament-panel-id="petugas"] .fi-tabs-item:hover {
+    background: rgba(251, 189, 35, 0.1);
+}
+
+[data-filament-panel-id="petugas"] .fi-tabs-item.fi-active {
+    background: rgba(251, 189, 35, 0.15);
+    border-bottom-color: var(--panel-primary);
+    color: var(--panel-primary-dark);
+    font-weight: 600;
+}
+
+/* Filter Styling - Enhanced (Exact Match with Bendahara) */
+[data-filament-panel-id="petugas"] .fi-ta-filters {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(229, 231, 235, 0.3);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
     backdrop-filter: blur(10px);
 }
 
-/* Stats Overview Widgets Dark Mode */
-[data-filament-panel-id="petugas"] .dark .fi-wi-stats-overview-stat {
-    background: var(--dark-amber-50);
-    border: 1px solid var(--dark-amber-100);
+[data-filament-panel-id="petugas"] .fi-ta-filter {
+    margin-bottom: 0.75rem;
 }
 
-[data-filament-panel-id="petugas"] .dark .fi-wi-stats-overview-stat:hover {
-    background: var(--dark-amber-100);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-wi-stats-overview-stat-value {
-    color: var(--dark-amber-500);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-wi-stats-overview-stat-label {
-    color: var(--dark-text-muted);
-}
-
-/* Badge Dark Mode Variants */
-[data-filament-panel-id="petugas"] .dark .fi-badge-color-success {
-    background-color: rgba(16, 185, 129, 0.2);
-    color: #10b981;
-    border: 1px solid rgba(16, 185, 129, 0.3);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-badge-color-warning {
-    background-color: var(--dark-amber-100);
-    color: var(--dark-amber-500);
-    border: 1px solid var(--dark-amber-200);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-badge-color-danger {
-    background-color: rgba(239, 68, 68, 0.2);
-    color: #f87171;
-    border: 1px solid rgba(239, 68, 68, 0.3);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-badge-color-info {
-    background-color: rgba(59, 130, 246, 0.2);
-    color: #60a5fa;
-    border: 1px solid rgba(59, 130, 246, 0.3);
-}
-
-/* Progress Bar Dark Mode */
-[data-filament-panel-id="petugas"] .dark .progress-bar {
-    background: var(--dark-bg-tertiary);
-}
-
-[data-filament-panel-id="petugas"] .dark .progress-bar-fill {
-    background: linear-gradient(90deg, var(--dark-amber-500) 0%, var(--dark-amber-600) 100%);
-}
-
-/* Button Dark Mode */
-[data-filament-panel-id="petugas"] .dark .fi-btn-primary {
-    background: linear-gradient(135deg, var(--dark-amber-500) 0%, var(--dark-amber-600) 100%);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-btn-primary:hover {
-    background: linear-gradient(135deg, var(--dark-amber-600) 0%, #b45309 100%);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-}
-
-/* Table Dark Mode */
-[data-filament-panel-id="petugas"] .dark .fi-ta-header-cell {
-    background: var(--dark-amber-50);
-    color: var(--dark-amber-500);
-    border-bottom: 1px solid var(--dark-border-primary);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-ta-row {
-    border-bottom: 1px solid var(--dark-border-secondary);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-ta-row:hover {
-    background: var(--dark-amber-50);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-ta-cell {
-    border-bottom: 1px solid var(--dark-border-secondary);
-    color: var(--dark-text-secondary);
-}
-
-/* Form Input Dark Mode */
-[data-filament-panel-id="petugas"] .dark .fi-input {
-    background: var(--dark-bg-secondary);
-    border-color: var(--dark-border-primary);
-    color: var(--dark-text-primary);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-input:focus {
-    border-color: var(--dark-amber-500);
-    box-shadow: 0 0 0 3px var(--dark-amber-100);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-input::placeholder {
-    color: var(--dark-text-muted);
-}
-
-/* Navigation Groups Dark Mode */
-[data-filament-panel-id="petugas"] .dark .fi-sidebar-group-label {
-    color: var(--dark-amber-500);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-sidebar-group-label:hover {
-    background: var(--dark-amber-50);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-sidebar-group-label::after {
-    border-top-color: var(--dark-amber-500);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-sidebar-nav-item {
-    color: var(--dark-text-secondary);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-sidebar-nav-item:hover {
-    background: var(--dark-amber-50);
-    color: var(--dark-amber-500);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-sidebar-nav-item.fi-active {
-    background: var(--dark-amber-100);
-    color: var(--dark-amber-600);
-}
-
-/* Icon Dark Mode */
-[data-filament-panel-id="petugas"] .dark .fi-icon {
-    color: var(--dark-amber-500);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-icon:hover {
-    color: var(--dark-amber-600);
-}
-
-/* Chart Container Dark Mode */
-[data-filament-panel-id="petugas"] .dark .chart-container {
-    background: var(--dark-bg-card);
-    border-color: var(--dark-border-primary);
-}
-
-/* Modal and Overlay Dark Mode */
-[data-filament-panel-id="petugas"] .dark .fi-modal-window {
-    background: var(--dark-bg-secondary);
-    border-color: var(--dark-border-primary);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-modal-header {
-    border-bottom: 1px solid var(--dark-border-primary);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-modal-content {
-    color: var(--dark-text-secondary);
-}
-
-/* Notification Dark Mode */
-[data-filament-panel-id="petugas"] .dark .fi-notification {
-    background: var(--dark-bg-secondary);
-    border-color: var(--dark-border-primary);
-    color: var(--dark-text-primary);
-}
-
-/* Tooltip Dark Mode */
-[data-filament-panel-id="petugas"] .dark .fi-tooltip {
-    background: var(--dark-bg-tertiary);
-    color: var(--dark-text-primary);
-    border: 1px solid var(--dark-border-primary);
-}
-
-/* Dropdown Dark Mode */
-[data-filament-panel-id="petugas"] .dark .fi-dropdown-panel {
-    background: var(--dark-bg-secondary);
-    border-color: var(--dark-border-primary);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-dropdown-list-item:hover {
-    background: var(--dark-amber-50);
-}
-
-/* Text Dark Mode */
-[data-filament-panel-id="petugas"] .dark h1,
-[data-filament-panel-id="petugas"] .dark h2,
-[data-filament-panel-id="petugas"] .dark h3,
-[data-filament-panel-id="petugas"] .dark h4,
-[data-filament-panel-id="petugas"] .dark h5,
-[data-filament-panel-id="petugas"] .dark h6 {
-    color: var(--dark-text-primary);
-}
-
-[data-filament-panel-id="petugas"] .dark p {
-    color: var(--dark-text-secondary);
-}
-
-[data-filament-panel-id="petugas"] .dark .text-gray-500 {
-    color: var(--dark-text-muted) !important;
-}
-
-[data-filament-panel-id="petugas"] .dark .text-gray-900 {
-    color: var(--dark-text-primary) !important;
-}
-
-/* Enhanced Text Readability for Dark Mode */
-[data-filament-panel-id="petugas"] .dark .text-gray-400 {
-    color: var(--dark-text-muted) !important;
-}
-
-[data-filament-panel-id="petugas"] .dark .text-gray-300 {
-    color: var(--dark-text-secondary) !important;
-}
-
-[data-filament-panel-id="petugas"] .dark .text-gray-700 {
-    color: var(--dark-text-secondary) !important;
-}
-
-/* Progress bar text improvements */
-[data-filament-panel-id="petugas"] .dark .progress-text {
-    color: var(--dark-text-secondary) !important;
-    font-weight: 500;
-}
-
-/* Activity feed text improvements */
-[data-filament-panel-id="petugas"] .dark .activity-meta {
-    color: var(--dark-text-muted) !important;
-    font-weight: 400;
-}
-
-/* Chart label improvements */
-[data-filament-panel-id="petugas"] .dark .chart-label {
-    color: var(--dark-text-secondary) !important;
-}
-
-/* Enhanced Chart Readability */
-[data-filament-panel-id="petugas"] .dark .apexcharts-text {
-    fill: #ffffff !important;
-}
-
-[data-filament-panel-id="petugas"] .dark .apexcharts-legend-text {
-    color: #ffffff !important;
-}
-
-[data-filament-panel-id="petugas"] .dark .apexcharts-xaxis-label {
-    fill: #f3f4f6 !important;
-}
-
-[data-filament-panel-id="petugas"] .dark .apexcharts-yaxis-label {
-    fill: #f3f4f6 !important;
-}
-
-[data-filament-panel-id="petugas"] .dark .apexcharts-gridline {
-    stroke: #6b7280 !important;
-}
-
-/* Chart title enhancements */
-[data-filament-panel-id="petugas"] .dark h3 {
-    color: #ffffff !important;
+/* Summary Styling - For Financial Validation (Exact Match with Bendahara) */
+[data-filament-panel-id="petugas"] .fi-ta-summary {
+    background: rgba(251, 189, 35, 0.05);
+    border: 1px solid rgba(251, 189, 35, 0.1);
+    border-radius: 0.5rem;
+    padding: 1rem;
     font-weight: 600;
+    color: var(--panel-primary-dark);
 }
 
-/* Comprehensive Text Readability Overrides */
-[data-filament-panel-id="petugas"] .dark .text-gray-100 {
-    color: #ffffff !important;
+/* Loading State Styling (Exact Match with Bendahara) */
+[data-filament-panel-id="petugas"] .fi-loading {
+    background: linear-gradient(90deg, 
+        rgba(251, 189, 35, 0.1) 0%, 
+        rgba(251, 189, 35, 0.2) 50%, 
+        rgba(251, 189, 35, 0.1) 100%);
+    background-size: 200% 100%;
+    animation: petugas-loading 1.5s ease-in-out infinite;
 }
 
-[data-filament-panel-id="petugas"] .dark .text-gray-200 {
-    color: #f9fafb !important;
+@keyframes petugas-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
 }
 
-[data-filament-panel-id="petugas"] .dark .text-gray-300 {
-    color: #f3f4f6 !important;
+/* Notification Styling (Exact Match with Bendahara) */
+[data-filament-panel-id="petugas"] .fi-no {
+    border-radius: 0.75rem;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
-[data-filament-panel-id="petugas"] .dark .text-gray-400 {
-    color: #e5e7eb !important;
-}
-
-/* Card content text improvements */
-[data-filament-panel-id="petugas"] .dark .card-value {
-    color: #ffffff !important;
-    font-weight: 600;
-}
-
-[data-filament-panel-id="petugas"] .dark .card-label {
-    color: #f3f4f6 !important;
-    font-weight: 500;
-}
-
-/* Icon contrast improvements */
-[data-filament-panel-id="petugas"] .dark .text-green-400 {
-    color: #86efac !important;
-}
-
-[data-filament-panel-id="petugas"] .dark .text-red-400 {
-    color: #fca5a5 !important;
-}
-
-[data-filament-panel-id="petugas"] .dark .text-blue-400 {
-    color: #93c5fd !important;
-}
-
-[data-filament-panel-id="petugas"] .dark .text-green-300 {
-    color: #86efac !important;
-}
-
-[data-filament-panel-id="petugas"] .dark .text-red-300 {
-    color: #fca5a5 !important;
-}
-
-[data-filament-panel-id="petugas"] .dark .text-blue-300 {
-    color: #93c5fd !important;
-}
-
-/* Activity feed improvements */
-[data-filament-panel-id="petugas"] .dark .activity-description {
-    color: #ffffff !important;
-    font-weight: 500;
-}
-
-[data-filament-panel-id="petugas"] .dark .activity-meta {
-    color: #e5e7eb !important;
-}
-
-/* Ensure all main values are white */
-[data-filament-panel-id="petugas"] .dark p.text-lg {
-    color: #ffffff !important;
-}
-
-/* Ensure all medium text is light */
-[data-filament-panel-id="petugas"] .dark span.font-medium {
-    color: #ffffff !important;
-}
-
-/* Advanced Dark Mode Polish */
-
-/* Focus States for Dark Mode */
-[data-filament-panel-id="petugas"] .dark .fi-input:focus-within {
-    border-color: var(--dark-amber-500);
-    box-shadow: 0 0 0 3px var(--dark-amber-100);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-btn:focus {
-    box-shadow: 0 0 0 3px var(--dark-amber-200);
-}
-
-/* Enhanced Transitions */
-[data-filament-panel-id="petugas"] .dark * {
-    transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease;
-}
-
-/* Scroll Bars Dark Mode */
-[data-filament-panel-id="petugas"] .dark ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-[data-filament-panel-id="petugas"] .dark ::-webkit-scrollbar-track {
-    background: var(--dark-bg-secondary);
-}
-
-[data-filament-panel-id="petugas"] .dark ::-webkit-scrollbar-thumb {
-    background: var(--dark-bg-tertiary);
-    border-radius: 4px;
-}
-
-[data-filament-panel-id="petugas"] .dark ::-webkit-scrollbar-thumb:hover {
-    background: var(--dark-amber-500);
-}
-
-/* Selection Colors Dark Mode */
-[data-filament-panel-id="petugas"] .dark ::selection {
-    background: var(--dark-amber-200);
-    color: var(--dark-bg-primary);
-}
-
-/* Loading States */
-[data-filament-panel-id="petugas"] .dark .fi-loading {
-    color: var(--dark-text-muted);
-}
-
-/* Enhanced Widget Animations */
-[data-filament-panel-id="petugas"] .fi-widget {
-    animation: fadeInUp 0.5s ease-out;
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Pulse Animation for Live Data */
-[data-filament-panel-id="petugas"] .live-indicator {
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.5;
-    }
-}
-
-/* Theme Toggle Preparation */
-[data-filament-panel-id="petugas"] .theme-toggle {
-    position: relative;
-    overflow: hidden;
-}
-
-[data-filament-panel-id="petugas"] .theme-toggle::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    transition: left 0.5s ease;
-}
-
-[data-filament-panel-id="petugas"] .theme-toggle:hover::before {
-    left: 100%;
-}
-
-/* Dark Mode Badge Enhancements */
-[data-filament-panel-id="petugas"] .dark .fi-badge {
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-/* Dark Mode Alert/Notification Styles */
-[data-filament-panel-id="petugas"] .dark .fi-alert {
-    background: var(--dark-bg-card);
-    border-color: var(--dark-border-primary);
-    color: var(--dark-text-primary);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-alert-success {
+[data-filament-panel-id="petugas"] .fi-no-success {
     background: rgba(16, 185, 129, 0.1);
-    border-color: rgba(16, 185, 129, 0.3);
-    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.2);
 }
 
-[data-filament-panel-id="petugas"] .dark .fi-alert-warning {
-    background: var(--dark-amber-100);
-    border-color: var(--dark-amber-200);
-    color: var(--dark-amber-500);
+[data-filament-panel-id="petugas"] .fi-no-warning {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.2);
 }
 
-[data-filament-panel-id="petugas"] .dark .fi-alert-danger {
+[data-filament-panel-id="petugas"] .fi-no-danger {
     background: rgba(239, 68, 68, 0.1);
-    border-color: rgba(239, 68, 68, 0.3);
-    color: #f87171;
+    border-color: rgba(239, 68, 68, 0.2);
 }
 
-/* Print Styles for Dark Mode */
-@media print {
-    [data-filament-panel-id="petugas"] .dark {
-        background: white !important;
-        color: black !important;
-    }
-    
-    [data-filament-panel-id="petugas"] .dark * {
-        background: white !important;
-        color: black !important;
-        border-color: #ccc !important;
-    }
+/* Enhanced Dark Mode for New Components (Exact Match with Bendahara) */
+[data-filament-panel-id="petugas"] .dark .fi-ac-grouped-action {
+    background: rgba(31, 41, 55, 0.95);
+    border-color: rgba(75, 85, 99, 0.5);
+    color: rgba(229, 231, 235, 1);
 }
 
-/* High Contrast Mode Support */
-@media (prefers-contrast: high) {
-    [data-filament-panel-id="petugas"] .dark {
-        --dark-bg-primary: #000000;
-        --dark-bg-secondary: #1a1a1a;
-        --dark-text-primary: #ffffff;
-        --dark-border-primary: #666666;
-    }
+[data-filament-panel-id="petugas"] .dark .fi-ac-grouped-action:hover {
+    background: rgba(245, 158, 11, 0.2);
+    border-color: var(--panel-primary);
 }
 
-/* Reduced Motion Support */
-@media (prefers-reduced-motion: reduce) {
-    [data-filament-panel-id="petugas"] * {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
+[data-filament-panel-id="petugas"] .dark .fi-ta-filters {
+    background: rgba(31, 41, 55, 0.95);
+    border-color: rgba(75, 85, 99, 0.3);
 }
-/* IMPORT WORLD-CLASS MINIMALIST CSS FILES */
-@import 'world-class-crud.css';
-@import 'world-class-forms.css';
+
+[data-filament-panel-id="petugas"] .dark .fi-tabs-item.fi-active {
+    background: rgba(245, 158, 11, 0.2);
+    color: var(--panel-primary-light);
+}
+
+[data-filament-panel-id="petugas"] .dark .fi-ta-summary {
+    background: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.2);
+    color: var(--panel-primary-light);
+}

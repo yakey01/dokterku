@@ -31,29 +31,16 @@ class PetugasPanelProvider extends PanelProvider
             ->brandName('Petugas Dashboard')
             ->viteTheme([
                 'resources/css/filament/petugas/theme.css',
-                'resources/css/filament/petugas/world-class-crud.css',
-                'resources/css/filament/petugas/world-class-2025.css',
-                'resources/css/filament/petugas/world-class-crud-enhanced.css',
-                'resources/css/filament/petugas/world-class-patient-table.css',
-                'resources/css/filament/petugas/world-class-forms.css',
-                'resources/css/filament/petugas/white-glass-tabs.css',
-                'resources/css/filament/petugas/ultra-world-class-2025.css',
-                'resources/js/world-class-form-enhancer.js',
             ])
             ->colors([
-                'primary' => Color::Blue,
-                'success' => Color::Emerald,
-                'warning' => Color::Amber,
+                'primary' => Color::Amber,
+                'success' => Color::Green,
+                'warning' => Color::Orange,
                 'danger' => Color::Red,
-                'info' => Color::Indigo,
+                'info' => Color::Blue,
                 'gray' => Color::Slate,
             ])
-            ->darkMode(false)
             ->maxContentWidth('full')
-            ->renderHook(
-                'panels::head.end',
-                fn (): string => view('filament.petugas.world-class-2025-ui')->render()
-            )
             ->sidebarCollapsibleOnDesktop()
             ->resources([
                 // Patient Management
@@ -69,38 +56,30 @@ class PetugasPanelProvider extends PanelProvider
                 \App\Filament\Petugas\Resources\ValidasiPendapatanResource::class,
             ])
             ->navigationGroups([
-                NavigationGroup::make()
-                    ->label('Dashboard')
-                    ->icon('heroicon-o-home')
-                    ->collapsed(),
-                NavigationGroup::make()
-                    ->label('Manajemen Pasien')
-                    ->icon('heroicon-o-users')
-                    ->collapsed(),
-                NavigationGroup::make()
-                    ->label('Tindakan Medis')
-                    ->icon('heroicon-o-heart')
-                    ->collapsed(),
-                NavigationGroup::make()
-                    ->label('Keuangan')
-                    ->icon('heroicon-o-currency-dollar')
-                    ->collapsed(),
-                NavigationGroup::make()
-                    ->label('Laporan & Analytics')
-                    ->icon('heroicon-o-chart-bar')
-                    ->collapsed(),
-                NavigationGroup::make()
-                    ->label('Quick Actions')
-                    ->icon('heroicon-o-bolt')
-                    ->collapsed(),
-                NavigationGroup::make()
-                    ->label('System')
-                    ->icon('heroicon-o-cog-6-tooth')
-                    ->collapsed(),
+                NavigationGroup::make('Dashboard')
+                    ->collapsed(false),
+                NavigationGroup::make('Manajemen Pasien')
+                    ->collapsed(true)
+                    ->collapsible(),
+                NavigationGroup::make('Tindakan Medis')
+                    ->collapsed(true)
+                    ->collapsible(),
+                NavigationGroup::make('Keuangan')
+                    ->collapsed(true)
+                    ->collapsible(),
+                NavigationGroup::make('Laporan & Analytics')
+                    ->collapsed(true)
+                    ->collapsible(),
+                NavigationGroup::make('Quick Actions')
+                    ->collapsed(true)
+                    ->collapsible(),
+                NavigationGroup::make('System')
+                    ->collapsed(true)
+                    ->collapsible(),
             ])
             ->pages([
-                // World-Class Dashboard with modern UI/UX
-                \App\Filament\Petugas\Pages\WorldClassDashboard::class,
+                // Main Bendahara-Style Dashboard
+                \App\Filament\Petugas\Pages\BendaharaStyleDashboard::class,
             ])
             ->widgets([
                 // Widgets are now managed by Dashboard page directly

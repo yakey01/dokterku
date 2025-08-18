@@ -8,11 +8,13 @@ class Dashboard extends BaseDashboard
 {
     protected static ?string $navigationIcon = 'heroicon-o-home';
     
-    protected static ?string $navigationGroup = 'Dashboard';
+    protected static ?string $navigationGroup = null; // Top level
     
     protected static ?string $title = 'Dashboard Petugas';
     
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = -1; // First in list
+    
+    protected static ?string $slug = '/'; // Default page
 
     public function getWidgets(): array
     {

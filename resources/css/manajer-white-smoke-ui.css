@@ -1,0 +1,78 @@
+/* ============================================
+   MANAJER WHITE SMOKE UI - TAILWINDCSS 4
+   Classy Healthcare Management Interface
+   ============================================ */
+
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* ==================== BASE STYLES ==================== */
+.manajer-dashboard {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #fafafa;
+  min-height: 100vh;
+  transition: background-color 0.3s ease;
+}
+
+.dark .manajer-dashboard {
+  background: #171717;
+}
+
+/* ==================== GLASSMORPHISM ==================== */
+.topbar-glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(229, 229, 229, 0.5);
+}
+
+.dark .topbar-glass {
+  background: rgba(23, 23, 23, 0.8);
+  border-bottom-color: rgba(64, 64, 64, 0.5);
+}
+
+/* ==================== ANIMATIONS ==================== */
+@keyframes loading-shimmer {
+  0% { background-position: 0 0; }
+  100% { background-position: 20px 20px; }
+}
+
+.loading-skeleton {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  background-size: 200px 100%;
+  animation: loading-shimmer 1.5s infinite;
+}
+
+/* ==================== SCROLLBAR ==================== */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #d4d4d4 #f5f5f5;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f5f5f5;
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #d4d4d4;
+  border-radius: 3px;
+}
+
+.dark .custom-scrollbar {
+  scrollbar-color: #525252 #262626;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-track {
+  background: #262626;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #525252;
+}

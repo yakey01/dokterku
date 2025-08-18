@@ -3,7 +3,6 @@ import { Activity, Heart, TrendingUp, Award, Clock, CheckCircle } from 'lucide-r
 import { 
   DynamicProgressBar, 
   AttendanceProgressBar, 
-  JaspelProgressBar, 
   PerformanceProgressBar,
   useProgressBar 
 } from './DynamicProgressBar';
@@ -113,27 +112,8 @@ export const MedicalProgressDashboard: React.FC<MedicalProgressDashboardProps> =
       </div>
 
       {/* Secondary Metrics */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
-        {/* Jaspel Progress */}
-        <div className="bg-white/5 backdrop-blur-2xl rounded-3xl p-6 border border-white/10">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h4 className="font-semibold text-white">Jaspel Progress</h4>
-              <p className="text-green-300 text-xs">Monthly Target</p>
-            </div>
-          </div>
-          
-          <JaspelProgressBar
-            currentJaspel={currentJaspel}
-            targetJaspel={targetJaspel}
-            delay={1100}
-          />
-        </div>
-
         {/* Procedure Success Rate */}
         <div className="bg-white/5 backdrop-blur-2xl rounded-3xl p-6 border border-white/10">
           <div className="flex items-center space-x-3 mb-4">

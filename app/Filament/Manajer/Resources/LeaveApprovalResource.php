@@ -19,7 +19,7 @@ class LeaveApprovalResource extends Resource
     
     protected static ?string $navigationLabel = 'Leave Approvals';
     
-    protected static ?string $navigationGroup = '👥 Personnel Management';
+    protected static ?string $navigationGroup = '👥 Staff Management';
 
     public static function form(Form $form): Form
     {

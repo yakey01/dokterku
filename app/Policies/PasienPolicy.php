@@ -13,7 +13,10 @@ class PasienPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view-patients');
+        // Allow petugas role and other medical staff to view patients
+        return $user->hasRole('petugas') || 
+               $user->hasRole(['admin', 'manajer', 'dokter']) ||
+               $user->can('view-patients');
     }
 
     /**
@@ -21,7 +24,10 @@ class PasienPolicy
      */
     public function view(User $user, Pasien $pasien): bool
     {
-        return $user->can('view-patients');
+        // Allow petugas role and other medical staff to view patients
+        return $user->hasRole('petugas') || 
+               $user->hasRole(['admin', 'manajer', 'dokter']) ||
+               $user->can('view-patients');
     }
 
     /**
@@ -29,7 +35,10 @@ class PasienPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create-patients');
+        // Allow petugas role and other medical staff to create patients
+        return $user->hasRole('petugas') || 
+               $user->hasRole(['admin', 'manajer', 'dokter']) ||
+               $user->can('create-patients');
     }
 
     /**
@@ -37,7 +46,10 @@ class PasienPolicy
      */
     public function update(User $user, Pasien $pasien): bool
     {
-        return $user->can('edit-patients');
+        // Allow petugas role and other medical staff to update patients
+        return $user->hasRole('petugas') || 
+               $user->hasRole(['admin', 'manajer', 'dokter']) ||
+               $user->can('edit-patients');
     }
 
     /**
@@ -45,7 +57,10 @@ class PasienPolicy
      */
     public function delete(User $user, Pasien $pasien): bool
     {
-        return $user->can('delete-patients');
+        // Allow petugas role and other medical staff to delete patients
+        return $user->hasRole('petugas') || 
+               $user->hasRole(['admin', 'manajer']) ||
+               $user->can('delete-patients');
     }
 
     /**

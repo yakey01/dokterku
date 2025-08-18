@@ -18,7 +18,7 @@ class EmployeePerformanceResource extends Resource
     
     protected static ?string $navigationLabel = 'Employee Performance';
     
-    protected static ?string $navigationGroup = '👥 Personnel Management';
+    protected static ?string $navigationGroup = '👥 Staff Management';
 
     public static function form(Form $form): Form
     {
@@ -59,12 +59,14 @@ class EmployeePerformanceResource extends Resource
                     ->label('NIK')
                     ->searchable(),
                     
-                Tables\Columns\BadgeColumn::make('jenis_pegawai')
+                Tables\Columns\TextColumn::make('jenis_pegawai')
                     ->label('Type')
-                    ->colors([
-                        'primary' => 'Paramedis',
-                        'success' => 'Non-Paramedis',
-                    ]),
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'Paramedis' => 'primary',
+                        'Non-Paramedis' => 'success',
+                        default => 'gray',
+                    }),
 
                 Tables\Columns\TextColumn::make('jabatan')
                     ->label('Position')

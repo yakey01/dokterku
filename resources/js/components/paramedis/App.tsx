@@ -17,8 +17,18 @@ import {
   Moon,
   DoorOpen,
   Settings,
-  KeyRound
+  KeyRound,
+  Wifi,
+  WifiOff
 } from 'lucide-react';
+
+// 🚀 Real-time WebSocket integration
+declare global {
+  interface Window {
+    Echo: any;
+    Pusher: any;
+  }
+}
 import { Dashboard } from './Dashboard';
 import { JadwalJaga } from './JadwalJaga';
 import { Jaspel } from './Jaspel';
@@ -45,19 +55,108 @@ function AppContent() {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  
+  // 🚀 Real-time WebSocket state
+  const [realtimeConnected, setRealtimeConnected] = useState(false);
+  const [realtimeNotifications, setRealtimeNotifications] = useState<any[]>([]);
+  const [lastUpdateTime, setLastUpdateTime] = useState<string>('Never');
 
-  // Get user data from meta tag
+  // Get user data from meta tag and setup real-time connection
   useEffect(() => {
     const userDataMeta = document.querySelector('meta[name="user-data"]');
     if (userDataMeta) {
       try {
         const data = JSON.parse(userDataMeta.getAttribute('content') || '{}');
         setUserData(data);
+        
+        // 🚀 Setup real-time connection for this user
+        if (data.id && isLoggedIn) {
+          setupRealtimeConnection(data.id, 'paramedis');
+        }
       } catch (e) {
         console.error('Error parsing user data:', e);
       }
     }
-  }, []);
+  }, [isLoggedIn]);
+
+  // 🚀 Real-time WebSocket setup function
+  const setupRealtimeConnection = (userId: number, userRole: string) => {
+    try {
+      if (typeof window !== 'undefined' && window.Echo) {
+        console.log(`🔌 Setting up real-time connection for ${userRole} user ${userId}...`);
+        
+        // Listen to role-specific private channel
+        window.Echo.private(`${userRole}.${userId}`)
+          .listen('tindakan.validated', (event: any) => {
+            console.log('🎯 Paramedis received validation update:', event);
+            showRealtimeNotification(event.notification);
+            setLastUpdateTime(new Date().toLocaleTimeString());
+            
+            // Trigger data refresh in relevant components
+            window.dispatchEvent(new CustomEvent('paramedis-data-refresh'));
+          })
+          .listen('jaspel.updated', (event: any) => {
+            console.log('💰 Paramedis received JASPEL update:', event);
+            showRealtimeNotification(event.notification);
+            setLastUpdateTime(new Date().toLocaleTimeString());
+            
+            // Trigger JASPEL refresh
+            window.dispatchEvent(new CustomEvent('paramedis-jaspel-refresh'));
+          });
+        
+        // Listen to public channels for general updates
+        window.Echo.channel('medical.procedures')
+          .listen('tindakan.input.created', (event: any) => {
+            console.log('📝 New tindakan input detected:', event);
+            
+            // Only show notification if it affects this paramedis
+            if (event.tindakan.paramedis_user_id === userId) {
+              showRealtimeNotification({
+                title: '📝 Tindakan Baru',
+                message: `${event.tindakan.jenis_tindakan} telah diinput untuk validasi`,
+                type: 'info'
+              });
+            }
+          });
+        
+        // Connection status listeners
+        window.Echo.connector.pusher.connection.bind('connected', () => {
+          console.log('✅ Paramedis WebSocket connected');
+          setRealtimeConnected(true);
+        });
+        
+        window.Echo.connector.pusher.connection.bind('disconnected', () => {
+          console.log('❌ Paramedis WebSocket disconnected');
+          setRealtimeConnected(false);
+        });
+        
+      } else {
+        console.log('⚠️ Echo not available for paramedis, using polling fallback...');
+        setRealtimeConnected(false);
+      }
+    } catch (error) {
+      console.error('❌ Failed to setup paramedis WebSocket:', error);
+      setRealtimeConnected(false);
+    }
+  };
+
+  // Real-time notification handler
+  const showRealtimeNotification = (notification: any) => {
+    console.log('📢 Showing paramedis notification:', notification);
+    
+    const newNotification = {
+      id: Date.now(),
+      ...notification,
+      timestamp: new Date().toLocaleTimeString(),
+    };
+    
+    setRealtimeNotifications(prev => [newNotification, ...prev.slice(0, 4)]);
+    
+    // Auto-remove after 8 seconds
+    setTimeout(() => {
+      setRealtimeNotifications(prev => prev.filter(n => n.id !== newNotification.id));
+    }, 8000);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -34,12 +34,14 @@ class StrategicPlanningResource extends Resource
                     ->searchable()
                     ->sortable(),
                     
-                Tables\Columns\BadgeColumn::make('jenis_pegawai')
+                Tables\Columns\TextColumn::make('jenis_pegawai')
                     ->label('Type')
-                    ->colors([
-                        'primary' => 'Paramedis',
-                        'success' => 'Non-Paramedis',
-                    ]),
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'Paramedis' => 'primary',
+                        'Non-Paramedis' => 'success',
+                        default => 'gray',
+                    }),
 
                 Tables\Columns\TextColumn::make('monthly_performance')
                     ->label('Monthly Performance')

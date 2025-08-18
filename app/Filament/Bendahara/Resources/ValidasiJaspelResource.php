@@ -99,76 +99,38 @@ class ValidasiJaspelResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('tanggal')
-                    ->label('Tanggal')
-                    ->date('d/m/Y')
-                    ->sortable(),
-
-                Tables\Columns\TextColumn::make('user.name')
-                    ->label('Dokter/Staff')
+                Tables\Columns\TextColumn::make('tindakan.jenisTindakan.nama')
+                    ->label('📋 Nama Tindakan')
                     ->searchable()
-                    ->sortable(),
+                    ->limit(40)
+                    ->weight('bold')
+                    ->color('primary')
+                    ->description(fn ($record) => $record->keterangan ? "💬 {$record->keterangan}" : null),
 
-                Tables\Columns\TextColumn::make('tindakan.nama_tindakan')
-                    ->label('Tindakan')
-                    ->searchable()
-                    ->limit(30),
-
-                Tables\Columns\TextColumn::make('jenis_jaspel')
-                    ->label('Jenis')
+                Tables\Columns\TextColumn::make('tindakan.shiftTemplate.nama_shift')
+                    ->label('⏰ Shift')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'dokter_umum' => 'success',
-                        'dokter_spesialis' => 'warning',
-                        'paramedis' => 'info',
-                        'administrasi' => 'gray',
-                        default => 'gray',
+                        'Pagi' => 'info',
+                        'Siang' => 'warning', 
+                        'Sore' => 'warning',
+                        'Malam' => 'primary',
+                        default => 'gray'
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'dokter_umum' => '👨‍⚕️ Dokter Umum',
-                        'dokter_spesialis' => '🩺 Spesialis',
-                        'paramedis' => '👩‍⚕️ Paramedis',
-                        'administrasi' => '📋 Admin',
-                        default => ucfirst($state),
+                        'Pagi' => '🌅 Pagi',
+                        'Siang' => '☀️ Siang',
+                        'Sore' => '🌇 Sore', 
+                        'Malam' => '🌙 Malam',
+                        default => $state ?: '❓ Tidak Diketahui'
                     }),
 
-                Tables\Columns\TextColumn::make('nominal')
-                    ->label('Nominal')
-                    ->money('IDR')
+                Tables\Columns\TextColumn::make('tanggal')
+                    ->label('📅 Tanggal')
+                    ->date('d/m/Y')
                     ->sortable()
-                    ->alignEnd(),
-
-                Tables\Columns\TextColumn::make('status_validasi')
-                    ->label('Status')
-                    ->color(fn (string $state): string => match ($state) {
-                        'pending' => 'warning',
-                        'disetujui' => 'success',
-                        'ditolak' => 'danger',
-                        'need_revision' => 'info',
-                        default => 'gray',
-                    })
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'pending' => '⏳ Menunggu',
-                        'disetujui' => '✅ Disetujui',
-                        'ditolak' => '❌ Ditolak',
-                        'need_revision' => '📝 Revisi',
-                        default => ucfirst($state),
-                    }),
-
-                Tables\Columns\TextColumn::make('shift.nama_shift')
-                    ->label('Shift')
-                    ->toggleable(),
-
-                Tables\Columns\TextColumn::make('validasiBy.name')
-                    ->label('Validasi Oleh')
-                    ->placeholder('-')
-                    ->toggleable(),
-
-                Tables\Columns\TextColumn::make('created_at')
-                    ->label('Dibuat')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->description(fn ($record) => $record->tanggal->format('l'))
+                    ->color('gray'),
             ])
             ->filters([
                 Tables\Filters\Filter::make('tanggal')
@@ -429,7 +391,12 @@ class ValidasiJaspelResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['user', 'tindakan', 'shift', 'validasiBy']);
+            ->with([
+                'user', 
+                'tindakan.jenisTindakan', 
+                'tindakan.shiftTemplate',
+                'validasiBy'
+            ]);
     }
 
     public static function getNavigationBadge(): ?string

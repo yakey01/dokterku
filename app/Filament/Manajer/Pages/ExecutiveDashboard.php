@@ -154,19 +154,28 @@ class ExecutiveDashboard extends Page
             
             $monthlyRevenue = PendapatanHarian::whereMonth('tanggal_input', $date->month)
                 ->whereYear('tanggal_input', $date->year)
-                ->sum('nominal');
+                ->sum('nominal') ?? 0;
                 
             $monthlyExpenses = PengeluaranHarian::whereMonth('tanggal_input', $date->month)
                 ->whereYear('tanggal_input', $date->year)
-                ->sum('nominal');
+                ->sum('nominal') ?? 0;
                 
             $monthlyNetProfit = $monthlyRevenue - $monthlyExpenses;
             $monthlyProfitMargin = $monthlyRevenue > 0 ? ($monthlyNetProfit / $monthlyRevenue) * 100 : 0;
             
-            $revenue[] = $monthlyRevenue;
-            $expenses[] = $monthlyExpenses;
-            $netProfit[] = $monthlyNetProfit;
-            $profitMargin[] = round($monthlyProfitMargin, 2);
+            $revenue[] = (float) $monthlyRevenue;
+            $expenses[] = (float) $monthlyExpenses;
+            $netProfit[] = (float) $monthlyNetProfit;
+            $profitMargin[] = round((float) $monthlyProfitMargin, 2);
+        }
+        
+        // Ensure arrays are not empty and have valid data
+        if (empty($months)) {
+            $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+            $revenue = [0, 0, 0, 0, 0, 0];
+            $expenses = [0, 0, 0, 0, 0, 0];
+            $netProfit = [0, 0, 0, 0, 0, 0];
+            $profitMargin = [0, 0, 0, 0, 0, 0];
         }
         
         return [

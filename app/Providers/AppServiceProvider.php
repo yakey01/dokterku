@@ -57,6 +57,9 @@ class AppServiceProvider extends ServiceProvider
         
         // Register work location observer for real-time updates
         $this->registerWorkLocationObserver();
+        
+        // Register tindakan observer for real-time JASPEL sync
+        $this->registerTindakanObserver();
     }
 
     /**
@@ -91,5 +94,13 @@ class AppServiceProvider extends ServiceProvider
     private function registerWorkLocationObserver(): void
     {
         \App\Models\WorkLocation::observe(\App\Observers\WorkLocationObserver::class);
+    }
+    
+    /**
+     * Register tindakan observer for real-time JASPEL synchronization
+     */
+    private function registerTindakanObserver(): void
+    {
+        \App\Models\Tindakan::observe(\App\Observers\TindakanObserver::class);
     }
 }

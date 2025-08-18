@@ -822,8 +822,21 @@ class AttendanceController extends BaseApiController
                         }
                     }
                     
-                    if (!$canCheckIn && $todaySchedules->isEmpty()) {
-                        $message = 'Tidak ada jadwal untuk hari ini';
+                    if (!$canCheckIn) {
+                        if ($todaySchedules->isEmpty()) {
+                            $message = 'Tidak ada jadwal untuk hari ini';
+                        } else {
+                            // Find earliest shift and show when check-in opens
+                            $earliestShift = $todaySchedules->first();
+                            $shift = $earliestShift->shiftTemplate;
+                            if ($shift) {
+                                $shiftStart = Carbon::parse($today->format('Y-m-d') . ' ' . $shift->jam_masuk);
+                                $windowStart = $shiftStart->copy()->subMinutes($toleranceEarly);
+                                $message = 'Check-in untuk shift ' . $shift->nama_shift . ' mulai pukul ' . $windowStart->format('H:i');
+                            } else {
+                                $message = 'Belum waktunya check-in';
+                            }
+                        }
                     }
                 }
             }

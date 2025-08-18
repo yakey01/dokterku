@@ -27,6 +27,13 @@ Route::prefix('v2/dashboards')->middleware(['auth:sanctum', 'throttle:240,1'])->
     Route::get('/paramedis/attendance', [\App\Http\Controllers\Api\V2\Dashboards\ParamedisDashboardController::class, 'getAttendance']);
     Route::get('/paramedis/attendance/status', [\App\Http\Controllers\Api\V2\AttendanceStatusController::class, 'dashboardStatus']);
     Route::get('/paramedis/schedules', [\App\Http\Controllers\Api\V2\Dashboards\ParamedisDashboardController::class, 'getSchedules']);
+    
+    // Dokter Dashboard
+    Route::get('/dokter', [\App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'index']);
+    Route::get('/dokter/jaspel', [\App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'getJaspelData']);
+    Route::get('/dokter/jaspel/current-month', [\App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'getCurrentMonthJaspelProgress']);
+    Route::get('/dokter/attendance', [\App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'getAttendance']);
+    Route::get('/dokter/schedules', [\App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'getSchedules']);
 });
 
 // API Version 2 Routes (Non-Dashboard) - Standard rate limits
@@ -38,6 +45,14 @@ Route::middleware('auth:sanctum')->group(function () {
     // User info
     Route::get('/user', function (Request $request) {
         return $request->user();
+    });
+
+    // Security Management Routes
+    Route::prefix('v2/auth')->group(function () {
+        Route::post('/change-password', [\App\Http\Controllers\Api\V2\Auth\AuthController::class, 'changePassword']);
+        Route::post('/setup-2fa', [\App\Http\Controllers\Api\V2\Auth\AuthController::class, 'setup2FA']);
+        Route::post('/verify-2fa', [\App\Http\Controllers\Api\V2\Auth\AuthController::class, 'verify2FA']);
+        Route::post('/disable-2fa', [\App\Http\Controllers\Api\V2\Auth\AuthController::class, 'disable2FA']);
     });
 
     // Bendahara API - Financial Management & Reporting
@@ -299,6 +314,19 @@ Route::prefix('v2')->group(function () {
                 // Admin only endpoint
                 Route::post('/calculate-from-tindakan', [App\Http\Controllers\Api\V2\Jaspel\JaspelController::class, 'calculateFromTindakan'])
                     ->middleware(['role:admin,bendahara']);
+                
+                // Jaspel Comparison endpoints
+                Route::prefix('comparison')->group(function () {
+                    Route::get('/monthly', [App\Http\Controllers\Api\V2\JaspelComparisonController::class, 'getMonthlyComparison']);
+                    Route::get('/quarterly', [App\Http\Controllers\Api\V2\JaspelComparisonController::class, 'getQuarterlyTrend']);
+                });
+                
+                // Validated Jaspel endpoints
+                Route::prefix('validated')->group(function () {
+                    Route::get('/gaming-data', [App\Http\Controllers\Api\V2\ValidatedJaspelController::class, 'getGamingData']);
+                    Route::get('/validation-status', [App\Http\Controllers\Api\V2\ValidatedJaspelController::class, 'getValidationStatus']);
+                    Route::get('/pending-summary', [App\Http\Controllers\Api\V2\ValidatedJaspelController::class, 'getPendingSummary']);
+                });
             });
             
             // DIAGNOSTIC: Catch misdirected mobile-data requests

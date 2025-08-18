@@ -58,11 +58,12 @@ class LeaderboardController extends Controller
                             $checkOut = Carbon::parse($attendance->date . ' ' . $attendance->time_out);
                         }
                         
-                        $hours = $checkOut->diffInHours($checkIn);
-                        // Ensure positive hours (handle overnight shifts)
-                        if ($hours < 0) {
-                            $hours += 24;
+                        // ✅ CRITICAL FIX: Correct parameter order and overnight shift handling
+                        if ($checkOut->lt($checkIn)) {
+                            $checkOut->addDay(); // Handle overnight shifts
                         }
+                        
+                        $hours = $checkIn->diffInHours($checkOut); // ✅ FIXED: Correct parameter order
                         
                         return $carry + $hours;
                     }, 0);

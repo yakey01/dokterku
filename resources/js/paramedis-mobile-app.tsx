@@ -3,6 +3,9 @@ import { createRoot } from 'react-dom/client';
 import App from './components/paramedis/App';
 import './components/paramedis/styles.css';
 
+// 🚀 Real-time WebSocket integration for paramedis
+import './echo-bootstrap.js';
+
 // Global error handler for unhandled promise rejections
 window.addEventListener('unhandledrejection', (event) => {
     // Suppress common Maps/React errors that don't affect functionality

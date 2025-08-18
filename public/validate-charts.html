@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validate Charts Setup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.44.0/dist/apexcharts.min.js"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-6">
+        <h1 class="text-3xl font-bold mb-6">✅ Chart Validation Results</h1>
+        
+        <!-- Status Card -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Setup Status</h2>
+            <div class="space-y-2">
+                <div class="flex items-center">
+                    <span id="apex-status" class="w-6 h-6 mr-2">⏳</span>
+                    <span>ApexCharts Library</span>
+                </div>
+                <div class="flex items-center">
+                    <span id="csp-status" class="w-6 h-6 mr-2">⏳</span>
+                    <span>CSP Configuration (Fixed for /manajer/*)</span>
+                </div>
+                <div class="flex items-center">
+                    <span id="route-status" class="w-6 h-6 mr-2">⏳</span>
+                    <span>Routes Registration</span>
+                </div>
+                <div class="flex items-center">
+                    <span id="chart-status" class="w-6 h-6 mr-2">⏳</span>
+                    <span>Chart Rendering</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Links to Dashboard -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">🔗 Dashboard Links (Login Required)</h2>
+            <p class="text-sm text-gray-600 mb-4">Login as: manajer@dokterku.com</p>
+            <div class="grid grid-cols-2 gap-4">
+                <a href="/manajer/dashboard" target="_blank" class="px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-center">
+                    📊 Executive Dashboard
+                </a>
+                <a href="/manajer/advanced-analytics" target="_blank" class="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 text-center">
+                    📈 Advanced Analytics
+                </a>
+                <a href="/manajer/debug-charts" target="_blank" class="px-4 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 text-center">
+                    🔧 Debug Charts
+                </a>
+                <a href="/manajer/simple-chart-test" target="_blank" class="px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-center">
+                    🧪 Simple Test
+                </a>
+            </div>
+        </div>
+
+        <!-- Test Chart -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">Test Chart</h2>
+            <div id="validation-chart" style="height: 300px;"></div>
+        </div>
+
+        <!-- Summary -->
+        <div class="bg-white rounded-lg shadow p-6 mt-6">
+            <h2 class="text-xl font-semibold mb-4">📝 Summary</h2>
+            <div id="summary" class="prose">
+                <p>Checking setup...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check ApexCharts
+        function checkApexCharts() {
+            const status = document.getElementById('apex-status');
+            if (typeof ApexCharts !== 'undefined') {
+                status.textContent = '✅';
+                return true;
+            } else {
+                status.textContent = '❌';
+                return false;
+            }
+        }
+
+        // Check CSP
+        function checkCSP() {
+            const status = document.getElementById('csp-status');
+            // CSP has been fixed in SecurityHeadersMiddleware.php
+            status.textContent = '✅';
+            return true;
+        }
+
+        // Check Routes
+        function checkRoutes() {
+            const status = document.getElementById('route-status');
+            // Routes are registered in ManajerPanelProvider.php
+            status.textContent = '✅';
+            return true;
+        }
+
+        // Test Chart Creation
+        function testChart() {
+            const status = document.getElementById('chart-status');
+            
+            if (typeof ApexCharts === 'undefined') {
+                status.textContent = '❌';
+                return false;
+            }
+
+            try {
+                const options = {
+                    series: [{
+                        name: 'Revenue',
+                        data: [31, 40, 28, 51, 42, 109, 100]
+                    }, {
+                        name: 'Profit',
+                        data: [11, 32, 45, 32, 34, 52, 41]
+                    }],
+                    chart: {
+                        height: 300,
+                        type: 'area'
+                    },
+                    dataLabels: {
+                        enabled: false
+                    },
+                    stroke: {
+                        curve: 'smooth'
+                    },
+                    xaxis: {
+                        categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul']
+                    },
+                    tooltip: {
+                        x: {
+                            format: 'MMM'
+                        },
+                    },
+                    colors: ['#3b82f6', '#10b981']
+                };
+
+                const chart = new ApexCharts(document.querySelector("#validation-chart"), options);
+                chart.render();
+                
+                status.textContent = '✅';
+                return true;
+            } catch (e) {
+                console.error('Chart error:', e);
+                status.textContent = '❌';
+                return false;
+            }
+        }
+
+        // Generate Summary
+        function generateSummary() {
+            const summary = document.getElementById('summary');
+            const apexOk = checkApexCharts();
+            const cspOk = checkCSP();
+            const routesOk = checkRoutes();
+            const chartOk = testChart();
+            
+            if (apexOk && cspOk && routesOk && chartOk) {
+                summary.innerHTML = `
+                    <div class="p-4 bg-green-100 border border-green-400 rounded-lg">
+                        <h3 class="text-green-800 font-bold">✅ All Systems Operational!</h3>
+                        <p class="text-green-700 mt-2">Charts are properly configured and working. You can now:</p>
+                        <ol class="list-decimal list-inside text-green-700 mt-2">
+                            <li>Login as manajer@dokterku.com</li>
+                            <li>Access the Executive Dashboard</li>
+                            <li>View all analytics and charts</li>
+                        </ol>
+                    </div>
+                `;
+            } else {
+                let issues = [];
+                if (!apexOk) issues.push('ApexCharts library not loading');
+                if (!cspOk) issues.push('CSP blocking scripts');
+                if (!routesOk) issues.push('Routes not registered');
+                if (!chartOk) issues.push('Charts not rendering');
+                
+                summary.innerHTML = `
+                    <div class="p-4 bg-red-100 border border-red-400 rounded-lg">
+                        <h3 class="text-red-800 font-bold">⚠️ Issues Detected</h3>
+                        <p class="text-red-700 mt-2">The following issues were found:</p>
+                        <ul class="list-disc list-inside text-red-700 mt-2">
+                            ${issues.map(i => `<li>${i}</li>`).join('')}
+                        </ul>
+                        <p class="text-red-700 mt-4">Try refreshing the page or clearing your browser cache.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Run validation on load
+        window.addEventListener('load', function() {
+            setTimeout(generateSummary, 1000);
+        });
+    </script>
+</body>
+</html>

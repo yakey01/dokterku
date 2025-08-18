@@ -46,89 +46,31 @@
     <!-- DEBUG MONITOR: Ultimate debugging (temporary) -->
     <!-- <script src="/debug-monitor.js"></script> -->
     
-    <!-- Vite Assets with Cache Busting -->
+    <!-- ✅ BACK TO VITE HELPER - PROVEN APPROACH -->
     @vite(['resources/js/dokter-mobile-app.tsx'])
     
-    <!-- ✅ FORCE BUNDLE LOADING -->
+    <!-- Enhanced error tracking script -->
     <script>
-        console.log('🚀 FORCE BUNDLE LOAD ATTEMPT');
+        console.log('🚀 Loading Dokterku Mobile App with Vite...');
         
-        // Get latest bundle from manifest
-        fetch('/build/manifest.json')
-            .then(response => response.json())
-            .then(manifest => {
-                const dokterEntry = manifest['resources/js/dokter-mobile-app.tsx'];
-                if (dokterEntry && dokterEntry.file) {
-                    const bundlePath = '/build/' + dokterEntry.file;
-                    console.log('📦 Expected bundle:', bundlePath);
-                    
-                    // Check if bundle exists and force load
-                    const script = document.createElement('script');
-                    script.src = bundlePath + '?v=' + Date.now();
-                    script.async = true;
-                    script.onload = () => {
-                        console.log('✅ Bundle loaded successfully:', bundlePath);
-                    };
-                    script.onerror = () => {
-                        console.error('❌ Bundle failed to load:', bundlePath);
-                    };
-                    
-                    // Remove any existing dokter-mobile-app scripts
-                    document.querySelectorAll('script[src*="dokter-mobile-app"]').forEach(s => s.remove());
-                    
-                    // Add new script
-                    document.head.appendChild(script);
-                } else {
-                    console.error('❌ No dokter entry in manifest');
-                }
-            })
-            .catch(error => {
-                console.error('❌ Failed to load manifest:', error);
+        // Enhanced error tracking
+        window.addEventListener('error', function(e) {
+            console.error('🔥 GLOBAL ERROR:', {
+                message: e.message,
+                filename: e.filename,
+                lineno: e.lineno,
+                colno: e.colno,
+                error: e.error
             });
-    </script>
-    
-    <!-- FORCE NEW VERSION LOAD -->
-    <script>
-        // Force load new version by appending timestamp
-        (function() {
-            'use strict';
-            
-            const timestamp = '{{ time() }}';
-            const version = '{{ md5(time() . rand()) }}';
-            
-            console.log('🚀 FORCE NEW VERSION LOAD');
-            console.log('🕐 Timestamp:', timestamp);
-            console.log('🆔 Version:', version);
-            
-            // Override any cached scripts
-            const scripts = document.querySelectorAll('script[src*="Presensi"]');
-            scripts.forEach(script => {
-                const oldSrc = script.src;
-                const newSrc = oldSrc + (oldSrc.includes('?') ? '&' : '?') + 'v=' + version + '&t=' + timestamp;
-                console.log('🔄 Replacing script:', oldSrc, '→', newSrc);
-                script.src = newSrc;
+        });
+        
+        // Module loading error tracking
+        window.addEventListener('unhandledrejection', function(e) {
+            console.error('🔥 UNHANDLED REJECTION:', {
+                reason: e.reason,
+                promise: e.promise
             });
-            
-            // Force reload if we detect old file
-            if (window.location.href.includes('Presensi-CC_Uxjrv')) {
-                console.log('🚨 OLD FILE DETECTED - FORCE RELOAD');
-                window.location.reload(true);
-            }
-        })();
-    </script>
-    
-    <!-- DISABLED: ULTRA AGGRESSIVE CACHE BUSTING -->
-    <script>
-        // Cache busting disabled to prevent infinite reloads
-        console.log('🚫 ULTRA AGGRESSIVE CACHE BUSTING DISABLED');
-        console.log('✅ Mobile app loading normally');
-    </script>
-    
-    <!-- DISABLED: Force Cache Busting -->
-    <script>
-        // Force reload disabled to prevent infinite reloads
-        console.log('🚫 Force reload disabled');
-        console.log('✅ Mobile app loading normally');
+        });
     </script>
     
     <style>
@@ -378,6 +320,14 @@
             
             console.log('🔐 Authentication Debug:', JSON.parse(debugAuth || '{}'));
             console.log('🎫 API Token available:', apiToken ? (apiToken.substring(0, 10) + '...') : 'NO TOKEN');
+            
+            // Store full token in localStorage for API client
+            if (apiToken && apiToken.length > 20) {
+                localStorage.setItem('auth_token', apiToken);
+                console.log('💾 Token stored in localStorage');
+            } else if (apiToken) {
+                console.warn('⚠️ Token too short, not storing:', apiToken.length);
+            }
             
             // Validate token availability for Dr. Rindang
             const userName = document.querySelector('meta[name="user-name"]')?.getAttribute('content');

@@ -150,6 +150,28 @@ class DoctorApi {
   }
 
   /**
+   * Get doctor dashboard data - OPTIMIZED VERSION
+   * No retry, no exponential backoff for faster response
+   */
+  async getDashboardOptimized(): Promise<DoctorDashboardData> {
+    try {
+      const response = await getUnifiedAuth().makeJsonRequest<{
+        success: boolean;
+        data: DoctorDashboardData;
+      }>('/api/v2/dashboards/dokter');
+      
+      if (!response.success) {
+        throw new Error('Failed to fetch dashboard data');
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('DoctorApi: Dashboard fetch failed:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Get doctor's Jaspel data
    */
   async getJaspel(): Promise<any> {

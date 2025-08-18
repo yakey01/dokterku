@@ -24,11 +24,12 @@ class SecurityHeadersMiddleware
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         
         // Very permissive CSP for admin, Filament routes, and login to avoid blocking issues
-        if ($request->is('admin/*') || $request->is('petugas/*') || $request->is('login')) {
+        if ($request->is('admin/*') || $request->is('petugas/*') || $request->is('manajer/*') || $request->is('dokter/*') || $request->is('paramedis/*') || $request->is('bendahara/*') || $request->is('login')) {
             // Disable CSP for admin routes and login to avoid blocking functionality
             $response->headers->remove('Content-Security-Policy');
         } else {
-            $response->headers->set('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; form-action 'self';");
+            // Allow CDN scripts for charts
+            $response->headers->set('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; form-action 'self';");
         }
         
         // Remove server information

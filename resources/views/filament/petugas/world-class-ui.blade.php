@@ -730,18 +730,15 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Ripple animation CSS
-if (!document.getElementById('ripple-animation-style')) {
-    const rippleStyle = document.createElement('style');
-    rippleStyle.id = 'ripple-animation-style';
-    rippleStyle.textContent = `
-        @keyframes ripple {
-            to {
-                transform: scale(4);
-                opacity: 0;
-            }
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes ripple {
+        to {
+            transform: scale(4);
+            opacity: 0;
         }
-    `;
-    document.head.appendChild(rippleStyle);
-}
+    }
+`;
+document.head.appendChild(style);
 </script>
 @endpush

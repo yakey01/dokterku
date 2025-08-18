@@ -3,7 +3,7 @@ import { Calendar, Clock, User, Home, Wifi, History, TrendingUp, FileText, MapPi
 import DynamicMap from './DynamicMap';
 import { AttendanceCard } from './AttendanceCard';
 import { useGPSLocation, useGPSAvailability, useGPSPermission } from '../../hooks/useGPSLocation';
-import { GPSStrategy, GPSStatus } from '../../utils/GPSManager';
+import GPSManagerInstance, { GPSStrategy, GPSStatus } from '../../utils/GPSManager';
 import { useAttendanceStatus } from '../../hooks/useAttendanceStatus';
 import * as api from '../../services/dokter/attendanceApi';
 import { formatTime, formatDate as formatShortDate, calculateWorkingHours } from '../../utils/dokter/attendanceHelpers';
@@ -88,8 +88,8 @@ const CreativeAttendanceDashboard = () => {
     currentShift: null as any,
     workLocation: null as any,
     isOnDuty: false,
-    canCheckIn: true, // DEFAULT TO TRUE - ALWAYS ENABLED
-    canCheckOut: true, // DEFAULT TO TRUE - ALWAYS ENABLED
+    canCheckIn: true, // PERMANENT ENABLE - ALWAYS SUPPORTED
+    canCheckOut: true, // PERMANENT ENABLE - ALWAYS SUPPORTED
     validationMessage: '',
     isLoading: true, // Add loading state to prevent premature access
     isInitialized: false // Add initialization flag
@@ -706,8 +706,8 @@ const CreativeAttendanceDashboard = () => {
                 currentShift: data.data.currentShift || null,
                 workLocation: data.data.workLocation || null,
                 isOnDuty: data.data.currentShift ? true : false,
-                canCheckIn: !data.data.currentShift || !data.data.currentShift.checkInTime,
-                canCheckOut: data.data.currentShift && data.data.currentShift.checkInTime && !data.data.currentShift.checkOutTime,
+                canCheckIn: true, // PERSISTENT ENABLE: Always allow check-in
+                canCheckOut: true, // PERSISTENT ENABLE: Always allow check-out
                 validationMessage: ''
               };
               
@@ -1182,8 +1182,8 @@ const CreativeAttendanceDashboard = () => {
         // Update existing UI state for compatibility
         setScheduleData(prev => ({
           ...prev,
-          canCheckIn: status.can_check_in,
-          canCheckOut: status.can_check_out,
+          canCheckIn: true, // PERSISTENT ENABLE: Ignore API response
+          canCheckOut: true, // PERSISTENT ENABLE: Ignore API response
           validationMessage: status.message || ''
         }));
         
@@ -1716,20 +1716,17 @@ const CreativeAttendanceDashboard = () => {
 
       // Determine if can check in/out
       currentIsCheckedIn = overrides?.isCheckedInParam !== undefined ? overrides.isCheckedInParam : isCheckedIn;
-      // SIMPLIFIED: Always allow check-in unless already checked in
-      canCheckIn = !currentIsCheckedIn; // Only check if not already checked in
+      // PERSISTENT ENABLE: Always allow check-in regardless of status
+      canCheckIn = true; // ALWAYS TRUE - PERSISTENT ENABLE
       // SIMPLIFIED LOGIC: Always allow checkout if there's ANY attendance today
       // No more complex validation - if user has checked in, they can checkout
       const hasAnyAttendanceToday = Array.isArray(sourceTodayRecords) && sourceTodayRecords.some((r: any) => !!r.time_in);
       
-      // ULTRA SIMPLE: If checked in OR has any attendance = can checkout
-      canCheckOut = currentIsCheckedIn || hasAnyAttendanceToday || true; // Always true for testing
+      // PERMANENT ENABLE: Always allow checkout once any attendance exists
+      canCheckOut = true; // ALWAYS TRUE - PERSISTENT ENABLE
       
-      // Force enable for ANY condition that should allow checkout
-      if (currentIsCheckedIn || hasAnyAttendanceToday || sourceTodayRecords.length > 0) {
-        canCheckOut = true;
-        console.log('✅ CHECKOUT ENABLED - Simplified logic active');
-      }
+      // PERSISTENT LOGIC: Checkout always enabled regardless of state
+      console.log('✅ CHECKOUT PERMANENTLY ENABLED - Button stays active');
 
       // SIMPLIFIED: No validation messages - always clear
       validationMsg = ''; // Always empty - no validation needed
@@ -1745,7 +1742,7 @@ const CreativeAttendanceDashboard = () => {
           const newState = {
             ...prev,
             isOnDuty: true, // Always on duty - simplified
-            canCheckIn: !currentIsCheckedIn, // Simple logic
+            canCheckIn: true, // PERSISTENT ENABLE: Always allow check-in
             canCheckOut: true, // Always enabled
             checkoutWindowStart: null, // No longer tracking earliest checkout time
             checkoutWindowEnd: checkoutLatestTime ? checkoutLatestTime.toISOString() : null,
@@ -1761,7 +1758,7 @@ const CreativeAttendanceDashboard = () => {
         // Fallback: keep buttons enabled even on error
         setScheduleData(prev => ({
           ...prev,
-          canCheckIn: !isCheckedIn, // Simple fallback
+          canCheckIn: true, // PERSISTENT ENABLE: Always allow check-in
           canCheckOut: true, // Always enabled
           validationMessage: '' // No error messages
         }));
@@ -2714,7 +2711,7 @@ const CreativeAttendanceDashboard = () => {
     // IMMEDIATELY update button states
     setScheduleData(prev => ({
       ...prev,
-      canCheckIn: false, // Disable check-in
+      canCheckIn: true, // KEEP ENABLED
       canCheckOut: true, // Enable checkout
       validationMessage: ''
     }));
@@ -2738,8 +2735,8 @@ const CreativeAttendanceDashboard = () => {
     }));
 
     try {
-      // Use GPSManager with fallback strategies
-      const gpsManager = (await import('@/utils/GPSManager')).default;
+      // ✅ CONFLICT FIX: Use static import instead of dynamic to prevent bundler conflict
+      const gpsManager = GPSManagerInstance;
       
       // Configure GPSManager for better reliability
       gpsManager.updateConfig({
@@ -2962,8 +2959,8 @@ const CreativeAttendanceDashboard = () => {
 
     try {
       // Try get GPS with better error handling
-      // Use GPSManager with fallback strategies for checkout
-      const gpsManager = (await import('@/utils/GPSManager')).default;
+      // ✅ CONFLICT FIX: Use static import instead of dynamic to prevent bundler conflict
+      const gpsManager = GPSManagerInstance;
       
       // Configure for checkout (more lenient than check-in)
       gpsManager.updateConfig({
@@ -3031,7 +3028,7 @@ const CreativeAttendanceDashboard = () => {
           setScheduleData(prev => ({ 
             ...prev, 
             canCheckOut: true, // Keep enabled for multiple checkouts
-            canCheckIn: false 
+            canCheckIn: true // KEEP ENABLED 
           }));
           // Keep isCheckedIn true for multiple checkouts
           setIsCheckedIn(true);
@@ -3041,19 +3038,16 @@ const CreativeAttendanceDashboard = () => {
           return;
         }
         if (payload?.code === 'NOT_CHECKED_IN') {
-          setScheduleData(prev => ({ ...prev, canCheckOut: false }));
+          setScheduleData(prev => ({ ...prev, canCheckOut: true })); // KEEP ENABLED
           setIsCheckedIn(false);
           alert('❌ Belum check-in.');
           return;
         }
         // Server validation - display server message if checkout not allowed
-        if (payload?.code === 'CHECKOUT_TOO_EARLY' || payload?.code === 'CHECKOUT_NOT_ALLOWED') {
-          // ROLLBACK optimistic update when checkout is rejected
-          setAttendanceData(prev => ({
-            ...prev,
-            checkInTime: previousState.checkInTime,
-            checkOutTime: previousState.checkOutTime
-          }));
+        if (payload?.code === 'CHECKOUT_TOO_EARLY' || payload?.code === 'CHECKOUT_TOO_LATE' || payload?.code === 'CHECKOUT_NOT_ALLOWED') {
+          // DON'T ROLLBACK - checkout failure shouldn't affect existing check-in state
+          // Refresh from server to ensure state consistency
+          await loadTodayAttendance();
           alert(payload?.message || 'Check-out belum diizinkan.');
           return;
         }
@@ -3249,7 +3243,7 @@ const CreativeAttendanceDashboard = () => {
                    ) : scheduleData.currentShift ? (
                      <div className="text-white text-sm">
                        <div>🕐 {scheduleData.currentShift.shift_template?.jam_masuk || scheduleData.currentShift.shift_info?.jam_masuk || '08:00'} - {scheduleData.currentShift.shift_template?.jam_pulang || scheduleData.currentShift.shift_info?.jam_pulang || '16:00'}</div>
-                       <div>👨‍⚕️ {scheduleData.currentShift.peran || 'Dokter'}</div>
+                       <div>👨⚕️ {scheduleData.currentShift.peran || 'Dokter'}</div>
                        <div>⭐ {scheduleData.currentShift.shift_template?.nama_shift || 'Shift'}</div>
                        {clockNow ? (
                          <div>🕒 Sekarang: {clockNow}</div>

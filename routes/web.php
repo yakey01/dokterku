@@ -118,6 +118,7 @@ Route::prefix('api/v2/dashboards/dokter')->middleware(['web', 'auth'])->group(fu
     Route::get('/', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'index']);
     Route::get('/jadwal-jaga', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'getJadwalJaga']);
     Route::get('/work-location/status', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'getWorkLocationStatus']);
+    Route::get('/leaderboard', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'leaderboard']);
     
     // Profile management
     Route::post('/update-profile', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'updateProfile']);
@@ -142,6 +143,15 @@ Route::prefix('api/v2/dashboards/dokter')->middleware(['web', 'auth'])->group(fu
     
     // Multi-shift status endpoint
     Route::get('/multishift-status', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'multishiftStatus']);
+    
+    // Attendance history endpoint - FIXED: Added missing route for web session auth
+    Route::get('/presensi', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'getPresensi']);
+    
+    // Additional data endpoints - ADDED: Missing routes for complete dashboard functionality
+    Route::get('/attendance', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'getAttendance']);
+    Route::get('/jaspel', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'getJaspel']);
+    Route::get('/tindakan', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'getTindakan']);
+    Route::get('/patients', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'getPatients']);
     
     // TEMPORARY TEST ENDPOINTS - Bypass authentication for debugging
     
@@ -1380,6 +1390,18 @@ Route::get('/api/v2/jaspel/mobile-data-alt', [App\Http\Controllers\Api\V2\Jaspel
     ->middleware(['auth:web,sanctum', 'throttle:60,1'])
     ->name('jaspel.mobile-data-alt');
 
+// NEW: VALIDATED JASPEL ENDPOINTS - Only bendahara-approved amounts
+Route::prefix('/api/v2/jaspel/validated')->middleware(['auth:web,sanctum', 'throttle:60,1'])->group(function () {
+    Route::get('/data', [App\Http\Controllers\Api\V2\Jaspel\ValidatedJaspelController::class, 'getValidatedJaspelData'])
+        ->name('jaspel.validated.data');
+    
+    Route::get('/gaming-data', [App\Http\Controllers\Api\V2\Jaspel\ValidatedJaspelController::class, 'getGamingData'])
+        ->name('jaspel.validated.gaming');
+    
+    Route::get('/validation-report', [App\Http\Controllers\Api\V2\Jaspel\ValidatedJaspelController::class, 'getValidationReport'])
+        ->name('jaspel.validated.report');
+});
+
 // WORLD-CLASS: Jumlah Pasien endpoint for Jaspel Jaga integration
 Route::get('/api/v2/jumlah-pasien/jaspel-jaga', [App\Http\Controllers\Api\V2\JumlahPasienController::class, 'getJumlahPasienForJaspel'])
     ->middleware(['auth:web,sanctum', 'throttle:60,1'])
@@ -2513,4 +2535,20 @@ Route::get('/test-attendance-resource', function () {
 // Test SSL configuration
 Route::get('/test-ssl-fix', function () {
     return view('test-ssl-fix');
+});
+
+// 🏢 STANDALONE MANAGER DASHBOARD (No Filament Conflicts)
+Route::middleware(['auth', 'role:manajer'])->group(function () {
+    Route::get('/manager-dashboard', function () {
+        return view('manager.standalone-dashboard');
+    })->name('manager.dashboard');
+    
+    // Redirect Filament manager routes to standalone dashboard
+    Route::get('/manajer', function () {
+        return redirect('/manager-dashboard');
+    });
+    
+    Route::get('/manajer/{any}', function () {
+        return redirect('/manager-dashboard');
+    })->where('any', '.*');
 });

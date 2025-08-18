@@ -106,13 +106,23 @@ const WelcomeLogin = ({ onLogin }: WelcomeLoginProps) => {
     console.log('🔄 Starting login process...');
     
     try {
-      // Get CSRF token from meta tag
+      // Get CSRF token from meta tag with enhanced debugging
       const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
       console.log('🔑 CSRF Token found:', csrfToken ? 'Yes' : 'No');
+      console.log('🔑 CSRF Token value:', csrfToken ? csrfToken.substring(0, 10) + '...' : 'null');
       
       if (!csrfToken) {
         console.error('❌ No CSRF token found in meta tag');
-        alert('CSRF token not found. Please refresh the page and try again.');
+        // Try to regenerate token by refreshing the page
+        console.log('🔄 Attempting to refresh page for new CSRF token...');
+        window.location.reload();
+        return;
+      }
+      
+      // Validate token format
+      if (csrfToken.length < 32) {
+        console.error('❌ CSRF token appears invalid (too short)');
+        alert('Invalid CSRF token. Please refresh the page and try again.');
         setIsLoading(false);
         return;
       }
@@ -176,7 +186,13 @@ const WelcomeLogin = ({ onLogin }: WelcomeLoginProps) => {
         console.error('❌ Login failed:', errorData);
         
         if (response.status === 419) {
-          alert('CSRF token mismatch. Please refresh the page and try again.');
+          console.log('🔄 CSRF token mismatch (419) - auto-refreshing page...');
+          alert('Session expired. Page will refresh automatically.');
+          window.location.reload();
+        } else if (errorData.message && errorData.message.includes('CSRF')) {
+          console.log('🔄 CSRF error in message - auto-refreshing page...');
+          alert('CSRF token mismatch. Page will refresh automatically.');
+          window.location.reload();
         } else {
           alert(errorData.message || 'Login failed. Please check your credentials.');
         }
@@ -310,13 +326,27 @@ const WelcomeLogin = ({ onLogin }: WelcomeLoginProps) => {
                     placeholder="Password"
                     className="w-full bg-white/10 border border-white/20 rounded-xl pl-12 pr-12 py-3 text-base sm:text-base lg:text-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-400/50 focus:bg-white/15 transition-all duration-300 touch-manipulation"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors p-1 touch-manipulation"
-                  >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
+                  {/* Fixed: Icon container dengan positioning yang stabil */}
+                  <div className="absolute right-2 top-2 bottom-2 w-10 flex items-center justify-center">
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="w-6 h-6 flex items-center justify-center text-gray-300 hover:text-white active:text-cyan-400 focus:text-cyan-400 transition-colors touch-manipulation rounded"
+                      aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                    >
+                      {/* Fixed: Kedua icon dalam container yang sama dengan opacity */}
+                      <div className="relative w-5 h-5 flex items-center justify-center">
+                        <EyeOff 
+                          className={`w-5 h-5 drop-shadow-sm absolute transition-opacity duration-150 ${showPassword ? 'opacity-100' : 'opacity-0'}`}
+                          strokeWidth={2.5} 
+                        />
+                        <Eye 
+                          className={`w-5 h-5 drop-shadow-sm absolute transition-opacity duration-150 ${showPassword ? 'opacity-0' : 'opacity-100'}`}
+                          strokeWidth={2.5} 
+                        />
+                      </div>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Login Button */}

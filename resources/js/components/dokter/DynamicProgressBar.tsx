@@ -268,26 +268,6 @@ export const AttendanceProgressBar: React.FC<{
   />
 );
 
-export const JaspelProgressBar: React.FC<{
-  currentJaspel: number;
-  targetJaspel: number;
-  label?: string;
-  delay?: number;
-}> = ({ currentJaspel, targetJaspel, label = "Jaspel Progress", delay = 0 }) => (
-  <DynamicProgressBar
-    value={currentJaspel}
-    maxValue={targetJaspel}
-    label={label}
-    gradientFrom="green-400"
-    gradientVia="emerald-400"
-    gradientTo="yellow-400"
-    showPercentage={true}
-    showValue={true}
-    accessibilityLabel={`Jaspel progress: ${currentJaspel} out of ${targetJaspel}`}
-    delay={delay}
-    className="mb-4"
-  />
-);
 
 export const PerformanceProgressBar: React.FC<{
   performance: number;

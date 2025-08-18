@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Crown, Sun, Moon, Calendar, Clock, Users, DollarSign, Activity, MapPin, Bell, Settings } from 'lucide-react';
-import { JadwalJaga } from './JadwalJaga';
+import JadwalJaga from './JadwalJaga';
 import doctorApi from '../../utils/doctorApi';
 
 interface HolisticMedicalDashboardProps {

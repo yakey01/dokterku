@@ -33,7 +33,8 @@ const PresensiSimplified: React.FC = () => {
     setIsOperationInProgress,
     setLastKnownState,
     loadAttendanceRecords,
-    validateCurrentStatus
+    validateCurrentStatus,
+    setScheduleData
   } = useAttendanceStatus();
   
   // GPS Integration
@@ -44,14 +45,12 @@ const PresensiSimplified: React.FC = () => {
     error: gpsError,
     isLoading: gpsLoading,
     accuracy: gpsAccuracy,
-    refreshLocation: refreshGPS,
+    retryLocation: refreshGPS,
     requestPermission: requestGPSPermission
   } = useGPSLocation({
     enableHighAccuracy: true,
-    timeout: 10000,
-    maximumAge: 30000,
-    continuous: true,
-    fallbackStrategies: [GPSStrategy.HIGH_ACCURACY, GPSStrategy.MEDIUM_ACCURACY],
+    cacheTimeout: 30000,
+    fallbackLocation: undefined,
     onError: (error) => console.error('🚨 GPS Error:', error),
     onPermissionDenied: () => console.warn('⚠️ GPS Permission Denied')
   });
@@ -62,8 +61,6 @@ const PresensiSimplified: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
   const [filterPeriod, setFilterPeriod] = useState('weekly');
-  
-
   
   // Clock Update
   useEffect(() => {
@@ -160,7 +157,7 @@ const PresensiSimplified: React.FC = () => {
     } finally {
       setIsOperationInProgress(false);
     }
-  }, [gpsLocation, isOperationInProgress, scheduleData, gpsAccuracy]);
+  }, [gpsLocation, isOperationInProgress, attendanceData, scheduleData, gpsAccuracy]);
   
   // Handle Check-out
   const handleCheckOut = useCallback(async () => {
@@ -201,7 +198,7 @@ const PresensiSimplified: React.FC = () => {
     } finally {
       setIsOperationInProgress(false);
     }
-  }, [gpsLocation, isOperationInProgress, scheduleData, gpsAccuracy]);
+  }, [gpsLocation, isOperationInProgress, attendanceData, scheduleData, gpsAccuracy]);
   
   // Load Attendance History
   const loadHistory = useCallback(async () => {
@@ -479,7 +476,7 @@ const PresensiSimplified: React.FC = () => {
                   const duration = record.working_duration || '8h 0m';
                   
                   // Helper function to parse duration string to minutes
-                  const parseDurationToMinutes = (duration) => {
+                  const parseDurationToMinutes = (duration: string) => {
                     if (!duration || duration === '0j 0m') return 0;
                     const match = duration.match(/(\d+)j\s*(\d+)m/);
                     if (match) {
@@ -514,7 +511,7 @@ const PresensiSimplified: React.FC = () => {
                   })();
                   
                   // ✅ DYNAMIC COLORS: Color coding based on dynamic status
-                  const getStatusColor = (status) => {
+                  const getStatusColor = (status: string) => {
                     if (status === 'Tepat Waktu') return 'bg-green-500/20 text-green-400';
                     if (status === 'Tidak Hadir') return 'bg-red-500/20 text-red-400';
                     if (status === 'Tidak Lengkap') return 'bg-orange-500/20 text-orange-400';
