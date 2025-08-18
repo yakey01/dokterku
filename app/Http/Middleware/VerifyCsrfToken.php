@@ -23,6 +23,8 @@ class VerifyCsrfToken extends Middleware
         // Only exclude test routes
         'test-login',
         'test-csrf-post',
+        // Temporarily exclude login to test Auth::attempt fix
+        'login',
     ];
     
     /**
