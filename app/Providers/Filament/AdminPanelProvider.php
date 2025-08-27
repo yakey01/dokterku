@@ -22,6 +22,7 @@ use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Filament\Support\Facades\FilamentView;
 use Saade\FilamentFullCalendar\FilamentFullCalendarPlugin;
 use App\Filament\Pages\Auth\CustomLogin;
+use App\Filament\Pages\Auth\SimpleAdminProfile;
 use Hasnayeen\Themes\ThemesPlugin;
 
 class AdminPanelProvider extends PanelProvider
@@ -32,10 +33,54 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login(false)
+            ->login()
+            ->passwordReset()  
+            ->profile(false) // Disable top-right profile menu
             ->authGuard('web')
             ->brandName('🏥 Dokterku Admin Portal')
-            ->viteTheme('resources/css/filament/admin/theme.css')
+            ->viteTheme('resources/css/filament/admin/theme-pure.css')
+            ->renderHook(
+                'panels::head.start',
+                fn (): string => '
+                    <style>
+                        /* MODERN SAAS 2025 SPACING OPTIMIZATION FOR ADMIN */
+                        html body div[data-filament-panel-id="admin"] .fi-sidebar-nav {
+                            padding-top: 0.75rem !important; /* Modern SaaS spacing - closer to top */
+                            padding-bottom: 1.5rem !important;
+                            gap: 0.75rem !important;
+                        }
+                        
+                        html body div[data-filament-panel-id="admin"] .fi-sidebar-nav-groups {
+                            gap: 0.75rem !important; /* Tighter group spacing */
+                            margin-top: 0.25rem !important; /* Bring content closer to header */
+                            margin-bottom: 0 !important;
+                        }
+                        
+                        html body div[data-filament-panel-id="admin"] .fi-sidebar-header {
+                            height: 4rem !important;
+                            padding: 0.75rem 1.5rem !important;
+                            margin-bottom: 0.25rem !important;
+                        }
+                        
+                        /* Navigation group labels */
+                        html body div[data-filament-panel-id="admin"] .fi-sidebar-nav-group-label {
+                            padding: 0.5rem 1rem !important;
+                            margin-bottom: 0.375rem !important;
+                        }
+                        
+                        /* Navigation items */
+                        html body div[data-filament-panel-id="admin"] .fi-sidebar-nav-item {
+                            margin-bottom: 0.125rem !important;
+                        }
+                        
+                        html body div[data-filament-panel-id="admin"] .fi-sidebar-nav-item > a,
+                        html body div[data-filament-panel-id="admin"] .fi-sidebar-nav-item > button {
+                            padding: 0.625rem 1rem !important;
+                            gap: 0.75rem !important;
+                        }
+                    </style>
+                '
+            )
             ->colors([
                 'primary' => Color::Blue,
                 'secondary' => Color::Purple,
@@ -48,6 +93,10 @@ class AdminPanelProvider extends PanelProvider
             ->globalSearch()
             ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
             ->resources([
+                // 👤 Account Group (Sidebar Profile)
+                \App\Filament\Resources\AdminProfileResource::class,
+                \App\Filament\Resources\AdminSecurityResource::class,
+                
                 // 👥 User Management Group
                 \App\Filament\Resources\UserResource::class,
                 \App\Filament\Resources\RoleResource::class,
@@ -69,11 +118,10 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Resources\AuditLogResource::class,
                 \App\Filament\Resources\BulkOperationResource::class,
                 
-                // ⚙️ System Administration Group
+                // System Administration Group (cleaned)
                 \App\Filament\Resources\SystemSettingResource::class,
                 \App\Filament\Resources\FeatureFlagResource::class,
                 \App\Filament\Resources\TelegramSettingResource::class,
-                \App\Filament\Resources\SecurityLogResource::class,
                 \App\Filament\Resources\FaceRecognitionResource::class,
                 \App\Filament\Resources\GpsSpoofingDetectionResource::class,
                 \App\Filament\Resources\GpsSpoofingConfigResource::class,
@@ -97,7 +145,7 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Pages\SystemMonitoring::class,
             ])
             ->widgets([
-                Widgets\AccountWidget::class,
+                \App\Filament\Widgets\AdminProfileWidget::class, // Profile widget for sidebar
                 \App\Filament\Widgets\AdminInteractiveDashboardWidget::class,
                 \App\Filament\Widgets\AdminOverviewWidget::class,
                 \App\Filament\Widgets\SystemHealthWidget::class,
@@ -125,27 +173,27 @@ class AdminPanelProvider extends PanelProvider
             ->plugins([
                 FilamentFullCalendarPlugin::make(),
             ])
-            ->profile()
+            ->profile(SimpleAdminProfile::class)
             ->tenant(null) // Disable multi-tenancy for now
             ->navigationGroups([
-                NavigationGroup::make('📊 DASHBOARD')
+                NavigationGroup::make('Dashboard')
                     ->collapsed(false),
-                NavigationGroup::make('👥 USER MANAGEMENT')
+                NavigationGroup::make('User Management')
                     ->collapsed(false),
-                NavigationGroup::make('💰 FINANSIAL MANAGEMENT')
+                NavigationGroup::make('Financial Management')
                     ->collapsed(false),
-                NavigationGroup::make('🏖️ CUTI DAN ABSEN')
+                NavigationGroup::make('Leave Management')
                     ->collapsed(true),
-                NavigationGroup::make('📅 KALENDAR DAN JADWAL')
+                NavigationGroup::make('Schedule Management')
                     ->collapsed(true),
-                NavigationGroup::make('🔔 NOTIFICATION')
+                NavigationGroup::make('Notifications')
                     ->collapsed(true),
-                NavigationGroup::make('📍 PRESENSI')
+                NavigationGroup::make('Attendance')
                     ->collapsed(true),
-                NavigationGroup::make('⚙️ SYSTEM ADMINISTRATION')
+                NavigationGroup::make('System Administration')
                     ->collapsed(true),
-                NavigationGroup::make('🔧 PENGATURAN')
-                    ->collapsed(true),
+                NavigationGroup::make('👤 Account')
+                    ->collapsed(false),
             ]);
     }
 }

@@ -1,0 +1,253 @@
+/* NUCLEAR NAVY BLUE FLASH ELIMINATOR - MAXIMUM SPECIFICITY */
+/* This CSS file has ULTIMATE priority to eliminate any navy blue flashing */
+
+/* GLOBAL BODY AND HTML BLACK ENFORCEMENT */
+html body [data-filament-panel-id="petugas"],
+html body [data-filament-panel-id="petugas"] *,
+html body [data-filament-panel-id="petugas"] .fi-layout,
+html body [data-filament-panel-id="petugas"] .fi-layout * {
+    background: #0a0a0b !important;
+    background-color: #0a0a0b !important;
+    color: #fafafa !important;
+}
+
+/* NUCLEAR SIDEBAR PROTECTION - MAXIMUM SPECIFICITY */
+html body [data-filament-panel-id="petugas"] .fi-sidebar,
+html body [data-filament-panel-id="petugas"] .fi-sidebar *,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav *,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-header,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-header * {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    background-color: #0a0a0b !important;
+    color: #fafafa !important;
+    border-color: #333340 !important;
+}
+
+/* ULTIMATE NAVIGATION ITEM PROTECTION */
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item > a,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item > button,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item *,
+html body [data-filament-panel-id="petugas"] nav .fi-sidebar-nav-item,
+html body [data-filament-panel-id="petugas"] nav .fi-sidebar-nav-item *,
+html body [data-filament-panel-id="petugas"] ul .fi-sidebar-nav-item,
+html body [data-filament-panel-id="petugas"] ul .fi-sidebar-nav-item * {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    background-color: #0a0a0b !important;
+    color: #e2e8f0 !important;
+    border-color: transparent !important;
+    
+    /* FORCE ALL CSS VARIABLES TO BLACK */
+    --primary: 10 10 11 !important;
+    --primary-50: #0a0a0b !important;
+    --primary-100: #111118 !important;
+    --primary-200: #1a1a20 !important;
+    --primary-300: #2a2a32 !important;
+    --primary-400: #333340 !important;
+    --primary-500: #0a0a0b !important;
+    --primary-600: #0a0a0b !important;
+    --primary-700: #0a0a0b !important;
+    --primary-800: #0a0a0b !important;
+    --primary-900: #0a0a0b !important;
+    --primary-950: #0a0a0b !important;
+}
+
+/* HOVER STATE NUCLEAR PROTECTION */
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover > a,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover > button,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover *,
+html body [data-filament-panel-id="petugas"] nav .fi-sidebar-nav-item:hover,
+html body [data-filament-panel-id="petugas"] nav .fi-sidebar-nav-item:hover *,
+html body [data-filament-panel-id="petugas"] ul .fi-sidebar-nav-item:hover,
+html body [data-filament-panel-id="petugas"] ul .fi-sidebar-nav-item:hover * {
+    background: linear-gradient(135deg, rgba(26, 26, 32, 0.7) 0%, rgba(42, 42, 50, 0.5) 100%) !important;
+    background-color: rgba(26, 26, 32, 0.7) !important;
+    color: #f8fafc !important;
+    transform: translateX(4px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* ACTIVE STATE NUCLEAR PROTECTION */
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item.active,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item[aria-current="page"],
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active > a,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active > button,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active *,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item.active *,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item[aria-current="page"] * {
+    background: linear-gradient(135deg, rgba(42, 42, 50, 0.9) 0%, rgba(64, 64, 80, 0.7) 100%) !important;
+    background-color: rgba(42, 42, 50, 0.9) !important;
+    color: white !important;
+    font-weight: 600 !important;
+    transform: translateX(4px) !important;
+    box-shadow: 0 4px 16px rgba(96, 165, 250, 0.3) !important;
+}
+
+/* FOCUS STATE NUCLEAR PROTECTION */
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item:focus,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item:focus-visible,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item:focus > a,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item:focus > button {
+    background: linear-gradient(135deg, rgba(42, 42, 50, 0.8) 0%, rgba(64, 64, 80, 0.6) 100%) !important;
+    background-color: rgba(42, 42, 50, 0.8) !important;
+    color: #f8fafc !important;
+    outline: 2px solid #333340 !important;
+}
+
+/* NUCLEAR PROTECTION FOR ALL ICONS */
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item .fi-icon,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item svg,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item-icon,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item-icon * {
+    color: #e2e8f0 !important;
+    fill: #e2e8f0 !important;
+}
+
+/* NUCLEAR PROTECTION FOR ALL LABELS */
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item-label,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item span {
+    color: #e2e8f0 !important;
+}
+
+/* HOVER STATE ICONS AND LABELS */
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover .fi-icon,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover svg,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover .fi-sidebar-nav-item-icon,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover .fi-sidebar-nav-item-label,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover span {
+    color: #f8fafc !important;
+    fill: #f8fafc !important;
+}
+
+/* ACTIVE STATE ICONS AND LABELS */
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active .fi-icon,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active svg,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active .fi-sidebar-nav-item-icon,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active .fi-sidebar-nav-item-label,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active span,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item.active .fi-icon,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item.active svg,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item[aria-current="page"] .fi-icon,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item[aria-current="page"] svg {
+    color: white !important;
+    fill: white !important;
+}
+
+/* NUCLEAR SCROLLBAR PROTECTION */
+html body [data-filament-panel-id="petugas"] .fi-sidebar::-webkit-scrollbar {
+    width: 6px !important;
+}
+
+html body [data-filament-panel-id="petugas"] .fi-sidebar::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+
+html body [data-filament-panel-id="petugas"] .fi-sidebar::-webkit-scrollbar-thumb {
+    background: #404040 !important;
+    border-radius: 3px !important;
+}
+
+html body [data-filament-panel-id="petugas"] .fi-sidebar::-webkit-scrollbar-thumb:hover {
+    background: #525252 !important;
+}
+
+/* ELIMINATE ALL POSSIBLE BLUE TONES - NUCLEAR LEVEL */
+html body [data-filament-panel-id="petugas"] [class*="bg-blue"],
+html body [data-filament-panel-id="petugas"] [class*="bg-slate"],
+html body [data-filament-panel-id="petugas"] [class*="bg-gray-5"],
+html body [data-filament-panel-id="petugas"] [class*="bg-zinc-5"],
+html body [data-filament-panel-id="petugas"] [class*="text-blue"],
+html body [data-filament-panel-id="petugas"] [class*="text-slate"],
+html body [data-filament-panel-id="petugas"] [class*="border-blue"],
+html body [data-filament-panel-id="petugas"] [class*="border-slate"] {
+    background: #0a0a0b !important;
+    background-color: #0a0a0b !important;
+    color: #fafafa !important;
+    border-color: #333340 !important;
+}
+
+/* FORCED TRANSITIONS - SMOOTH BUT IMMEDIATE */
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* FORCE DARK MODE VARIABLES GLOBALLY */
+html[data-theme="dark"] body [data-filament-panel-id="petugas"],
+html.dark body [data-filament-panel-id="petugas"],
+.dark [data-filament-panel-id="petugas"] {
+    --primary: 10 10 11 !important;
+    --gray-50: #0a0a0b !important;
+    --gray-100: #111118 !important;
+    --gray-200: #1a1a20 !important;
+    --gray-300: #2a2a32 !important;
+    --gray-400: #333340 !important;
+    --gray-500: #404050 !important;
+    --gray-600: #4a4a5a !important;
+    --gray-700: #555564 !important;
+    --gray-800: #60606e !important;
+    --gray-900: #6b6b78 !important;
+    --gray-950: #767682 !important;
+}
+
+/* MODERN SAAS 2025 SPACING STANDARDS - TOP BAR ALIGNMENT */
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav {
+    /* Reduce top padding untuk bring content closer to top */
+    padding-top: 0.75rem !important; /* From py-8 (2rem) to 12px - Modern SaaS standard */
+    padding-bottom: 1.5rem !important;
+    gap: 0.75rem !important; /* Optimized spacing between elements */
+}
+
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-groups {
+    gap: 0.75rem !important; /* From gap-y-7 (1.75rem) to 12px - Tighter groups */
+    margin-top: 0.25rem !important; /* Bring first group closer to header */
+    margin-bottom: 0 !important;
+}
+
+/* MODERN SAAS HEADER SPACING */
+html body [data-filament-panel-id="petugas"] .fi-sidebar-header {
+    height: 4rem !important; /* Standard 64px height */
+    padding: 0.75rem 1.5rem !important; /* Optimized internal spacing */
+    margin-bottom: 0.25rem !important; /* Minimal gap to nav content */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+/* NAVIGATION GROUP LABEL SPACING */
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-group-label,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-group-label {
+    padding: 0.5rem 1rem !important; /* Tighter label padding */
+    margin-bottom: 0.375rem !important; /* Reduced margin below labels */
+    font-size: 0.75rem !important; /* Consistent with modern SaaS */
+}
+
+/* NAVIGATION ITEM MODERN SPACING */
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item {
+    margin-bottom: 0.125rem !important; /* Tight item spacing - modern SaaS standard */
+    border-radius: 0.5rem !important;
+}
+
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item > a,
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item > button {
+    padding: 0.625rem 1rem !important; /* Optimized padding for modern feel */
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.75rem !important; /* Icon to text spacing */
+}
+
+/* MODERN SAAS VISUAL HIERARCHY */
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item-icon {
+    width: 1.125rem !important; /* 18px - optimal icon size */
+    height: 1.125rem !important;
+    flex-shrink: 0 !important;
+}
+
+/* TYPOGRAPHY OPTIMIZATION FOR MODERN SAAS */
+html body [data-filament-panel-id="petugas"] .fi-sidebar-nav-item-label {
+    font-size: 0.875rem !important; /* 14px - modern SaaS standard */
+    font-weight: 500 !important;
+    line-height: 1.25 !important; /* Tight line height */
+}

@@ -28,20 +28,211 @@ class PetugasPanelProvider extends PanelProvider
             ->id('petugas')
             ->path('petugas')
             ->login(CustomLogin::class)
-            ->brandName('Petugas Dashboard')
-            ->viteTheme([
-                'resources/css/filament/petugas/theme.css',
-            ])
+            ->brandName('')
+            ->brandLogo('')
+            ->brandLogoHeight('0')
+            // ->viteTheme('resources/css/filament/petugas/theme.css') // DISABLED: Preventing navy blue conflicts - using pure inline styles
+            ->favicon('/favicon.ico')
+            ->spa()
+            ->topNavigation(true)
+            ->sidebarCollapsibleOnDesktop(false)
+            ->sidebarFullyCollapsibleOnDesktop(false)
+            ->sidebarWidth('280px')
+            ->unsavedChangesAlerts()
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('30s')
+            ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
+            ->renderHook(
+                'panels::head.start',
+                fn (): string => '
+                    <!-- ELEGANT BLACK THEME - PROVEN BENDAHARA APPROACH -->
+                    <style id="petugas-elegant-black-immediate">
+                        /* ULTIMATE BLACK CARDS - COMPREHENSIVE TARGETING */
+                        [data-filament-panel-id="petugas"] .fi-wi,
+                        [data-filament-panel-id="petugas"] .fi-section,
+                        [data-filament-panel-id="petugas"] .fi-sta-overview-stat,
+                        [data-filament-panel-id="petugas"] .bg-white,
+                        /* Global fallbacks */
+                        .fi-wi:not(.fi-sidebar *):not(.fi-topbar *),
+                        .fi-section:not(.fi-sidebar *):not(.fi-topbar *),
+                        .bg-white:not(.fi-sidebar *):not(.fi-topbar *):not(.fi-ta-text) {
+                            background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+                            border: 1px solid #333340 !important;
+                            border-radius: 1rem !important;
+                            box-shadow: 
+                                0 4px 12px -2px rgba(0, 0, 0, 0.8),
+                                0 2px 6px -2px rgba(0, 0, 0, 0.6),
+                                inset 0 1px 0 0 rgba(255, 255, 255, 0.08) !important;
+                            color: #fafafa !important;
+                            transition: all 0.3s ease !important;
+                        }
+
+                        /* ELEGANT HOVER EFFECTS */
+                        .fi-wi:hover:not(.fi-sidebar *):not(.fi-topbar *) {
+                            background: linear-gradient(135deg, #111118 0%, #1a1a20 100%) !important;
+                            transform: translateY(-2px) !important;
+                            box-shadow: 
+                                0 8px 24px -4px rgba(0, 0, 0, 0.9),
+                                0 4px 12px -2px rgba(0, 0, 0, 0.7),
+                                inset 0 1px 0 0 rgba(255, 255, 255, 0.12) !important;
+                        }
+
+                        /* ALL TEXT WHITE IN CARDS */
+                        .fi-wi *:not(.fi-sidebar *):not(.fi-topbar *),
+                        .fi-section *:not(.fi-sidebar *):not(.fi-topbar *),
+                        .bg-white *:not(.fi-sidebar *):not(.fi-topbar *):not(.fi-btn *) {
+                            color: #fafafa !important;
+                            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+                        }
+                        
+                        /* ELIMINATE NAVY BLUE (#475569) COMPLETELY */
+                        [data-filament-panel-id="petugas"] {
+                            --primary: 10 10 11 !important; /* Deep Black RGB */
+                            --primary-50: #0a0a0b !important;
+                            --primary-100: #111118 !important;
+                            --primary-200: #1a1a20 !important;
+                            --primary-300: #2a2a32 !important;
+                            --primary-400: #333340 !important;
+                            --primary-500: #404050 !important;
+                            --primary-600: #4a4a5a !important;
+                            --primary-700: #555564 !important;
+                            --primary-800: #60606e !important;
+                            --primary-900: #6b6b78 !important;
+                            --primary-950: #767682 !important;
+                        }
+                    </style>
+                '
+            )
+            ->renderHook(
+                'panels::head.end',
+                fn (): string => '
+                    <!-- ELEGANT BLACK GLASSMORPHISM - PROVEN APPROACH -->
+                    <style id="petugas-elegant-complete">
+                        /* COMPLETE MAIN BACKGROUND ELEGANT BLACK */
+                        [data-filament-panel-id="petugas"],
+                        [data-filament-panel-id="petugas"] .fi-main,
+                        [data-filament-panel-id="petugas"] .fi-page,
+                        [data-filament-panel-id="petugas"] .fi-page-content,
+                        [data-filament-panel-id="petugas"] .fi-body,
+                        [data-filament-panel-id="petugas"] .fi-layout {
+                            background: linear-gradient(135deg, #0a0a0b 0%, #111118 50%, #0a0a0b 100%) !important;
+                            background-color: #0a0a0b !important;
+                            color: #ffffff !important;
+                        }
+                        
+                        /* ELEGANT GLASS TABLES WITH GLASSMORPHISM */
+                        [data-filament-panel-id="petugas"] .fi-ta-table,
+                        [data-filament-panel-id="petugas"] .fi-section,
+                        [data-filament-panel-id="petugas"] .overflow-x-auto {
+                            background: rgba(10, 10, 11, 0.8) !important;
+                            backdrop-filter: blur(16px) saturate(150%) !important;
+                            -webkit-backdrop-filter: blur(16px) saturate(150%) !important;
+                            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+                            border-radius: 1rem !important;
+                            box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.6), inset 0 1px 0 0 rgba(255, 255, 255, 0.08) !important;
+                            transition: all 0.3s ease !important;
+                            color: #ffffff !important;
+                        }
+                        
+                        /* ELEGANT HOVER EFFECTS FOR TABLES */
+                        [data-filament-panel-id="petugas"] .fi-ta-table:hover,
+                        [data-filament-panel-id="petugas"] .fi-section:hover {
+                            backdrop-filter: blur(20px) saturate(180%) !important;
+                            border-color: rgba(255, 255, 255, 0.16) !important;
+                            transform: translateY(-2px) !important;
+                            box-shadow: 0 12px 48px -12px rgba(0, 0, 0, 0.7), inset 0 1px 0 0 rgba(255, 255, 255, 0.1) !important;
+                        }
+                        
+                        /* TABLE ROW STYLING */
+                        [data-filament-panel-id="petugas"] .fi-ta-row:hover,
+                        [data-filament-panel-id="petugas"] tbody tr:hover {
+                            background: linear-gradient(135deg, rgba(17, 17, 24, 0.8) 0%, rgba(26, 26, 32, 0.9) 100%) !important;
+                            backdrop-filter: blur(8px) !important;
+                            transform: translateY(-1px) !important;
+                            border-left: 3px solid rgba(255, 255, 255, 0.2) !important;
+                            color: #ffffff !important;
+                            font-weight: 500 !important;
+                        }
+                        
+                        [data-filament-panel-id="petugas"] .fi-ta-row,
+                        [data-filament-panel-id="petugas"] tbody tr {
+                            background: rgba(10, 10, 11, 0.4) !important;
+                            backdrop-filter: blur(4px) !important;
+                            border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+                            color: #ffffff !important;
+                            transition: all 0.3s ease !important;
+                        }
+                        
+                        /* TABLE HEADER STYLING */
+                        [data-filament-panel-id="petugas"] thead th {
+                            background: linear-gradient(135deg, rgba(17, 17, 24, 0.9) 0%, rgba(26, 26, 32, 0.95) 100%) !important;
+                            backdrop-filter: blur(12px) !important;
+                            border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+                            color: #ffffff !important;
+                            font-weight: 600 !important;
+                            text-transform: uppercase !important;
+                            letter-spacing: 0.5px !important;
+                            padding: 1rem 1.5rem !important;
+                        }
+                        
+                        /* SIDEBAR ELEGANT BLACK */
+                        [data-filament-panel-id="petugas"] .fi-sidebar {
+                            background: linear-gradient(180deg, #0a0a0b 0%, #111118 50%, #0a0a0b 100%) !important;
+                            border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+                            color: #fafafa !important;
+                        }
+                        
+                        [data-filament-panel-id="petugas"] .fi-sidebar-nav-item {
+                            background: transparent !important;
+                            color: #fafafa !important;
+                            transition: all 0.3s ease !important;
+                        }
+                        
+                        [data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover {
+                            background: linear-gradient(135deg, rgba(17, 17, 24, 0.6) 0%, rgba(26, 26, 32, 0.4) 100%) !important;
+                            backdrop-filter: blur(8px) !important;
+                        }
+                        
+                        [data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active {
+                            background: linear-gradient(135deg, rgba(26, 26, 32, 0.8) 0%, rgba(42, 42, 50, 0.6) 100%) !important;
+                            backdrop-filter: blur(12px) !important;
+                            border-left: 3px solid rgba(255, 255, 255, 0.3) !important;
+                        }
+                        
+                        /* FORM ELEMENTS ELEGANT BLACK */
+                        [data-filament-panel-id="petugas"] .bg-white,
+                        [data-filament-panel-id="petugas"] .fi-form {
+                            background: rgba(10, 10, 11, 0.6) !important;
+                            backdrop-filter: blur(12px) saturate(120%) !important;
+                            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+                            border-radius: 1rem !important;
+                            box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.06) !important;
+                            color: #ffffff !important;
+                        }
+                    </style>
+                '
+            )
+            ->renderHook(
+                'panels::topbar.end',
+                fn (): string => '<x-topbar-welcome :user="auth()->user()" />'
+            )
+            ->renderHook(
+                'panels::body.start',
+                fn (): string => '<div class="petugas-dashboard-wrapper">'
+            )
+            ->renderHook(
+                'panels::body.end',
+                fn (): string => '</div>'
+            )
             ->colors([
-                'primary' => Color::Blue,
-                'success' => Color::Emerald,
-                'warning' => Color::Amber,
+                'primary' => Color::Stone, // ULTIMATE NUCLEAR: Stone has ZERO blue undertones, pure gray-brown
+                'success' => Color::Green,
+                'warning' => Color::Yellow,
                 'danger' => Color::Red,
-                'info' => Color::Indigo,
-                'gray' => Color::Slate,
+                'info' => Color::Cyan, // Changed from Blue to eliminate ALL blue references
             ])
+            ->darkMode()
             ->maxContentWidth('full')
-            ->sidebarCollapsibleOnDesktop()
             ->resources([
                 // Patient Management
                 \App\Filament\Petugas\Resources\PasienResource::class,
@@ -56,40 +247,34 @@ class PetugasPanelProvider extends PanelProvider
                 \App\Filament\Petugas\Resources\ValidasiPendapatanResource::class,
             ])
             ->navigationGroups([
-                NavigationGroup::make('Dashboard')
-                    ->collapsed(false),
                 NavigationGroup::make('Manajemen Pasien')
-                    ->collapsed(true)
-                    ->collapsible(),
+                    ->collapsed(false)
+                    ->collapsible(false),
                 NavigationGroup::make('Tindakan Medis')
-                    ->collapsed(true)
-                    ->collapsible(),
+                    ->collapsed(false)  
+                    ->collapsible(false),
                 NavigationGroup::make('Keuangan')
-                    ->collapsed(true)
-                    ->collapsible(),
+                    ->collapsed(false)
+                    ->collapsible(false),
                 NavigationGroup::make('Laporan & Analytics')
-                    ->collapsed(true)
-                    ->collapsible(),
+                    ->icon('heroicon-o-chart-bar-square')
+                    ->collapsed(false)
+                    ->collapsible(false),
                 NavigationGroup::make('Quick Actions')
-                    ->collapsed(true)
-                    ->collapsible(),
+                    ->icon('heroicon-o-bolt')
+                    ->collapsed(false)
+                    ->collapsible(false),
                 NavigationGroup::make('System')
-                    ->collapsed(true)
-                    ->collapsible(),
+                    ->icon('heroicon-o-cog-6-tooth')
+                    ->collapsed(false)
+                    ->collapsible(false),
             ])
+            ->homeUrl('/petugas')
             ->pages([
-                // Main Bendahara-Style Dashboard
-                \App\Filament\Petugas\Pages\BendaharaStyleDashboard::class,
+                \App\Filament\Petugas\Pages\PetugasDashboard::class,
             ])
             ->widgets([
-                // Widgets are now managed by Dashboard page directly
-                // Commented out to prevent duplicate widgets and charts
-                // \App\Filament\Petugas\Widgets\PetugasInteractiveDashboardWidget::class,
-                // \App\Filament\Petugas\Widgets\PatientStatsWidget::class,
-                // \App\Filament\Petugas\Widgets\DailyActivitiesWidget::class,
-                // \App\Filament\Petugas\Widgets\FinancialSummaryWidget::class,
-                // \App\Filament\Petugas\Widgets\PetugasStatsWidget::class,
-                // \App\Filament\Petugas\Widgets\PetugasHeroStatsWidget::class,
+                // Global widgets (appear on all pages)
             ])
             ->plugins([
                 // Plugin commented out due to incorrect instantiation
