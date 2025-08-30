@@ -25,11 +25,18 @@ class JaspelManagementResource extends Resource
     
     protected static ?string $navigationLabel = 'Kelola Jaspel';
     
-    protected static ?string $navigationGroup = 'Validasi Transaksi';
+    // DISABLED: Moved from Validasi Transaksi to prevent showing in bendahara panel
+    protected static ?string $navigationGroup = null;
 
     protected static ?int $navigationSort = 2;
 
     protected static ?string $slug = 'jaspel-management';
+
+    // DISABLED: Prevent navigation registration for bendahara panel
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
 
     public static function form(Form $form): Form
     {

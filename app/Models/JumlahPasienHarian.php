@@ -16,6 +16,7 @@ class JumlahPasienHarian extends Model
         'tanggal',
         'poli',
         'shift',
+        'shift_template_id', // Direct reference to shift template
         'dokter_umum_jaspel_id', // Optional - for future use if manual selection needed
         'jadwal_jaga_id', // Links to specific duty schedule
         'jumlah_pasien_umum',
@@ -61,6 +62,11 @@ class JumlahPasienHarian extends Model
     public function jadwalJaga(): BelongsTo
     {
         return $this->belongsTo(JadwalJaga::class);
+    }
+
+    public function shiftTemplate(): BelongsTo
+    {
+        return $this->belongsTo(ShiftTemplate::class);
     }
 
     // Accessor untuk total pasien
@@ -261,6 +267,65 @@ class JumlahPasienHarian extends Model
         static::creating(function ($model) {
             if (auth()->check()) {
                 $model->input_by = auth()->id();
+            }
+        });
+
+        // Auto-reset validation status when approved data is edited
+        static::updating(function ($model) {
+            // Only reset if currently approved
+            if ($model->getOriginal('status_validasi') === 'disetujui') {
+                // Critical fields that require re-validation
+                $criticalFields = [
+                    'jumlah_pasien_umum',
+                    'jumlah_pasien_bpjs', 
+                    'jaspel_rupiah',
+                    'dokter_id',
+                    'tanggal',
+                    'shift',
+                    'poli'
+                ];
+                
+                // Check if any critical field was changed
+                if ($model->isDirty($criticalFields)) {
+                    $changedFields = array_keys($model->getDirty($criticalFields));
+                    
+                    // Reset validation status
+                    $model->status_validasi = 'pending';
+                    $model->validasi_by = null;
+                    $model->validasi_at = null;
+                    $model->catatan_validasi = 'Data diubah oleh petugas - perlu validasi ulang. Fields: ' . implode(', ', $changedFields);
+                    
+                    \Illuminate\Support\Facades\Log::info('JumlahPasienHarian validation status reset due to edit', [
+                        'id' => $model->id,
+                        'original_status' => 'disetujui',
+                        'new_status' => 'pending',
+                        'changed_fields' => $changedFields,
+                        'edited_by' => auth()->id(),
+                        'user_name' => auth()->user()?->name ?? 'Unknown'
+                    ]);
+
+                    // Fire event for bendahara notification
+                    try {
+                        event(new \App\Events\ValidationStatusReset([
+                            'model_type' => 'JumlahPasienHarian',
+                            'model_id' => $model->id,
+                            'original_status' => 'disetujui', 
+                            'new_status' => 'pending',
+                            'changed_fields' => $changedFields,
+                            'edited_by' => auth()->id(),
+                            'user_name' => auth()->user()?->name ?? 'System',
+                            'date' => $model->tanggal?->format('d/m/Y'),
+                            'doctor' => $model->dokter?->nama ?? 'Unknown',
+                            'total_pasien' => ($model->jumlah_pasien_umum ?? 0) + ($model->jumlah_pasien_bpjs ?? 0)
+                        ]));
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::error('Failed to fire ValidationStatusReset event', [
+                            'model' => 'JumlahPasienHarian',
+                            'id' => $model->id,
+                            'error' => $e->getMessage()
+                        ]);
+                    }
+                }
             }
         });
     }

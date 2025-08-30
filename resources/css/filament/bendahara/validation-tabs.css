@@ -1,0 +1,153 @@
+/* Validation Status Tabs Enhancement */
+
+/* Tab container styling */
+.fi-resource-tabs {
+    margin-bottom: 1.5rem;
+}
+
+/* Enhanced tab button styling */
+.fi-tabs .fi-tabs-tab {
+    @apply relative;
+    transition: all 0.2s ease-in-out;
+}
+
+/* Tab hover effects */
+.fi-tabs .fi-tabs-tab:hover {
+    @apply transform -translate-y-0.5;
+    box-shadow: 0 4px 12px rgb(0 0 0 / 0.1);
+}
+
+/* Active tab enhancement */
+.fi-tabs .fi-tabs-tab[aria-selected="true"] {
+    @apply border-b-2;
+    transform: translateY(-1px);
+}
+
+/* Badge styling for tab counts */
+.fi-tabs .fi-badge {
+    @apply text-xs font-medium;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Warning badge for pending validation */
+.fi-tabs .fi-badge.fi-color-warning {
+    @apply bg-amber-100 text-amber-800 ring-amber-600/20;
+    animation: pulse 2s infinite;
+}
+
+/* Success badge for validated records */
+.fi-tabs .fi-badge.fi-color-success {
+    @apply bg-green-100 text-green-800 ring-green-600/20;
+}
+
+/* Gray badge for all records */
+.fi-tabs .fi-badge.fi-color-gray {
+    @apply bg-gray-100 text-gray-800 ring-gray-600/20;
+}
+
+/* Tab icon styling */
+.fi-tabs .fi-tabs-tab .fi-icon {
+    @apply w-4 h-4 mr-2;
+    transition: transform 0.2s ease-in-out;
+}
+
+/* Icon animation on hover */
+.fi-tabs .fi-tabs-tab:hover .fi-icon {
+    @apply transform scale-110;
+}
+
+/* Responsive design for mobile */
+@media (max-width: 640px) {
+    .fi-tabs .fi-tabs-tab {
+        @apply px-3 py-2;
+        min-width: 0;
+    }
+    
+    .fi-tabs .fi-tabs-tab .fi-tabs-tab-label {
+        @apply text-sm;
+    }
+    
+    .fi-tabs .fi-badge {
+        @apply text-xs;
+        min-width: 1.25rem;
+        height: 1.25rem;
+    }
+}
+
+/* Tablet responsive design */
+@media (max-width: 768px) {
+    .fi-tabs {
+        @apply overflow-x-auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    
+    .fi-tabs::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .fi-tabs .fi-tabs-content {
+        @apply flex;
+        min-width: fit-content;
+    }
+}
+
+/* Enhanced accessibility */
+.fi-tabs .fi-tabs-tab:focus {
+    @apply outline-none ring-2 ring-primary-500 ring-offset-2;
+}
+
+/* Loading state for badges */
+.fi-tabs .fi-badge.loading {
+    @apply animate-pulse bg-gray-200;
+}
+
+/* Custom animation for pending validation badge */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* Enhanced spacing and alignment */
+.fi-resource-tabs + .fi-ta-content {
+    @apply border-t border-gray-200 dark:border-gray-700 pt-6;
+}
+
+/* Accessibility: Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    .fi-tabs .fi-tabs-tab,
+    .fi-tabs .fi-tabs-tab .fi-icon {
+        transition: none;
+    }
+    
+    .fi-tabs .fi-badge.fi-color-warning {
+        animation: none;
+    }
+    
+    .fi-tabs .fi-badge.loading {
+        animation: none;
+    }
+}
+
+/* Dark mode enhancements */
+@media (prefers-color-scheme: dark) {
+    .fi-tabs .fi-badge.fi-color-warning {
+        @apply bg-amber-900/50 text-amber-200 ring-amber-400/30;
+    }
+    
+    .fi-tabs .fi-badge.fi-color-success {
+        @apply bg-green-900/50 text-green-200 ring-green-400/30;
+    }
+    
+    .fi-tabs .fi-badge.fi-color-gray {
+        @apply bg-gray-800 text-gray-200 ring-gray-400/30;
+    }
+}

@@ -1,41 +1,103 @@
-@import '../../../../vendor/filament/filament/resources/css/theme.css';
+/* ============================================================ */
+/* BENDAHARA ELEGANT BLACK THEME - IMPORT AFTER DEFINITIONS */
+/* ============================================================ */
 
-/* Bendahara Panel Design System - Comprehensive Styling */
+/* REMOVE PROBLEMATIC IMPORT - SUBAGENT RECOMMENDATION */
+/* @import './ultimate-css-fix.css'; */
+
+/* ============================================================ */
+/* BENDAHARA ELEGANT BLACK THEME - PROPER CSS CASCADE */
+/* Base theme now loaded via vite.config.js BEFORE this file */
+/* ============================================================ */
+
+/* IMMEDIATE BLACK VARIABLES - NO IMPORT CONFLICTS */
 [data-filament-panel-id="bendahara"] {
-    /* Primary Colors - Amber/Orange */
-    --primary: 245 158 11; /* Amber */
-    --success: 34 197 94; /* Green */
-    --warning: 251 189 35; /* Yellow */
-    --danger: 239 68 68; /* Red */
-    --info: 59 130 246; /* Blue */
-    --gray: 107 114 128; /* Gray */
+    /* Elegant Black Palette */
+    --card-primary-black: #0a0a0b;
+    --card-secondary-black: #111118;
+    --card-charcoal: #1a1a20;
+    --card-charcoal-light: #2a2a32;
+    --card-border: #333340;
+    --card-border-hover: #404050;
     
-    /* Panel Variables */
-    --panel-primary: #f59e0b;
-    --panel-primary-light: #fcd34d;
-    --panel-primary-dark: #d97706;
+    /* High-Contrast Text Colors */
+    --card-text-primary: #fafafa;
+    --card-text-secondary: #e4e4e7;
+    --card-text-muted: #a1a1aa;
+    --card-text-subtle: #71717a;
     
-    /* Enhanced Color Palette */
-    --primary-50: #fef3c7;
-    --primary-100: #fde68a;
-    --primary-200: #fcd34d;
-    --primary-300: #fbbf24;
-    --primary-400: #f59e0b;
-    --primary-500: #f59e0b;
-    --primary-600: #d97706;
-    --primary-700: #b45309;
-    --primary-800: #92400e;
-    --primary-900: #78350f;
-    --primary-950: #451a03;
+    /* OVERRIDE Filament Variables - HIGHEST PRIORITY */
+    --primary: 10 10 11 !important; /* Black RGB instead of Amber */
+    --success: 34 197 94 !important;
+    --warning: 251 189 35 !important;
+    --danger: 239 68 68 !important;
+    --info: 59 130 246 !important;
+    --gray: 107 114 128 !important;
+    
+    /* BLACK Panel Variables - OVERRIDE AMBER */
+    --panel-primary: #0a0a0b !important;
+    --panel-primary-light: #111118 !important;
+    --panel-primary-dark: #1a1a20 !important;
+    
+    /* BLACK Color Palette - COMPLETE OVERRIDE */
+    --primary-50: #0a0a0b !important;
+    --primary-100: #111118 !important;
+    --primary-200: #1a1a20 !important;
+    --primary-300: #2a2a32 !important;
+    --primary-400: #333340 !important;
+    --primary-500: #404050 !important;
+    --primary-600: #4a4a5a !important;
+    --primary-700: #555564 !important;
+    --primary-800: #60606e !important;
+    --primary-900: #6b6b78 !important;
+    --primary-950: #767682 !important;
 }
 
-/* Bendahara Branding */
+/* ================================================= */
+/* DEFINITIVE FIX - CSS CUSTOM PROPERTIES APPROACH */
+/* Based on Security Auditor + UI Component Builder analysis */
+/* ================================================= */
+
+/* OVERRIDE TAILWIND BACKGROUND UTILITIES AT CSS LEVEL */
+[data-filament-panel-id="bendahara"] .bg-white {
+    --tw-bg-opacity: 1 !important;
+    background-color: var(--bendahara-black-primary) !important;
+    background-image: linear-gradient(135deg, var(--card-primary-black) 0%, var(--card-secondary-black) 100%) !important;
+}
+
+[data-filament-panel-id="bendahara"] .dark\\:bg-gray-800 {
+    --tw-bg-opacity: 1 !important;
+    background-color: var(--bendahara-black-secondary) !important;
+    background-image: linear-gradient(135deg, var(--card-primary-black) 0%, var(--card-secondary-black) 100%) !important;
+}
+
+/* FORCE OVERRIDE ANY BG-GRAY VARIANTS */
+[data-filament-panel-id="bendahara"] [class*="bg-gray-"] {
+    background-color: var(--bendahara-black-primary) !important;
+    background-image: linear-gradient(135deg, var(--card-primary-black) 0%, var(--card-secondary-black) 100%) !important;
+}
+
+/* COMPREHENSIVE BORDER AND RADIUS ENFORCEMENT */
+[data-filament-panel-id="bendahara"] .bg-white,
+[data-filament-panel-id="bendahara"] .dark\\:bg-gray-800,
+[data-filament-panel-id="bendahara"] .rounded-xl,
+[data-filament-panel-id="bendahara"] .shadow-sm {
+    border: 1px solid var(--card-border) !important;
+    border-radius: 1rem !important;
+    color: var(--card-text-primary) !important;
+    box-shadow: 
+        0 4px 12px -2px rgba(0, 0, 0, 0.8),
+        0 2px 6px -2px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+/* BLACK-FIRST BRANDING - NO AMBER FLASH */
 [data-filament-panel-id="bendahara"] .fi-topbar {
-    background: linear-gradient(135deg, var(--panel-primary) 0%, var(--panel-primary-dark) 100%);
+    background: linear-gradient(135deg, var(--card-primary-black) 0%, var(--card-charcoal) 100%) !important;
 }
 
 [data-filament-panel-id="bendahara"] .fi-sidebar-header {
-    background: linear-gradient(135deg, var(--panel-primary) 0%, var(--panel-primary-dark) 100%);
+    background: linear-gradient(135deg, var(--card-primary-black) 0%, var(--card-charcoal) 100%) !important;
 }
 
 [data-filament-panel-id="bendahara"] .fi-sidebar-header .fi-logo {
@@ -43,84 +105,354 @@
     font-weight: 600;
 }
 
-/* Widget Styling - Fix for Stats Overview */
-[data-filament-panel-id="bendahara"] .fi-wi-stats-overview-stat {
-    background: rgba(251, 189, 35, 0.1);
-    border-radius: 0.75rem;
-    padding: 1.5rem;
-    border: 1px solid rgba(251, 189, 35, 0.2);
-    transition: all 0.2s ease;
+/* ================================================= */
+/* MODERN SAAS DASHBOARD ENHANCEMENTS */
+/* ================================================= */
+
+/* Smooth scale animations for modern cards */
+@keyframes bendahara-card-float {
+    0%, 100% { transform: translateY(0px) scale(1); }
+    50% { transform: translateY(-2px) scale(1.005); }
 }
 
-[data-filament-panel-id="bendahara"] .fi-wi-stats-overview-stat:hover {
-    background: rgba(251, 189, 35, 0.15);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+@keyframes bendahara-pulse-dot {
+    0%, 100% { 
+        opacity: 1; 
+        transform: scale(1); 
+        box-shadow: 0 0 0 0 currentColor;
+    }
+    50% { 
+        opacity: 0.8; 
+        transform: scale(1.1);
+        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1);
+    }
 }
 
-[data-filament-panel-id="bendahara"] .fi-wi-stats-overview-stat-value {
-    color: var(--panel-primary);
-    font-weight: 700;
-    font-size: 1.875rem;
-    line-height: 2.25rem;
+@keyframes bendahara-glow {
+    0%, 100% {
+        box-shadow: 0 0 5px rgba(59, 130, 246, 0.3), 0 0 10px rgba(59, 130, 246, 0.2);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.4), 0 0 30px rgba(59, 130, 246, 0.3);
+    }
 }
 
-[data-filament-panel-id="bendahara"] .fi-wi-stats-overview-stat-label {
-    color: rgb(107 114 128);
-    font-weight: 500;
-    font-size: 0.875rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+/* Modern card enhancement with improved shadows */
+[data-filament-panel-id="bendahara"] .bendahara-stats-card {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 
+        0 4px 6px -1px rgba(0, 0, 0, 0.3),
+        0 2px 4px -1px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
 }
 
-/* Badge Styling - Fix for Deprecated BadgeColumn */
-[data-filament-panel-id="bendahara"] .fi-badge {
-    font-weight: 600;
-    font-size: 0.75rem;
-    padding: 0.25rem 0.75rem;
-    border-radius: 0.375rem;
+[data-filament-panel-id="bendahara"] .bendahara-stats-card:hover {
+    box-shadow: 
+        0 20px 25px -5px rgba(0, 0, 0, 0.4),
+        0 10px 10px -5px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+}
+
+/* Enhanced chart card styling */
+[data-filament-panel-id="bendahara"] .bendahara-chart-card {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+[data-filament-panel-id="bendahara"] .bendahara-activity-card {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* Modern badge styling with subtle animations */
+[data-filament-panel-id="bendahara"] .modern-badge {
     display: inline-flex;
     align-items: center;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 9999px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+[data-filament-panel-id="bendahara"] .modern-badge:hover {
+    transform: translateY(-1px) scale(1.05);
+}
+
+/* Improved status indicators */
+[data-filament-panel-id="bendahara"] .status-dot {
+    animation: bendahara-pulse-dot 2s ease-in-out infinite;
+}
+
+/* Enhanced legend dots for chart */
+[data-filament-panel-id="bendahara"] .legend-dot {
+    position: relative;
+    overflow: hidden;
+}
+
+[data-filament-panel-id="bendahara"] .legend-dot::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.3s ease;
+}
+
+[data-filament-panel-id="bendahara"] .legend-dot:hover::after {
+    transform: translate(-50%, -50%) scale(1.5);
+}
+
+/* ================================================= */
+/* ELEGANT BLACK STATS WIDGETS - PREMIUM DESIGN */
+/* ================================================= */
+
+/* Stats Overview Cards - Elegant Black Theme */
+[data-filament-panel-id="bendahara"] .fi-wi-stats-overview-stat {
+    /* Premium Black Background */
+    background: linear-gradient(135deg, 
+        var(--card-primary-black) 0%, 
+        var(--card-secondary-black) 100%);
+    
+    border-radius: 1rem;
+    padding: 2rem 1.5rem;
+    
+    /* Sophisticated Border */
+    border: 1px solid var(--card-border);
+    
+    /* Premium Shadow System */
+    box-shadow: 
+        0 1px 3px 0 rgba(0, 0, 0, 0.4),
+        0 1px 2px -1px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+    
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Luxury Hover Effects for Stats Cards */
+[data-filament-panel-id="bendahara"] .fi-wi-stats-overview-stat:hover {
+    /* Enhanced Background Gradient */
+    background: linear-gradient(135deg, 
+        var(--card-secondary-black) 0%, 
+        var(--card-charcoal) 100%);
+    
+    /* Premium Lift Effect */
+    transform: translateY(-3px);
+    
+    /* Enhanced Shadow */
+    box-shadow: 
+        0 8px 25px -5px rgba(0, 0, 0, 0.6),
+        0 8px 10px -6px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+    
+    /* Border Enhancement */
+    border-color: var(--card-border-hover);
+}
+
+/* World-Class Typography for Stat Values */
+[data-filament-panel-id="bendahara"] .fi-wi-stats-overview-stat-value {
+    /* High-Impact Typography */
+    color: var(--card-text-primary);
+    font-weight: 700;
+    font-size: 2.25rem;
+    line-height: 2.5rem;
+    
+    /* Premium Typography Details */
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    
+    /* Subtle Text Shadow for Depth */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Elegant Label Typography */
+[data-filament-panel-id="bendahara"] .fi-wi-stats-overview-stat-label {
+    /* High-Contrast Secondary Text */
+    color: var(--card-text-muted);
+    font-weight: 600;
+    font-size: 0.875rem;
+    
+    /* Premium Spacing and Casing */
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    line-height: 1.4;
+    
+    /* Subtle Enhancement */
+    opacity: 0.9;
+}
+
+/* ================================================= */
+/* ELEGANT BLACK BADGES - PREMIUM STATUS INDICATORS */
+/* ================================================= */
+
+/* Base Badge Styling - Elegant Black Theme */
+[data-filament-panel-id="bendahara"] .fi-badge {
+    /* Premium Typography */
+    font-weight: 600;
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+    
+    /* Elegant Padding and Shape */
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    
+    /* Layout and Alignment */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     gap: 0.25rem;
+    
+    /* Smooth Transitions */
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Subtle Shadow for Depth */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
+/* Success Badge - Enhanced Green with High Contrast */
 [data-filament-panel-id="bendahara"] .fi-badge-color-success {
-    background-color: rgba(16, 185, 129, 0.1);
-    color: #059669;
-    border: 1px solid rgba(16, 185, 129, 0.2);
+    background: linear-gradient(135deg, 
+        var(--card-success-bg) 0%, 
+        rgba(34, 197, 94, 0.15) 100%);
+    color: #22d65f;
+    border: 1px solid var(--card-success-border);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
 
+/* Warning Badge - Enhanced Amber with High Contrast */
 [data-filament-panel-id="bendahara"] .fi-badge-color-warning {
-    background-color: rgba(245, 158, 11, 0.1);
-    color: #d97706;
-    border: 1px solid rgba(245, 158, 11, 0.2);
+    background: linear-gradient(135deg, 
+        var(--card-warning-bg) 0%, 
+        rgba(245, 158, 11, 0.15) 100%);
+    color: #fbbf24;
+    border: 1px solid var(--card-warning-border);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
 
+/* Danger Badge - Enhanced Red with High Contrast */
 [data-filament-panel-id="bendahara"] .fi-badge-color-danger {
-    background-color: rgba(239, 68, 68, 0.1);
-    color: #dc2626;
-    border: 1px solid rgba(239, 68, 68, 0.2);
+    background: linear-gradient(135deg, 
+        var(--card-danger-bg) 0%, 
+        rgba(239, 68, 68, 0.15) 100%);
+    color: #f87171;
+    border: 1px solid var(--card-danger-border);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
 
+/* Info Badge - Enhanced Blue with High Contrast */
 [data-filament-panel-id="bendahara"] .fi-badge-color-info {
-    background-color: rgba(59, 130, 246, 0.1);
-    color: #2563eb;
-    border: 1px solid rgba(59, 130, 246, 0.2);
+    background: linear-gradient(135deg, 
+        var(--card-info-bg) 0%, 
+        rgba(59, 130, 246, 0.15) 100%);
+    color: #60a5fa;
+    border: 1px solid var(--card-info-border);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
 
-/* Card Styling - Enhanced for Dashboard */
-[data-filament-panel-id="bendahara"] .fi-card {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 0.75rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease;
-}
-
-[data-filament-panel-id="bendahara"] .fi-card:hover {
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+/* Badge Hover Effects */
+[data-filament-panel-id="bendahara"] .fi-badge:hover {
     transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* ================================================= */
+/* ELEGANT BLACK CARD SYSTEM - WORLD-CLASS READABILITY */
+/* ================================================= */
+
+/* Premium Black Color Palette */
+[data-filament-panel-id="bendahara"] {
+    /* Elegant Black Palette */
+    --card-primary-black: #0a0a0b;
+    --card-secondary-black: #111118;
+    --card-charcoal: #1a1a20;
+    --card-charcoal-light: #2a2a32;
+    --card-border: #333340;
+    --card-border-hover: #404050;
+    
+    /* High-Contrast Text Colors */
+    --card-text-primary: #fafafa;
+    --card-text-secondary: #e4e4e7;
+    --card-text-muted: #a1a1aa;
+    --card-text-subtle: #71717a;
+    
+    /* Enhanced Semantic Colors with AAA Contrast */
+    --card-success: #22c55e;
+    --card-success-bg: rgba(34, 197, 94, 0.1);
+    --card-success-border: rgba(34, 197, 94, 0.2);
+    --card-warning: #f59e0b;
+    --card-warning-bg: rgba(245, 158, 11, 0.1);
+    --card-warning-border: rgba(245, 158, 11, 0.2);
+    --card-danger: #ef4444;
+    --card-danger-bg: rgba(239, 68, 68, 0.1);
+    --card-danger-border: rgba(239, 68, 68, 0.2);
+    --card-info: #3b82f6;
+    --card-info-bg: rgba(59, 130, 246, 0.1);
+    --card-info-border: rgba(59, 130, 246, 0.2);
+}
+
+/* ================================================= */
+/* FORCE ELEGANT BLACK CARDS - MAXIMUM SPECIFICITY */
+/* ================================================= */
+
+/* HIGH SPECIFICITY SELECTORS TO OVERRIDE FILAMENT DEFAULTS */
+[data-filament-panel-id="bendahara"] .fi-card,
+[data-filament-panel-id="bendahara"] .fi-section,
+[data-filament-panel-id="bendahara"] div.fi-card,
+[data-filament-panel-id="bendahara"] div.fi-section {
+    /* FORCE Premium Black Background with Gradient Depth */
+    background: linear-gradient(135deg, 
+        var(--card-primary-black) 0%, 
+        var(--card-secondary-black) 100%) !important;
+    
+    /* FORCE Sophisticated Border System */
+    border: 1px solid var(--card-border) !important;
+    border-radius: 1rem !important;
+    
+    /* FORCE Premium Shadow System */
+    box-shadow: 
+        0 1px 3px 0 rgba(0, 0, 0, 0.4),
+        0 1px 2px -1px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.05) !important;
+    
+    /* FORCE Smooth Transitions */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    
+    /* FORCE Enhanced Typography */
+    color: var(--card-text-primary) !important;
+    font-weight: 450 !important;
+    letter-spacing: -0.005em !important;
+    line-height: 1.6 !important;
+}
+
+/* FORCE Luxury Hover Effects - Maximum Specificity */
+[data-filament-panel-id="bendahara"] .fi-card:hover,
+[data-filament-panel-id="bendahara"] .fi-section:hover,
+[data-filament-panel-id="bendahara"] div.fi-card:hover,
+[data-filament-panel-id="bendahara"] div.fi-section:hover {
+    /* FORCE Enhanced Shadow on Hover */
+    box-shadow: 
+        0 8px 25px -5px rgba(0, 0, 0, 0.6),
+        0 8px 10px -6px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.08) !important;
+    
+    /* FORCE Subtle Lift Effect */
+    transform: translateY(-2px) !important;
+    
+    /* FORCE Border Enhancement */
+    border-color: var(--card-border-hover) !important;
+    
+    /* FORCE Subtle Background Shift */
+    background: linear-gradient(135deg, 
+        var(--card-secondary-black) 0%, 
+        var(--card-charcoal) 100%) !important;
 }
 
 /* Progress Bar Styling */
@@ -185,12 +517,716 @@
     box-shadow: 0 0 0 3px rgba(251, 189, 35, 0.1);
 }
 
-/* Section Styling */
+/* ================================================= */
+/* ELEGANT BLACK SECTIONS - PREMIUM CONTAINERS */
+/* ================================================= */
+
+/* Section Styling - Elegant Black Theme */
 [data-filament-panel-id="bendahara"] .fi-section {
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(229, 231, 235, 0.3);
+    /* Premium Black Background with Gradient */
+    background: linear-gradient(135deg, 
+        var(--card-primary-black) 0%, 
+        var(--card-secondary-black) 100%);
+    
+    /* Sophisticated Border System */
+    border: 1px solid var(--card-border);
+    border-radius: 1rem;
+    
+    /* Premium Shadow System */
+    box-shadow: 
+        0 1px 3px 0 rgba(0, 0, 0, 0.4),
+        0 1px 2px -1px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+    
+    /* Enhanced Typography */
+    color: var(--card-text-primary);
+    
+    /* Smooth Transitions */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Section Hover Effects */
+[data-filament-panel-id="bendahara"] .fi-section:hover {
+    /* Enhanced Background */
+    background: linear-gradient(135deg, 
+        var(--card-secondary-black) 0%, 
+        var(--card-charcoal) 100%);
+    
+    /* Border Enhancement */
+    border-color: var(--card-border-hover);
+    
+    /* Enhanced Shadow */
+    box-shadow: 
+        0 4px 12px -2px rgba(0, 0, 0, 0.5),
+        0 4px 6px -2px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+}
+
+/* ================================================= */
+/* WORLD-CLASS TYPOGRAPHY & CARD CONTENT */
+/* ================================================= */
+
+/* Primary Headings in Cards */
+[data-filament-panel-id="bendahara"] .fi-section h3,
+[data-filament-panel-id="bendahara"] .fi-card h3 {
+    color: var(--card-text-primary);
+    font-weight: 700;
+    font-size: 1.125rem;
+    line-height: 1.6;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.5rem;
+}
+
+/* Secondary Text in Cards */
+[data-filament-panel-id="bendahara"] .fi-section p,
+[data-filament-panel-id="bendahara"] .fi-card p {
+    color: var(--card-text-secondary);
+    font-weight: 450;
+    line-height: 1.6;
+}
+
+/* Muted Text (descriptions, labels) */
+[data-filament-panel-id="bendahara"] .text-gray-500,
+[data-filament-panel-id="bendahara"] .dark\\:text-gray-400 {
+    color: var(--card-text-muted) !important;
+    font-weight: 500;
+}
+
+/* Primary Text (values, important content) */
+[data-filament-panel-id="bendahara"] .text-gray-900,
+[data-filament-panel-id="bendahara"] .dark\\:text-gray-100 {
+    color: var(--card-text-primary) !important;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+}
+
+/* Enhanced Financial Values Typography */
+[data-filament-panel-id="bendahara"] .text-2xl {
+    font-size: 2rem !important;
+    font-weight: 700 !important;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Subtle Text (small descriptions) */
+[data-filament-panel-id="bendahara"] .text-sm {
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    line-height: 1.5 !important;
+}
+
+/* Extra Small Text (micro labels) */
+[data-filament-panel-id="bendahara"] .text-xs {
+    color: var(--card-text-subtle) !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.02em !important;
+}
+
+/* ================================================= */
+/* ELEGANT BLACK FILAMENT TABLES - VALIDATION CENTER */
+/* ================================================= */
+
+/* Table Container - Premium Black Background */
+[data-filament-panel-id="bendahara"] .fi-ta-table,
+[data-filament-panel-id="bendahara"] .fi-ta-ctn,
+[data-filament-panel-id="bendahara"] .fi-main,
+[data-filament-panel-id="bendahara"] .fi-section,
+[data-filament-panel-id="bendahara"] .fi-section-content-ctn {
+    background: linear-gradient(135deg, var(--card-primary-black) 0%, var(--card-secondary-black) 100%) !important;
+    border: 1px solid var(--card-border) !important;
+    border-radius: 1rem !important;
+    box-shadow: 
+        0 4px 12px -2px rgba(0, 0, 0, 0.8),
+        0 2px 6px -2px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+/* HORIZONTAL SCROLL FIX - Critical for validation center tables */
+[data-filament-panel-id="bendahara"] .fi-ta-content {
+    background: linear-gradient(135deg, var(--card-primary-black) 0%, var(--card-secondary-black) 100%) !important;
+    border: 1px solid var(--card-border) !important;
+    border-radius: 1rem !important;
+    box-shadow: 
+        0 4px 12px -2px rgba(0, 0, 0, 0.8),
+        0 2px 6px -2px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.08) !important;
+    /* CRITICAL: Restore horizontal scroll functionality */
+    overflow-x: auto !important;
+    position: relative !important;
+}
+
+/* Additional fixes for table scrolling components */
+[data-filament-panel-id="bendahara"] .fi-ta-ctn {
+    /* Ensure container doesn't block overflow */
+    overflow: visible !important;
+}
+
+/* Ensure table wrapper maintains minimum width for scroll */
+[data-filament-panel-id="bendahara"] .fi-ta-table {
+    min-width: 100% !important;
+    width: max-content !important;
+    table-layout: auto !important;
+}
+
+/* Mobile responsive horizontal scroll enhancement */
+@media (max-width: 768px) {
+    [data-filament-panel-id="bendahara"] .fi-ta-content {
+        overflow-x: scroll !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+    }
+    
+    [data-filament-panel-id="bendahara"] .fi-ta-content::-webkit-scrollbar {
+        height: 4px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 2px;
+    }
+    
+    [data-filament-panel-id="bendahara"] .fi-ta-content::-webkit-scrollbar-thumb {
+        background: var(--card-border-hover);
+        border-radius: 2px;
+    }
+}
+
+/* Table Header - Elegant Black */
+[data-filament-panel-id="bendahara"] .fi-ta-header,
+[data-filament-panel-id="bendahara"] .fi-ta-header-ctn {
+    background: linear-gradient(135deg, var(--card-charcoal) 0%, var(--card-charcoal-light) 100%) !important;
+    border-bottom: 1px solid var(--card-border) !important;
+    color: var(--card-text-primary) !important;
+}
+
+/* WORLD-CLASS INLINE ACTION BUTTONS */
+[data-filament-panel-id="bendahara"] .fi-ta-actions {
+    display: flex !important;
+    gap: 0.5rem !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    padding: 0.5rem 1rem !important;
+    min-width: 350px !important;
+}
+
+[data-filament-panel-id="bendahara"] .fi-ac-btn {
+    min-width: 2.5rem !important;
+    height: 2.25rem !important;
+    padding: 0.5rem !important;
+    border-radius: 0.375rem !important;
+    font-weight: 500 !important;
+    font-size: 0.875rem !important;
+    transition: all 0.15s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* SUCCESS ACTION - GREEN */
+[data-filament-panel-id="bendahara"] .fi-ac-btn-color-success {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+    border: 1px solid #22c55e !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 8px -2px rgba(34, 197, 94, 0.4) !important;
+}
+
+[data-filament-panel-id="bendahara"] .fi-ac-btn-color-success:hover {
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important;
+    box-shadow: 0 4px 12px -2px rgba(34, 197, 94, 0.5) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* DANGER ACTION - RED */
+[data-filament-panel-id="bendahara"] .fi-ac-btn-color-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+    border: 1px solid #ef4444 !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 8px -2px rgba(239, 68, 68, 0.4) !important;
+}
+
+[data-filament-panel-id="bendahara"] .fi-ac-btn-color-danger:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+    box-shadow: 0 4px 12px -2px rgba(239, 68, 68, 0.5) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* INFO ACTION - BLUE */
+[data-filament-panel-id="bendahara"] .fi-ac-btn-color-info {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+    border: 1px solid #3b82f6 !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 8px -2px rgba(59, 130, 246, 0.4) !important;
+}
+
+[data-filament-panel-id="bendahara"] .fi-ac-btn-color-info:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+    box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.5) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* WARNING ACTION - YELLOW */
+[data-filament-panel-id="bendahara"] .fi-ac-btn-color-warning {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+    border: 1px solid #f59e0b !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 8px -2px rgba(245, 158, 11, 0.4) !important;
+}
+
+[data-filament-panel-id="bendahara"] .fi-ac-btn-color-warning:hover {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
+    box-shadow: 0 4px 12px -2px rgba(245, 158, 11, 0.5) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* GRAY ACTION - NEUTRAL */
+[data-filament-panel-id="bendahara"] .fi-ac-btn-color-gray {
+    background: rgba(156, 163, 175, 0.2) !important;
+    border: 1px solid rgba(156, 163, 175, 0.3) !important;
+    color: #d1d5db !important;
+    box-shadow: 0 2px 8px -2px rgba(156, 163, 175, 0.2) !important;
+}
+
+[data-filament-panel-id="bendahara"] .fi-ac-btn-color-gray:hover {
+    background: rgba(156, 163, 175, 0.3) !important;
+    border-color: rgba(156, 163, 175, 0.5) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px -2px rgba(156, 163, 175, 0.3) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Table Cells - Premium Black */
+[data-filament-panel-id="bendahara"] .fi-ta-cell,
+[data-filament-panel-id="bendahara"] .fi-ta-row {
+    background: linear-gradient(135deg, var(--card-primary-black) 0%, var(--card-secondary-black) 100%) !important;
+    border-color: var(--card-border) !important;
+    color: var(--card-text-primary) !important;
+}
+
+/* Table Row Hover Effects */
+[data-filament-panel-id="bendahara"] .fi-ta-row:hover {
+    background: linear-gradient(135deg, var(--card-secondary-black) 0%, var(--card-charcoal) 100%) !important;
+    transform: scale(1.01) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Table Text Enhancement */
+[data-filament-panel-id="bendahara"] .fi-ta-text,
+[data-filament-panel-id="bendahara"] .fi-ta-cell-content {
+    color: var(--card-text-primary) !important;
+    font-weight: 500 !important;
+}
+
+/* Tabs - Elegant Black */
+[data-filament-panel-id="bendahara"] .fi-tabs,
+[data-filament-panel-id="bendahara"] .fi-tabs-tab {
+    background: linear-gradient(135deg, var(--card-primary-black) 0%, var(--card-secondary-black) 100%) !important;
+    border-color: var(--card-border) !important;
+    color: var(--card-text-primary) !important;
+}
+
+/* Active Tab Enhancement */
+[data-filament-panel-id="bendahara"] .fi-tabs-tab[aria-selected="true"] {
+    background: linear-gradient(135deg, var(--card-charcoal) 0%, var(--card-charcoal-light) 100%) !important;
+    border-bottom-color: var(--panel-primary) !important;
+    color: var(--card-text-primary) !important;
+}
+
+/* Form Elements in Tables */
+[data-filament-panel-id="bendahara"] .fi-input,
+[data-filament-panel-id="bendahara"] .fi-select,
+[data-filament-panel-id="bendahara"] .fi-checkbox {
+    background: var(--card-charcoal) !important;
+    border-color: var(--card-border) !important;
+    color: var(--card-text-primary) !important;
+}
+
+/* Page Container */
+[data-filament-panel-id="bendahara"] .fi-page,
+[data-filament-panel-id="bendahara"] .fi-page-content {
+    background: linear-gradient(135deg, #060608 0%, #0d0d0f 100%) !important;
+}
+
+/* ================================================= */
+/* FORCE BLACK THEME - NUCLEAR OPTION WITH MAXIMUM SPECIFICITY */
+/* ================================================= */
+
+/* ULTIMATE OVERRIDE - Apply to every possible card selector */
+[data-filament-panel-id="bendahara"] section,
+[data-filament-panel-id="bendahara"] .fi-section-content,
+[data-filament-panel-id="bendahara"] .filament-section,
+[data-filament-panel-id="bendahara"] [class*="fi-section"],
+[data-filament-panel-id="bendahara"] [class*="fi-card"],
+[data-filament-panel-id="bendahara"] .grid > div > div,
+[data-filament-panel-id="bendahara"] .fi-wi-stats-overview-stat {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border: 1px solid #333340 !important;
+    border-radius: 1rem !important;
+    box-shadow: 
+        0 1px 3px 0 rgba(0, 0, 0, 0.4),
+        0 1px 2px -1px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.05) !important;
+    color: #fafafa !important;
+}
+
+/* ================================================= */
+/* NUCLEAR CSS OVERRIDE - MAXIMUM SPECIFICITY FOR ALL VIEWS */
+/* Based on successful JavaScript force detection results */
+/* ================================================= */
+
+/* EVERY POSSIBLE CARD/CONTAINER SELECTOR - ULTRA HIGH SPECIFICITY */
+[data-filament-panel-id="bendahara"] .fi-ta-table,
+[data-filament-panel-id="bendahara"] .fi-ta-content,
+[data-filament-panel-id="bendahara"] .fi-ta-ctn,
+[data-filament-panel-id="bendahara"] .fi-section,
+[data-filament-panel-id="bendahara"] .fi-section-content,
+[data-filament-panel-id="bendahara"] .fi-main,
+[data-filament-panel-id="bendahara"] .fi-page,
+[data-filament-panel-id="bendahara"] .fi-form,
+[data-filament-panel-id="bendahara"] div.fi-ta-table,
+[data-filament-panel-id="bendahara"] div.fi-section,
+[data-filament-panel-id="bendahara"] div.fi-main,
+[data-filament-panel-id="bendahara"] section.fi-section,
+html [data-filament-panel-id="bendahara"] .fi-ta-table,
+html [data-filament-panel-id="bendahara"] .fi-section,
+body [data-filament-panel-id="bendahara"] .fi-ta-table,
+body [data-filament-panel-id="bendahara"] .fi-section {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border: 1px solid #333340 !important;
+    border-radius: 1rem !important;
+    box-shadow: 
+        0 4px 12px -2px rgba(0, 0, 0, 0.8),
+        0 2px 6px -2px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.08) !important;
+    color: #fafafa !important;
+}
+
+/* CUSTOM DASHBOARD CARDS - ULTRA HIGH SPECIFICITY */
+[data-filament-panel-id="bendahara"] .bg-white,
+[data-filament-panel-id="bendahara"] .dark\\:bg-gray-800,
+[data-filament-panel-id="bendahara"] div.bg-white,
+[data-filament-panel-id="bendahara"] div.dark\\:bg-gray-800,
+html [data-filament-panel-id="bendahara"] .bg-white,
+html [data-filament-panel-id="bendahara"] .dark\\:bg-gray-800,
+body [data-filament-panel-id="bendahara"] .bg-white,
+body [data-filament-panel-id="bendahara"] .dark\\:bg-gray-800 {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border: 1px solid #333340 !important;
+    border-radius: 1rem !important;
+    box-shadow: 
+        0 4px 12px -2px rgba(0, 0, 0, 0.8),
+        0 2px 6px -2px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.08) !important;
+    color: #fafafa !important;
+}
+
+/* FORCE All text to be white/high contrast - MAXIMUM SPECIFICITY */
+[data-filament-panel-id="bendahara"] .fi-section *,
+[data-filament-panel-id="bendahara"] .fi-card *,
+[data-filament-panel-id="bendahara"] section *,
+[data-filament-panel-id="bendahara"] .fi-ta-table *,
+[data-filament-panel-id="bendahara"] .fi-ta-cell *,
+[data-filament-panel-id="bendahara"] .fi-main *,
+[data-filament-panel-id="bendahara"] .fi-form *,
+html [data-filament-panel-id="bendahara"] .fi-section *,
+html [data-filament-panel-id="bendahara"] .fi-ta-table *,
+body [data-filament-panel-id="bendahara"] .fi-section *,
+body [data-filament-panel-id="bendahara"] .fi-ta-table * {
+    color: #fafafa !important;
+}
+
+/* Specific overrides for muted text - MAXIMUM SPECIFICITY */
+[data-filament-panel-id="bendahara"] .text-gray-500,
+[data-filament-panel-id="bendahara"] .dark\\:text-gray-400,
+html [data-filament-panel-id="bendahara"] .text-gray-500,
+html [data-filament-panel-id="bendahara"] .dark\\:text-gray-400,
+body [data-filament-panel-id="bendahara"] .text-gray-500,
+body [data-filament-panel-id="bendahara"] .dark\\:text-gray-400 {
+    color: #a1a1aa !important;
+}
+
+/* TABLE SPECIFIC OVERRIDES - NUCLEAR APPROACH */
+[data-filament-panel-id="bendahara"] .fi-ta-row,
+[data-filament-panel-id="bendahara"] .fi-ta-cell,
+[data-filament-panel-id="bendahara"] .fi-ta-header,
+[data-filament-panel-id="bendahara"] .fi-ta-header-cell,
+html [data-filament-panel-id="bendahara"] .fi-ta-row,
+html [data-filament-panel-id="bendahara"] .fi-ta-cell,
+body [data-filament-panel-id="bendahara"] .fi-ta-row,
+body [data-filament-panel-id="bendahara"] .fi-ta-cell {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border-color: #333340 !important;
+    color: #fafafa !important;
+}
+
+/* HOVER EFFECTS - MAXIMUM SPECIFICITY */
+[data-filament-panel-id="bendahara"] .fi-ta-row:hover,
+[data-filament-panel-id="bendahara"] .fi-section:hover,
+[data-filament-panel-id="bendahara"] .bg-white:hover,
+html [data-filament-panel-id="bendahara"] .fi-ta-row:hover,
+html [data-filament-panel-id="bendahara"] .fi-section:hover,
+body [data-filament-panel-id="bendahara"] .fi-ta-row:hover,
+body [data-filament-panel-id="bendahara"] .fi-section:hover {
+    background: linear-gradient(135deg, #111118 0%, #1a1a20 100%) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* ================================================= */
+/* ULTIMATE NUCLEAR CSS - HIGHEST POSSIBLE SPECIFICITY */
+/* This should override EVERYTHING including Filament defaults */
+/* ================================================= */
+
+/* Use CSS attribute selectors with multiple tags for maximum specificity */
+html body div[data-filament-panel-id="bendahara"] .fi-ta-table,
+html body div[data-filament-panel-id="bendahara"] .fi-section,
+html body div[data-filament-panel-id="bendahara"] .fi-main,
+html body div[data-filament-panel-id="bendahara"] .bg-white,
+html body div[data-filament-panel-id="bendahara"] .dark\\:bg-gray-800,
+html body section[data-filament-panel-id="bendahara"] .fi-section,
+html body main[data-filament-panel-id="bendahara"] .fi-main {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border: 1px solid #333340 !important;
+    border-radius: 1rem !important;
+    box-shadow: 
+        0 4px 12px -2px rgba(0, 0, 0, 0.8),
+        0 2px 6px -2px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.08) !important;
+    color: #fafafa !important;
+}
+
+/* Force text with ultimate specificity */
+html body div[data-filament-panel-id="bendahara"] .fi-ta-table *,
+html body div[data-filament-panel-id="bendahara"] .fi-section *,
+html body div[data-filament-panel-id="bendahara"] .fi-main *,
+html body div[data-filament-panel-id="bendahara"] .bg-white * {
+    color: #fafafa !important;
+}
+
+/* Ultimate table row styling */
+html body div[data-filament-panel-id="bendahara"] .fi-ta-row,
+html body div[data-filament-panel-id="bendahara"] .fi-ta-cell,
+html body div[data-filament-panel-id="bendahara"] .fi-ta-header {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border-color: #333340 !important;
+    color: #fafafa !important;
+}
+
+/* ================================================= */
+/* MERGED VALIDATION TABS - ELEGANT BLACK COMPATIBLE */
+/* Merged from validation-tabs.css to resolve conflicts */
+/* ================================================= */
+
+/* Enhanced Tab Styling for Validation Status - BLACK THEME */
+[data-filament-panel-id="bendahara"] .fi-resource-tabs {
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid var(--card-border);
+}
+
+/* Modern tab button styling with BLACK theme */
+[data-filament-panel-id="bendahara"] .fi-tabs .fi-tabs-tab {
+    position: relative;
+    transition: all 0.2s ease-in-out;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem 0.5rem 0 0;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: 2px solid transparent;
+    background: linear-gradient(135deg, var(--card-primary-black) 0%, var(--card-secondary-black) 100%) !important;
+    color: var(--card-text-primary) !important;
+}
+
+/* Enhanced tab hover effects with BLACK colors */
+[data-filament-panel-id="bendahara"] .fi-tabs .fi-tabs-tab:hover {
+    background: linear-gradient(135deg, var(--card-secondary-black) 0%, var(--card-charcoal) 100%) !important;
+    transform: translateY(-0.5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Active tab styling with BLACK primary colors */
+[data-filament-panel-id="bendahara"] .fi-tabs .fi-tabs-tab[aria-selected="true"] {
+    background: linear-gradient(135deg, var(--card-charcoal) 0%, var(--card-charcoal-light) 100%) !important;
+    border-bottom-color: #f59e0b !important; /* Keep amber accent for contrast */
+    color: var(--card-text-primary) !important;
+    font-weight: 600;
+    transform: translateY(-1px);
+}
+
+/* Enhanced badge styling for tab counts - BLACK THEME */
+[data-filament-panel-id="bendahara"] .fi-tabs .fi-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.375rem;
+    margin-left: 0.5rem;
+}
+
+/* Warning badge for pending validation with BLACK styling */
+[data-filament-panel-id="bendahara"] .fi-tabs .fi-badge.fi-color-warning {
+    background: rgba(245, 158, 11, 0.15) !important;
+    color: #fbbf24 !important;
+    border: 1px solid rgba(245, 158, 11, 0.3) !important;
+    animation: bendahara-pulse 2s infinite;
+}
+
+/* Success badge for validated records with BLACK green */
+[data-filament-panel-id="bendahara"] .fi-tabs .fi-badge.fi-color-success {
+    background: rgba(34, 197, 94, 0.1) !important;
+    color: #22d65f !important;
+    border: 1px solid rgba(34, 197, 94, 0.2) !important;
+}
+
+/* Gray badge for all records with BLACK styling */
+[data-filament-panel-id="bendahara"] .fi-tabs .fi-badge.fi-color-gray {
+    background: rgba(107, 114, 128, 0.1) !important;
+    color: var(--card-text-muted) !important;
+    border: 1px solid rgba(107, 114, 128, 0.2) !important;
+}
+
+/* Tab icon styling with BLACK theme integration */
+[data-filament-panel-id="bendahara"] .fi-tabs .fi-tabs-tab .fi-icon {
+    width: 1rem;
+    height: 1rem;
+    transition: transform 0.2s ease-in-out;
+    color: inherit;
+}
+
+/* Icon animation on hover with BLACK colors */
+[data-filament-panel-id="bendahara"] .fi-tabs .fi-tabs-tab:hover .fi-icon {
+    transform: scale(1.1);
+    color: var(--card-text-primary);
+}
+
+/* Enhanced accessibility with BLACK theme */
+[data-filament-panel-id="bendahara"] .fi-tabs .fi-tabs-tab:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--card-border-hover);
+    background: linear-gradient(135deg, var(--card-charcoal) 0%, var(--card-charcoal-light) 100%) !important;
+}
+
+/* ================================================= */
+/* ELEGANT BLACK VALIDATION CARDS - PREMIUM STATUS */
+/* ================================================= */
+
+/* Base Background Styling for Status Cards */
+[data-filament-panel-id="bendahara"] .bg-warning-50,
+[data-filament-panel-id="bendahara"] .dark\\:bg-warning-900\\/20 {
+    background: linear-gradient(135deg, 
+        rgba(245, 158, 11, 0.08) 0%, 
+        rgba(245, 158, 11, 0.04) 100%) !important;
+    border: 1px solid rgba(245, 158, 11, 0.2);
     border-radius: 0.75rem;
-    backdrop-filter: blur(10px);
+    box-shadow: inset 0 1px 0 0 rgba(245, 158, 11, 0.1);
+}
+
+[data-filament-panel-id="bendahara"] .bg-success-50,
+[data-filament-panel-id="bendahara"] .dark\\:bg-success-900\\/20 {
+    background: linear-gradient(135deg, 
+        rgba(34, 197, 94, 0.08) 0%, 
+        rgba(34, 197, 94, 0.04) 100%) !important;
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    border-radius: 0.75rem;
+    box-shadow: inset 0 1px 0 0 rgba(34, 197, 94, 0.1);
+}
+
+[data-filament-panel-id="bendahara"] .bg-danger-50,
+[data-filament-panel-id="bendahara"] .dark\\:bg-danger-900\\/20 {
+    background: linear-gradient(135deg, 
+        rgba(239, 68, 68, 0.08) 0%, 
+        rgba(239, 68, 68, 0.04) 100%) !important;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    border-radius: 0.75rem;
+    box-shadow: inset 0 1px 0 0 rgba(239, 68, 68, 0.1);
+}
+
+/* Enhanced Background Cards for Monthly Trends */
+[data-filament-panel-id="bendahara"] .bg-gray-50,
+[data-filament-panel-id="bendahara"] .dark\\:bg-gray-800 {
+    background: linear-gradient(135deg, 
+        var(--card-charcoal-light) 0%, 
+        var(--card-charcoal) 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 0.75rem;
+    box-shadow: 
+        0 1px 3px 0 rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.03);
+}
+
+/* Icon Background Enhancement */
+[data-filament-panel-id="bendahara"] .bg-success-100,
+[data-filament-panel-id="bendahara"] .dark\\:bg-success-900 {
+    background: linear-gradient(135deg, 
+        rgba(34, 197, 94, 0.15) 0%, 
+        rgba(34, 197, 94, 0.08) 100%) !important;
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    box-shadow: inset 0 1px 0 0 rgba(34, 197, 94, 0.1);
+}
+
+[data-filament-panel-id="bendahara"] .bg-warning-100,
+[data-filament-panel-id="bendahara"] .dark\\:bg-warning-900 {
+    background: linear-gradient(135deg, 
+        rgba(245, 158, 11, 0.15) 0%, 
+        rgba(245, 158, 11, 0.08) 100%) !important;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    box-shadow: inset 0 1px 0 0 rgba(245, 158, 11, 0.1);
+}
+
+[data-filament-panel-id="bendahara"] .bg-danger-100,
+[data-filament-panel-id="bendahara"] .dark\\:bg-danger-900 {
+    background: linear-gradient(135deg, 
+        rgba(239, 68, 68, 0.15) 0%, 
+        rgba(239, 68, 68, 0.08) 100%) !important;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    box-shadow: inset 0 1px 0 0 rgba(239, 68, 68, 0.1);
+}
+
+/* ================================================= */
+/* ELEGANT BLACK COLOR INDICATORS - PREMIUM DETAILS */
+/* ================================================= */
+
+/* Color Dots for Trends - Enhanced with Elegant Styling */
+[data-filament-panel-id="bendahara"] .bg-success-500 {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+    box-shadow: 
+        0 0 0 1px rgba(34, 197, 94, 0.3),
+        0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+[data-filament-panel-id="bendahara"] .bg-danger-500 {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+    box-shadow: 
+        0 0 0 1px rgba(239, 68, 68, 0.3),
+        0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+[data-filament-panel-id="bendahara"] .bg-warning-500 {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+    box-shadow: 
+        0 0 0 1px rgba(245, 158, 11, 0.3),
+        0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Enhanced Icon Colors for High Contrast */
+[data-filament-panel-id="bendahara"] .text-success-600,
+[data-filament-panel-id="bendahara"] .dark\\:text-success-400 {
+    color: #22d65f !important;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+
+[data-filament-panel-id="bendahara"] .text-danger-600,
+[data-filament-panel-id="bendahara"] .dark\\:text-danger-400 {
+    color: #f87171 !important;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+}
+
+[data-filament-panel-id="bendahara"] .text-warning-600,
+[data-filament-panel-id="bendahara"] .dark\\:text-warning-400 {
+    color: #fbbf24 !important;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
 
 /* Chart Container Styling */
@@ -258,7 +1294,7 @@
     transform: translateY(0);
 }
 
-/* Collapsible icon styling */
+/* Collapsible icon styling - Only show when collapse button exists */
 [data-filament-panel-id="bendahara"] .fi-sidebar-group-label::after {
     content: '';
     width: 0;
@@ -267,6 +1303,12 @@
     border-right: 4px solid transparent;
     border-top: 6px solid var(--panel-primary);
     transition: transform 0.2s ease;
+    display: none; /* Hidden by default for non-collapsible sidebars */
+}
+
+/* Show collapsible icon only when collapse button is present */
+[data-filament-panel-id="bendahara"] .fi-sidebar-group:has(.fi-sidebar-group-collapse-button) .fi-sidebar-group-label::after {
+    display: block;
 }
 
 [data-filament-panel-id="bendahara"] .fi-sidebar-group.fi-collapsed .fi-sidebar-group-label::after {
@@ -277,7 +1319,48 @@
     transform: rotate(0deg);
 }
 
-/* Responsive Design */
+/* Safety CSS for non-collapsible sidebar - Ensure groups are always visible */
+[data-filament-panel-id="bendahara"] .fi-sidebar-group-items {
+    display: flex !important; /* Override any display:none that might be applied by JS */
+    opacity: 1 !important;
+    max-height: none !important;
+    transform: none !important;
+}
+
+/* Additional safety for navigation group visibility when sidebar is not collapsible */
+[data-filament-panel-id="bendahara"] .fi-sidebar-group {
+    /* Ensure groups are always expanded when sidebar is not collapsible on desktop */
+}
+
+[data-filament-panel-id="bendahara"] .fi-sidebar-group .fi-sidebar-group-items {
+    /* Force visibility of group items for non-collapsible sidebar */
+    visibility: visible;
+}
+
+/* Modern responsive design for mobile-first approach */
+@media (max-width: 640px) {
+    [data-filament-panel-id="bendahara"] .bendahara-stats-card {
+        padding: 1rem;
+        margin-bottom: 1rem;
+        transform: none !important; /* Disable hover transforms on mobile */
+    }
+    
+    [data-filament-panel-id="bendahara"] .bendahara-stats-card:hover {
+        transform: none !important;
+    }
+    
+    /* Stack legend items vertically on mobile */
+    [data-filament-panel-id="bendahara"] .chart-legend {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    /* Compact activity cards on mobile */
+    [data-filament-panel-id="bendahara"] .bendahara-activity-card {
+        padding: 1rem;
+    }
+}
+
 @media (max-width: 768px) {
     [data-filament-panel-id="bendahara"] .fi-wi-stats-overview-stat {
         margin-bottom: 1rem;
@@ -298,6 +1381,39 @@
     
     [data-filament-panel-id="bendahara"] .fi-wi-grid {
         gap: 1rem;
+    }
+    
+    /* Mobile-optimized grid spacing */
+    [data-filament-panel-id="bendahara"] .dashboard-grid {
+        gap: 1rem;
+    }
+    
+    /* Ensure activity items are touch-friendly */
+    [data-filament-panel-id="bendahara"] .activity-item {
+        min-height: 44px; /* iOS touch target minimum */
+        padding: 0.75rem;
+    }
+}
+
+/* Enhanced tablet breakpoint */
+@media (min-width: 769px) and (max-width: 1024px) {
+    [data-filament-panel-id="bendahara"] .bendahara-stats-card {
+        padding: 1.25rem;
+    }
+    
+    [data-filament-panel-id="bendahara"] .bendahara-chart-card {
+        padding: 1.5rem;
+    }
+}
+
+/* Large screen optimizations */
+@media (min-width: 1280px) {
+    [data-filament-panel-id="bendahara"] .bendahara-stats-card {
+        padding: 1.75rem;
+    }
+    
+    [data-filament-panel-id="bendahara"] .bendahara-chart-card {
+        padding: 2rem;
     }
 }
 
@@ -512,4 +1628,323 @@
     background: rgba(245, 158, 11, 0.1);
     border-color: rgba(245, 158, 11, 0.2);
     color: var(--panel-primary-light);
+}
+
+/* ================================================= */
+/* MODERN FINANCIAL DASHBOARD UTILITIES */
+/* ================================================= */
+
+/* Utility classes for the enhanced dashboard */
+[data-filament-panel-id="bendahara"] .dashboard-grid {
+    display: grid;
+    gap: 1.5rem;
+}
+
+[data-filament-panel-id="bendahara"] .activity-item {
+    border-radius: 0.75rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-filament-panel-id="bendahara"] .activity-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Enhanced loading state for activity feeds */
+[data-filament-panel-id="bendahara"] .activity-loading {
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.05) 0%,
+        rgba(255, 255, 255, 0.1) 50%,
+        rgba(255, 255, 255, 0.05) 100%
+    );
+    background-size: 200% 100%;
+    animation: bendahara-loading 2s ease-in-out infinite;
+}
+
+/* Enhanced chart placeholder styling */
+[data-filament-panel-id="bendahara"] .chart-placeholder {
+    background: linear-gradient(
+        135deg,
+        rgba(59, 130, 246, 0.1) 0%,
+        rgba(16, 185, 129, 0.1) 50%,
+        rgba(139, 92, 246, 0.1) 100%
+    );
+    border-radius: 0.75rem;
+    position: relative;
+    overflow: hidden;
+}
+
+[data-filament-panel-id="bendahara"] .chart-placeholder::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.1) 50%,
+        transparent 100%
+    );
+    animation: bendahara-shimmer 2s ease-in-out infinite;
+}
+
+@keyframes bendahara-shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+/* Status badge variants */
+[data-filament-panel-id="bendahara"] .status-badge-success {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+[data-filament-panel-id="bendahara"] .status-badge-warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+[data-filament-panel-id="bendahara"] .status-badge-error {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* ================================================= */
+/* VALIDATION TABS ENHANCEMENT - MERGED FROM SEPARATE FILE */
+/* ================================================= */
+
+/* Enhanced Tab Styling for Validation Status */
+[data-filament-panel-id="bendahara"] .fi-resource-tabs {
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid rgba(229, 231, 235, 0.3);
+}
+
+/* Modern tab button styling with Bendahara theme */
+[data-filament-panel-id="bendahara"] .fi-tabs .fi-tabs-tab {
+    position: relative;
+    transition: all 0.2s ease-in-out;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem 0.5rem 0 0;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: 2px solid transparent;
+}
+
+/* Enhanced tab hover effects with Bendahara colors */
+[data-filament-panel-id="bendahara"] .fi-tabs .fi-tabs-tab:hover {
+    background: rgba(251, 189, 35, 0.1);
+    transform: translateY(-0.5px);
+    box-shadow: 0 4px 12px rgba(251, 189, 35, 0.1);
+}
+
+/* Active tab styling with Bendahara primary colors */
+[data-filament-panel-id="bendahara"] .fi-tabs .fi-tabs-tab[aria-selected="true"] {
+    background: rgba(251, 189, 35, 0.15);
+    border-bottom-color: var(--panel-primary);
+    color: var(--panel-primary-dark);
+    font-weight: 600;
+    transform: translateY(-1px);
+}
+
+/* Enhanced badge styling for tab counts */
+[data-filament-panel-id="bendahara"] .fi-tabs .fi-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.375rem;
+    margin-left: 0.5rem;
+}
+
+/* Warning badge for pending validation with enhanced Bendahara styling */
+[data-filament-panel-id="bendahara"] .fi-tabs .fi-badge.fi-color-warning {
+    background: rgba(245, 158, 11, 0.15);
+    color: #b45309;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    animation: bendahara-pulse 2s infinite;
+}
+
+/* Success badge for validated records with Bendahara green */
+[data-filament-panel-id="bendahara"] .fi-tabs .fi-badge.fi-color-success {
+    background: rgba(16, 185, 129, 0.1);
+    color: #047857;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+/* Gray badge for all records with consistent styling */
+[data-filament-panel-id="bendahara"] .fi-tabs .fi-badge.fi-color-gray {
+    background: rgba(107, 114, 128, 0.1);
+    color: #4b5563;
+    border: 1px solid rgba(107, 114, 128, 0.2);
+}
+
+/* Tab icon styling with Bendahara theme integration */
+[data-filament-panel-id="bendahara"] .fi-tabs .fi-tabs-tab .fi-icon {
+    width: 1rem;
+    height: 1rem;
+    transition: transform 0.2s ease-in-out;
+    color: inherit;
+}
+
+/* Icon animation on hover with Bendahara colors */
+[data-filament-panel-id="bendahara"] .fi-tabs .fi-tabs-tab:hover .fi-icon {
+    transform: scale(1.1);
+    color: var(--panel-primary);
+}
+
+/* Enhanced accessibility with Bendahara theme */
+[data-filament-panel-id="bendahara"] .fi-tabs .fi-tabs-tab:focus {
+    outline: none;
+    ring: 2px solid var(--panel-primary);
+    ring-offset: 2px;
+    background: rgba(251, 189, 35, 0.1);
+}
+
+/* Loading state for badges with Bendahara animation */
+[data-filament-panel-id="bendahara"] .fi-tabs .fi-badge.loading {
+    animation: bendahara-loading 1.5s infinite;
+    background: rgba(251, 189, 35, 0.1);
+}
+
+/* Enhanced spacing for validation tabs content */
+[data-filament-panel-id="bendahara"] .fi-resource-tabs + .fi-ta-content {
+    border-top: 2px solid rgba(229, 231, 235, 0.3);
+    padding-top: 1.5rem;
+    margin-top: 1rem;
+}
+
+/* Bendahara-specific pulse animation for pending validations */
+@keyframes bendahara-pulse {
+    0%, 100% {
+        opacity: 1;
+        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+    }
+    50% {
+        opacity: 0.8;
+        box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.1);
+    }
+}
+
+/* Responsive design for mobile validation tabs */
+@media (max-width: 640px) {
+    [data-filament-panel-id="bendahara"] .fi-tabs .fi-tabs-tab {
+        padding: 0.5rem 0.75rem;
+        min-width: 0;
+        font-size: 0.875rem;
+    }
+    
+    [data-filament-panel-id="bendahara"] .fi-tabs .fi-badge {
+        font-size: 0.75rem;
+        min-width: 1.25rem;
+        height: 1.25rem;
+    }
+}
+
+/* Tablet responsive design for validation tabs */
+@media (max-width: 768px) {
+    [data-filament-panel-id="bendahara"] .fi-tabs {
+        overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    
+    [data-filament-panel-id="bendahara"] .fi-tabs::-webkit-scrollbar {
+        display: none;
+    }
+    
+    [data-filament-panel-id="bendahara"] .fi-tabs .fi-tabs-content {
+        display: flex;
+        min-width: fit-content;
+    }
+}
+
+/* Dark mode enhancements for validation tabs */
+[data-filament-panel-id="bendahara"] .dark .fi-tabs .fi-tabs-tab {
+    color: rgba(229, 231, 235, 0.9);
+    background: rgba(31, 41, 55, 0.3);
+}
+
+[data-filament-panel-id="bendahara"] .dark .fi-tabs .fi-tabs-tab:hover {
+    background: rgba(245, 158, 11, 0.2);
+    color: var(--panel-primary-light);
+}
+
+[data-filament-panel-id="bendahara"] .dark .fi-tabs .fi-tabs-tab[aria-selected="true"] {
+    background: rgba(245, 158, 11, 0.25);
+    color: var(--panel-primary-light);
+    border-bottom-color: var(--panel-primary-light);
+}
+
+[data-filament-panel-id="bendahara"] .dark .fi-tabs .fi-badge.fi-color-warning {
+    background: rgba(245, 158, 11, 0.2);
+    color: var(--panel-primary-light);
+    border-color: rgba(245, 158, 11, 0.4);
+}
+
+[data-filament-panel-id="bendahara"] .dark .fi-tabs .fi-badge.fi-color-success {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    border-color: rgba(16, 185, 129, 0.4);
+}
+
+[data-filament-panel-id="bendahara"] .dark .fi-tabs .fi-badge.fi-color-gray {
+    background: rgba(107, 114, 128, 0.3);
+    color: rgba(229, 231, 235, 0.8);
+    border-color: rgba(107, 114, 128, 0.4);
+}
+
+/* Accessibility: Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    [data-filament-panel-id="bendahara"] .fi-tabs .fi-tabs-tab,
+    [data-filament-panel-id="bendahara"] .fi-tabs .fi-tabs-tab .fi-icon,
+    [data-filament-panel-id="bendahara"] .bendahara-stats-card,
+    [data-filament-panel-id="bendahara"] .bendahara-chart-card,
+    [data-filament-panel-id="bendahara"] .bendahara-activity-card {
+        transition: none;
+        transform: none !important;
+        animation: none !important;
+    }
+    
+    [data-filament-panel-id="bendahara"] .fi-tabs .fi-badge.fi-color-warning,
+    [data-filament-panel-id="bendahara"] .fi-tabs .fi-badge.loading,
+    [data-filament-panel-id="bendahara"] .status-dot {
+        animation: none !important;
+    }
+    
+    [data-filament-panel-id="bendahara"] .bendahara-stats-card:hover,
+    [data-filament-panel-id="bendahara"] .bendahara-chart-card:hover,
+    [data-filament-panel-id="bendahara"] .bendahara-activity-card:hover {
+        transform: none !important;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    [data-filament-panel-id="bendahara"] .bendahara-stats-card,
+    [data-filament-panel-id="bendahara"] .bendahara-chart-card,
+    [data-filament-panel-id="bendahara"] .bendahara-activity-card {
+        border-width: 2px;
+    }
+    
+    [data-filament-panel-id="bendahara"] .modern-badge {
+        border: 1px solid currentColor;
+    }
+}
+
+/* Dark mode specific enhancements */
+@media (prefers-color-scheme: dark) {
+    [data-filament-panel-id="bendahara"] .bendahara-stats-card {
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+    }
 }

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔧 Instant Table Styling Tool</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #1a1a2e;
+            color: #ffffff;
+            padding: 2rem;
+            margin: 0;
+        }
+        .tool-container {
+            background: linear-gradient(135deg, rgba(17,17,24,0.9) 0%, rgba(26,26,32,0.8) 100%);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .btn {
+            background: #475569;
+            border: none;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0.5rem;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            display: inline-block;
+        }
+        .btn:hover {
+            background: #334155;
+            transform: translateY(-2px);
+        }
+        .code-block {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.875rem;
+            overflow-x: auto;
+        }
+        .warning {
+            background: rgba(245,158,11,0.1);
+            border: 1px solid rgba(245,158,11,0.3);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            color: #fbbf24;
+        }
+        .success {
+            background: rgba(34,197,94,0.1);
+            border: 1px solid rgba(34,197,94,0.3);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            color: #4ade80;
+        }
+    </style>
+</head>
+<body>
+    <div class="tool-container">
+        <h1>🔧 Instant Table Styling Tool</h1>
+        <p>Tool untuk apply styling secara langsung ke tabel jumlah-pasien-harians.</p>
+
+        <div class="warning">
+            <strong>⚠️ Petunjuk Penggunaan:</strong><br>
+            1. Buka halaman <code>/petugas/jumlah-pasien-harians</code> di tab lain<br>
+            2. Copy kode JavaScript di bawah<br>
+            3. Buka Console browser (F12)<br>
+            4. Paste dan Enter
+        </div>
+
+        <h3>🎨 JavaScript Code untuk Console Browser:</h3>
+        
+        <div class="code-block" id="jsCode">
+// 🖤 INSTANT ELEGANT BLACK TABLE STYLING
+(function() {
+    console.log('🎨 Applying instant elegant black table styling...');
+    
+    // Create and inject CSS
+    const style = document.createElement('style');
+    style.innerHTML = `
+        /* 🔥 INSTANT BLACK TABLE STYLING */
+        [data-filament-panel-id="petugas"] .fi-ta-table,
+        [data-filament-panel-id="petugas"] .fi-section,
+        [data-filament-panel-id="petugas"] .overflow-x-auto {
+            background: linear-gradient(135deg, rgba(10,10,11,0.95) 0%, rgba(17,17,24,0.90) 100%) !important;
+            backdrop-filter: blur(8px) saturate(120%) !important;
+            -webkit-backdrop-filter: blur(8px) saturate(120%) !important;
+            border: 1px solid rgba(255,255,255,0.08) !important;
+            border-radius: 1rem !important;
+            box-shadow: 0 4px 16px -4px rgba(0,0,0,0.4), 0 2px 8px -2px rgba(0,0,0,0.3) !important;
+            color: #ffffff !important;
+        }
+        
+        [data-filament-panel-id="petugas"] .fi-ta-table:hover,
+        [data-filament-panel-id="petugas"] .fi-section:hover {
+            backdrop-filter: blur(12px) saturate(130%) !important;
+            border-color: rgba(255,255,255,0.12) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 24px -8px rgba(0,0,0,0.5) !important;
+        }
+        
+        [data-filament-panel-id="petugas"] thead th {
+            background: linear-gradient(135deg, rgba(20,20,25,0.8) 0%, rgba(30,30,35,0.9) 100%) !important;
+            backdrop-filter: blur(6px) !important;
+            border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+            color: #ffffff !important;
+            font-weight: 600 !important;
+            text-transform: uppercase !important;
+        }
+        
+        [data-filament-panel-id="petugas"] tbody tr {
+            background: rgba(15,15,18,0.6) !important;
+            backdrop-filter: blur(4px) !important;
+            border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+            color: #ffffff !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        [data-filament-panel-id="petugas"] tbody tr:hover {
+            background: linear-gradient(135deg, rgba(25,25,30,0.8) 0%, rgba(35,35,40,0.9) 100%) !important;
+            backdrop-filter: blur(8px) !important;
+            transform: translateY(-2px) !important;
+            border-left: 2px solid rgba(100,116,139,0.4) !important;
+            color: #ffffff !important;
+            font-weight: 600 !important;
+            cursor: pointer !important;
+        }
+        
+        [data-filament-panel-id="petugas"] .fi-page,
+        [data-filament-panel-id="petugas"] .fi-main {
+            background: linear-gradient(135deg, #040405 0%, #0c0c0d 100%) !important;
+        }
+    `;
+    
+    document.head.appendChild(style);
+    console.log('✅ Instant styling applied successfully!');
+    
+    // Force apply to existing elements
+    document.querySelectorAll('[data-filament-panel-id="petugas"] .fi-ta-table, [data-filament-panel-id="petugas"] .fi-section').forEach(el => {
+        el.style.background = 'linear-gradient(135deg, rgba(10,10,11,0.95) 0%, rgba(17,17,24,0.90) 100%)';
+        el.style.backdropFilter = 'blur(8px) saturate(120%)';
+        el.style.border = '1px solid rgba(255,255,255,0.08)';
+        el.style.borderRadius = '1rem';
+        el.style.color = '#ffffff';
+    });
+    
+    document.querySelectorAll('[data-filament-panel-id="petugas"] tbody tr').forEach(row => {
+        row.style.background = 'rgba(15,15,18,0.6)';
+        row.style.backdropFilter = 'blur(4px)';
+        row.style.color = '#ffffff';
+        row.style.transition = 'all 0.3s ease';
+        
+        row.addEventListener('mouseenter', function() {
+            this.style.background = 'linear-gradient(135deg, rgba(25,25,30,0.8) 0%, rgba(35,35,40,0.9) 100%)';
+            this.style.transform = 'translateY(-2px)';
+            this.style.borderLeft = '2px solid rgba(100,116,139,0.4)';
+            this.style.fontWeight = '600';
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            this.style.background = 'rgba(15,15,18,0.6)';
+            this.style.transform = '';
+            this.style.borderLeft = '';
+            this.style.fontWeight = '500';
+        });
+    });
+    
+    console.log('🎨 Table styling applied to', document.querySelectorAll('[data-filament-panel-id="petugas"] tbody tr').length, 'rows');
+})();
+        </div>
+
+        <button class="btn" onclick="copyCode()">📋 Copy Code</button>
+        <button class="btn" onclick="openPetugasPage()">🚀 Open Petugas Page</button>
+
+        <div class="success">
+            <strong>✅ Cara Pakai:</strong><br>
+            1. Copy kode JavaScript di atas<br>
+            2. Buka tab <code>/petugas/jumlah-pasien-harians</code><br>
+            3. Tekan F12 untuk buka Console<br>
+            4. Paste kode dan tekan Enter<br>
+            5. Lihat hasilnya instant!
+        </div>
+
+        <h3>🔖 Bookmarklet (Alternative):</h3>
+        <p>Drag link ini ke bookmarks bar untuk styling instant:</p>
+        
+        <a href="javascript:(function(){const style=document.createElement('style');style.innerHTML='[data-filament-panel-id=&quot;petugas&quot;] .fi-ta-table,[data-filament-panel-id=&quot;petugas&quot;] .fi-section{background:linear-gradient(135deg,rgba(10,10,11,0.95) 0%,rgba(17,17,24,0.90) 100%)!important;backdrop-filter:blur(8px) saturate(120%)!important;border:1px solid rgba(255,255,255,0.08)!important;border-radius:1rem!important;color:#ffffff!important}[data-filament-panel-id=&quot;petugas&quot;] tbody tr{background:rgba(15,15,18,0.6)!important;backdrop-filter:blur(4px)!important;color:#ffffff!important;transition:all 0.3s ease!important}[data-filament-panel-id=&quot;petugas&quot;] tbody tr:hover{background:linear-gradient(135deg,rgba(25,25,30,0.8) 0%,rgba(35,35,40,0.9) 100%)!important;transform:translateY(-2px)!important;border-left:2px solid rgba(100,116,139,0.4)!important;font-weight:600!important}';document.head.appendChild(style);console.log('✅ Bookmarklet styling applied!')})();" 
+               class="btn" style="text-decoration: none; display: inline-block;">
+            🔖 Elegant Black Tables
+        </a>
+
+        <div class="warning">
+            <strong>🚨 Troubleshooting:</strong><br>
+            • Jika masih tidak berubah, coba refresh halaman dulu<br>
+            • Pastikan Console tidak menampilkan error<br>
+            • Coba disable browser extensions sementara<br>
+            • Gunakan Incognito mode untuk test tanpa cache
+        </div>
+
+        <h3>📋 Manual Check:</h3>
+        <p>Buka Console (F12) dan ketik untuk check panel ID:</p>
+        <div class="code-block">
+document.querySelector('[data-filament-panel-id]')?.getAttribute('data-filament-panel-id')
+        </div>
+
+        <p>Seharusnya return: "petugas"</p>
+    </div>
+
+    <script>
+        function copyCode() {
+            const code = document.getElementById('jsCode').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                alert('✅ Kode berhasil di-copy! Sekarang paste di Console browser (F12)');
+            });
+        }
+
+        function openPetugasPage() {
+            window.open('http://127.0.0.1:8000/petugas/jumlah-pasien-harians', '_blank');
+        }
+
+        console.log('🔧 Instant Table Styling Tool ready!');
+    </script>
+</body>
+</html>

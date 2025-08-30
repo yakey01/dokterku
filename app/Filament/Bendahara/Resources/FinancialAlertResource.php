@@ -19,13 +19,20 @@ class FinancialAlertResource extends Resource
 
     protected static ?string $navigationIcon = null;
 
-    protected static ?string $navigationGroup = 'Audit & Kontrol';
+    // DISABLED: Prevent showing in bendahara panel due to missing model
+    protected static ?string $navigationGroup = null;
 
     protected static ?string $navigationLabel = 'Financial Alerts';
 
     protected static ?string $modelLabel = 'Financial Alert';
 
     protected static ?string $pluralModelLabel = 'Financial Alerts';
+
+    // DISABLED: Prevent navigation registration due to missing model
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
 
     public static function table(Table $table): Table
     {

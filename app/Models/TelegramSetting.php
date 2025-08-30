@@ -107,7 +107,15 @@ class TelegramSetting extends Model
     public function getDisplayName(): string
     {
         if ($this->role_type === 'specific_user' && $this->user_name) {
-            return ucfirst($this->role).' - '.$this->user_name;
+            // Format: "Dokter (Dr. Rindang)" for better readability
+            $userName = $this->user_name;
+            
+            // Add role prefix for doctors if not already present
+            if ($this->role === 'dokter' && !str_starts_with(strtolower($userName), 'dr')) {
+                $userName = 'Dr. ' . $userName;
+            }
+            
+            return ucfirst($this->role) . ' (' . $userName . ')';
         }
 
         return ucfirst($this->role);
@@ -124,11 +132,31 @@ class TelegramSetting extends Model
 
         $users = User::whereHas('role', function ($query) use ($role) {
             $query->where('name', $role);
-        })->where('is_active', true)->get();
+        })->where('is_active', true)
+          ->orderBy('name')
+          ->get();
 
         $result = [];
         foreach ($users as $user) {
-            $result[$user->id] = $user->name.' ('.($user->username ?? $user->email).')';
+            // Check if user already has telegram setting for this role
+            $hasConfig = self::where('user_id', $user->id)
+                ->where('role', $role)
+                ->where('role_type', 'specific_user')
+                ->exists();
+            
+            $displayName = $user->name;
+            
+            // Add role prefix for doctors (Dr.)
+            if ($role === 'dokter' && !str_starts_with(strtolower($displayName), 'dr')) {
+                $displayName = 'Dr. ' . $displayName;
+            }
+            
+            // Add professional status indicator
+            if ($hasConfig) {
+                $displayName .= ' ✅ Terkonfigurasi';
+            }
+            
+            $result[$user->id] = $displayName;
         }
 
         return $result;

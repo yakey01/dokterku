@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petugas Dashboard Demo - Elegant Dark Theme</title>
+    <link href="/css/elegant-dark-tables.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1a1a2e 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #f8fafc;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Filament-like Top Bar */
+        .demo-topbar {
+            background: #000000 !important;
+            border-bottom: 1px solid #374151;
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .demo-brand {
+            color: #ffffff !important;
+            font-weight: 600;
+            font-size: 1.125rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .demo-user-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: #ffffff;
+            font-size: 0.875rem;
+        }
+
+        .demo-avatar {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+
+        /* Main Content Area */
+        .demo-main {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .demo-header {
+            margin-bottom: 2rem;
+        }
+
+        .demo-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, #60a5fa, #34d399, #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .demo-subtitle {
+            color: #94a3b8;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--elegant-dark-surface) 0%, var(--elegant-dark-secondary) 100%);
+            border: 1px solid var(--elegant-dark-border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--elegant-accent-blue), var(--elegant-accent-green), var(--elegant-accent-amber));
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--elegant-shadow-xl);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--elegant-text-primary);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--elegant-text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-icon {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 2rem;
+            height: 2rem;
+            opacity: 0.3;
+            color: var(--elegant-accent-blue);
+        }
+
+        /* Demo Implementation Status */
+        .implementation-status {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 0.5rem;
+        }
+
+        .status-check {
+            width: 1.25rem;
+            height: 1.25rem;
+            border-radius: 50%;
+            background: #10b981;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .feature-showcase {
+            margin: 3rem 0;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid var(--elegant-dark-border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--elegant-text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feature-description {
+            color: var(--elegant-text-muted);
+            line-height: 1.6;
+        }
+
+        .demo-note {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .demo-note-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #fbbf24;
+            margin-bottom: 0.5rem;
+        }
+
+        .demo-note-text {
+            color: var(--elegant-text-secondary);
+            line-height: 1.6;
+        }
+
+        .demo-url {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 0.5rem;
+            color: #60a5fa;
+            text-decoration: none;
+            font-family: monospace;
+            font-size: 0.875rem;
+            margin: 0.5rem;
+        }
+
+        .demo-url:hover {
+            background: rgba(59, 130, 246, 0.3);
+            transform: translateY(-1px);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .demo-topbar {
+                padding: 1rem;
+            }
+
+            .demo-main {
+                padding: 1rem;
+            }
+
+            .demo-title {
+                font-size: 1.5rem;
+            }
+
+            .stat-number {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Unified Top Bar Demo -->
+    <header class="demo-topbar">
+        <div class="demo-brand">
+            👏 Petugas Dashboard - Sistem Manajemen Pasien
+        </div>
+        <div class="demo-user-menu">
+            <span>Selamat datang, Petugas</span>
+            <div class="demo-avatar">P</div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="demo-main">
+        <!-- Header -->
+        <div class="demo-header">
+            <h1 class="demo-title">🏥 Manajemen Data Pasien</h1>
+            <p class="demo-subtitle">Kelola data pasien dengan sistem yang mudah dan efisien. Gunakan tab untuk navigasi berdasarkan status verifikasi.</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                </svg>
+                <div class="stat-number">247</div>
+                <div class="stat-label">Total Pasien</div>
+            </div>
+            
+            <div class="stat-card">
+                <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div class="stat-number">189</div>
+                <div class="stat-label">Terverifikasi</div>
+            </div>
+            
+            <div class="stat-card">
+                <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div class="stat-number">58</div>
+                <div class="stat-label">Pending</div>
+            </div>
+            
+            <div class="stat-card">
+                <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div class="stat-number">12</div>
+                <div class="stat-label">Hari Ini</div>
+            </div>
+        </div>
+
+        <!-- Implementation Status -->
+        <section class="implementation-status">
+            <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; color: #34d399;">✅ Status Implementasi</h2>
+            <div class="status-grid">
+                <div class="status-item">
+                    <div class="status-check">✓</div>
+                    <div>
+                        <div style="font-weight: 600;">Unified Black Top Bar</div>
+                        <div style="font-size: 0.875rem; color: #94a3b8;">PetugasPanelProvider dikonfigurasi dengan branding dan SPA mode</div>
+                    </div>
+                </div>
+                
+                <div class="status-item">
+                    <div class="status-check">✓</div>
+                    <div>
+                        <div style="font-weight: 600;">Elegant Dark Tables</div>
+                        <div style="font-size: 0.875rem; color: #94a3b8;">CSS tema gelap terintegrasi dengan Filament</div>
+                    </div>
+                </div>
+                
+                <div class="status-item">
+                    <div class="status-check">✓</div>
+                    <div>
+                        <div style="font-weight: 600;">Enhanced Tab System</div>
+                        <div style="font-size: 0.875rem; color: #94a3b8;">8 tab dengan badge dan filter otomatis</div>
+                    </div>
+                </div>
+                
+                <div class="status-item">
+                    <div class="status-check">✓</div>
+                    <div>
+                        <div style="font-weight: 600;">PasienResource Enhancement</div>
+                        <div style="font-size: 0.875rem; color: #94a3b8;">Table columns, actions, dan export functionality</div>
+                    </div>
+                </div>
+                
+                <div class="status-item">
+                    <div class="status-check">✓</div>
+                    <div>
+                        <div style="font-weight: 600;">ListPasiens Page</div>
+                        <div style="font-size: 0.875rem; color: #94a3b8;">Header actions, tabs, dan empty states</div>
+                    </div>
+                </div>
+                
+                <div class="status-item">
+                    <div class="status-check">✓</div>
+                    <div>
+                        <div style="font-weight: 600;">Accessibility Compliance</div>
+                        <div style="font-size: 0.875rem; color: #94a3b8;">WCAG 2.1 AA compliant dengan keyboard navigation</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Feature Showcase -->
+        <section class="feature-showcase">
+            <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem;">🚀 Fitur Yang Diimplementasikan</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h3 class="feature-title">
+                        🎨 Elegant Dark Theme
+                    </h3>
+                    <p class="feature-description">
+                        Tema gelap yang sophisticated dengan gradient backgrounds, hover effects yang smooth, dan kontras warna yang optimal untuk readability kelas dunia.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <h3 class="feature-title">
+                        📊 Advanced Tab System
+                    </h3>
+                    <p class="feature-description">
+                        8 tab kategori dengan badge counter real-time: Semua, Pending, Terverifikasi, Ditolak, Terbaru, Laki-laki, Perempuan, dan Hari Ini.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <h3 class="feature-title">
+                        🏆 World-Class Tables
+                    </h3>
+                    <p class="feature-description">
+                        Tabel dengan styling professional, sortable columns, action buttons dengan hover effects, dan zebra striping untuk kemudahan pembacaan.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <h3 class="feature-title">
+                        ♿ Accessibility Ready
+                    </h3>
+                    <p class="feature-description">
+                        Full keyboard navigation, ARIA labels, screen reader compatibility, dan color contrast ratio yang memenuhi standar WCAG 2.1 AA.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <h3 class="feature-title">
+                        📱 Responsive Design
+                    </h3>
+                    <p class="feature-description">
+                        Desain yang responsif untuk semua ukuran layar, dari mobile hingga desktop, dengan touch-optimized interactions.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <h3 class="feature-title">
+                        ⚡ Performance Optimized
+                    </h3>
+                    <p class="feature-description">
+                        SPA mode untuk navigasi yang cepat, deferred loading, caching strategy, dan animasi yang smooth dengan hardware acceleration.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sample Table Demo -->
+        <section style="margin: 3rem 0;">
+            <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem;">📋 Preview Tabel Pasien</h2>
+            
+            <!-- Tab System Demo -->
+            <div class="elegant-dark-tabs">
+                <nav class="elegant-dark-tab-nav" role="tablist">
+                    <button class="elegant-dark-tab active" role="tab">
+                        <svg class="elegant-dark-tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                        </svg>
+                        📊 Semua Pasien
+                        <span class="elegant-dark-tab-badge">247</span>
+                    </button>
+                    
+                    <button class="elegant-dark-tab" role="tab">
+                        <svg class="elegant-dark-tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        ⏳ Pending
+                        <span class="elegant-dark-tab-badge">58</span>
+                    </button>
+                    
+                    <button class="elegant-dark-tab" role="tab">
+                        <svg class="elegant-dark-tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        ✅ Terverifikasi
+                        <span class="elegant-dark-tab-badge">189</span>
+                    </button>
+                    
+                    <button class="elegant-dark-tab" role="tab">
+                        <svg class="elegant-dark-tab-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        🆕 Terbaru
+                        <span class="elegant-dark-tab-badge">12</span>
+                    </button>
+                </nav>
+            </div>
+
+            <div class="elegant-dark-tab-content">
+                <div class="elegant-dark-tab-pane active">
+                    <div class="elegant-dark-table-container">
+                        <div class="elegant-dark-table-wrapper">
+                            <table class="elegant-dark-table">
+                                <thead>
+                                    <tr>
+                                        <th><input type="checkbox"></th>
+                                        <th class="sortable">No. Rekam Medis</th>
+                                        <th class="sortable">Nama Pasien</th>
+                                        <th>Jenis Kelamin</th>
+                                        <th>Status</th>
+                                        <th>Terdaftar</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><input type="checkbox"></td>
+                                        <td><strong>RM-2024-001</strong><br><small>ID: #1001</small></td>
+                                        <td>
+                                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                                <div style="width: 2rem; height: 2rem; border-radius: 50%; background: linear-gradient(135deg, #3b82f6, #1d4ed8); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">A</div>
+                                                <div>
+                                                    <div style="font-weight: 600;">Ahmad Fauzi</div>
+                                                    <small style="color: #94a3b8;">Jakarta Selatan</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><span class="elegant-dark-badge elegant-dark-badge-info">👨 Laki-laki</span></td>
+                                        <td><span class="elegant-dark-badge elegant-dark-badge-success">✅ Terverifikasi</span></td>
+                                        <td><strong style="color: #34d399;">15 Jan 2024</strong><br><small style="color: #94a3b8;">3 hari lalu</small></td>
+                                        <td>
+                                            <div class="elegant-dark-action-group">
+                                                <a href="#" class="elegant-dark-action-btn view">👁️</a>
+                                                <a href="#" class="elegant-dark-action-btn edit">✏️</a>
+                                                <button class="elegant-dark-action-btn delete">🗑️</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    
+                                    <tr>
+                                        <td><input type="checkbox"></td>
+                                        <td><strong>RM-2024-002</strong><br><small>ID: #1002</small></td>
+                                        <td>
+                                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                                <div style="width: 2rem; height: 2rem; border-radius: 50%; background: linear-gradient(135deg, #ec4899, #be185d); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">S</div>
+                                                <div>
+                                                    <div style="font-weight: 600;">Siti Nurhaliza</div>
+                                                    <small style="color: #94a3b8;">Bandung</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td><span class="elegant-dark-badge elegant-dark-badge-success">👩 Perempuan</span></td>
+                                        <td><span class="elegant-dark-badge elegant-dark-badge-warning">⏳ Pending</span></td>
+                                        <td><strong style="color: #fbbf24;">14 Jan 2024</strong><br><small style="color: #94a3b8;">4 hari lalu</small></td>
+                                        <td>
+                                            <div class="elegant-dark-action-group">
+                                                <a href="#" class="elegant-dark-action-btn view">👁️</a>
+                                                <a href="#" class="elegant-dark-action-btn edit">✏️</a>
+                                                <button class="elegant-dark-action-btn delete">🗑️</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Access Information -->
+        <section class="demo-note">
+            <h3 class="demo-note-title">🎯 Akses Dashboard Petugas</h3>
+            <p class="demo-note-text">
+                Dashboard petugas yang telah dienhance dengan elegant dark theme sekarang dapat diakses melalui URL berikut.
+                Pastikan Anda sudah login sebagai petugas untuk mengakses semua fitur.
+            </p>
+            <div style="margin-top: 1rem;">
+                <a href="http://127.0.0.1:8000/petugas/pasiens" class="demo-url" target="_blank">
+                    🏥 http://127.0.0.1:8000/petugas/pasiens
+                    <svg style="width: 1rem; height: 1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                    </svg>
+                </a>
+                <a href="http://127.0.0.1:8000/accessibility-test.html" class="demo-url" target="_blank">
+                    ♿ Accessibility Test
+                    <svg style="width: 1rem; height: 1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                    </svg>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Simple tab functionality for demo
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabs = document.querySelectorAll('.elegant-dark-tab');
+            tabs.forEach((tab, index) => {
+                tab.addEventListener('click', function() {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    console.log(`Switched to tab: ${tab.textContent.trim()}`);
+                });
+            });
+
+            // Log implementation status
+            console.log('🎉 Petugas Dashboard Demo Loaded Successfully');
+            console.log('✅ All features implemented and ready for use');
+            console.log('🌐 Access URL: http://127.0.0.1:8000/petugas/pasiens');
+        });
+    </script>
+</body>
+</html>

@@ -10,6 +10,8 @@ use App\Models\User;
 use App\Models\JadwalJaga;
 use App\Services\AttendanceValidationService;
 use App\Services\CheckInValidationService;
+use App\Services\AttendanceToleranceService;
+use App\Events\AttendanceUpdated;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -172,6 +174,13 @@ class AttendanceController extends BaseApiController
         // Clear cache
         $this->clearUserAttendanceCache($user->id);
 
+        // 🚀 REAL-TIME: Broadcast attendance check-in event
+        event(new AttendanceUpdated($attendance, 'checkin', [
+            'message' => 'Check-in berhasil',
+            'location_distance' => $metadata['validation']['location']['distance'] ?? null,
+            'check_in_window' => $metadata['validation']['time']['window'] ?? null,
+        ]));
+
         return $this->successResponse([
             'attendance_id' => $attendance->id,
             'time_in' => $attendance->time_in->format('H:i'),
@@ -309,11 +318,18 @@ class AttendanceController extends BaseApiController
             'time_out_after_update' => $attendance->fresh()->time_out
         ]);
 
-        // Calculate work duration
-        $workDuration = $attendance->time_in->diffInMinutes($attendance->time_out);
+        // Calculate work duration using model logic (respects logical_work_minutes)
+        $workDuration = $attendance->work_duration ?? 0;
 
         // Clear cache
         $this->clearUserAttendanceCache($user->id);
+
+        // 🚀 REAL-TIME: Broadcast attendance check-out event
+        event(new AttendanceUpdated($attendance, 'checkout', [
+            'message' => 'Check-out berhasil',
+            'work_duration_minutes' => $workDuration,
+            'formatted_duration' => $this->formatWorkDuration($workDuration),
+        ]));
 
         return $this->successResponse([
             'attendance_id' => $attendance->id,
@@ -387,8 +403,8 @@ class AttendanceController extends BaseApiController
                 'time_out' => $attendance->time_out?->format('H:i'),
                 'status' => $attendance->status,
                 'work_duration' => $attendance->time_out ? [
-                    'minutes' => $attendance->time_in->diffInMinutes($attendance->time_out),
-                    'formatted' => $this->formatWorkDuration($attendance->time_in->diffInMinutes($attendance->time_out)),
+                    'minutes' => $attendance->work_duration ?? 0,
+                    'formatted' => $attendance->formatted_work_duration ?? '0 menit',
                 ] : null,
                 'location' => [
                     'name_in' => $attendance->location_name_in,
@@ -463,8 +479,8 @@ class AttendanceController extends BaseApiController
                 'time_out' => $attendance->time_out?->format('H:i'),
                 'status' => $attendance->status,
                 'work_duration' => $attendance->time_out ? [
-                    'minutes' => $attendance->time_in->diffInMinutes($attendance->time_out),
-                    'formatted' => $this->formatWorkDuration($attendance->time_in->diffInMinutes($attendance->time_out)),
+                    'minutes' => $attendance->work_duration ?? 0,
+                    'formatted' => $attendance->formatted_work_duration ?? '0 menit',
                 ] : null,
                 'location' => [
                     'name_in' => $attendance->location_name_in,
@@ -514,7 +530,7 @@ class AttendanceController extends BaseApiController
         $presentDays = $monthlyAttendances->where('status', 'present')->count();
         $lateDays = $monthlyAttendances->where('status', 'late')->count();
         $totalMinutes = $monthlyAttendances->sum(function ($attendance) {
-            return $attendance->time_out ? $attendance->time_in->diffInMinutes($attendance->time_out) : 0;
+            return $attendance->work_duration ?? 0;
         });
 
         return $this->successResponse([
@@ -759,25 +775,11 @@ class AttendanceController extends BaseApiController
                     }
                 } else if ($completedShifts === 0) {
                     // First shift of the day - check if within window
-                    // Get work location settings for tolerance
-                    $workLocation = WorkLocation::first();
-                    $toleranceEarly = 30; // default
-                    $toleranceLate = 15; // default
-                    
-                    if ($workLocation) {
-                        // Try JSON settings first
-                        $toleranceSettings = $workLocation->tolerance_settings;
-                        if ($toleranceSettings) {
-                            $settings = is_string($toleranceSettings) ? json_decode($toleranceSettings, true) : $toleranceSettings;
-                            $toleranceEarly = $settings['checkin_before_shift_minutes'] ?? 30;
-                            $toleranceLate = $settings['late_tolerance_minutes'] ?? 15;
-                        }
-                        
-                        // Individual fields override JSON if set
-                        if ($workLocation->late_tolerance_minutes !== null) {
-                            $toleranceLate = $workLocation->late_tolerance_minutes;
-                        }
-                    }
+                    // Use unified tolerance service
+                    $toleranceService = new AttendanceToleranceService();
+                    $toleranceData = $toleranceService->getCheckinTolerance($user);
+                    $toleranceEarly = $toleranceData['early'];
+                    $toleranceLate = $toleranceData['late'];
                     
                     // Find first available shift
                     foreach ($todaySchedules as $schedule) {

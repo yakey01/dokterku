@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Topbar Styling</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a1a; color: white; }
+        .debug-section { margin: 20px 0; padding: 15px; border: 1px solid #333; }
+        .test-result { color: #4ade80; }
+        .test-fail { color: #f87171; }
+    </style>
+</head>
+<body>
+    <h1>🔍 DEBUG: Petugas Topbar Styling</h1>
+    
+    <div class="debug-section">
+        <h2>📋 Checklist untuk Verifikasi</h2>
+        <p>Buka Developer Tools dan jalankan commands berikut:</p>
+        
+        <h3>1. Check Panel ID:</h3>
+        <code>document.querySelector('[data-filament-panel-id="petugas"]')</code>
+        <p>Expected: Should return element, not null</p>
+        
+        <h3>2. Check Topbar Element:</h3>
+        <code>document.querySelector('[data-filament-panel-id="petugas"] .fi-topbar')</code>
+        <p>Expected: Should return topbar element</p>
+        
+        <h3>3. Check CSS Styles Applied:</h3>
+        <code>
+        var topbar = document.querySelector('.fi-topbar');<br>
+        console.log('Background:', getComputedStyle(topbar).background);<br>
+        console.log('Background-color:', getComputedStyle(topbar).backgroundColor);
+        </code>
+        
+        <h3>4. Check for White Elements:</h3>
+        <code>
+        var whiteElements = document.querySelectorAll('.bg-white, [style*="background: white"]');<br>
+        console.log('White elements found:', whiteElements.length);
+        </code>
+        
+        <h3>5. Test CSS Override:</h3>
+        <code>
+        var topbar = document.querySelector('.fi-topbar');<br>
+        if(topbar) {<br>
+        &nbsp;&nbsp;topbar.style.background = 'linear-gradient(135deg, #0a0a0b 0%, #111118 100%)';<br>
+        &nbsp;&nbsp;topbar.style.backdropFilter = 'blur(16px) saturate(150%)';<br>
+        &nbsp;&nbsp;console.log('Manual override applied');<br>
+        }
+        </code>
+    </div>
+    
+    <div class="debug-section">
+        <h2>🚨 Kemungkinan Issues:</h2>
+        <ul>
+            <li><strong>CSS Tidak Load:</strong> RenderHook tidak execute</li>
+            <li><strong>Wrong Selector:</strong> Panel ID atau class names salah</li>
+            <li><strong>Specificity Issue:</strong> CSS tidak punya priority cukup</li>
+            <li><strong>Timing Issue:</strong> CSS load sebelum elements render</li>
+            <li><strong>Cache Issue:</strong> Browser cache atau server cache</li>
+        </ul>
+    </div>
+    
+    <div class="debug-section">
+        <h2>🔧 Emergency Manual Fix:</h2>
+        <p>Jika CSS tidak work, copy paste ini ke browser console:</p>
+        <textarea style="width: 100%; height: 200px; background: #2a2a2a; color: white; padding: 10px;">
+// EMERGENCY TOPBAR BLACK FIX
+(function() {
+    console.log('🚨 EMERGENCY: Applying black topbar manually...');
+    
+    // Target topbar
+    const topbar = document.querySelector('.fi-topbar');
+    if (topbar) {
+        topbar.style.background = 'linear-gradient(135deg, #0a0a0b 0%, #111118 100%)';
+        topbar.style.backdropFilter = 'blur(16px) saturate(150%)';
+        topbar.style.borderBottom = '1px solid rgba(255, 255, 255, 0.12)';
+        topbar.style.color = '#ffffff';
+        console.log('✅ Topbar background set to black');
+    }
+    
+    // Target all white elements
+    const whiteElements = document.querySelectorAll('.bg-white, [style*="background: white"]');
+    whiteElements.forEach((element, index) => {
+        element.style.background = 'rgba(10, 10, 11, 0.8)';
+        element.style.backdropFilter = 'blur(16px) saturate(150%)';
+        element.style.border = '1px solid rgba(255, 255, 255, 0.12)';
+        element.style.borderRadius = '1rem';
+        element.style.color = '#ffffff';
+    });
+    console.log(`✅ Converted ${whiteElements.length} white elements to black`);
+    
+    // Hide theme toggle
+    const themeButtons = document.querySelectorAll('button[title*="theme"], button[aria-label*="theme"]');
+    themeButtons.forEach(btn => {
+        btn.style.display = 'none';
+        btn.remove();
+    });
+    console.log(`✅ Removed ${themeButtons.length} theme buttons`);
+})();
+        </textarea>
+    </div>
+    
+    <div class="debug-section">
+        <h2>📊 Verification Steps:</h2>
+        <ol>
+            <li>Hard refresh browser (Ctrl+F5 / Cmd+Shift+R)</li>
+            <li>Open Developer Tools</li>
+            <li>Run debug commands above</li>
+            <li>Check if manual override works</li>
+            <li>Report hasil ke developer</li>
+        </ol>
+    </div>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🔍 DEBUG PAGE: Ready for topbar styling verification');
+        console.log('📋 Use the debug commands above to check petugas panel styling');
+    });
+    </script>
+</body>
+</html>

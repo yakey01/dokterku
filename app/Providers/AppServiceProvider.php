@@ -23,6 +23,26 @@ class AppServiceProvider extends ServiceProvider
         // Register biometric service
         $this->app->singleton(\App\Services\BiometricService::class);
         
+        // Register Sub-Agent services
+        $this->app->singleton(\App\Services\SubAgents\DatabaseSubAgentService::class);
+        $this->app->singleton(\App\Services\SubAgents\ApiSubAgentService::class);
+        $this->app->singleton(\App\Services\SubAgents\ValidationSubAgentService::class);
+        $this->app->singleton(\App\Services\SubAgents\PetugasBendaharaFlowSubAgentService::class);
+        
+        // Register Procedure-based Calculation Service  
+        $this->app->singleton(\App\Services\ProcedureJaspelCalculationService::class);
+        
+        // Bind JaspelReportService with dependencies
+        $this->app->when(\App\Services\JaspelReportService::class)
+            ->needs(\App\Services\ProcedureJaspelCalculationService::class)
+            ->give(\App\Services\ProcedureJaspelCalculationService::class);
+        
+        // Bind Dashboard Service Interface
+        $this->app->bind(
+            \App\Services\Dashboard\DashboardServiceInterface::class,
+            \App\Services\Dashboard\DashboardService::class
+        );
+        
         // Register custom logout response for all Filament panels
         $this->app->bind(
             \Filament\Http\Responses\Auth\Contracts\LogoutResponse::class,
@@ -35,8 +55,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Force HTTPS in production or when using ngrok
-        if (str_contains(config('app.url'), 'https://')) {
+        // Force HTTPS in production or when using ngrok (disabled for local development)
+        // ✅ SAFARI FIX: Temporarily disabled HTTPS forcing for Safari private mode compatibility
+        if (false) { // Original: str_contains(config('app.url'), 'https://') && !app()->environment('local')
             \URL::forceScheme('https');
         }
         

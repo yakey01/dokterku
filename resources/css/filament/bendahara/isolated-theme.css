@@ -1,0 +1,364 @@
+/* ===================================================================== */
+/* BENDAHARA ISOLATED THEME - WORLD-CLASS CSS ARCHITECTURE */
+/* Based on Context7 research: CUBE CSS + Tailwind isolation patterns */
+/* ===================================================================== */
+
+/* CSS Layers for proper cascade control */
+@layer bendahara-base, bendahara-components, bendahara-utilities;
+
+/* ===================================================================== */
+/* LAYER 1: BASE - DESIGN TOKENS & FOUNDATIONS */
+/* ===================================================================== */
+
+@layer bendahara-base {
+    /* CSS Isolation Context for Bendahara Panel */
+    [data-filament-panel-id="bendahara"] {
+        /* Create isolation context to prevent conflicts */
+        isolation: isolate;
+        
+        /* Design Tokens - Single Source of Truth */
+        --bendahara-primary: 245 158 11;
+        --bendahara-primary-dark: 217 119 6;
+        --bendahara-surface: 255 255 255;
+        --bendahara-surface-dark: 17 24 39;
+        --bendahara-border: 229 231 235;
+        --bendahara-border-dark: 55 65 81;
+        --bendahara-text: 17 24 39;
+        --bendahara-text-dark: 243 244 246;
+        --bendahara-text-muted: 107 114 128;
+        --bendahara-text-muted-dark: 156 163 175;
+        
+        /* Semantic Colors */
+        --bendahara-success: 16 185 129;
+        --bendahara-warning: 245 158 11;
+        --bendahara-danger: 239 68 68;
+        --bendahara-info: 59 130 246;
+        
+        /* Spacing System */
+        --bendahara-space-xs: 0.25rem;
+        --bendahara-space-sm: 0.5rem;
+        --bendahara-space-md: 1rem;
+        --bendahara-space-lg: 1.5rem;
+        --bendahara-space-xl: 2rem;
+        
+        /* Border Radius System */
+        --bendahara-radius-sm: 0.375rem;
+        --bendahara-radius-md: 0.5rem;
+        --bendahara-radius-lg: 0.75rem;
+        --bendahara-radius-xl: 1rem;
+        
+        /* Shadow System */
+        --bendahara-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --bendahara-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --bendahara-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        
+        /* Typography Scale */
+        --bendahara-text-xs: 0.75rem;
+        --bendahara-text-sm: 0.875rem;
+        --bendahara-text-base: 1rem;
+        --bendahara-text-lg: 1.125rem;
+        --bendahara-text-xl: 1.25rem;
+        --bendahara-text-2xl: 1.5rem;
+        --bendahara-text-3xl: 1.875rem;
+    }
+    
+    /* Dark mode token adjustments */
+    [data-filament-panel-id="bendahara"].dark {
+        --bendahara-surface: var(--bendahara-surface-dark);
+        --bendahara-border: var(--bendahara-border-dark);
+        --bendahara-text: var(--bendahara-text-dark);
+        --bendahara-text-muted: var(--bendahara-text-muted-dark);
+    }
+}
+
+/* ===================================================================== */
+/* LAYER 2: COMPONENTS - REUSABLE UI PATTERNS */
+/* ===================================================================== */
+
+@layer bendahara-components {
+    /* Dashboard Stats Card - Component Pattern */
+    [data-filament-panel-id="bendahara"] .bendahara-stats-card {
+        /* Layout */
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        
+        /* Surface */
+        background-color: rgb(var(--bendahara-surface));
+        border: 1px solid rgb(var(--bendahara-border));
+        border-radius: var(--bendahara-radius-xl);
+        
+        /* Spacing */
+        padding: var(--bendahara-space-lg);
+        
+        /* Shadow */
+        box-shadow: var(--bendahara-shadow-sm);
+        
+        /* Transitions */
+        transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        
+        /* Isolation */
+        isolation: isolate;
+    }
+    
+    /* Card Hover State */
+    [data-filament-panel-id="bendahara"] .bendahara-stats-card:hover {
+        box-shadow: var(--bendahara-shadow-md);
+        transform: translateY(-2px);
+        border-color: rgb(var(--bendahara-primary) / 0.2);
+    }
+    
+    /* Card Header Pattern */
+    [data-filament-panel-id="bendahara"] .bendahara-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: var(--bendahara-space-md);
+    }
+    
+    /* Icon Container Pattern */
+    [data-filament-panel-id="bendahara"] .bendahara-icon-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: var(--bendahara-radius-lg);
+        transition: all 200ms ease;
+    }
+    
+    /* Primary Value Display */
+    [data-filament-panel-id="bendahara"] .bendahara-value-primary {
+        font-size: var(--bendahara-text-2xl);
+        font-weight: 700;
+        line-height: 1.2;
+        color: rgb(var(--bendahara-text));
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.025em;
+    }
+    
+    /* Secondary Text */
+    [data-filament-panel-id="bendahara"] .bendahara-text-secondary {
+        font-size: var(--bendahara-text-xs);
+        color: rgb(var(--bendahara-text-muted));
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    /* Growth Indicator */
+    [data-filament-panel-id="bendahara"] .bendahara-growth-indicator {
+        display: flex;
+        align-items: center;
+        gap: var(--bendahara-space-xs);
+        font-size: var(--bendahara-text-xs);
+        font-weight: 600;
+    }
+    
+    /* Activity Item Pattern */
+    [data-filament-panel-id="bendahara"] .bendahara-activity-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--bendahara-space-sm) 0;
+        border-bottom: 1px solid rgb(var(--bendahara-border) / 0.1);
+        transition: all 200ms ease;
+    }
+    
+    [data-filament-panel-id="bendahara"] .bendahara-activity-item:hover {
+        background-color: rgb(var(--bendahara-border) / 0.05);
+        border-radius: var(--bendahara-radius-md);
+        padding-left: var(--bendahara-space-sm);
+        padding-right: var(--bendahara-space-sm);
+    }
+}
+
+/* ===================================================================== */
+/* LAYER 3: UTILITIES - SPECIFIC OVERRIDES */
+/* ===================================================================== */
+
+@layer bendahara-utilities {
+    /* Color Variants for Different Data Types */
+    [data-filament-panel-id="bendahara"] .bendahara-revenue {
+        --icon-bg: rgb(var(--bendahara-success) / 0.1);
+        --icon-color: rgb(var(--bendahara-success));
+        --growth-positive: rgb(var(--bendahara-success));
+        --growth-negative: rgb(var(--bendahara-danger));
+    }
+    
+    [data-filament-panel-id="bendahara"] .bendahara-expense {
+        --icon-bg: rgb(var(--bendahara-danger) / 0.1);
+        --icon-color: rgb(var(--bendahara-danger));
+        --growth-positive: rgb(var(--bendahara-danger));
+        --growth-negative: rgb(var(--bendahara-success));
+    }
+    
+    [data-filament-panel-id="bendahara"] .bendahara-net-income {
+        --icon-bg: rgb(var(--bendahara-info) / 0.1);
+        --icon-color: rgb(var(--bendahara-info));
+    }
+    
+    [data-filament-panel-id="bendahara"] .bendahara-validation {
+        --icon-bg: rgb(var(--bendahara-primary) / 0.1);
+        --icon-color: rgb(var(--bendahara-primary));
+    }
+    
+    /* Icon Container Variants */
+    [data-filament-panel-id="bendahara"] .bendahara-icon-container {
+        background-color: var(--icon-bg);
+        color: var(--icon-color);
+    }
+    
+    /* Growth Text Colors */
+    [data-filament-panel-id="bendahara"] .bendahara-growth-positive {
+        color: var(--growth-positive, rgb(var(--bendahara-success)));
+    }
+    
+    [data-filament-panel-id="bendahara"] .bendahara-growth-negative {
+        color: var(--growth-negative, rgb(var(--bendahara-danger)));
+    }
+    
+    /* Value Color Variants */
+    [data-filament-panel-id="bendahara"] .bendahara-value-positive {
+        color: rgb(var(--bendahara-success));
+    }
+    
+    [data-filament-panel-id="bendahara"] .bendahara-value-negative {
+        color: rgb(var(--bendahara-danger));
+    }
+    
+    /* Status Indicators */
+    [data-filament-panel-id="bendahara"] .bendahara-status-approved {
+        color: rgb(var(--bendahara-success));
+    }
+    
+    [data-filament-panel-id="bendahara"] .bendahara-status-pending {
+        color: rgb(var(--bendahara-warning));
+    }
+    
+    /* Animation Utilities */
+    [data-filament-panel-id="bendahara"] .bendahara-animate-pulse {
+        animation: bendahara-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    
+    @keyframes bendahara-pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.7;
+        }
+    }
+    
+    /* Focus and Accessibility */
+    [data-filament-panel-id="bendahara"] .bendahara-focusable:focus-visible {
+        outline: 2px solid rgb(var(--bendahara-primary));
+        outline-offset: 2px;
+    }
+    
+    /* Responsive Utilities */
+    @media (max-width: 640px) {
+        [data-filament-panel-id="bendahara"] .bendahara-stats-card {
+            padding: var(--bendahara-space-md);
+        }
+        
+        [data-filament-panel-id="bendahara"] .bendahara-value-primary {
+            font-size: var(--bendahara-text-xl);
+        }
+    }
+}
+
+/* ===================================================================== */
+/* CONFLICT RESOLUTION - NUCLEAR OVERRIDES */
+/* ===================================================================== */
+
+/* High specificity selectors to override Filament defaults */
+html body [data-filament-panel-id="bendahara"] .bendahara-stats-card {
+    /* Force our component styles over any conflicting framework styles */
+    background-color: rgb(var(--bendahara-surface)) !important;
+    border-color: rgb(var(--bendahara-border)) !important;
+    color: rgb(var(--bendahara-text)) !important;
+}
+
+/* Prevent Tailwind utility conflicts */
+html body [data-filament-panel-id="bendahara"] .bendahara-stats-card * {
+    /* Reset conflicting utilities */
+    box-sizing: border-box;
+}
+
+/* Ensure proper text inheritance */
+html body [data-filament-panel-id="bendahara"] .bendahara-value-primary,
+html body [data-filament-panel-id="bendahara"] .bendahara-text-secondary {
+    color: inherit !important;
+}
+
+/* ===================================================================== */
+/* MODERN CSS FEATURES - PROGRESSIVE ENHANCEMENT */
+/* ===================================================================== */
+
+/* Container queries for responsive components */
+@container (min-width: 320px) {
+    [data-filament-panel-id="bendahara"] .bendahara-stats-card {
+        container-type: inline-size;
+    }
+}
+
+/* CSS Grid enhancement where supported */
+@supports (display: grid) {
+    [data-filament-panel-id="bendahara"] .bendahara-grid-enhanced {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: var(--bendahara-space-lg);
+    }
+}
+
+/* Backdrop filter for modern browsers */
+@supports (backdrop-filter: blur(10px)) {
+    [data-filament-panel-id="bendahara"] .bendahara-glass-effect {
+        backdrop-filter: blur(10px);
+        background-color: rgb(var(--bendahara-surface) / 0.8);
+    }
+}
+
+/* Color-mix for dynamic colors where supported */
+@supports (background-color: color-mix(in oklch, red 50%, transparent)) {
+    [data-filament-panel-id="bendahara"] .bendahara-revenue .bendahara-icon-container {
+        background-color: color-mix(in oklch, rgb(var(--bendahara-success)) 10%, transparent);
+    }
+}
+
+/* ===================================================================== */
+/* ACCESSIBILITY & REDUCED MOTION */
+/* ===================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+    [data-filament-panel-id="bendahara"] * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+@media (prefers-contrast: high) {
+    [data-filament-panel-id="bendahara"] {
+        --bendahara-border: 0 0 0;
+        --bendahara-text: 0 0 0;
+        --bendahara-surface: 255 255 255;
+    }
+}
+
+/* ===================================================================== */
+/* PRINT STYLES */
+/* ===================================================================== */
+
+@media print {
+    [data-filament-panel-id="bendahara"] .bendahara-stats-card {
+        box-shadow: none;
+        border: 1px solid rgb(var(--bendahara-border));
+        break-inside: avoid;
+    }
+    
+    [data-filament-panel-id="bendahara"] .bendahara-stats-card:hover {
+        transform: none;
+    }
+}

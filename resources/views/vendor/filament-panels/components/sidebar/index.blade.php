@@ -162,12 +162,20 @@
 
                     // Alpine.js loads too slow, so attempt to hide a
                     // collapsed sidebar group earlier.
-                    group.querySelector(
+                    const groupItems = group.querySelector(
                         '.fi-sidebar-group-items',
-                    ).style.display = 'none'
-                    group
+                    )
+                    const collapseButton = group
                         .querySelector('.fi-sidebar-group-collapse-button')
-                        .classList.add('rotate-180')
+                    
+                    // Check if elements exist before manipulating them
+                    if (groupItems) {
+                        groupItems.style.display = 'none'
+                    }
+                    
+                    if (collapseButton) {
+                        collapseButton.classList.add('rotate-180')
+                    }
                 })
         </script>
 

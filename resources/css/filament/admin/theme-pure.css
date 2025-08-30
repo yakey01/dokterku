@@ -1,0 +1,7 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+@source '../../../../app/Filament';
+@source '../../../../resources/views/filament';
+
+/* Pure Filament Dark Mode - No Custom UI Changes */
+/* Following official Filament 4.x documentation patterns */

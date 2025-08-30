@@ -337,3 +337,88 @@ public function canAccessPanel(Panel $panel): bool
 ### Attendance Data Issues
 **Issue**: Location data not reaching backend
 **Solution**: Use new Livewire methods `checkinWithLocation()` and `checkoutWithLocation()` with location data parameter
+
+## File Organization Rules
+
+### 📁 MANDATORY: Keep Root Directory Clean
+
+**CRITICAL RULE**: Never create files directly in the root directory. Always use appropriate folders.
+
+#### Documentation Files
+```bash
+# ✅ CORRECT - Use docs/ folder
+docs/development/      # Implementation guides, feature docs
+docs/analysis/         # Analysis reports, investigations  
+docs/validation/       # Testing and validation reports
+docs/deployment/       # Deployment guides, troubleshooting
+
+# ❌ WRONG - Never in root
+./SOME_DOCUMENTATION.md
+./ANALYSIS_REPORT.md
+```
+
+#### Debug & Test Files
+```bash
+# ✅ CORRECT - Use storage/debug-archive/
+storage/debug-archive/php-scripts/     # Debug PHP scripts
+storage/debug-archive/html-tests/      # Test HTML files
+tests/manual/                          # Manual test scripts
+
+# ❌ WRONG - Never in root  
+./debug-something.php
+./test-feature.html
+./analyze-issue.php
+```
+
+#### Development Scripts
+```bash
+# ✅ CORRECT - Use scripts/ folder
+scripts/               # Development utilities
+scripts/deployment/    # Deployment helpers  
+scripts/maintenance/   # Maintenance tools
+
+# ❌ WRONG - Never in root (except essential production tools)
+./some-utility.sh
+./helper-script.php
+```
+
+### 🚨 Root Directory Policy
+
+**ONLY ALLOWED in root directory:**
+- `build.sh` - Production build automation
+- `deploy.sh` - Production deployment script
+- `start-dev.sh` - Development environment starter
+- Laravel framework files (artisan, composer.json, etc.)
+
+**NEVER ALLOWED in root directory:**
+- Documentation files (.md)
+- Debug scripts (.php, .html)
+- Test files (test-*.*, debug-*.*)
+- Analysis reports
+- Temporary utilities
+
+### 📋 Quick Reference
+
+Before creating any file, ask:
+1. **Is this a core Laravel file?** → Root directory OK
+2. **Is this documentation?** → Use `docs/` subdirectories
+3. **Is this a debug/test tool?** → Use `storage/debug-archive/` or `tests/`
+4. **Is this a development script?** → Use `scripts/` directory
+5. **Is this temporary?** → Use appropriate archive folder
+
+### 🛡️ Security Benefits
+
+- **Web security**: Debug files not web-accessible
+- **Professional appearance**: Clean root directory
+- **Better deployment**: Only essential files in production
+- **Easier maintenance**: Organized structure for all file types
+
+### 📦 Implementation
+
+When Claude creates any file:
+1. **Analyze file purpose** before choosing location
+2. **Use mkdir -p** to create directory structure if needed
+3. **Document file location** in commit messages
+4. **Archive old files** instead of accumulating in root
+
+This organization prevents security issues, maintains professional structure, and enables easier project maintenance.

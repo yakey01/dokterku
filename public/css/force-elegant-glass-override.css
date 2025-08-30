@@ -1,0 +1,256 @@
+/* ================================================================ */
+/* FORCE ELEGANT GLASS OVERRIDE - ULTRA HIGH SPECIFICITY CSS */
+/* Minimalist Glass Table Design - Inspired by Modern SaaS */
+/* ================================================================ */
+
+/* NUCLEAR CSS OVERRIDE - MAXIMUM SPECIFICITY */
+html body div[data-filament-panel-id="petugas"] .fi-main,
+html body div[data-filament-panel-id="petugas"] .fi-page,
+html body div[data-filament-panel-id="petugas"] {
+    /* Deep Black Background */
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 50%, #0a0a0b 100%) !important;
+    min-height: 100vh !important;
+}
+
+/* TABLE CONTAINER - MINIMALIST GLASS DESIGN */
+html body div[data-filament-panel-id="petugas"] .fi-section,
+html body div[data-filament-panel-id="petugas"] .fi-ta,
+html body div[data-filament-panel-id="petugas"] .fi-ta-content,
+html body div[data-filament-panel-id="petugas"] .overflow-x-auto,
+html body div[data-filament-panel-id="petugas"] div.fi-section {
+    /* Subtle Glass Background */
+    background: rgba(255, 255, 255, 0.05) !important;
+    
+    /* Light Backdrop Filter */
+    backdrop-filter: blur(12px) saturate(110%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(110%) !important;
+    
+    /* Clean Minimal Border */
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 1rem !important;
+    
+    /* Subtle Shadow System */
+    box-shadow: 
+        0 4px 16px -4px rgba(0, 0, 0, 0.4),
+        0 2px 8px -2px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.06) !important;
+    
+    /* Clean Transitions */
+    transition: all 0.3s ease !important;
+    
+    /* Enhanced Text */
+    color: #ffffff !important;
+}
+
+/* HOVER ENHANCEMENT */
+html body div[data-filament-panel-id="petugas"] .fi-section:hover,
+html body div[data-filament-panel-id="petugas"] .overflow-x-auto:hover {
+    /* Enhanced Glass Effect on Hover */
+    background: rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(16px) saturate(115%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(115%) !important;
+    
+    /* Enhanced Border */
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    
+    /* Subtle Lift */
+    transform: translateY(-2px) !important;
+    
+    /* Enhanced Shadow */
+    box-shadow: 
+        0 8px 24px -8px rgba(0, 0, 0, 0.5),
+        0 4px 12px -4px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+/* TABLE HEADERS - CLEAN DESIGN */
+html body div[data-filament-panel-id="petugas"] .fi-ta-header-cell,
+html body div[data-filament-panel-id="petugas"] thead th,
+html body div[data-filament-panel-id="petugas"] th {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    font-size: 0.8125rem !important;
+    letter-spacing: 0.025em !important;
+    text-transform: uppercase !important;
+    padding: 1rem 1.25rem !important;
+    transition: all 0.2s ease !important;
+}
+
+/* TABLE ROWS - MINIMALIST GLASS */
+html body div[data-filament-panel-id="petugas"] .fi-ta-row,
+html body div[data-filament-panel-id="petugas"] tbody tr {
+    background: rgba(255, 255, 255, 0.02) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    color: #ffffff !important;
+    transition: all 0.25s ease !important;
+}
+
+/* ROW HOVER EFFECTS - SUBTLE & ELEGANT */
+html body div[data-filament-panel-id="petugas"] .fi-ta-row:hover,
+html body div[data-filament-panel-id="petugas"] tbody tr:hover {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-bottom-color: rgba(255, 255, 255, 0.12) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.2) !important;
+    color: #ffffff !important;
+    cursor: pointer !important;
+}
+
+/* TABLE CELLS */
+html body div[data-filament-panel-id="petugas"] .fi-ta-cell,
+html body div[data-filament-panel-id="petugas"] td,
+html body div[data-filament-panel-id="petugas"] th {
+    background: transparent !important;
+    color: #ffffff !important;
+    font-weight: 500 !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.03) !important;
+    padding: 1rem 1.25rem !important;
+    transition: all 0.2s ease !important;
+}
+
+html body div[data-filament-panel-id="petugas"] .fi-ta-row:hover .fi-ta-cell,
+html body div[data-filament-panel-id="petugas"] tbody tr:hover td {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+}
+
+/* BADGES - MINIMALIST DESIGN */
+html body div[data-filament-panel-id="petugas"] .fi-badge {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 0.5rem !important;
+    color: #ffffff !important;
+    font-weight: 500 !important;
+    font-size: 0.8125rem !important;
+    padding: 0.25rem 0.75rem !important;
+    transition: all 0.2s ease !important;
+}
+
+html body div[data-filament-panel-id="petugas"] .fi-badge:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    transform: scale(1.05) !important;
+}
+
+/* COLORED BADGES */
+html body div[data-filament-panel-id="petugas"] .fi-badge-color-primary { 
+    background: rgba(99, 102, 241, 0.15) !important; 
+    color: #a5b4fc !important; 
+    border-color: rgba(99, 102, 241, 0.2) !important;
+}
+
+html body div[data-filament-panel-id="petugas"] .fi-badge-color-success { 
+    background: rgba(34, 197, 94, 0.15) !important; 
+    color: #86efac !important; 
+    border-color: rgba(34, 197, 94, 0.2) !important;
+}
+
+html body div[data-filament-panel-id="petugas"] .fi-badge-color-warning { 
+    background: rgba(245, 158, 11, 0.15) !important; 
+    color: #fcd34d !important; 
+    border-color: rgba(245, 158, 11, 0.2) !important;
+}
+
+html body div[data-filament-panel-id="petugas"] .fi-badge-color-info { 
+    background: rgba(6, 182, 212, 0.15) !important; 
+    color: #67e8f9 !important; 
+    border-color: rgba(6, 182, 212, 0.2) !important;
+}
+
+/* ACTION BUTTONS */
+html body div[data-filament-panel-id="petugas"] .fi-btn {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 0.5rem !important;
+    color: #ffffff !important;
+    font-weight: 500 !important;
+    padding: 0.5rem 0.75rem !important;
+    transition: all 0.2s ease !important;
+}
+
+html body div[data-filament-panel-id="petugas"] .fi-btn:hover {
+    background: rgba(255, 255, 255, 0.12) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* SEARCH INPUT */
+html body div[data-filament-panel-id="petugas"] .fi-input,
+html body div[data-filament-panel-id="petugas"] input[type="text"] {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 0.5rem !important;
+    color: #ffffff !important;
+    transition: all 0.2s ease !important;
+}
+
+html body div[data-filament-panel-id="petugas"] .fi-input:focus,
+html body div[data-filament-panel-id="petugas"] input[type="text"]:focus {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(99, 102, 241, 0.4) !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+}
+
+/* PAGINATION */
+html body div[data-filament-panel-id="petugas"] .fi-pagination .fi-pagination-item {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 0.5rem !important;
+    color: #ffffff !important;
+    transition: all 0.2s ease !important;
+}
+
+html body div[data-filament-panel-id="petugas"] .fi-pagination .fi-pagination-item:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* ACTIVE PAGINATION */
+html body div[data-filament-panel-id="petugas"] .fi-pagination .fi-pagination-item.fi-active {
+    background: rgba(99, 102, 241, 0.2) !important;
+    border-color: rgba(99, 102, 241, 0.3) !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+}
+
+/* HEADER ACTIONS BUTTON */
+html body div[data-filament-panel-id="petugas"] .fi-btn-primary {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%) !important;
+    border: none !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    border-radius: 0.75rem !important;
+    transition: all 0.2s ease !important;
+}
+
+html body div[data-filament-panel-id="petugas"] .fi-btn-primary:hover {
+    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%) !important;
+    transform: translateY(-1px) scale(1.02) !important;
+    box-shadow: 0 8px 16px -4px rgba(99, 102, 241, 0.3) !important;
+}
+
+/* ALL TEXT SHOULD BE WHITE */
+html body div[data-filament-panel-id="petugas"] .fi-section *,
+html body div[data-filament-panel-id="petugas"] .fi-ta *,
+html body div[data-filament-panel-id="petugas"] table *,
+html body div[data-filament-panel-id="petugas"] .fi-main * {
+    color: #ffffff !important;
+}
+
+/* SPECIFIC TEXT ELEMENTS */
+html body div[data-filament-panel-id="petugas"] .fi-ta-header-cell-content,
+html body div[data-filament-panel-id="petugas"] .fi-ta-text,
+html body div[data-filament-panel-id="petugas"] .fi-ta-cell-content {
+    color: #ffffff !important;
+}
+
+/* SECONDARY TEXT */
+html body div[data-filament-panel-id="petugas"] .text-sm,
+html body div[data-filament-panel-id="petugas"] .text-gray-500,
+html body div[data-filament-panel-id="petugas"] .dark\\:text-gray-400 {
+    color: #d1d5db !important;
+}

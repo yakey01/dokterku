@@ -219,4 +219,139 @@ class Tindakan extends Model
             return $this->tarif * ($persentaseJaspel / 100);
         });
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::updating(function ($model) {
+            // AUDIT FIX: Comprehensive status synchronization logic
+            
+            // 1. Handle manual status_validasi changes (bendahara validation workflow)
+            if ($model->isDirty('status_validasi')) {
+                $oldValidationStatus = $model->getOriginal('status_validasi');
+                $newValidationStatus = $model->status_validasi;
+                
+                // Auto-sync status field based on status_validasi
+                $model->status = match($newValidationStatus) {
+                    'disetujui' => 'selesai',
+                    'ditolak' => 'batal',
+                    'pending' => 'pending',
+                    default => 'pending'
+                };
+
+                // Update validation metadata
+                if ($newValidationStatus !== 'pending') {
+                    $model->validated_by = auth()->id();
+                    $model->validated_at = now();
+                } else {
+                    // Reset validation fields if reverted to pending
+                    $model->validated_by = null;
+                    $model->validated_at = null;
+                }
+
+                \Illuminate\Support\Facades\Log::info('Manual status_validasi change - auto-synced status', [
+                    'id' => $model->id,
+                    'old_status_validasi' => $oldValidationStatus,
+                    'new_status_validasi' => $newValidationStatus,
+                    'auto_synced_status' => $model->status,
+                    'updated_by' => auth()->id(),
+                    'user_name' => auth()->user()?->name ?? 'System'
+                ]);
+
+                // Broadcast real-time status update
+                try {
+                    event(new \App\Events\TindakanStatusUpdated(
+                        $model,
+                        $model->getOriginal('status'),
+                        $oldValidationStatus,
+                        auth()->id()
+                    ));
+                } catch (\Exception $e) {
+                    \Log::error('Failed to broadcast TindakanStatusUpdated event', [
+                        'id' => $model->id,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+            
+            // 2. Handle automatic reset for critical field changes (existing logic)
+            elseif ($model->getOriginal('status_validasi') === 'disetujui') {
+                // Critical fields that require re-validation
+                $criticalFields = [
+                    'pasien_id',
+                    'jenis_tindakan_id',
+                    'dokter_id',
+                    'paramedis_id',
+                    'tanggal_tindakan',
+                    'tarif',
+                    'jasa_dokter',
+                    'jasa_paramedis',
+                    'jasa_non_paramedis',
+                    'shift_id'
+                ];
+                
+                // Check if any critical field was changed
+                if ($model->isDirty($criticalFields)) {
+                    $changedFields = array_keys($model->getDirty($criticalFields));
+                    
+                    // Reset validation status AND auto-sync status
+                    $model->status_validasi = 'pending';
+                    $model->status = 'pending'; // AUDIT FIX: Also reset status field
+                    $model->validated_by = null;
+                    $model->validated_at = null;
+                    $model->komentar_validasi = 'Data diubah oleh petugas - perlu validasi ulang. Fields: ' . implode(', ', $changedFields);
+                    
+                    \Illuminate\Support\Facades\Log::info('Tindakan validation status reset due to critical field edit - auto-synced status', [
+                        'id' => $model->id,
+                        'original_status_validasi' => 'disetujui',
+                        'new_status_validasi' => 'pending',
+                        'auto_synced_status' => 'pending',
+                        'changed_fields' => $changedFields,
+                        'edited_by' => auth()->id(),
+                        'user_name' => auth()->user()?->name ?? 'Unknown'
+                    ]);
+
+                    // Fire event for bendahara notification
+                    try {
+                        event(new \App\Events\ValidationStatusReset([
+                            'model_type' => 'Tindakan',
+                            'model_id' => $model->id,
+                            'original_status' => 'disetujui', 
+                            'new_status' => 'pending',
+                            'changed_fields' => $changedFields,
+                            'edited_by' => auth()->id(),
+                            'user_name' => auth()->user()?->name ?? 'System',
+                            'patient' => $model->pasien?->nama ?? 'Unknown',
+                            'procedure' => $model->jenisTindakan?->nama ?? 'Unknown',
+                            'doctor' => $model->dokter?->nama ?? 'Unknown',
+                            'tarif' => $model->tarif,
+                            'date' => $model->tanggal_tindakan?->format('d/m/Y')
+                        ]));
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::error('Failed to fire ValidationStatusReset event', [
+                            'model' => 'Tindakan',
+                            'id' => $model->id,
+                            'error' => $e->getMessage()
+                        ]);
+                    }
+
+                    // Broadcast real-time status update for critical field changes
+                    try {
+                        event(new \App\Events\TindakanStatusUpdated(
+                            $model,
+                            $model->getOriginal('status'),
+                            'disetujui', // original validation status
+                            auth()->id()
+                        ));
+                    } catch (\Exception $e) {
+                        \Log::error('Failed to broadcast TindakanStatusUpdated for critical changes', [
+                            'id' => $model->id,
+                            'error' => $e->getMessage()
+                        ]);
+                    }
+                }
+            }
+        });
+    }
 }

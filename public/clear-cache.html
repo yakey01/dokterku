@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Dokterku Cache</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .button { background: #007cba; color: white; padding: 10px 20px; border: none; margin: 10px; cursor: pointer; }
+        .success { color: green; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>🧹 Clear Dokterku Dashboard Cache</h1>
+    
+    <button class="button" onclick="clearAllCache()">Clear All Cache</button>
+    <button class="button" onclick="hardRefresh()">Hard Refresh</button>
+    <button class="button" onclick="clearStorage()">Clear Storage</button>
+    
+    <div id="output"></div>
+
+    <script>
+        function log(message, type = 'info') {
+            const output = document.getElementById('output');
+            output.innerHTML += `<div class="${type}">${message}</div>`;
+        }
+
+        async function clearAllCache() {
+            log('🚀 Starting comprehensive cache clear...', 'info');
+            
+            // Clear browser storage
+            localStorage.clear();
+            sessionStorage.clear();
+            log('✅ LocalStorage and SessionStorage cleared', 'success');
+            
+            // Clear service worker cache
+            if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                for (let registration of registrations) {
+                    await registration.unregister();
+                }
+                log('✅ Service Worker cache cleared', 'success');
+            }
+            
+            // Clear cache API
+            if ('caches' in window) {
+                const cacheNames = await caches.keys();
+                await Promise.all(
+                    cacheNames.map(cacheName => caches.delete(cacheName))
+                );
+                log('✅ Cache API cleared', 'success');
+            }
+            
+            // Clear IndexedDB
+            if ('indexedDB' in window) {
+                try {
+                    const databases = await indexedDB.databases();
+                    await Promise.all(databases.map(db => {
+                        return new Promise((resolve, reject) => {
+                            const deleteReq = indexedDB.deleteDatabase(db.name);
+                            deleteReq.onsuccess = () => resolve();
+                            deleteReq.onerror = () => reject();
+                        });
+                    }));
+                    log('✅ IndexedDB cleared', 'success');
+                } catch (e) {
+                    log('⚠️ IndexedDB clear skipped', 'info');
+                }
+            }
+            
+            log('🎉 All cache cleared! Please refresh the page.', 'success');
+        }
+        
+        function hardRefresh() {
+            log('🔄 Performing hard refresh...', 'info');
+            location.reload(true);
+        }
+        
+        function clearStorage() {
+            localStorage.clear();
+            sessionStorage.clear();
+            log('✅ Browser storage cleared', 'success');
+        }
+        
+        // Auto-clear on page load
+        window.onload = function() {
+            log('🏁 Cache clearing tool loaded. Click buttons to clear cache.', 'info');
+        };
+    </script>
+</body>
+</html>

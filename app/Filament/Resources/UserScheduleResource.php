@@ -17,7 +17,7 @@ class UserScheduleResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
 
-    protected static ?string $navigationGroup = '📋 SCHEDULE MANAGEMENT';
+    protected static ?string $navigationGroup = 'Schedule Management';
 
     protected static ?string $navigationLabel = 'User Schedules';
 

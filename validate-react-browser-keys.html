@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React Key Validation Browser Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .validation-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+        .test-section {
+            background: rgba(255,255,255,0.1);
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .success { color: #10b981; font-weight: bold; }
+        .error { color: #ef4444; font-weight: bold; }
+        .warning { color: #f59e0b; font-weight: bold; }
+        .info { color: #3b82f6; font-weight: bold; }
+        pre {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-online { background: #10b981; }
+        .status-offline { background: #ef4444; }
+        .status-warning { background: #f59e0b; }
+    </style>
+</head>
+<body>
+    <div class="validation-container">
+        <h1>🔍 React Key Duplication - Browser Validation Test</h1>
+        <p><strong>Purpose:</strong> Comprehensive browser-side validation of React key warnings</p>
+        
+        <div class="test-section">
+            <h3>📊 Page Accessibility Test</h3>
+            <div id="page-accessibility">
+                <p>Testing page access...</p>
+            </div>
+            <button onclick="testPageAccessibility()">Test Page Access</button>
+        </div>
+
+        <div class="test-section">
+            <h3>📦 Bundle Loading Test</h3>
+            <div id="bundle-loading">
+                <p>Checking JavaScript bundles...</p>
+            </div>
+            <button onclick="testBundleLoading()">Test Bundle Loading</button>
+        </div>
+
+        <div class="test-section">
+            <h3>⚛️ React Component Detection</h3>
+            <div id="react-detection">
+                <p>Scanning for React components...</p>
+            </div>
+            <button onclick="testReactComponents()">Scan React Components</button>
+        </div>
+
+        <div class="test-section">
+            <h3>🔑 React Key Analysis</h3>
+            <div id="key-analysis">
+                <p>Ready to analyze React keys...</p>
+            </div>
+            <button onclick="analyzeReactKeys()">Analyze React Keys</button>
+        </div>
+
+        <div class="test-section">
+            <h3>🌐 Browser Environment Test</h3>
+            <div id="browser-test">
+                <p>Testing browser compatibility...</p>
+            </div>
+            <button onclick="testBrowserEnvironment()">Test Browser Environment</button>
+        </div>
+
+        <div class="test-section">
+            <h3>🚀 Live Manajer Dashboard Test</h3>
+            <div id="live-test">
+                <p>Ready to test live dashboard...</p>
+            </div>
+            <button onclick="testLiveDashboard()">Test Live Dashboard</button>
+            <button onclick="openManajerDashboard()">Open Manajer Dashboard</button>
+        </div>
+
+        <div class="test-section">
+            <h3>📋 Full Diagnostic Report</h3>
+            <pre id="diagnostic-report">Click "Generate Full Report" to start comprehensive analysis...</pre>
+            <button onclick="generateFullReport()">Generate Full Report</button>
+            <button onclick="clearReport()">Clear Report</button>
+        </div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const colors = {
+                success: '#10b981',
+                error: '#ef4444', 
+                warning: '#f59e0b',
+                info: '#3b82f6'
+            };
+            
+            console.log(`[${timestamp}] ${message}`);
+            return `<span style="color: ${colors[type]}">[${timestamp}] ${message}</span>\n`;
+        }
+
+        function updateElement(id, content, append = false) {
+            const element = document.getElementById(id);
+            if (append) {
+                element.innerHTML += content;
+            } else {
+                element.innerHTML = content;
+            }
+        }
+
+        async function testPageAccessibility() {
+            updateElement('page-accessibility', '<p>🔍 Testing page accessibility...</p>');
+            
+            try {
+                // Test main manajer route
+                const response = await fetch('http://127.0.0.1:8000/manajer', { method: 'HEAD' });
+                const loginResponse = await fetch('http://127.0.0.1:8000/manajer/login', { method: 'HEAD' });
+                
+                let result = '<div>';
+                
+                result += `<p><span class="status-indicator ${response.ok ? 'status-online' : 'status-offline'}"></span>`;
+                result += `Main Route (/manajer): ${response.status} ${response.statusText}</p>`;
+                
+                result += `<p><span class="status-indicator ${loginResponse.ok ? 'status-online' : 'status-offline'}"></span>`;
+                result += `Login Route (/manajer/login): ${loginResponse.status} ${loginResponse.statusText}</p>`;
+                
+                if (response.status === 302) {
+                    result += `<p class="info">✅ Main route redirects to login (expected behavior)</p>`;
+                }
+                
+                if (loginResponse.ok) {
+                    result += `<p class="success">✅ Login page is accessible</p>`;
+                } else {
+                    result += `<p class="error">❌ Login page is not accessible</p>`;
+                }
+                
+                result += '</div>';
+                updateElement('page-accessibility', result);
+                
+            } catch (error) {
+                updateElement('page-accessibility', `<p class="error">❌ Error testing accessibility: ${error.message}</p>`);
+            }
+        }
+
+        async function testBundleLoading() {
+            updateElement('bundle-loading', '<p>📦 Testing bundle loading...</p>');
+            
+            try {
+                // Test if built assets exist
+                const bundleResponse = await fetch('http://127.0.0.1:8000/build/assets/js/manajer-dashboard-C5Zm0bj5.js', { method: 'HEAD' });
+                const viteClient = await fetch('http://127.0.0.1:5173/@vite/client', { method: 'HEAD' });
+                
+                let result = '<div>';
+                
+                result += `<p><span class="status-indicator ${bundleResponse.ok ? 'status-online' : 'status-offline'}"></span>`;
+                result += `Manajer Bundle: ${bundleResponse.status} ${bundleResponse.statusText}</p>`;
+                
+                result += `<p><span class="status-indicator ${viteClient.ok ? 'status-online' : 'status-warning'}"></span>`;
+                result += `Vite Dev Server: ${viteClient.status} ${viteClient.statusText}</p>`;
+                
+                if (bundleResponse.ok) {
+                    result += `<p class="success">✅ Production bundle exists and is accessible</p>`;
+                } else {
+                    result += `<p class="error">❌ Production bundle not found</p>`;
+                }
+                
+                if (!viteClient.ok) {
+                    result += `<p class="warning">⚠️ Vite dev server may not be running (using production build)</p>`;
+                }
+                
+                result += '</div>';
+                updateElement('bundle-loading', result);
+                
+            } catch (error) {
+                updateElement('bundle-loading', `<p class="error">❌ Error testing bundles: ${error.message}</p>`);
+            }
+        }
+
+        function testReactComponents() {
+            updateElement('react-detection', '<p>⚛️ Scanning for React components...</p>');
+            
+            let result = '<div>';
+            let reactElementsFound = 0;
+            let reactRootsFound = 0;
+            
+            // Check for React elements
+            const allElements = document.querySelectorAll('*');
+            allElements.forEach(element => {
+                const reactFiber = element._reactInternalFiber || 
+                                 element._reactInternalInstance || 
+                                 element.__reactInternalFiber ||
+                                 element.__reactInternalInstance;
+                
+                if (reactFiber) {
+                    reactElementsFound++;
+                }
+                
+                if (element.hasAttribute('data-reactroot') || element.id && element.id.includes('react')) {
+                    reactRootsFound++;
+                }
+            });
+            
+            result += `<p>React Elements Found: ${reactElementsFound}</p>`;
+            result += `<p>React Roots Found: ${reactRootsFound}</p>`;
+            
+            // Check for React in window
+            if (typeof window.React !== 'undefined') {
+                result += `<p class="success">✅ React library detected in window</p>`;
+            } else {
+                result += `<p class="warning">⚠️ React library not found in global window</p>`;
+            }
+            
+            // Check for common React frameworks
+            const frameworks = ['React', 'ReactDOM', '__REACT_DEVTOOLS_GLOBAL_HOOK__'];
+            frameworks.forEach(fw => {
+                if (typeof window[fw] !== 'undefined') {
+                    result += `<p class="info">${fw} detected</p>`;
+                }
+            });
+            
+            result += '</div>';
+            updateElement('react-detection', result);
+        }
+
+        function analyzeReactKeys() {
+            updateElement('key-analysis', '<p>🔑 Analyzing React keys...</p>');
+            
+            let result = '<div>';
+            let keysFound = new Map();
+            let duplicateKeys = [];
+            
+            // Scan all elements for React keys
+            const allElements = document.querySelectorAll('*');
+            allElements.forEach(element => {
+                const reactFiber = element._reactInternalFiber || 
+                                 element._reactInternalInstance || 
+                                 element.__reactInternalFiber ||
+                                 element.__reactInternalInstance;
+                
+                if (reactFiber && reactFiber.key !== null && reactFiber.key !== undefined) {
+                    const key = reactFiber.key.toString();
+                    
+                    if (keysFound.has(key)) {
+                        duplicateKeys.push({
+                            key: key,
+                            elements: [keysFound.get(key), element]
+                        });
+                    } else {
+                        keysFound.set(key, element);
+                    }
+                }
+            });
+            
+            result += `<p>Total React keys found: ${keysFound.size}</p>`;
+            
+            if (duplicateKeys.length > 0) {
+                result += `<p class="error">❌ Duplicate keys found: ${duplicateKeys.length}</p>`;
+                duplicateKeys.forEach(dup => {
+                    result += `<p class="error">Duplicate key: "${dup.key}"</p>`;
+                });
+            } else {
+                result += `<p class="success">✅ No duplicate keys detected in DOM</p>`;
+            }
+            
+            // Show key patterns
+            const keyPatterns = {};
+            keysFound.forEach((element, key) => {
+                const pattern = key.replace(/\d+/g, 'N');
+                keyPatterns[pattern] = (keyPatterns[pattern] || 0) + 1;
+            });
+            
+            result += '<p><strong>Key Patterns:</strong></p>';
+            Object.entries(keyPatterns).forEach(([pattern, count]) => {
+                result += `<p>Pattern "${pattern}": ${count} instances</p>`;
+            });
+            
+            result += '</div>';
+            updateElement('key-analysis', result);
+        }
+
+        function testBrowserEnvironment() {
+            updateElement('browser-test', '<p>🌐 Testing browser environment...</p>');
+            
+            let result = '<div>';
+            
+            result += `<p>User Agent: ${navigator.userAgent}</p>`;
+            result += `<p>Browser: ${getBrowserName()}</p>`;
+            result += `<p>URL: ${window.location.href}</p>`;
+            result += `<p>Console available: ${typeof console !== 'undefined'}</p>`;
+            result += `<p>Local Storage: ${typeof localStorage !== 'undefined'}</p>`;
+            result += `<p>Session Storage: ${typeof sessionStorage !== 'undefined'}</p>`;
+            
+            // Test ES6+ features
+            const features = {
+                'Arrow Functions': () => true,
+                'Destructuring': () => { const [a] = [1]; return a === 1; },
+                'Template Literals': () => `test` === 'test',
+                'Promises': () => typeof Promise !== 'undefined',
+                'Fetch API': () => typeof fetch !== 'undefined',
+                'Map/Set': () => typeof Map !== 'undefined' && typeof Set !== 'undefined'
+            };
+            
+            result += '<p><strong>ES6+ Feature Support:</strong></p>';
+            Object.entries(features).forEach(([name, test]) => {
+                try {
+                    const supported = test();
+                    result += `<p class="${supported ? 'success' : 'error'}">${name}: ${supported ? '✅' : '❌'}</p>`;
+                } catch (e) {
+                    result += `<p class="error">${name}: ❌ (${e.message})</p>`;
+                }
+            });
+            
+            result += '</div>';
+            updateElement('browser-test', result);
+        }
+
+        function getBrowserName() {
+            const ua = navigator.userAgent;
+            if (ua.includes('Chrome')) return 'Chrome';
+            if (ua.includes('Firefox')) return 'Firefox';
+            if (ua.includes('Safari') && !ua.includes('Chrome')) return 'Safari';
+            if (ua.includes('Edge')) return 'Edge';
+            return 'Unknown';
+        }
+
+        function testLiveDashboard() {
+            updateElement('live-test', '<p>🚀 Testing live dashboard...</p>');
+            
+            let result = '<div>';
+            
+            // Test if we can access the dashboard in an iframe or popup
+            try {
+                const popup = window.open('http://127.0.0.1:8000/manajer/login', 'manajer-test', 'width=800,height=600');
+                
+                if (popup) {
+                    result += `<p class="success">✅ Successfully opened dashboard popup</p>`;
+                    result += `<p class="info">Check the popup window for React key warnings in browser console</p>`;
+                    
+                    setTimeout(() => {
+                        try {
+                            const popupDocument = popup.document;
+                            const reactElements = popupDocument.querySelectorAll('*').length;
+                            result += `<p>Elements in popup: ${reactElements}</p>`;
+                            updateElement('live-test', result);
+                        } catch (e) {
+                            result += `<p class="warning">Cannot access popup content due to CORS policy</p>`;
+                            updateElement('live-test', result);
+                        }
+                    }, 3000);
+                    
+                } else {
+                    result += `<p class="error">❌ Popup blocked or failed to open</p>`;
+                }
+                
+            } catch (error) {
+                result += `<p class="error">❌ Error opening dashboard: ${error.message}</p>`;
+            }
+            
+            result += '</div>';
+            updateElement('live-test', result);
+        }
+
+        function openManajerDashboard() {
+            window.open('http://127.0.0.1:8000/manajer/login', '_blank');
+        }
+
+        async function generateFullReport() {
+            updateElement('diagnostic-report', 'Generating comprehensive diagnostic report...\n');
+            
+            let report = '';
+            report += log('=== REACT KEY DUPLICATION VALIDATION REPORT ===', 'info');
+            report += log(`Generated at: ${new Date().toISOString()}`, 'info');
+            report += log(`Browser: ${getBrowserName()}`, 'info');
+            report += log(`URL: ${window.location.href}`, 'info');
+            report += log('', 'info');
+            
+            // Test 1: Page Accessibility
+            report += log('1. PAGE ACCESSIBILITY TEST', 'info');
+            try {
+                const response = await fetch('http://127.0.0.1:8000/manajer', { method: 'HEAD' });
+                const loginResponse = await fetch('http://127.0.0.1:8000/manajer/login', { method: 'HEAD' });
+                
+                report += log(`Main route status: ${response.status}`, response.status === 302 ? 'success' : 'warning');
+                report += log(`Login route status: ${loginResponse.status}`, loginResponse.ok ? 'success' : 'error');
+                
+                if (response.status === 302) {
+                    report += log('✅ PASS: Main route properly redirects to login', 'success');
+                } else {
+                    report += log('❌ FAIL: Main route not redirecting properly', 'error');
+                }
+                
+            } catch (error) {
+                report += log(`❌ ERROR: ${error.message}`, 'error');
+            }
+            
+            report += log('', 'info');
+            
+            // Test 2: Bundle Loading
+            report += log('2. BUNDLE LOADING TEST', 'info');
+            try {
+                const bundleResponse = await fetch('http://127.0.0.1:8000/build/assets/js/manajer-dashboard-C5Zm0bj5.js', { method: 'HEAD' });
+                
+                report += log(`Bundle status: ${bundleResponse.status}`, bundleResponse.ok ? 'success' : 'error');
+                
+                if (bundleResponse.ok) {
+                    report += log('✅ PASS: Manajer dashboard bundle exists and is accessible', 'success');
+                } else {
+                    report += log('❌ FAIL: Bundle not accessible', 'error');
+                }
+                
+            } catch (error) {
+                report += log(`❌ ERROR: ${error.message}`, 'error');
+            }
+            
+            report += log('', 'info');
+            
+            // Test 3: React Environment
+            report += log('3. REACT ENVIRONMENT TEST', 'info');
+            
+            const reactTests = [
+                { name: 'React Library', test: () => typeof window.React !== 'undefined' },
+                { name: 'ReactDOM', test: () => typeof window.ReactDOM !== 'undefined' },
+                { name: 'React DevTools', test: () => typeof window.__REACT_DEVTOOLS_GLOBAL_HOOK__ !== 'undefined' },
+                { name: 'ES6 Support', test: () => typeof Map !== 'undefined' && typeof Set !== 'undefined' },
+                { name: 'Arrow Functions', test: () => { const f = () => true; return f(); } },
+                { name: 'Destructuring', test: () => { const [a] = [1]; return a === 1; } }
+            ];
+            
+            reactTests.forEach(({ name, test }) => {
+                try {
+                    const result = test();
+                    report += log(`${name}: ${result ? 'PASS' : 'FAIL'}`, result ? 'success' : 'warning');
+                } catch (error) {
+                    report += log(`${name}: ERROR - ${error.message}`, 'error');
+                }
+            });
+            
+            report += log('', 'info');
+            
+            // Test 4: React Key Analysis (current page)
+            report += log('4. CURRENT PAGE REACT KEY ANALYSIS', 'info');
+            
+            let keysFound = new Map();
+            let duplicateKeys = [];
+            let reactElementsFound = 0;
+            
+            const allElements = document.querySelectorAll('*');
+            allElements.forEach(element => {
+                const reactFiber = element._reactInternalFiber || 
+                                 element._reactInternalInstance || 
+                                 element.__reactInternalFiber ||
+                                 element.__reactInternalInstance;
+                
+                if (reactFiber) {
+                    reactElementsFound++;
+                    
+                    if (reactFiber.key !== null && reactFiber.key !== undefined) {
+                        const key = reactFiber.key.toString();
+                        
+                        if (keysFound.has(key)) {
+                            duplicateKeys.push(key);
+                        } else {
+                            keysFound.set(key, element);
+                        }
+                    }
+                }
+            });
+            
+            report += log(`React elements found: ${reactElementsFound}`, reactElementsFound > 0 ? 'success' : 'info');
+            report += log(`Unique keys found: ${keysFound.size}`, 'info');
+            report += log(`Duplicate keys: ${duplicateKeys.length}`, duplicateKeys.length === 0 ? 'success' : 'error');
+            
+            if (duplicateKeys.length > 0) {
+                duplicateKeys.forEach(key => {
+                    report += log(`  Duplicate key: "${key}"`, 'error');
+                });
+            } else {
+                report += log('✅ PASS: No duplicate React keys found on current page', 'success');
+            }
+            
+            report += log('', 'info');
+            
+            // Test 5: Recommendations
+            report += log('5. RECOMMENDATIONS', 'info');
+            
+            if (reactElementsFound === 0) {
+                report += log('⚠️ No React components detected on current page', 'warning');
+                report += log('   → Navigate to the actual manajer dashboard to test React keys', 'info');
+            }
+            
+            report += log('   → Test with browser DevTools open to catch React warnings', 'info');
+            report += log('   → Try different browsers (Chrome, Firefox, Safari)', 'info');
+            report += log('   → Clear browser cache and hard refresh', 'info');
+            report += log('   → Check browser console for React warnings', 'info');
+            
+            report += log('', 'info');
+            report += log('=== END REPORT ===', 'info');
+            
+            updateElement('diagnostic-report', report, false);
+        }
+
+        function clearReport() {
+            updateElement('diagnostic-report', 'Report cleared. Click "Generate Full Report" to run analysis...');
+        }
+
+        // Auto-run basic tests on page load
+        window.addEventListener('load', () => {
+            console.log('🔍 React Key Validation Test Page Loaded');
+            console.log('Use the buttons above to run comprehensive tests');
+            
+            // Quick environment check
+            const hasReact = typeof window.React !== 'undefined';
+            const hasFetch = typeof fetch !== 'undefined';
+            
+            if (!hasReact) {
+                console.log('⚠️ React not detected in global scope (expected for test page)');
+            }
+            
+            if (!hasFetch) {
+                console.log('❌ Fetch API not available - some tests will fail');
+            } else {
+                console.log('✅ Fetch API available - all tests can run');
+            }
+        });
+    </script>
+</body>
+</html>

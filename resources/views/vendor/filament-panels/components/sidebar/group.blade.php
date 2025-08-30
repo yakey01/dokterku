@@ -53,16 +53,18 @@
             </span>
 
             @if ($collapsible)
-                <x-filament::icon-button
-                    color="gray"
-                    icon="heroicon-m-chevron-up"
-                    icon-alias="panels::sidebar.group.collapse-button"
-                    :label="$label"
+                <button
+                    type="button"
                     x-bind:aria-expanded="! $store.sidebar.groupIsCollapsed(label)"
                     x-on:click.stop="$store.sidebar.toggleCollapsedGroup(label)"
                     class="fi-sidebar-group-collapse-button"
                     x-bind:class="{ '-rotate-180': $store.sidebar.groupIsCollapsed(label) }"
-                />
+                    :aria-label="'Toggle ' . $label"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
             @endif
         </div>
     @endif

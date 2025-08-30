@@ -1,0 +1,455 @@
+/* ================================================================ */
+/* BENDAHARA PURE CSS - ZERO CONFLICTS, MAXIMUM ISOLATION */
+/* Standalone CSS tanpa dependency pada framework lain */
+/* ================================================================ */
+
+/* Reset only for bendahara dashboard - super specific */
+#bendahara-dashboard-container {
+    /* Container setup */
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    
+    /* Layout reset */
+    margin: 0;
+    padding: 0;
+    
+    /* Color scheme */
+    color-scheme: light dark;
+}
+
+#bendahara-dashboard-container *,
+#bendahara-dashboard-container *::before,
+#bendahara-dashboard-container *::after {
+    box-sizing: inherit;
+}
+
+/* ================================================================ */
+/* DASHBOARD GRID LAYOUT */
+/* ================================================================ */
+
+.bendahara-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+@media (min-width: 640px) {
+    .bendahara-metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .bendahara-metrics-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+    }
+}
+
+/* ================================================================ */
+/* METRIC CARDS - PURE CSS COMPONENT */
+/* ================================================================ */
+
+.bendahara-metric-card {
+    /* Layout */
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    
+    /* Surface */
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    
+    /* Spacing */
+    padding: 1.5rem;
+    
+    /* Shadow */
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    
+    /* Transition */
+    transition: all 0.2s ease-in-out;
+    
+    /* Typography base */
+    font-family: inherit;
+    color: #111827;
+}
+
+/* Card hover effect */
+.bendahara-metric-card:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transform: translateY(-2px);
+    border-color: #d1d5db;
+}
+
+/* Dark mode untuk metric cards */
+@media (prefers-color-scheme: dark) {
+    .bendahara-metric-card {
+        background: #1f2937;
+        border-color: #374151;
+        color: #f9fafb;
+    }
+    
+    .bendahara-metric-card:hover {
+        border-color: #4b5563;
+    }
+}
+
+/* ================================================================ */
+/* CARD HEADER LAYOUT */
+/* ================================================================ */
+
+.bendahara-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.bendahara-card-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* ================================================================ */
+/* ICON CONTAINERS */
+/* ================================================================ */
+
+.bendahara-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+/* Icon color variants */
+.bendahara-icon-revenue {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #059669;
+}
+
+.bendahara-icon-expense {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+}
+
+.bendahara-icon-income {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #2563eb;
+}
+
+.bendahara-icon-validation {
+    background-color: rgba(147, 51, 234, 0.1);
+    color: #7c3aed;
+}
+
+/* ================================================================ */
+/* TYPOGRAPHY SYSTEM */
+/* ================================================================ */
+
+.bendahara-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    line-height: 1;
+}
+
+.bendahara-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #111827;
+    font-variant-numeric: tabular-nums;
+    margin: 0.5rem 0 0.25rem 0;
+}
+
+.bendahara-description {
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-weight: 400;
+    line-height: 1.4;
+}
+
+/* Dark mode typography */
+@media (prefers-color-scheme: dark) {
+    .bendahara-label {
+        color: #9ca3af;
+    }
+    
+    .bendahara-value {
+        color: #f9fafb;
+    }
+    
+    .bendahara-description {
+        color: #9ca3af;
+    }
+}
+
+/* ================================================================ */
+/* GROWTH INDICATORS */
+/* ================================================================ */
+
+.bendahara-growth {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.bendahara-growth-positive {
+    color: #059669;
+}
+
+.bendahara-growth-negative {
+    color: #dc2626;
+}
+
+.bendahara-growth svg {
+    width: 0.875rem;
+    height: 0.875rem;
+}
+
+/* ================================================================ */
+/* VALUE COLOR VARIANTS */
+/* ================================================================ */
+
+.bendahara-value-positive {
+    color: #059669 !important;
+}
+
+.bendahara-value-negative {
+    color: #dc2626 !important;
+}
+
+/* ================================================================ */
+/* ACTIVITY SECTIONS */
+/* ================================================================ */
+
+.bendahara-activity-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+@media (min-width: 1024px) {
+    .bendahara-activity-grid {
+        grid-template-columns: 2fr 1fr;
+    }
+}
+
+.bendahara-activity-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+    .bendahara-activity-card {
+        background: #1f2937;
+        border-color: #374151;
+    }
+}
+
+.bendahara-activity-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.bendahara-activity-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+    .bendahara-activity-title {
+        color: #f9fafb;
+    }
+}
+
+.bendahara-activity-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.bendahara-activity-item:last-child {
+    border-bottom: none;
+}
+
+@media (prefers-color-scheme: dark) {
+    .bendahara-activity-item {
+        border-bottom-color: #374151;
+    }
+}
+
+/* ================================================================ */
+/* CHART PLACEHOLDER */
+/* ================================================================ */
+
+.bendahara-chart-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 320px;
+    background: #f9fafb;
+    border: 2px dashed #d1d5db;
+    border-radius: 12px;
+    color: #6b7280;
+    font-size: 0.875rem;
+    text-align: center;
+}
+
+@media (prefers-color-scheme: dark) {
+    .bendahara-chart-placeholder {
+        background: #374151;
+        border-color: #4b5563;
+        color: #9ca3af;
+    }
+}
+
+/* ================================================================ */
+/* STATUS BADGES */
+/* ================================================================ */
+
+.bendahara-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 9999px;
+    line-height: 1;
+}
+
+.bendahara-badge-approved {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #059669;
+}
+
+.bendahara-badge-pending {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: #d97706;
+}
+
+/* ================================================================ */
+/* RESPONSIVE DESIGN */
+/* ================================================================ */
+
+@media (max-width: 640px) {
+    .bendahara-metric-card {
+        padding: 1rem;
+    }
+    
+    .bendahara-value {
+        font-size: 1.25rem;
+    }
+    
+    .bendahara-icon-wrapper {
+        width: 2rem;
+        height: 2rem;
+    }
+}
+
+/* ================================================================ */
+/* UTILITY CLASSES */
+/* ================================================================ */
+
+.bendahara-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.bendahara-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ================================================================ */
+/* ANIMATION SYSTEM */
+/* ================================================================ */
+
+@keyframes bendahara-fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.bendahara-animate-in {
+    animation: bendahara-fadeIn 0.3s ease-out forwards;
+}
+
+/* ================================================================ */
+/* ACCESSIBILITY */
+/* ================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    .bendahara-metric-card,
+    .bendahara-icon-wrapper,
+    .bendahara-activity-item {
+        transition: none;
+    }
+    
+    .bendahara-animate-in {
+        animation: none;
+    }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .bendahara-metric-card {
+        border-color: #000000;
+        border-width: 2px;
+    }
+    
+    .bendahara-value {
+        color: #000000;
+    }
+}
+
+/* ================================================================ */
+/* PRINT STYLES */
+/* ================================================================ */
+
+@media print {
+    .bendahara-metric-card {
+        box-shadow: none;
+        border: 1px solid #000000;
+        break-inside: avoid;
+        margin-bottom: 1rem;
+    }
+    
+    .bendahara-metric-card:hover {
+        transform: none;
+    }
+}

@@ -23,7 +23,7 @@ class DokterPresensiResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-user-check';
 
-    protected static ?string $navigationGroup = '👨‍⚕️ DOCTOR MANAGEMENT';
+    protected static ?string $navigationGroup = 'Attendance';
 
     protected static ?string $navigationLabel = 'Doctor Attendance';
 
@@ -241,17 +241,17 @@ class DokterPresensiResource extends Resource
                         $status = $data['value'] ?? null;
                         if (!$status) return $query;
 
-                        return $query->whereHas('*', function ($q) use ($status) {
-                            // This is a computed attribute, so we need custom logic
-                            switch ($status) {
-                                case 'Belum Hadir':
-                                    return $q->whereNull('jam_masuk');
-                                case 'Sedang Bertugas':
-                                    return $q->whereNotNull('jam_masuk')->whereNull('jam_pulang');
-                                case 'Selesai':
-                                    return $q->whereNotNull('jam_masuk')->whereNotNull('jam_pulang');
-                            }
-                        });
+                        // Filter based on computed status logic from DokterPresensi model
+                        switch ($status) {
+                            case 'Belum Hadir':
+                                return $query->whereNull('jam_masuk');
+                            case 'Sedang Bertugas':
+                                return $query->whereNotNull('jam_masuk')->whereNull('jam_pulang');
+                            case 'Selesai':
+                                return $query->whereNotNull('jam_masuk')->whereNotNull('jam_pulang');
+                            default:
+                                return $query;
+                        }
                     }),
 
                 Tables\Filters\Filter::make('today')

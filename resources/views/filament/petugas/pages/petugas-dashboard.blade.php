@@ -1,4 +1,29 @@
 <x-filament-panels::page>
+    {{-- Additional CSS Fix for Visual Issues --}}
+    <style>
+        /* Force proper styling for petugas panel */
+        [data-panel-id="petugas"] .fi-main {
+            background: #f9fafb !important;
+        }
+        
+        [data-panel-id="petugas"] .fi-page {
+            background: transparent !important;
+        }
+        
+        /* Ensure charts render properly */
+        .chart-container {
+            min-height: 300px !important;
+            width: 100% !important;
+        }
+        
+        /* Fix for empty states */
+        .fi-ta-empty-state {
+            background: white !important;
+            padding: 2rem !important;
+            border-radius: 0.5rem !important;
+            border: 1px solid #e5e7eb !important;
+        }
+    </style>
     <!-- Welcome Message -->
     <div class="mb-6">
         <div class="bg-gradient-to-r from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 rounded-lg shadow-lg p-6 text-white">

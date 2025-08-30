@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🔍 React Key Duplication Debugger</title>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: system-ui; padding: 20px; background: #f5f5f5; }
+        .section { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .error { background: #fee; border-left: 4px solid #f00; color: #800; }
+        .success { background: #efe; border-left: 4px solid #0a0; color: #060; }
+        .info { background: #eef; border-left: 4px solid #00f; color: #006; }
+        button { background: #007cba; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #005a87; }
+        pre { background: #f8f8f8; padding: 10px; border-radius: 4px; overflow: auto; }
+        .highlight { background: yellow; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>🔍 React Key Duplication Debugger</h1>
+    
+    <div class="section info">
+        <h3>🎯 Purpose</h3>
+        <p>This tool analyzes the DOM for React key duplications and provides comprehensive debugging information.</p>
+    </div>
+
+    <div class="section">
+        <button onclick="analyzeKeys()">🔍 Analyze React Keys</button>
+        <button onclick="clearResults()">🧹 Clear Results</button>
+        <button onclick="openManagerDashboard()">🚀 Open Manager Dashboard</button>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        function analyzeKeys() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<div class="section info">🔄 Analyzing React keys...</div>';
+            
+            setTimeout(() => {
+                try {
+                    // Get all elements with React keys
+                    const allElements = document.querySelectorAll('*');
+                    const keyMap = new Map();
+                    const duplicates = [];
+                    let totalKeyed = 0;
+                    
+                    allElements.forEach((element, index) => {
+                        // Check for React fiber keys
+                        const fiber = element._reactInternalFiber || element.__reactInternalInstance || element._reactInternalInstance;
+                        if (fiber && fiber.key) {
+                            totalKeyed++;
+                            const key = fiber.key;
+                            
+                            if (keyMap.has(key)) {
+                                keyMap.get(key).push(element);
+                                if (keyMap.get(key).length === 2) {
+                                    duplicates.push({ key, elements: keyMap.get(key) });
+                                }
+                            } else {
+                                keyMap.set(key, [element]);
+                            }
+                        }
+                        
+                        // Also check data-reactroot and other React attributes
+                        if (element.getAttribute && element.getAttribute('data-reactroot')) {
+                            console.log('Found React root:', element);
+                        }
+                    });
+                    
+                    let output = '<div class="section success"><h3>✅ Key Analysis Complete</h3>';
+                    output += `<p><strong>Total elements with keys:</strong> ${totalKeyed}</p>`;
+                    output += `<p><strong>Unique keys:</strong> ${keyMap.size}</p>`;
+                    output += `<p><strong>Duplicate keys found:</strong> ${duplicates.length}</p></div>`;
+                    
+                    if (duplicates.length > 0) {
+                        output += '<div class="section error"><h3>🚨 Duplicate Keys Found</h3>';
+                        duplicates.forEach(dup => {
+                            output += `<div><strong class="highlight">Key "${dup.key}"</strong> used by ${dup.elements.length} elements:</div>`;
+                            output += '<ul>';
+                            dup.elements.forEach((el, i) => {
+                                output += `<li>Element ${i + 1}: ${el.tagName.toLowerCase()}`;
+                                if (el.className) output += ` class="${el.className}"`;
+                                if (el.id) output += ` id="${el.id}"`;
+                                output += `</li>`;
+                            });
+                            output += '</ul>';
+                        });
+                        output += '</div>';
+                    } else {
+                        output += '<div class="section success"><h3>✅ No Duplicate Keys Found</h3><p>All React keys are unique!</p></div>';
+                    }
+                    
+                    // Key distribution
+                    output += '<div class="section info"><h3>📊 Key Distribution</h3>';
+                    output += '<pre>';
+                    const keyTypes = {};
+                    keyMap.forEach((elements, key) => {
+                        const keyType = key.toString().includes('-') ? key.split('-')[0] : 'simple';
+                        keyTypes[keyType] = (keyTypes[keyType] || 0) + 1;
+                    });
+                    output += JSON.stringify(keyTypes, null, 2);
+                    output += '</pre></div>';
+                    
+                    results.innerHTML = output;
+                    
+                } catch (error) {
+                    results.innerHTML = `<div class="section error"><h3>❌ Analysis Error</h3><p>${error.message}</p></div>`;
+                }
+            }, 100);
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        function openManagerDashboard() {
+            window.open('http://127.0.0.1:8000/manajer', '_blank');
+        }
+        
+        // Auto-analyze on load
+        setTimeout(analyzeKeys, 1000);
+        
+        console.log('🔍 React Key Debugger loaded - use analyzeKeys() function');
+    </script>
+</body>
+</html>

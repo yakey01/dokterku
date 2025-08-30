@@ -17,7 +17,7 @@ class JenisTindakanResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
 
-    protected static ?string $navigationGroup = '💰 FINANSIAL MANAGEMENT';
+    protected static ?string $navigationGroup = 'Financial Management';
     protected static ?int $navigationSort = 71;
 
     protected static ?string $modelLabel = 'Jenis Tindakan';

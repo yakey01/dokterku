@@ -1,0 +1,99 @@
+/* Simplified Minimalist Collapsible Button Styles */
+.fi-sidebar-group-collapse-button {
+    /* Remove default button styles for minimal look */
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 4px !important;
+    
+    /* Smaller, more minimal size */
+    width: 24px !important;
+    height: 24px !important;
+    
+    /* Smooth transitions */
+    transition: all 0.2s ease-in-out !important;
+    
+    /* Center the icon */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    
+    /* Subtle hover effect */
+    opacity: 0.6;
+    border-radius: 4px !important;
+}
+
+.fi-sidebar-group-collapse-button:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.1) !important;
+    transform: scale(1.1);
+}
+
+/* Icon styling for minimal look */
+.fi-sidebar-group-collapse-button svg {
+    width: 14px !important;
+    height: 14px !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    stroke-width: 2 !important;
+}
+
+/* Rotation animation for collapsed state */
+.fi-sidebar-group-collapse-button.-rotate-180 {
+    transform: rotate(180deg);
+}
+
+.fi-sidebar-group-collapse-button.-rotate-180:hover {
+    transform: rotate(180deg) scale(1.1);
+}
+
+/* Group button styling for better spacing */
+.fi-sidebar-group-button {
+    padding: 8px 12px !important;
+    margin: 0 4px !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease-in-out !important;
+}
+
+.fi-sidebar-group-button:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Make the label more prominent */
+.fi-sidebar-group-label {
+    font-weight: 500 !important;
+    letter-spacing: 0.025em !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Icon styling for groups */
+.fi-sidebar-group-icon {
+    color: rgba(255, 255, 255, 0.6) !important;
+    width: 20px !important;
+    height: 20px !important;
+}
+
+/* Remove any extra borders or shadows */
+.fi-sidebar-group {
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Smooth collapse animation */
+.fi-sidebar-group-items {
+    transition: all 0.25s ease-in-out !important;
+}
+
+/* Active state styling */
+.fi-sidebar-group.fi-active .fi-sidebar-group-label {
+    color: #60A5FA !important; /* Light blue for active state */
+}
+
+.fi-sidebar-group.fi-active .fi-sidebar-group-icon {
+    color: #60A5FA !important;
+}
+
+/* Focus states for accessibility */
+.fi-sidebar-group-collapse-button:focus {
+    outline: 2px solid rgba(96, 165, 250, 0.5) !important;
+    outline-offset: 2px !important;
+}

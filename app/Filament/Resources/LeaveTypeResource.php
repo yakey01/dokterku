@@ -19,7 +19,7 @@ class LeaveTypeResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
     
-    protected static ?string $navigationGroup = '🏖️ CUTI DAN ABSEN';
+    protected static ?string $navigationGroup = 'Leave Management';
     
     protected static ?string $navigationLabel = 'Jenis Cuti';
     

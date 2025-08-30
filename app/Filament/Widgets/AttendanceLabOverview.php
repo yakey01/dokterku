@@ -25,11 +25,11 @@ class AttendanceLabOverview extends BaseWidget
         
         // Face Recognition Stats
         $totalFaceRecognitions = FaceRecognition::count();
-        $verifiedFaces = FaceRecognition::verified()->count();
-        $activeFaces = FaceRecognition::active()->count();
+        $verifiedFaces = FaceRecognition::where('is_verified', true)->count();
+        $activeFaces = FaceRecognition::where('is_active', true)->count();
         
-        // Absence Requests
-        $pendingAbsences = AbsenceRequest::pending()->count();
+        // Absence Requests  
+        $pendingAbsences = AbsenceRequest::where('status', 'pending')->count();
         $thisMonthAbsences = AbsenceRequest::whereDate('absence_date', '>=', $thisMonth)->count();
         
         // Device Management

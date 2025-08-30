@@ -19,7 +19,7 @@ class ShiftTemplateResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-clock';
     
-    protected static ?string $navigationGroup = '📅 KALENDAR DAN JADWAL';
+    protected static ?string $navigationGroup = 'Schedule Management';
     
     protected static ?string $navigationLabel = 'Template Shift';
     

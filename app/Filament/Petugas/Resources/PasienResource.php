@@ -27,6 +27,9 @@ use Filament\Forms\Components\Repeater;
 use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
 use Exception;
+use Filament\Infolists\Infolist;
+use Filament\Infolists\Components;
+use Filament\Support\Enums\FontWeight;
 
 class PasienResource extends Resource
 {
@@ -38,11 +41,11 @@ class PasienResource extends Resource
     
     protected static ?string $navigationLabel = 'Input Pasien';
     
+    protected static ?int $navigationSort = 1;
+    
     protected static ?string $modelLabel = 'Pasien';
     
     protected static ?string $pluralModelLabel = 'Input Pasien';
-
-    protected static ?int $navigationSort = 1;
 
     public static function shouldRegisterNavigation(): bool
     {
@@ -170,43 +173,70 @@ class PasienResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->description('Sistem Manajemen Data Pasien')
+            ->headerActions([
+                // Header Widget for Quick Stats
+                Tables\Actions\Action::make('patient_stats')
+                    ->label('📊 Statistik Pasien')
+                    ->color('info')
+                    ->disabled()
+                    ->extraAttributes(['class' => 'elegant-dark-header-widget'])
+                    ->modalContent(view('filament.widgets.patient-stats-summary')),
+            ])
             ->columns([
                 Tables\Columns\TextColumn::make('no_rekam_medis')
                     ->label('No. RM')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->icon('heroicon-o-identification')
+                    ->copyable()
+                    ->copyMessage('Nomor rekam medis disalin!')
+                    ->weight('bold')
+                    ->extraAttributes(['class' => 'elegant-dark-text-primary']),
                 
                 Tables\Columns\TextColumn::make('nama')
                     ->label('Nama Pasien')
                     ->searchable()
                     ->limit(30)
-                    ->sortable(),
+                    ->sortable()
+                    ->icon('heroicon-o-user')
+                    ->weight('medium')
+                    ->extraAttributes(['class' => 'elegant-dark-text-primary']),
                 
                 Tables\Columns\TextColumn::make('tanggal_lahir')
                     ->label('Tgl. Lahir')
                     ->date('d/m/Y')
                     ->sortable()
-                    ->description(fn (Pasien $record): string => $record->umur ? $record->umur . ' tahun' : ''),
+                    ->icon('heroicon-o-calendar-days')
+                    ->description(fn (Pasien $record): string => $record->umur ? $record->umur . ' tahun' : '')
+                    ->extraAttributes(['class' => 'elegant-dark-text-secondary']),
                 
                 Tables\Columns\TextColumn::make('jenis_kelamin')
-                    ->label('JK')
+                    ->label('Jenis Kelamin')
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'L' => 'Laki-laki',
-                        'P' => 'Perempuan',
+                        'L' => '👨 Laki-laki',
+                        'P' => '👩 Perempuan',
+                        'Laki-laki' => '👨 Laki-laki',
+                        'Perempuan' => '👩 Perempuan',
+                        default => $state,
                     })
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'L' => 'info',
                         'P' => 'success',
-                    }),
+                        'Laki-laki' => 'info',
+                        'Perempuan' => 'success',
+                        default => 'gray',
+                    })
+                    ->extraAttributes(['class' => 'elegant-dark-badge']),
 
                 Tables\Columns\TextColumn::make('status')
-                    ->label('Status')
+                    ->label('Status Verifikasi')
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'pending' => 'Menunggu Verifikasi',
-                        'verified' => 'Terverifikasi',
-                        'rejected' => 'Ditolak',
-                        default => 'Menunggu Verifikasi',
+                        'pending' => '⏳ Menunggu Verifikasi',
+                        'verified' => '✅ Terverifikasi',
+                        'rejected' => '❌ Ditolak',
+                        default => '⏳ Menunggu Verifikasi',
                     })
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
@@ -220,7 +250,8 @@ class PasienResource extends Resource
                         'verified' => 'heroicon-o-check-circle',
                         'rejected' => 'heroicon-o-x-circle',
                         default => 'heroicon-o-clock',
-                    }),
+                    })
+                    ->extraAttributes(['class' => 'elegant-dark-badge']),
                 
                 
                 Tables\Columns\TextColumn::make('pekerjaan')
@@ -254,6 +285,8 @@ class PasienResource extends Resource
                     ->label('Terdaftar')
                     ->dateTime('d/m/Y H:i')
                     ->sortable()
+                    ->icon('heroicon-o-calendar')
+                    ->extraAttributes(['class' => 'elegant-dark-text-muted'])
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
@@ -520,23 +553,47 @@ class PasienResource extends Resource
             ->actions([
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\Action::make('create_tindakan')
-                        ->label('Buat Tindakan')
+                        ->label('🏥 Buat Tindakan')
                         ->icon('heroicon-o-plus-circle')
                         ->color('primary')
+                        ->extraAttributes(['class' => 'elegant-dark-action-btn view'])
                         ->url(fn (Pasien $record): string => TindakanResource::getUrl('create', [], panel: 'petugas') . '?pasien_id=' . $record->id)
-                        ->tooltip('Buat tindakan untuk pasien ini'),
+                        ->tooltip('Buat tindakan medis untuk pasien ini'),
                     
                     Tables\Actions\ViewAction::make()
-                        ->label('Lihat'),
+                        ->label('👁️ Lihat Detail')
+                        ->extraAttributes(['class' => 'elegant-dark-action-btn view'])
+                        ->tooltip('Lihat detail lengkap pasien'),
+                        
                     Tables\Actions\EditAction::make()
-                        ->label('Edit'),
+                        ->label('✏️ Edit Data')
+                        ->extraAttributes(['class' => 'elegant-dark-action-btn edit'])
+                        ->tooltip('Edit informasi pasien'),
+                        
                     Tables\Actions\DeleteAction::make()
-                        ->label('Hapus'),
+                        ->label('🗑️ Hapus')
+                        ->extraAttributes(['class' => 'elegant-dark-action-btn delete'])
+                        ->tooltip('Hapus data pasien'),
+                        
+                    Tables\Actions\Action::make('copy_rekam_medis')
+                        ->label('📋 Salin No. RM')
+                        ->icon('heroicon-o-clipboard')
+                        ->color('info')
+                        ->extraAttributes(['class' => 'elegant-dark-action-btn'])
+                        ->action(function (Pasien $record) {
+                            \Filament\Notifications\Notification::make()
+                                ->title('Nomor Rekam Medis Disalin')
+                                ->body("No. RM: {$record->no_rekam_medis}")
+                                ->success()
+                                ->send();
+                        })
+                        ->tooltip('Salin nomor rekam medis'),
                 ])
-                ->label('Aksi')
+                ->label('⚙️ Aksi')
                 ->icon('heroicon-o-ellipsis-vertical')
                 ->size('sm')
                 ->color('gray')
+                ->extraAttributes(['class' => 'elegant-dark-action-group'])
                 ->button(),
             ])
             ->bulkActions([
@@ -711,7 +768,148 @@ class PasienResource extends Resource
                 ]),
             ])
             ->defaultSort('created_at', 'desc')
-            ->poll('30s');
+            ->poll('30s')
+            ->paginationPageOptions([10, 25, 50, 100])
+            ->defaultPaginationPageOption(25)
+            ->striped()
+            ->deferLoading()
+            ->extremePaginationLinks()
+            ->persistSortInSession()
+            ->persistSearchInSession()
+            ->persistFiltersInSession()
+            ->persistColumnSearchesInSession()
+            ->emptyStateHeading('🏥 Belum ada data pasien')
+            ->emptyStateDescription('Mulai dengan menambahkan data pasien baru menggunakan tombol "Input Pasien Baru" di atas.')
+            ->emptyStateIcon('heroicon-o-user-plus');
+    }
+
+    public static function infolist(Infolist $infolist): Infolist
+    {
+        return $infolist
+            ->schema([
+                Components\Section::make('📋 Data Identitas Pasien')
+                    ->description('Informasi dasar pasien yang terdaftar di sistem')
+                    ->icon('heroicon-o-user')
+                    ->schema([
+                        Components\Grid::make(3)
+                            ->schema([
+                                Components\TextEntry::make('no_rekam_medis')
+                                    ->label('No. Rekam Medis')
+                                    ->icon('heroicon-o-identification')
+                                    ->copyable()
+                                    ->copyMessage('Nomor rekam medis disalin!')
+                                    ->weight(FontWeight::Bold)
+                                    ->color('primary'),
+                                    
+                                Components\TextEntry::make('nama')
+                                    ->label('Nama Lengkap')
+                                    ->icon('heroicon-o-user')
+                                    ->weight(FontWeight::Bold)
+                                    ->size(Components\TextEntry\TextEntrySize::Large),
+                                    
+                                Components\TextEntry::make('jenis_kelamin')
+                                    ->label('Jenis Kelamin')
+                                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                                        'L' => '👨 Laki-laki',
+                                        'P' => '👩 Perempuan',
+                                        'Laki-laki' => '👨 Laki-laki',
+                                        'Perempuan' => '👩 Perempuan',
+                                        default => $state,
+                                    })
+                                    ->badge()
+                                    ->color(fn (string $state): string => match ($state) {
+                                        'L', 'Laki-laki' => 'info',
+                                        'P', 'Perempuan' => 'success',
+                                        default => 'gray',
+                                    }),
+                            ]),
+                            
+                        Components\Grid::make(2)
+                            ->schema([
+                                Components\TextEntry::make('tanggal_lahir')
+                                    ->label('Tanggal Lahir')
+                                    ->date('d F Y')
+                                    ->icon('heroicon-o-calendar-days')
+                                    ->suffix(fn (Pasien $record): string => ' (' . ($record->umur ?: '0') . ' tahun)'),
+                                    
+                                Components\TextEntry::make('status')
+                                    ->label('Status Verifikasi')
+                                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                                        'pending' => '⏳ Menunggu Verifikasi',
+                                        'verified' => '✅ Terverifikasi',
+                                        'rejected' => '❌ Ditolak',
+                                        default => '⏳ Menunggu Verifikasi',
+                                    })
+                                    ->badge()
+                                    ->color(fn (string $state): string => match ($state) {
+                                        'pending' => 'warning',
+                                        'verified' => 'success',
+                                        'rejected' => 'danger',
+                                        default => 'warning',
+                                    }),
+                            ]),
+                    ])
+                    ->collapsible()
+                    ->persistCollapsed(),
+                    
+                Components\Section::make('👥 Informasi Personal')
+                    ->description('Data tambahan dan informasi personal pasien')
+                    ->icon('heroicon-o-user-group')
+                    ->schema([
+                        Components\Grid::make(2)
+                            ->schema([
+                                Components\TextEntry::make('pekerjaan')
+                                    ->label('Pekerjaan')
+                                    ->icon('heroicon-o-briefcase')
+                                    ->placeholder('Tidak diisi'),
+                                    
+                                Components\TextEntry::make('status_pernikahan')
+                                    ->label('Status Pernikahan')
+                                    ->formatStateUsing(fn (string $state = null): string => match ($state) {
+                                        'belum_menikah' => 'Belum Menikah',
+                                        'menikah' => 'Menikah',
+                                        'janda' => 'Janda',
+                                        'duda' => 'Duda',
+                                        default => 'Tidak diisi',
+                                    })
+                                    ->badge()
+                                    ->color(fn (string $state = null): string => match ($state) {
+                                        'belum_menikah' => 'gray',
+                                        'menikah' => 'success',
+                                        'janda' => 'warning',
+                                        'duda' => 'info',
+                                        default => 'gray',
+                                    })
+                                    ->icon('heroicon-o-heart'),
+                            ]),
+                    ])
+                    ->collapsible()
+                    ->collapsed(),
+                    
+                Components\Section::make('📅 Informasi Sistem')
+                    ->description('Data teknis dan riwayat sistem')
+                    ->icon('heroicon-o-cog-8-tooth')
+                    ->schema([
+                        Components\Grid::make(2)
+                            ->schema([
+                                Components\TextEntry::make('created_at')
+                                    ->label('Terdaftar Pada')
+                                    ->dateTime('d F Y, H:i')
+                                    ->icon('heroicon-o-calendar')
+                                    ->since()
+                                    ->color('success'),
+                                    
+                                Components\TextEntry::make('updated_at')
+                                    ->label('Terakhir Diperbarui')
+                                    ->dateTime('d F Y, H:i')
+                                    ->icon('heroicon-o-arrow-path')
+                                    ->since()
+                                    ->color('warning'),
+                            ]),
+                    ])
+                    ->collapsible()
+                    ->collapsed(),
+            ]);
     }
 
     public static function getEloquentQuery(): Builder

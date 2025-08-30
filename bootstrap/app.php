@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Support\Facades\Route;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -13,6 +14,10 @@ return Application::configure(basePath: dirname(__DIR__))
         then: function () {
             Route::middleware('web')
                 ->group(base_path('routes/health.php'));
+                
+            // Load bendahara-specific routes
+            Route::middleware('web')
+                ->group(base_path('routes/bendahara.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware) {
@@ -43,6 +48,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'log.api.requests' => \App\Http\Middleware\LogApiRequests::class,
             // Filament CSRF protection
             'filament.csrf' => \App\Http\Middleware\FilamentCsrfProtection::class,
+            // Livewire debug middleware
+            'livewire.debug' => \App\Http\Middleware\LivewireDebugMiddleware::class,
         ]);
         
         // Add security headers to all responses
@@ -56,9 +63,10 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Session\Middleware\StartSession::class,
             \App\Http\Middleware\ForceLocalSession::class, // MOVED BEFORE ShareErrors
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
-            // \App\Http\Middleware\PersistentCsrfToken::class, // CSRF disabled for testing
-            // \App\Http\Middleware\VerifyCsrfToken::class, // CSRF disabled for testing
+            \App\Http\Middleware\PersistentCsrfToken::class, // CSRF re-enabled
+            \App\Http\Middleware\VerifyCsrfToken::class, // CSRF verification re-enabled
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\LivewireDebugMiddleware::class, // Livewire debugging
             // \App\Http\Middleware\ClearStaleSessionMiddleware::class, // TEMPORARILY DISABLED
         ]);
         

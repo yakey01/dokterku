@@ -36,7 +36,7 @@ class ReportResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Reports';
 
-    protected static ?string $navigationGroup = '⚙️ SYSTEM ADMINISTRATION';
+    protected static ?string $navigationGroup = 'System Administration';
 
     protected static ?int $navigationSort = 2;
 

@@ -16,6 +16,7 @@ use Filament\Tables\Actions\Action;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\HtmlString;
 use Filament\Support\Colors\Color;
+use Carbon\Carbon;
 
 class AttendanceRecapResource extends Resource
 {
@@ -29,7 +30,7 @@ class AttendanceRecapResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Rekapitulasi Absensi';
 
-    protected static ?string $navigationGroup = '📊 Laporan & Analisis';
+    protected static ?string $navigationGroup = 'System Administration';
 
     protected static ?int $navigationSort = 33;
 
@@ -214,6 +215,76 @@ class AttendanceRecapResource extends Resource
                         }
                         return $query;
                     }),
+            ])
+            ->actions([
+                // Alternative 1: Direct URL-based action (more reliable for virtual models)
+                Action::make('view_detail')
+                    ->label('Detail')
+                    ->icon('heroicon-o-eye')
+                    ->color('info')
+                    ->tooltip('Lihat detail rekapitulasi absensi')
+                    ->url(function ($record) {
+                        $params = http_build_query([
+                            'staff_id' => $record->staff_id ?? $record->id,
+                            'month' => session('attendance_recap_month', now()->month),
+                            'year' => session('attendance_recap_year', now()->year),
+                            'staff_type' => session('attendance_recap_staff_type'),
+                            'staff_name' => $record->staff_name,
+                            'return_url' => request()->fullUrl()
+                        ]);
+                        return route('admin.attendance-recap.detail') . '?' . $params;
+                    })
+                    ->openUrlInNewTab(false),
+                    
+                // Alternative 2: Simplified modal with embedded data
+                Action::make('view_detail_modal')
+                    ->label('Detail (Modal)')
+                    ->icon('heroicon-o-document-magnifying-glass')
+                    ->color('primary')
+                    ->tooltip('Lihat detail dalam modal')
+                    ->action(function ($record) {
+                        // Store record data in session for modal display
+                        session(['current_attendance_detail' => $record->toArray()]);
+                        
+                        \Filament\Notifications\Notification::make()
+                            ->title('Detail Rekapitulasi')
+                            ->body("Detail untuk {$record->staff_name}: {$record->attendance_percentage}% kehadiran (Rank #{$record->rank})")
+                            ->success()
+                            ->persistent()
+                            ->actions([
+                                \Filament\Notifications\Actions\Action::make('view_full')
+                                    ->label('Lihat Lengkap')
+                                    ->url(function () use ($record) {
+                                        $params = http_build_query([
+                                            'staff_id' => $record->staff_id ?? $record->id,
+                                            'month' => session('attendance_recap_month', now()->month),
+                                            'year' => session('attendance_recap_year', now()->year),
+                                            'staff_type' => session('attendance_recap_staff_type'),
+                                        ]);
+                                        return route('admin.attendance-recap.detail') . '?' . $params;
+                                    })
+                                    ->openUrlInNewTab(false),
+                            ])
+                            ->send();
+                    }),
+                    
+                // Alternative 3: Simple info action that works reliably
+                Action::make('quick_info')
+                    ->label('Info')
+                    ->icon('heroicon-o-information-circle')
+                    ->color('gray')
+                    ->tooltip('Informasi cepat')
+                    ->requiresConfirmation()
+                    ->modalHeading(fn ($record) => "Informasi {$record->staff_name}")
+                    ->modalDescription(function ($record) {
+                        return "Kategori: {$record->staff_type}\n" .
+                               "Jabatan: {$record->position}\n" .
+                               "Kehadiran: {$record->days_present}/{$record->total_working_days} hari ({$record->attendance_percentage}%)\n" .
+                               "Ranking: #{$record->rank}\n" .
+                               "Status: {$record->getStatusLabel()}";
+                    })
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Tutup'),
             ])
             ->defaultSort('rank', 'asc')
             ->striped()

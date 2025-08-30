@@ -1,0 +1,200 @@
+/* PETUGAS BLACK THEME - GUARANTEED LOADING */
+/* Force black top bar and sidebar for petugas panel */
+
+/* BLACK TOP BAR - HIGHEST PRIORITY */
+html body .fi-topbar,
+html body header,
+html body nav,
+body .fi-topbar,
+body header,
+.fi-layout .fi-topbar,
+.fi-main .fi-topbar,
+[data-panel-id="petugas"] .fi-topbar,
+[data-filament-panel-id="petugas"] .fi-topbar {
+    background: #000000 !important;
+    background-color: #000000 !important;
+    background-image: none !important;
+    border-bottom: 1px solid #374151 !important;
+    color: #ffffff !important;
+}
+
+/* WHITE TEXT FOR TOP BAR */
+html body .fi-topbar *,
+html body header *,
+body .fi-topbar *,
+.fi-layout .fi-topbar *,
+[data-panel-id="petugas"] .fi-topbar *,
+[data-filament-panel-id="petugas"] .fi-topbar * {
+    color: #ffffff !important;
+}
+
+/* BRAND/LOGO WHITE */
+html body .fi-logo,
+body .fi-logo,
+.fi-layout .fi-logo,
+[data-panel-id="petugas"] .fi-logo,
+[data-filament-panel-id="petugas"] .fi-logo {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+}
+
+/* BLACK SIDEBAR */
+html body .fi-sidebar,
+body .fi-sidebar,
+.fi-layout .fi-sidebar,
+[data-panel-id="petugas"] .fi-sidebar,
+[data-filament-panel-id="petugas"] .fi-sidebar {
+    background: linear-gradient(145deg, 
+        #000000 0%, 
+        #0a0a0a 20%, 
+        #111111 60%, 
+        #1a1a1a 100%) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 8px 0 32px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* SIDEBAR HEADER BLACK */
+html body .fi-sidebar-header,
+body .fi-sidebar-header,
+.fi-layout .fi-sidebar-header,
+[data-panel-id="petugas"] .fi-sidebar-header,
+[data-filament-panel-id="petugas"] .fi-sidebar-header {
+    background: #000000 !important;
+    border-bottom: 1px solid #374151 !important;
+}
+
+/* SIDEBAR NAVIGATION ITEMS */
+html body .fi-sidebar-nav-item,
+body .fi-sidebar-nav-item,
+.fi-layout .fi-sidebar-nav-item,
+[data-panel-id="petugas"] .fi-sidebar-nav-item,
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item {
+    color: #e5e7eb !important;
+    border-radius: 1rem !important;
+    margin: 0.375rem 1rem !important;
+    transition: all 0.3s ease !important;
+}
+
+/* SIDEBAR HOVER EFFECTS */
+html body .fi-sidebar-nav-item:hover,
+body .fi-sidebar-nav-item:hover,
+.fi-layout .fi-sidebar-nav-item:hover,
+[data-panel-id="petugas"] .fi-sidebar-nav-item:hover,
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover {
+    background: rgba(59, 130, 246, 0.1) !important;
+    color: #ffffff !important;
+    transform: translateX(6px) !important;
+    border-left: 3px solid #3b82f6 !important;
+}
+
+/* ACTIVE SIDEBAR ITEM */
+html body .fi-sidebar-nav-item.fi-active,
+body .fi-sidebar-nav-item.fi-active,
+.fi-layout .fi-sidebar-nav-item.fi-active,
+[data-panel-id="petugas"] .fi-sidebar-nav-item.fi-active,
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active {
+    background: linear-gradient(135deg, 
+        rgba(59, 130, 246, 0.2) 0%, 
+        rgba(16, 185, 129, 0.15) 100%) !important;
+    color: #ffffff !important;
+    transform: translateX(8px) !important;
+    border-left: 4px solid #60a5fa !important;
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.25) !important;
+}
+
+/* SIDEBAR ICONS */
+html body .fi-sidebar-nav-item-icon,
+body .fi-sidebar-nav-item-icon,
+.fi-layout .fi-sidebar-nav-item-icon,
+[data-panel-id="petugas"] .fi-sidebar-nav-item-icon,
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item-icon {
+    color: #9ca3af !important;
+    transition: all 0.3s ease !important;
+}
+
+html body .fi-sidebar-nav-item:hover .fi-sidebar-nav-item-icon,
+body .fi-sidebar-nav-item:hover .fi-sidebar-nav-item-icon {
+    color: #60a5fa !important;
+    transform: scale(1.2) !important;
+}
+
+html body .fi-sidebar-nav-item.fi-active .fi-sidebar-nav-item-icon,
+body .fi-sidebar-nav-item.fi-active .fi-sidebar-nav-item-icon {
+    color: #ffffff !important;
+    transform: scale(1.3) !important;
+}
+
+/* SIDEBAR LABELS */
+html body .fi-sidebar-nav-item-label,
+body .fi-sidebar-nav-item-label,
+.fi-layout .fi-sidebar-nav-item-label,
+[data-panel-id="petugas"] .fi-sidebar-nav-item-label,
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item-label {
+    color: #9ca3af !important;
+    transition: all 0.3s ease !important;
+    font-weight: 500 !important;
+}
+
+html body .fi-sidebar-nav-item:hover .fi-sidebar-nav-item-label,
+body .fi-sidebar-nav-item:hover .fi-sidebar-nav-item-label {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+}
+
+html body .fi-sidebar-nav-item.fi-active .fi-sidebar-nav-item-label,
+body .fi-sidebar-nav-item.fi-active .fi-sidebar-nav-item-label {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+}
+
+/* GROUP LABELS */
+html body .fi-sidebar-group-label,
+body .fi-sidebar-group-label,
+.fi-layout .fi-sidebar-group-label,
+[data-panel-id="petugas"] .fi-sidebar-group-label,
+[data-filament-panel-id="petugas"] .fi-sidebar-group-label {
+    color: #e5e7eb !important;
+    font-weight: 700 !important;
+    background: rgba(17, 17, 17, 0.8) !important;
+    border-radius: 1rem !important;
+    margin: 1rem 0.75rem !important;
+    padding: 1rem 1.5rem !important;
+    transition: all 0.3s ease !important;
+}
+
+html body .fi-sidebar-group-label:hover,
+body .fi-sidebar-group-label:hover {
+    background: rgba(59, 130, 246, 0.15) !important;
+    transform: translateX(6px) !important;
+}
+
+/* FORCE OVERRIDE ANY EXISTING THEME */
+.fi-sidebar,
+.fi-topbar,
+.fi-sidebar-header {
+    background: #000000 !important;
+}
+
+/* Welcome message in top bar */
+.fi-topbar::after {
+    content: "Selamat datang, fitri tri! Kelola pasien dan tindakan dengan mudah dan efisien.";
+    position: absolute;
+    right: 200px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #d1d5db;
+    font-size: 0.875rem;
+    font-weight: 500;
+    max-width: 400px;
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Mobile responsive - hide welcome message */
+@media (max-width: 1024px) {
+    .fi-topbar::after {
+        display: none;
+    }
+}

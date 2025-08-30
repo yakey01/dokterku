@@ -355,7 +355,7 @@ class PetugasStatsService
             $monthlyStats = DB::select("
                 SELECT 
                     (SELECT COUNT(*) FROM pasien WHERE input_by = ? AND created_at BETWEEN ? AND ?) as pasien_count,
-                    (SELECT COALESCE(SUM(nominal), 0) FROM pendapatan_harian WHERE user_id = ? AND tanggal_input BETWEEN ? AND ?) as pendapatan_sum,
+                    (SELECT COALESCE(SUM(nominal), 0) FROM pendapatan_harians WHERE user_id = ? AND tanggal_input BETWEEN ? AND ?) as pendapatan_sum,
                     (SELECT COALESCE(SUM(nominal), 0) FROM pengeluaran_harian WHERE user_id = ? AND tanggal_input BETWEEN ? AND ?) as pengeluaran_sum,
                     (SELECT COUNT(*) FROM tindakan WHERE input_by = ? AND tanggal_tindakan BETWEEN ? AND ?) as tindakan_count,
                     (SELECT COALESCE(SUM(tarif), 0) FROM tindakan WHERE input_by = ? AND tanggal_tindakan BETWEEN ? AND ?) as tindakan_sum
@@ -539,7 +539,7 @@ class PetugasStatsService
             // Income stats (handle missing table gracefully)
             $pendapatanStats = collect();
             try {
-                $pendapatanStats = DB::table('pendapatan_harian')
+                $pendapatanStats = DB::table('pendapatan_harians')
                     ->selectRaw('tanggal_input as date, SUM(nominal) as sum')
                     ->where('user_id', $userId)
                     ->whereBetween('tanggal_input', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
@@ -548,9 +548,9 @@ class PetugasStatsService
                     ->keyBy('date');
             } catch (\Exception $e) {
                 if (app()->environment('testing')) {
-                    Log::debug("Table pendapatan_harian not found in testing environment, continuing gracefully");
+                    Log::debug("Table pendapatan_harians not found in testing environment, continuing gracefully");
                 } else {
-                    Log::warning("Failed to query pendapatan_harian table in bulk", ['error' => $e->getMessage()]);
+                    Log::warning("Failed to query pendapatan_harians table in bulk", ['error' => $e->getMessage()]);
                 }
             }
             
@@ -646,7 +646,7 @@ class PetugasStatsService
                 ->union(
                     DB::query()
                         ->selectRaw("
-                            'pendapatan_harian' as table_name,
+                            'pendapatan_harians' as table_name,
                             SUM(CASE WHEN status_validasi = 'pending' THEN 1 ELSE 0 END) as pending_count,
                             SUM(CASE WHEN status_validasi = 'disetujui' AND DATE(validated_at) = ? THEN 1 ELSE 0 END) as approved_today,
                             SUM(CASE WHEN status_validasi = 'rejected' AND DATE(validasi_at) = ? THEN 1 ELSE 0 END) as rejected_today

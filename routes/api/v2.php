@@ -134,6 +134,22 @@ Route::middleware(['auth:sanctum', App\Http\Middleware\Api\ApiResponseHeadersMid
         Route::get('/history', [App\Http\Controllers\Api\V2\Attendance\AttendanceController::class, 'history']);
         Route::get('/statistics', [App\Http\Controllers\Api\V2\Attendance\AttendanceController::class, 'statistics']);
         Route::get('/multishift-status', [App\Http\Controllers\Api\V2\Attendance\AttendanceController::class, 'multishiftStatus']);
+        
+        // 🎯 NEW: Attendance Penalty Logic Endpoints (Dr. Yaya Scenario)
+        Route::prefix('penalty')->group(function () {
+            Route::get('/demo-yaya-scenario', [App\Http\Controllers\Api\V2\AttendancePenaltyController::class, 'demoYayaScenario']);
+            Route::get('/history/{userId}', [App\Http\Controllers\Api\V2\AttendancePenaltyController::class, 'getPenaltyHistory']);
+            Route::post('/apply/{attendanceId}', [App\Http\Controllers\Api\V2\AttendancePenaltyController::class, 'applyPenalty']);
+            Route::get('/risk-check', [App\Http\Controllers\Api\V2\AttendancePenaltyController::class, 'getAttendanceWithPenaltyRisk']);
+        });
+        
+        // 🚀 NEW: Unified Attendance API - JadwalJaga sebagai source of truth
+        Route::prefix('unified')->group(function () {
+            Route::get('/', [App\Http\Controllers\Api\V2\UnifiedAttendanceController::class, 'getUnifiedAttendanceData']);
+            Route::get('/today', [App\Http\Controllers\Api\V2\UnifiedAttendanceController::class, 'getTodayOnly']);
+            Route::get('/history', [App\Http\Controllers\Api\V2\UnifiedAttendanceController::class, 'getHistoryOnly']);
+            Route::post('/refresh', [App\Http\Controllers\Api\V2\UnifiedAttendanceController::class, 'forceRefresh']);
+        });
     });
 
     // JASPEL Validation endpoints - ONLY validated amounts
@@ -160,18 +176,19 @@ Route::middleware(['auth:sanctum', App\Http\Middleware\Api\ApiResponseHeadersMid
     });
 });
 
-// 🚀 Dokter dashboard - HIGHER rate limits for real-time features
-Route::prefix('v2/dashboards/dokter')->middleware(['auth:sanctum', 'throttle:300,1'])->group(function () {
+// 🚀 Dokter dashboard - HIGHER rate limits for real-time features (Web session auth for mobile app)
+Route::prefix('v2/dashboards/dokter')->middleware(['web', 'auth', 'throttle:300,1'])->group(function () {
     Route::get('/', [DokterDashboardController::class, 'index']);
     Route::get('/jadwal-jaga', [DokterDashboardController::class, 'getJadwalJaga']);
     Route::get('/jaspel', [DokterDashboardController::class, 'getJaspel']);
+    Route::get('/jaspel/current-month', [DokterDashboardController::class, 'getCurrentMonthJaspelProgress']);
     Route::get('/tindakan', [DokterDashboardController::class, 'getTindakan']);
-    Route::get('/presensi', [DokterDashboardController::class, 'getPresensi']);
+    Route::get('/presensi', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardControllerClean::class, 'getPresensi']);
     Route::get('/attendance', [DokterDashboardController::class, 'getAttendance']);
     Route::get('/patients', [DokterDashboardController::class, 'getPatients']);
     Route::get('/test', [DokterDashboardController::class, 'test']);
     
-    // Leaderboard endpoint
+    // ✅ FIXED: Leaderboard endpoint using correct controller
     Route::get('/leaderboard', [\App\Http\Controllers\Api\V2\Dashboards\LeaderboardController::class, 'getTopDoctors']);
     
     // Schedule endpoints
@@ -211,13 +228,157 @@ Route::prefix('v2/dashboards/dokter')->middleware(['auth:sanctum', 'throttle:300
     // Debug endpoint untuk jadwal jaga
     Route::get('/debug-schedule', [DokterDashboardController::class, 'debugSchedule']);
     
-    // 🏢 Manajer Dashboard API Routes - Complete Rebuild
+    // 🏥 Petugas Patient Management API Routes - Elegant Dark Theme Support
+    Route::prefix('petugas')->name('petugas.')->middleware('role:petugas')->group(function () {
+        Route::prefix('patients')->group(function () {
+            Route::get('/', function(Request $request) {
+                $query = \App\Models\Pasien::query();
+                
+                // Apply filters
+                if ($request->filled('search')) {
+                    $search = $request->search;
+                    $query->where(function($q) use ($search) {
+                        $q->where('nama', 'like', "%{$search}%")
+                          ->orWhere('no_rekam_medis', 'like', "%{$search}%")
+                          ->orWhere('alamat', 'like', "%{$search}%")
+                          ->orWhere('nomor_telepon', 'like', "%{$search}%");
+                    });
+                }
+                
+                if ($request->filled('jenis_kelamin')) {
+                    $query->where('jenis_kelamin', $request->jenis_kelamin);
+                }
+                
+                if ($request->filled('tab') && $request->tab !== 'all') {
+                    switch($request->tab) {
+                        case 'active':
+                            $query->where('status', 'active');
+                            break;
+                        case 'pending':
+                            $query->where('status', 'pending');
+                            break;
+                        case 'recent':
+                            $query->where('created_at', '>=', now()->subWeek());
+                            break;
+                    }
+                }
+                
+                // Apply sorting
+                $sortField = $request->get('sort_field', 'created_at');
+                $sortDirection = $request->get('sort_direction', 'desc');
+                $query->orderBy($sortField, $sortDirection);
+                
+                // Paginate
+                $perPage = min($request->get('per_page', 25), 100);
+                $patients = $query->paginate($perPage);
+                
+                return response()->json([
+                    'success' => true,
+                    'data' => $patients->items(),
+                    'pagination' => [
+                        'current_page' => $patients->currentPage(),
+                        'last_page' => $patients->lastPage(),
+                        'per_page' => $patients->perPage(),
+                        'total' => $patients->total(),
+                        'from' => $patients->firstItem(),
+                        'to' => $patients->lastItem(),
+                    ]
+                ]);
+            });
+            
+            Route::get('/stats', function() {
+                $stats = [
+                    'total' => \App\Models\Pasien::count(),
+                    'active' => \App\Models\Pasien::where('status', 'active')->count(),
+                    'pending' => \App\Models\Pasien::where('status', 'pending')->count(),
+                    'thisWeek' => \App\Models\Pasien::where('created_at', '>=', now()->subWeek())->count(),
+                ];
+                
+                return response()->json([
+                    'success' => true,
+                    'stats' => $stats
+                ]);
+            });
+            
+            Route::get('/export', function(Request $request) {
+                // Simple CSV export implementation
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Export functionality would be implemented here',
+                    'download_url' => '/api/v2/petugas/patients/download-csv'
+                ]);
+            });
+        });
+    });
+    
+    // 🏢 Manajer Dashboard API Routes - Real Data Integration
     Route::prefix('manajer')->name('manajer.')->middleware('role:manajer')->group(function () {
+        // Core dashboard endpoints
+        Route::get('/today-stats', [App\Http\Controllers\Api\V2\Manajer\ManajerDashboardController::class, 'todayStats']);
+        Route::get('/finance-overview', [App\Http\Controllers\Api\V2\Manajer\ManajerDashboardController::class, 'financeOverview']);
+        Route::get('/recent-transactions', [App\Http\Controllers\Api\V2\Manajer\ManajerDashboardController::class, 'recentTransactions']);
+        Route::get('/attendance-today', [App\Http\Controllers\Api\V2\Manajer\ManajerDashboardController::class, 'attendanceToday']);
+        Route::get('/attendance-trends', [App\Http\Controllers\Api\V2\Manajer\ManajerDashboardController::class, 'attendanceTrends']);
+        Route::get('/jaspel-summary', [App\Http\Controllers\Api\V2\Manajer\ManajerDashboardController::class, 'jaspelSummary']);
+        Route::get('/doctor-ranking', [App\Http\Controllers\Api\V2\Manajer\ManajerDashboardController::class, 'doctorRanking']);
+        Route::get('/pending-approvals', [App\Http\Controllers\Api\V2\Manajer\ManajerDashboardController::class, 'pendingApprovals']);
+        
+        // Legacy compatibility endpoints
         Route::get('/dashboard', [App\Http\Controllers\Api\V2\Manajer\ManajerDashboardController::class, 'getDashboardData']);
         Route::get('/finance', [App\Http\Controllers\Api\V2\Manajer\ManajerDashboardController::class, 'getFinanceData']);
         Route::get('/attendance', [App\Http\Controllers\Api\V2\Manajer\ManajerDashboardController::class, 'getAttendanceData']);
         Route::get('/jaspel', [App\Http\Controllers\Api\V2\Manajer\ManajerDashboardController::class, 'getJaspelData']);
         Route::get('/profile', [App\Http\Controllers\Api\V2\Manajer\ManajerDashboardController::class, 'getProfileData']);
         Route::put('/profile', [App\Http\Controllers\Api\V2\Manajer\ManajerDashboardController::class, 'updateProfile']);
+    });
+});
+
+// NEW: Jaspel Sub-Agent API endpoints  
+Route::prefix('bendahara')->middleware('auth:sanctum')->group(function () {
+    Route::prefix('jaspel')->name('jaspel.')->group(function () {
+        Route::get('/reports/{role?}', [\App\Http\Controllers\Api\V2\SubAgents\JaspelApiSubAgentController::class, 'reports'])
+            ->name('reports')
+            ->middleware('role:bendahara|admin|manajer')
+            ->where('role', 'semua|dokter|paramedis|non_paramedis|petugas');
+        
+        Route::get('/summary/{userId}', [\App\Http\Controllers\Api\V2\SubAgents\JaspelApiSubAgentController::class, 'summary'])
+            ->name('summary')
+            ->middleware('role:bendahara|admin|manajer')
+            ->where('userId', '[0-9]+');
+        
+        Route::post('/export', [\App\Http\Controllers\Api\V2\SubAgents\JaspelApiSubAgentController::class, 'export'])
+            ->name('export')
+            ->middleware('role:bendahara');
+        
+        Route::get('/roles', [\App\Http\Controllers\Api\V2\SubAgents\JaspelApiSubAgentController::class, 'roles'])
+            ->name('roles')
+            ->middleware('role:bendahara|admin|manajer');
+        
+        Route::post('/cache/clear', [\App\Http\Controllers\Api\V2\SubAgents\JaspelApiSubAgentController::class, 'clearCache'])
+            ->name('cache.clear')
+            ->middleware('role:bendahara');
+    });
+
+    // Health check endpoint (public within auth)
+    Route::get('/jaspel-health', [\App\Http\Controllers\Api\V2\SubAgents\JaspelApiSubAgentController::class, 'health'])
+        ->name('jaspel.health');
+
+    // NEW: Petugas-Bendahara Flow Sub-Agent endpoints
+    Route::prefix('petugas-flow')->name('petugas-flow.')->group(function () {
+        Route::get('/analyze', [\App\Http\Controllers\Api\V2\SubAgents\JaspelApiSubAgentController::class, 'analyzeFlow'])
+            ->name('analyze')
+            ->middleware('role:bendahara|admin');
+        
+        Route::post('/create-test-data', [\App\Http\Controllers\Api\V2\SubAgents\JaspelApiSubAgentController::class, 'createTestData'])
+            ->name('create-test-data')
+            ->middleware('role:bendahara');
+        
+        Route::get('/activities', [\App\Http\Controllers\Api\V2\SubAgents\JaspelApiSubAgentController::class, 'trackActivities'])
+            ->name('activities')
+            ->middleware('role:bendahara|admin|manajer');
+        
+        Route::get('/metrics', [\App\Http\Controllers\Api\V2\SubAgents\JaspelApiSubAgentController::class, 'workflowMetrics'])
+            ->name('metrics')
+            ->middleware('role:bendahara|admin|manajer');
     });
 });

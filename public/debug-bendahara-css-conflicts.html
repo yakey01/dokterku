@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bendahara CSS Conflict Diagnostic Tool</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .diagnostic-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            color: #1f2937;
+            margin: 0 0 10px 0;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .status-critical {
+            background: #fee2e2;
+            color: #dc2626;
+            border: 2px solid #fca5a5;
+        }
+        
+        .diagnostic-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .diagnostic-card {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .diagnostic-card h3 {
+            margin: 0 0 15px 0;
+            color: #374151;
+            font-size: 1.125rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .icon-error { color: #dc2626; }
+        .icon-warning { color: #d97706; }
+        .icon-success { color: #059669; }
+        .icon-info { color: #2563eb; }
+        
+        .conflict-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .conflict-item {
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        
+        .conflict-critical {
+            background: #fef2f2;
+            border-left: 4px solid #dc2626;
+            color: #7f1d1d;
+        }
+        
+        .conflict-warning {
+            background: #fffbeb;
+            border-left: 4px solid #d97706;
+            color: #92400e;
+        }
+        
+        .conflict-info {
+            background: #eff6ff;
+            border-left: 4px solid #2563eb;
+            color: #1e40af;
+        }
+        
+        .code-snippet {
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.875rem;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        
+        .solution-section {
+            margin-top: 40px;
+            padding: 25px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-radius: 8px;
+            color: white;
+        }
+        
+        .solution-section h2 {
+            margin: 0 0 20px 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .step-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .step-item {
+            padding: 15px;
+            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            border-left: 4px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .step-number {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            font-weight: 600;
+            margin-right: 12px;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin-top: 15px;
+            transition: background 0.2s ease;
+        }
+        
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .performance-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .metric {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+        }
+        
+        .metric-value {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .metric-label {
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+        
+        @media (max-width: 768px) {
+            .diagnostic-container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .diagnostic-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="diagnostic-container">
+        <div class="header">
+            <h1>🚨 Bendahara CSS Conflict Analysis</h1>
+            <div class="status-badge status-critical" id="overallStatus">
+                CRITICAL CONFLICTS DETECTED
+            </div>
+        </div>
+        
+        <div class="diagnostic-grid">
+            <!-- CSS Loading Conflicts -->
+            <div class="diagnostic-card">
+                <h3>
+                    <span class="icon-error">❌</span>
+                    CSS Loading Strategy Conflicts
+                </h3>
+                <ul class="conflict-list">
+                    <li class="conflict-item conflict-critical">
+                        <div>
+                            <strong>Dual Theme Registration:</strong><br>
+                            BendaharaPanelProvider registers 'validation-tabs.css' via viteTheme()<br>
+                            Vite.config.js ALSO registers 'theme.css' causing cascade conflicts
+                        </div>
+                    </li>
+                    <li class="conflict-item conflict-critical">
+                        <div>
+                            <strong>CSS Specificity War:</strong><br>
+                            Both files target [data-filament-panel-id="bendahara"] with conflicting rules
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- File Structure Issues -->
+            <div class="diagnostic-card">
+                <h3>
+                    <span class="icon-warning">⚠️</span>
+                    File Architecture Issues
+                </h3>
+                <ul class="conflict-list">
+                    <li class="conflict-item conflict-warning">
+                        <div>
+                            <strong>Incomplete Theme Integration:</strong><br>
+                            validation-tabs.css (153 lines) lacks comprehensive styling<br>
+                            theme.css (515 lines) has complete Bendahara design system
+                        </div>
+                    </li>
+                    <li class="conflict-item conflict-warning">
+                        <div>
+                            <strong>Missing CSS Imports:</strong><br>
+                            validation-tabs.css doesn't import base theme styles
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Runtime Conflicts -->
+            <div class="diagnostic-card">
+                <h3>
+                    <span class="icon-error">❌</span>
+                    Runtime CSS Conflicts
+                </h3>
+                <ul class="conflict-list">
+                    <li class="conflict-item conflict-critical">
+                        <div>
+                            <strong>Tailwind @apply Conflicts:</strong><br>
+                            validation-tabs.css uses @apply directives that may conflict with Filament's CSS
+                        </div>
+                    </li>
+                    <li class="conflict-item conflict-info">
+                        <div>
+                            <strong>Specificity Issues:</strong><br>
+                            Both files use same selectors with different precedence
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Build Process Issues -->
+            <div class="diagnostic-card">
+                <h3>
+                    <span class="icon-warning">⚠️</span>
+                    Vite Build Process Issues
+                </h3>
+                <ul class="conflict-list">
+                    <li class="conflict-item conflict-warning">
+                        <div>
+                            <strong>Duplicate Asset Processing:</strong><br>
+                            Both CSS files processed separately by Vite<br>
+                            No optimization for shared selectors
+                        </div>
+                    </li>
+                    <li class="conflict-item conflict-info">
+                        <div>
+                            <strong>Asset Loading Order:</strong><br>
+                            theme.css loads first, validation-tabs.css may override incorrectly
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="solution-section">
+            <h2>🛠️ IMMEDIATE FIX REQUIRED</h2>
+            <p>Comprehensive solution to resolve all Bendahara CSS conflicts:</p>
+            
+            <ol class="step-list">
+                <li class="step-item">
+                    <span class="step-number">1</span>
+                    <strong>Merge CSS Files:</strong> Combine validation-tabs.css styles into theme.css for unified theme management
+                </li>
+                <li class="step-item">
+                    <span class="step-number">2</span>
+                    <strong>Update Panel Provider:</strong> Change viteTheme() to reference the unified theme.css file
+                </li>
+                <li class="step-item">
+                    <span class="step-number">3</span>
+                    <strong>Remove Duplicate Vite Entry:</strong> Remove validation-tabs.css from vite.config.js to prevent dual loading
+                </li>
+                <li class="step-item">
+                    <span class="step-number">4</span>
+                    <strong>Test CSS Cascade:</strong> Verify all Bendahara UI components render correctly with unified styles
+                </li>
+                <li class="step-item">
+                    <span class="step-number">5</span>
+                    <strong>Performance Validation:</strong> Confirm reduced CSS bundle size and improved loading performance
+                </li>
+            </ol>
+            
+            <div class="performance-metrics">
+                <div class="metric">
+                    <span class="metric-value">2</span>
+                    <span class="metric-label">CSS Files Conflicting</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-value">668</span>
+                    <span class="metric-label">Total CSS Rules</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-value">~30%</span>
+                    <span class="metric-label">Bundle Optimization Potential</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-value">CRITICAL</span>
+                    <span class="metric-label">Priority Level</span>
+                </div>
+            </div>
+            
+            <a href="#fix-implementation" class="btn">▶️ Implement Fix Now</a>
+        </div>
+        
+        <!-- Technical Details -->
+        <div style="margin-top: 30px; padding: 20px; background: #f9fafb; border-radius: 8px;">
+            <h3 style="margin: 0 0 15px 0; color: #374151;">Technical Implementation Details</h3>
+            
+            <h4 style="color: #6b7280; margin: 20px 0 10px 0;">Current Problematic Configuration:</h4>
+            <div class="code-snippet">
+// BendaharaPanelProvider.php - Line 105
+->viteTheme(['resources/css/filament/bendahara/validation-tabs.css'])
+
+// vite.config.js - Lines 25, 46  
+'resources/css/filament/bendahara/theme.css',           // 515 lines
+'resources/css/filament/bendahara/validation-tabs.css', // 153 lines
+            </div>
+            
+            <h4 style="color: #6b7280; margin: 20px 0 10px 0;">Recommended Fix:</h4>
+            <div class="code-snippet">
+// BendaharaPanelProvider.php - Line 105
+->viteTheme(['resources/css/filament/bendahara/theme.css'])
+
+// vite.config.js - Remove line 46
+'resources/css/filament/bendahara/theme.css', // Unified theme with validation tabs
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add some interactivity for the diagnostic tool
+        document.addEventListener('DOMContentLoaded', function() {
+            // Simulate real-time conflict detection
+            setTimeout(() => {
+                const status = document.getElementById('overallStatus');
+                status.textContent = 'CONFLICTS IDENTIFIED - READY FOR FIX';
+                status.className = 'status-badge status-warning';
+            }, 2000);
+            
+            // Add click handlers for interactive elements
+            const conflictItems = document.querySelectorAll('.conflict-item');
+            conflictItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    this.style.transform = 'scale(1.02)';
+                    this.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
+                    setTimeout(() => {
+                        this.style.transform = 'scale(1)';
+                        this.style.boxShadow = 'none';
+                    }, 200);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

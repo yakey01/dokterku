@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Dark Mode Admin Theme</title>
+    <style>
+        :root {
+            --elegant-black: #000000;
+            --charcoal-primary: #0a0a0a;
+            --charcoal-secondary: #171717;
+            --charcoal-tertiary: #262626;
+            --charcoal-quaternary: #404040;
+            --elegant-text-primary: #f8fafc;
+            --elegant-text-secondary: #e2e8f0;
+            --elegant-text-muted: #94a3b8;
+            --elegant-accent: #60a5fa;
+            --elegant-accent-hover: #3b82f6;
+            --elegant-border: #404040;
+            --elegant-border-hover: #525252;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+            background: var(--charcoal-primary);
+            color: var(--elegant-text-primary);
+            min-height: 100vh;
+        }
+
+        .debug-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .debug-sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, var(--elegant-black) 0%, var(--charcoal-primary) 100%);
+            border-right: 1px solid var(--elegant-border);
+            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
+            padding: 2rem 1rem;
+        }
+
+        .debug-nav-item {
+            background: linear-gradient(135deg, var(--charcoal-secondary) 0%, var(--charcoal-tertiary) 100%);
+            color: var(--elegant-text-secondary);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid var(--elegant-border);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .debug-nav-item:hover {
+            background: linear-gradient(135deg, var(--charcoal-tertiary) 0%, var(--charcoal-quaternary) 100%);
+            color: var(--elegant-text-primary);
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(96, 165, 250, 0.15);
+        }
+
+        .debug-nav-item.active {
+            background: linear-gradient(135deg, var(--elegant-accent) 0%, var(--elegant-accent-hover) 100%);
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 16px rgba(96, 165, 250, 0.3);
+        }
+
+        .debug-content {
+            flex: 1;
+            background: var(--charcoal-primary);
+            padding: 2rem;
+        }
+
+        .debug-card {
+            background: linear-gradient(135deg, var(--charcoal-secondary) 0%, var(--charcoal-tertiary) 100%);
+            border: 1px solid var(--elegant-border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.25), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
+        }
+
+        .debug-button {
+            background: linear-gradient(135deg, var(--elegant-accent) 0%, var(--elegant-accent-hover) 100%);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(96, 165, 250, 0.3);
+        }
+
+        .debug-button:hover {
+            background: linear-gradient(135deg, var(--elegant-accent-hover) 0%, #2563eb 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 12px -2px rgba(96, 165, 250, 0.4);
+        }
+
+        .debug-input {
+            background: var(--charcoal-tertiary);
+            border: 1px solid var(--elegant-border);
+            border-radius: 0.5rem;
+            color: var(--elegant-text-primary);
+            padding: 0.75rem 1rem;
+            width: 100%;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .debug-input:focus {
+            border-color: var(--elegant-accent);
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+            outline: none;
+            background: var(--charcoal-secondary);
+        }
+
+        .debug-table {
+            background: var(--charcoal-secondary);
+            border: 1px solid var(--elegant-border);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .debug-table th {
+            background: linear-gradient(135deg, var(--charcoal-primary) 0%, var(--charcoal-secondary) 100%);
+            color: var(--elegant-text-secondary);
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.75rem;
+        }
+
+        .debug-table td {
+            background: var(--charcoal-secondary);
+            color: var(--elegant-text-primary);
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--elegant-border);
+        }
+
+        .debug-table tr:hover td {
+            background: var(--charcoal-tertiary);
+        }
+
+        .debug-status {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: var(--charcoal-secondary);
+            border: 1px solid var(--elegant-border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            color: var(--elegant-text-primary);
+            font-family: monospace;
+            font-size: 0.875rem;
+            z-index: 1000;
+        }
+
+        .success { color: #22c55e; }
+        .warning { color: #f59e0b; }
+        .error { color: #ef4444; }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <div class="debug-sidebar">
+            <h2 style="color: var(--elegant-text-primary); margin-bottom: 2rem; font-size: 1.5rem; font-weight: 700;">Debug Menu</h2>
+            <div class="debug-nav-item active">Dashboard</div>
+            <div class="debug-nav-item">Users</div>
+            <div class="debug-nav-item">Patients</div>
+            <div class="debug-nav-item">Reports</div>
+            <div class="debug-nav-item">Settings</div>
+        </div>
+        
+        <div class="debug-content">
+            <h1 style="color: var(--elegant-text-primary); margin-bottom: 2rem; font-size: 2rem; font-weight: 700;">🎨 Elegant Black Theme Debug</h1>
+            
+            <div class="debug-card">
+                <h3 style="color: var(--elegant-text-primary); margin-bottom: 1rem;">CSS Variables Test</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                    <div style="background: var(--elegant-black); padding: 1rem; border-radius: 0.5rem; text-align: center; color: white;">Elegant Black</div>
+                    <div style="background: var(--charcoal-primary); padding: 1rem; border-radius: 0.5rem; text-align: center; color: white;">Charcoal Primary</div>
+                    <div style="background: var(--charcoal-secondary); padding: 1rem; border-radius: 0.5rem; text-align: center; color: white;">Charcoal Secondary</div>
+                    <div style="background: var(--charcoal-tertiary); padding: 1rem; border-radius: 0.5rem; text-align: center; color: white;">Charcoal Tertiary</div>
+                </div>
+            </div>
+
+            <div class="debug-card">
+                <h3 style="color: var(--elegant-text-primary); margin-bottom: 1rem;">Form Components Test</h3>
+                <input type="text" class="debug-input" placeholder="Test Input Field" />
+                <input type="email" class="debug-input" placeholder="Email Field" />
+                <button class="debug-button">Primary Button</button>
+            </div>
+
+            <div class="debug-card">
+                <h3 style="color: var(--elegant-text-primary); margin-bottom: 1rem;">Table Component Test</h3>
+                <table class="debug-table">
+                    <thead>
+                        <tr>
+                            <th>Patient ID</th>
+                            <th>Name</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>001</td>
+                            <td>Dr. Ahmad</td>
+                            <td><span class="success">Active</span></td>
+                            <td><button class="debug-button" style="padding: 0.5rem 1rem; font-size: 0.875rem;">Edit</button></td>
+                        </tr>
+                        <tr>
+                            <td>002</td>
+                            <td>Dr. Sari</td>
+                            <td><span class="warning">Inactive</span></td>
+                            <td><button class="debug-button" style="padding: 0.5rem 1rem; font-size: 0.875rem;">Edit</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="debug-status">
+        <strong>Theme Status:</strong><br>
+        Dark Mode: <span class="success">✓ Active</span><br>
+        Variables: <span class="success">✓ Loaded</span><br>
+        Theme: <span class="success">✓ Elegant Black</span>
+    </div>
+
+    <script>
+        console.log('🎨 Debug Dark Mode Theme');
+        console.log('CSS Variables:', {
+            elegantBlack: getComputedStyle(document.documentElement).getPropertyValue('--elegant-black'),
+            charcoalPrimary: getComputedStyle(document.documentElement).getPropertyValue('--charcoal-primary'),
+            elegantTextPrimary: getComputedStyle(document.documentElement).getPropertyValue('--elegant-text-primary'),
+            elegantAccent: getComputedStyle(document.documentElement).getPropertyValue('--elegant-accent')
+        });
+        
+        // Test dark mode class
+        console.log('Dark mode class:', document.documentElement.classList.contains('dark'));
+        console.log('Body background:', getComputedStyle(document.body).backgroundColor);
+    </script>
+</body>
+</html>

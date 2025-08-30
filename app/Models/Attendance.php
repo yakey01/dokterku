@@ -364,9 +364,17 @@ class Attendance extends Model
                 : $shiftBoundaries['shift_end'];
 
             // Step 5: Calculate raw duration and apply break deductions
-            // Handle overnight shifts where effective end might be on next day
+            // Handle case where effective end is before effective start
             if ($effectiveEnd->lessThan($effectiveStart)) {
-                $effectiveEnd->addDay();
+                // Check if this is truly an overnight shift by examining the original shift times
+                $shiftBoundaries = $this->getShiftBoundaries();
+                if ($shiftBoundaries && $shiftBoundaries['shift_end']->lessThan($shiftBoundaries['shift_start'])) {
+                    // This is an overnight shift, add a day to effective end
+                    $effectiveEnd->addDay();
+                } else {
+                    // User checked out before shift started, no effective work time
+                    return 0;
+                }
             }
             
             $rawDuration = $effectiveStart->diffInMinutes($effectiveEnd);
@@ -437,7 +445,7 @@ class Attendance extends Model
                 $timeOut->addDay();
             }
             
-            return max(0, $timeOut->diffInMinutes($timeIn));
+            return max(0, $timeIn->diffInMinutes($timeOut));
             
         } catch (\Exception $e) {
             \Log::error('Error in simple work duration calculation', [

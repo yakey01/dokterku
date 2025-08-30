@@ -1,0 +1,66 @@
+/* EMERGENCY DARK MODE FIX */
+/* Apply this via browser dev tools if needed */
+
+/* Force visible text in dark mode */
+.dark,
+.dark *:not(.fi-badge):not(.fi-icon):not(.fi-btn-icon) {
+    color: #f8fafc !important;
+    background-color: inherit !important;
+}
+
+/* Force dark backgrounds */
+.dark body,
+.dark .fi-main,
+.dark .fi-page,
+.dark .fi-page-content {
+    background: #0a0a0a !important;
+    color: #f8fafc !important;
+}
+
+.dark .fi-sidebar {
+    background: #171717 !important;
+    color: #f8fafc !important;
+}
+
+/* Force visible navigation */
+.dark .fi-sidebar-nav-item,
+.dark .fi-sidebar-nav-item > a,
+.dark .fi-sidebar-nav-item > button {
+    color: #f8fafc !important;
+    background: transparent !important;
+}
+
+/* Force visible cards and sections */
+.dark .fi-section,
+.dark .fi-widget,
+.dark .fi-card {
+    background: #171717 !important;
+    color: #f8fafc !important;
+    border: 1px solid #404040 !important;
+}
+
+/* Force visible inputs */
+.dark .fi-input,
+.dark .fi-select,
+.dark .fi-textarea {
+    background: #262626 !important;
+    color: #f8fafc !important;
+    border: 1px solid #404040 !important;
+}
+
+/* Force visible buttons */
+.dark .fi-btn {
+    color: #f8fafc !important;
+}
+
+.dark .fi-btn-primary {
+    background: #3b82f6 !important;
+    color: #ffffff !important;
+}
+
+/* Disable conflicting print styles */
+@media screen {
+    .dark * {
+        color: #f8fafc !important;
+    }
+}

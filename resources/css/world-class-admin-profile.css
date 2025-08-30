@@ -1,0 +1,661 @@
+/* Premium Admin Profile Styling */
+/* Inspired by Notion, Linear, Stripe, GitHub, Vercel, and top SaaS platforms */
+/* Matches native Filament admin CRUD design patterns */
+
+/* Global Premium Styling - Matches CRUD pages */
+.fi-page-simple .fi-main {
+    background: var(--gray-50) !important;
+}
+
+/* Remove width constraints for full screen layout */
+.fi-page .fi-main-content {
+    max-width: none !important;
+    width: 100% !important;
+}
+
+.fi-page .fi-main-content .fi-main-content-ctn {
+    max-width: none !important;
+    width: 100% !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+}
+
+/* Full width form container */
+.fi-form {
+    max-width: none !important;
+    width: 100% !important;
+}
+
+/* Ensure sections use full available width */
+.fi-section {
+    width: 100% !important;
+}
+
+/* Remove any container constraints */
+.fi-container {
+    max-width: none !important;
+    width: 100% !important;
+}
+
+/* Native Filament Section Integration */
+.fi-page-simple .fi-section {
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+/* Section Headers - Matches PegawaiResource style */
+.fi-page-simple .fi-section-header {
+    padding: 1.5rem 1.5rem 1rem 1.5rem;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.fi-page-simple .fi-section-header-heading {
+    font-size: 1.125rem !important;
+    font-weight: 600 !important;
+    color: var(--gray-950) !important;
+    margin-bottom: 0.25rem !important;
+}
+
+.fi-page-simple .fi-section-header-description {
+    font-size: 0.875rem !important;
+    color: var(--gray-500) !important;
+    margin: 0 !important;
+}
+
+/* Section Content - Native Filament spacing */
+.fi-page-simple .fi-section-content {
+    padding: 1.5rem;
+}
+
+/* Native Filament Input Enhancement */
+.fi-page-simple .fi-input {
+    border-radius: 0.5rem !important;
+    border: 1px solid var(--gray-300) !important;
+    background: white !important;
+    transition: all 0.15s ease !important;
+    font-size: 0.875rem !important;
+}
+
+.fi-page-simple .fi-input:focus {
+    border-color: var(--primary-600) !important;
+    box-shadow: 0 0 0 1px var(--primary-600) !important;
+    outline: none !important;
+}
+
+/* Prefix Icon Styling */
+.fi-page-simple .fi-input-wrapper-prefix {
+    color: var(--gray-400) !important;
+}
+
+/* Special Input States */
+.fi-page-simple .fi-fo-text-input[data-field='current_password'] .fi-input {
+    border-color: var(--warning-300) !important;
+    background: var(--warning-50) !important;
+}
+
+.fi-page-simple .fi-fo-text-input[data-field='current_password'] .fi-input:focus {
+    border-color: var(--warning-500) !important;
+    box-shadow: 0 0 0 1px var(--warning-500) !important;
+}
+
+.fi-page-simple .fi-fo-text-input[data-field='password'] .fi-input,
+.fi-page-simple .fi-fo-text-input[data-field='passwordConfirmation'] .fi-input {
+    border-color: var(--info-300) !important;
+    background: var(--info-50) !important;
+}
+
+.fi-page-simple .fi-fo-text-input[data-field='password'] .fi-input:focus,
+.fi-page-simple .fi-fo-text-input[data-field='passwordConfirmation'] .fi-input:focus {
+    border-color: var(--info-500) !important;
+    box-shadow: 0 0 0 1px var(--info-500) !important;
+}
+
+/* Native Filament Select Enhancement */
+.fi-page-simple .fi-select-input {
+    border-radius: 0.5rem !important;
+    border: 1px solid var(--gray-300) !important;
+    background: white !important;
+    font-size: 0.875rem !important;
+}
+
+.fi-page-simple .fi-select-input:focus {
+    border-color: var(--primary-600) !important;
+    box-shadow: 0 0 0 1px var(--primary-600) !important;
+}
+
+/* Native Filament Toggle Enhancement */
+.fi-page-simple .fi-toggle {
+    border-radius: 0.75rem !important;
+    transition: all 0.15s ease !important;
+}
+
+.fi-page-simple .fi-toggle:checked {
+    background-color: var(--primary-600) !important;
+}
+
+.fi-page-simple .fi-toggle:focus {
+    box-shadow: 0 0 0 2px var(--primary-600) / 0.2 !important;
+}
+
+/* Native Filament Color Picker Enhancement */
+.fi-page-simple .fi-color-picker-input {
+    border-radius: 0.5rem !important;
+    border: 1px solid var(--gray-300) !important;
+    height: 2.5rem !important;
+    transition: all 0.15s ease !important;
+}
+
+.fi-page-simple .fi-color-picker-input:focus {
+    border-color: var(--primary-600) !important;
+    box-shadow: 0 0 0 1px var(--primary-600) !important;
+}
+
+/* Premium Save Button - Matches Filament primary actions */
+.world-class-save-button .fi-btn {
+    background: var(--primary-600) !important;
+    border: none !important;
+    border-radius: 0.5rem !important;
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    color: white !important;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+    transition: all 0.15s ease !important;
+}
+
+.world-class-save-button .fi-btn:hover {
+    background: var(--primary-700) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Native Section Integration - Matches CRUD sections exactly */
+.fi-page-simple .fi-section:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: box-shadow 0.15s ease;
+}
+
+/* Native Field Group Spacing - Matches CRUD forms */
+.fi-page-simple .fi-fo-field-wrp {
+    margin-bottom: 1.5rem;
+}
+
+/* Native Label Enhancement */
+.fi-page-simple .fi-fo-field-wrp-label {
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    color: var(--gray-700) !important;
+    margin-bottom: 0.375rem !important;
+}
+
+/* Native Helper Text */
+.fi-page-simple .fi-fo-field-wrp-hint {
+    font-size: 0.75rem !important;
+    color: var(--gray-500) !important;
+    margin-top: 0.375rem !important;
+}
+
+/* Metric Cards - Enhanced hover effects */
+.fi-page-simple .fi-fo-placeholder .hover\:scale-105 {
+    transition: all 0.15s ease;
+    cursor: pointer;
+}
+
+.fi-page-simple .fi-fo-placeholder .hover\:scale-105:hover {
+    transform: scale(1.05) translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Native Avatar Upload Enhancement */
+.fi-page-simple .fi-fo-file-upload-avatar {
+    border-radius: 1rem !important;
+    overflow: hidden;
+    transition: all 0.15s ease;
+}
+
+.fi-page-simple .fi-fo-file-upload-avatar:hover {
+    box-shadow: 0 0 0 2px var(--primary-600) / 0.2;
+    transform: scale(1.02);
+}
+
+/* Native File Upload Styling */
+.fi-page-simple .fi-fo-file-upload {
+    border: 2px dashed var(--gray-300) !important;
+    border-radius: 0.75rem !important;
+    background: var(--gray-50) !important;
+    transition: all 0.15s ease !important;
+}
+
+.fi-page-simple .fi-fo-file-upload:hover {
+    border-color: var(--primary-400) !important;
+    background: var(--primary-50) !important;
+}
+
+/* Native Form Actions - Matches CRUD pages */
+.fi-page-simple .fi-form-actions {
+    background: white;
+    border-top: 1px solid var(--gray-200);
+    border-radius: 0 0 0.75rem 0.75rem;
+    padding: 1.5rem;
+    margin-top: 0;
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-start;
+}
+
+/* Responsive Design - Matches native Filament responsiveness */
+@media (max-width: 768px) {
+    .fi-page-simple .fi-section {
+        border-radius: 0.75rem;
+        margin-bottom: 1rem;
+    }
+    
+    .fi-page-simple .fi-section-header {
+        padding: 1rem;
+    }
+    
+    .fi-page-simple .fi-section-content {
+        padding: 1rem;
+    }
+    
+    .fi-page-simple .fi-input {
+        font-size: 16px !important; /* iOS zoom prevention */
+    }
+    
+    .fi-page-simple .fi-form-actions {
+        padding: 1rem;
+        flex-direction: column;
+    }
+}
+
+/* ============================= */
+/* ENHANCED DARK MODE SUPPORT    */
+/* ============================= */
+
+/* Main Page Background */
+.dark .fi-page-simple .fi-main {
+    background: linear-gradient(135deg, var(--charcoal-primary) 0%, var(--charcoal-secondary) 100%) !important;
+}
+
+/* Enhanced Section Styling */
+.dark .fi-page-simple .fi-section {
+    background: var(--charcoal-secondary) !important;
+    border: 1px solid var(--elegant-border) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2) !important;
+}
+
+.dark .fi-page-simple .fi-section:hover {
+    background: var(--charcoal-tertiary) !important;
+    border-color: var(--elegant-border-hover) !important;
+    box-shadow: 0 8px 12px -2px rgba(0, 0, 0, 0.4), 0 4px 8px -2px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Section Headers */
+.dark .fi-page-simple .fi-section-header {
+    border-bottom: 1px solid var(--elegant-border) !important;
+    background: linear-gradient(135deg, var(--charcoal-primary) 0%, var(--charcoal-secondary) 100%) !important;
+}
+
+.dark .fi-page-simple .fi-section-header-heading {
+    color: var(--elegant-text-primary) !important;
+}
+
+.dark .fi-page-simple .fi-section-header-description {
+    color: var(--elegant-text-muted) !important;
+}
+
+/* Enhanced Input Styling */
+.dark .fi-page-simple .fi-input {
+    background: var(--charcoal-tertiary) !important;
+    border: 1px solid var(--elegant-border) !important;
+    color: var(--elegant-text-primary) !important;
+    transition: all 0.3s ease !important;
+}
+
+.dark .fi-page-simple .fi-input:focus {
+    border-color: var(--elegant-accent) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+    background: var(--charcoal-secondary) !important;
+}
+
+.dark .fi-page-simple .fi-input:hover {
+    border-color: var(--elegant-border-hover) !important;
+}
+
+/* Select Input Styling */
+.dark .fi-page-simple .fi-select-input {
+    background: var(--charcoal-tertiary) !important;
+    border: 1px solid var(--elegant-border) !important;
+    color: var(--elegant-text-primary) !important;
+}
+
+.dark .fi-page-simple .fi-select-input:focus {
+    border-color: var(--elegant-accent) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+}
+
+/* Toggle Styling */
+.dark .fi-page-simple .fi-toggle {
+    background: var(--charcoal-tertiary) !important;
+    border: 1px solid var(--elegant-border) !important;
+}
+
+.dark .fi-page-simple .fi-toggle:checked {
+    background: var(--elegant-accent) !important;
+    border-color: var(--elegant-accent) !important;
+}
+
+/* Color Picker Styling */
+.dark .fi-page-simple .fi-color-picker-input {
+    background: var(--charcoal-tertiary) !important;
+    border: 1px solid var(--elegant-border) !important;
+}
+
+.dark .fi-page-simple .fi-color-picker-input:focus {
+    border-color: var(--elegant-accent) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+}
+
+/* Form Actions */
+.dark .fi-page-simple .fi-form-actions {
+    background: var(--charcoal-primary) !important;
+    border-top: 1px solid var(--elegant-border) !important;
+}
+
+/* Save Button Enhancement */
+.dark .world-class-save-button .fi-btn {
+    background: linear-gradient(135deg, var(--elegant-accent) 0%, var(--elegant-accent-hover) 100%) !important;
+    border: none !important;
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3) !important;
+}
+
+.dark .world-class-save-button .fi-btn:hover {
+    background: linear-gradient(135deg, var(--elegant-accent-hover) 0%, #1d4ed8 100%) !important;
+    box-shadow: 0 8px 12px -2px rgba(59, 130, 246, 0.4) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* Field Labels */
+.dark .fi-page-simple .fi-fo-field-wrp-label {
+    color: var(--elegant-text-secondary) !important;
+}
+
+/* Helper Text */
+.dark .fi-page-simple .fi-fo-field-wrp-hint {
+    color: var(--elegant-text-muted) !important;
+}
+
+/* File Upload Styling */
+.dark .fi-page-simple .fi-fo-file-upload {
+    background: var(--charcoal-tertiary) !important;
+    border: 2px dashed var(--elegant-border) !important;
+}
+
+.dark .fi-page-simple .fi-fo-file-upload:hover {
+    border-color: var(--elegant-accent) !important;
+    background: rgba(59, 130, 246, 0.05) !important;
+}
+
+/* Avatar Upload */
+.dark .fi-page-simple .fi-fo-file-upload-avatar {
+    border: 2px solid var(--elegant-border) !important;
+}
+
+.dark .fi-page-simple .fi-fo-file-upload-avatar:hover {
+    border-color: var(--elegant-accent) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+}
+
+/* Action Group Dropdown */
+.dark .fi-page-simple .fi-ac-group-dropdown-list {
+    background: var(--charcoal-secondary) !important;
+    border: 1px solid var(--elegant-border) !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Notification Styling */
+.dark .fi-page-simple .fi-no {
+    background: var(--charcoal-secondary) !important;
+    border: 1px solid var(--elegant-border) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Loading Indicator */
+.dark .fi-page-simple .fi-loading-indicator {
+    color: var(--elegant-accent) !important;
+}
+
+/* Error States */
+.dark .fi-page-simple .fi-fo-field-wrp.error .fi-input {
+    border-color: #ef4444 !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2) !important;
+    background: rgba(239, 68, 68, 0.05) !important;
+}
+
+/* Success States */
+.dark .fi-page-simple .fi-fo-field-wrp.success .fi-input {
+    border-color: #10b981 !important;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2) !important;
+    background: rgba(16, 185, 129, 0.05) !important;
+}
+
+/* Page Title */
+.dark .fi-page-simple .fi-header-heading {
+    color: var(--elegant-text-primary) !important;
+}
+
+/* Breadcrumbs */
+.dark .fi-page-simple .fi-breadcrumbs {
+    color: var(--elegant-text-muted) !important;
+}
+
+.dark .fi-page-simple .fi-breadcrumbs a {
+    color: var(--elegant-text-secondary) !important;
+}
+
+.dark .fi-page-simple .fi-breadcrumbs a:hover {
+    color: var(--elegant-accent) !important;
+}
+
+/* Native Smooth Animations - Uses Filament timing */
+.fi-page-simple * {
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+}
+
+/* Success State Animations */
+@keyframes successPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
+}
+
+.success-indicator {
+    animation: successPulse 2s ease-in-out infinite;
+}
+
+/* Native Focus Ring */
+.fi-page-simple input:focus,
+.fi-page-simple select:focus,
+.fi-page-simple button:focus {
+    outline: 2px solid transparent !important;
+    outline-offset: 2px !important;
+}
+
+/* Professional Typography - Uses Filament fonts */
+.fi-page-simple {
+    font-family: var(--font-family);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.5;
+}
+
+/* Page Title Integration */
+.fi-page-simple .fi-header-heading {
+    font-size: 1.875rem !important;
+    font-weight: 800 !important;
+    color: var(--gray-950) !important;
+}
+
+/* Breadcrumb Integration */
+.fi-page-simple .fi-breadcrumbs {
+    margin-bottom: 1.5rem;
+}
+
+/* Grid System Enhancement - Matches PegawaiResource 3-column layout */
+.fi-page-simple .fi-fo-component-ctn .grid {
+    gap: 1.5rem;
+}
+
+/* Column Span Utilities */
+.fi-page-simple .fi-fo-component-ctn [class*="col-span"] {
+    grid-column: span var(--cols, 1) / span var(--cols, 1);
+}
+
+/* Layout Integration - Matches CRUD create/edit pages */
+.fi-page-simple .fi-section + .fi-section {
+    margin-top: 1.5rem;
+}
+
+/* Form Spacing - Matches native Filament */
+.fi-page-simple .fi-fo-field-wrp + .fi-fo-field-wrp {
+    margin-top: 1.5rem;
+}
+
+/* Action Group Enhancement */
+.fi-page-simple .fi-ac-group-dropdown-list {
+    border-radius: 0.5rem;
+    border: 1px solid var(--gray-200);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Notification Integration */
+.fi-page-simple .fi-no {
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Loading State Integration */
+.fi-page-simple .fi-loading-indicator {
+    color: var(--primary-600);
+}
+
+/* Error State Integration */
+.fi-page-simple .fi-fo-field-wrp.error .fi-input {
+    border-color: var(--danger-600) !important;
+    box-shadow: 0 0 0 1px var(--danger-600) !important;
+}
+
+/* Success State Integration */
+.fi-page-simple .fi-fo-field-wrp.success .fi-input {
+    border-color: var(--success-600) !important;
+    box-shadow: 0 0 0 1px var(--success-600) !important;
+}
+
+/* ============================= */
+/* TOLERANCE SETTINGS DARK MODE  */
+/* ============================= */
+
+/* Modern Tolerance Settings Design - Compatibility with existing styles */
+.tolerance-main-section {
+    background: linear-gradient(135deg, #fefefe 0%, #f8fafc 100%);
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.tolerance-card {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    transition: all 0.2s ease;
+}
+
+.tolerance-card:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+}
+
+/* Enhanced Dark Mode Tolerance Settings */
+.dark .tolerance-main-section {
+    background: linear-gradient(135deg, var(--charcoal-primary) 0%, var(--charcoal-secondary) 100%) !important;
+    border: 1px solid var(--elegant-border) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3) !important;
+}
+
+.dark .tolerance-card {
+    background: var(--charcoal-secondary) !important;
+    border: 1px solid var(--elegant-border) !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2) !important;
+}
+
+.dark .tolerance-card:hover {
+    background: var(--charcoal-tertiary) !important;
+    border-color: var(--elegant-border-hover) !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.4) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* Tolerance Text Elements */
+.dark .tolerance-card h3,
+.dark .tolerance-card .tolerance-header h3 {
+    color: var(--elegant-text-primary) !important;
+}
+
+.dark .tolerance-card p,
+.dark .tolerance-card .text-gray-600 {
+    color: var(--elegant-text-secondary) !important;
+}
+
+.dark .tolerance-card .text-gray-500 {
+    color: var(--elegant-text-muted) !important;
+}
+
+/* Tolerance Headers */
+.dark .tolerance-header {
+    border-bottom: 1px solid var(--elegant-border) !important;
+}
+
+/* Tolerance Value Badges */
+.dark .tolerance-value-badge {
+    background: var(--charcoal-tertiary) !important;
+    color: var(--elegant-text-primary) !important;
+    border: 1px solid var(--elegant-border) !important;
+}
+
+/* Range Slider Background */
+.dark .tolerance-range-slider,
+.dark input.tolerance-range-slider[type="range"],
+.dark .modern-slider {
+    background: linear-gradient(to right, var(--elegant-border) 0%, var(--elegant-border) 100%) !important;
+}
+
+.dark .tolerance-range-slider:hover,
+.dark input.tolerance-range-slider[type="range"]:hover,
+.dark .modern-slider:hover {
+    background: linear-gradient(to right, var(--elegant-border-hover) 0%, var(--elegant-border-hover) 100%) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Focus States */
+.dark .tolerance-range-slider:focus,
+.dark input.tolerance-range-slider[type="range"]:focus {
+    outline: 2px solid var(--elegant-accent) !important;
+    outline-offset: 2px !important;
+    background: rgba(59, 130, 246, 0.1) !important;
+}
+
+.dark .tolerance-range-slider:focus::-webkit-slider-thumb,
+.dark input.tolerance-range-slider[type="range"]:focus::-webkit-slider-thumb {
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3) !important;
+}
+
+.dark .tolerance-range-slider:focus::-moz-range-thumb,
+.dark input.tolerance-range-slider[type="range"]:focus::-moz-range-thumb {
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3) !important;
+}

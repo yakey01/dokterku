@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Livewire Error Monitor</title>
+    <style>
+        body { font-family: monospace; background: #1a1a1a; color: #00ff00; margin: 20px; }
+        .error { color: #ff4444; font-weight: bold; }
+        .success { color: #44ff44; }
+        .info { color: #4444ff; }
+        .timestamp { color: #888; font-size: 0.8em; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .status.error { background: #4a0000; border-left: 4px solid #ff0000; }
+        .status.success { background: #004a00; border-left: 4px solid #00ff00; }
+        .status.info { background: #00004a; border-left: 4px solid #0000ff; }
+        #log { max-height: 500px; overflow-y: auto; border: 1px solid #444; padding: 10px; }
+        button { background: #333; color: #fff; border: 1px solid #666; padding: 10px; margin: 5px; cursor: pointer; }
+        button:hover { background: #555; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Livewire Error Monitor - Real Time</h1>
+    
+    <div class="status info">
+        <strong>Status:</strong> <span id="status">Initializing...</span><br>
+        <strong>Last Check:</strong> <span id="lastCheck">Never</span><br>
+        <strong>Error Count:</strong> <span id="errorCount">0</span>
+    </div>
+    
+    <div>
+        <button onclick="testTelegramPage()">Test Telegram Settings Page</button>
+        <button onclick="testAdminDashboard()">Test Admin Dashboard</button>
+        <button onclick="clearLog()">Clear Log</button>
+        <button onclick="toggleMonitoring()">Toggle Monitoring</button>
+    </div>
+    
+    <div id="log"></div>
+
+    <script>
+        let monitoring = true;
+        let errorCount = 0;
+        let lastRequestTime = Date.now();
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logDiv = document.getElementById('log');
+            const entry = `<div class="${type}"><span class="timestamp">[${timestamp}]</span> ${message}</div>`;
+            logDiv.innerHTML = entry + logDiv.innerHTML;
+            
+            if (type === 'error') {
+                errorCount++;
+                document.getElementById('errorCount').textContent = errorCount;
+            }
+            
+            document.getElementById('lastCheck').textContent = timestamp;
+        }
+        
+        function updateStatus(status, type = 'info') {
+            document.getElementById('status').textContent = status;
+            document.getElementById('status').className = type;
+        }
+        
+        function testTelegramPage() {
+            log('🧪 Testing telegram settings page...', 'info');
+            
+            fetch('/admin/telegram-settings', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (response.status === 500) {
+                    log(`❌ TELEGRAM PAGE ERROR: ${response.status} ${response.statusText}`, 'error');
+                    return response.text();
+                } else if (response.status === 401) {
+                    log(`🔒 Telegram page requires authentication (${response.status}) - Normal`, 'info');
+                } else {
+                    log(`✅ Telegram page responded: ${response.status}`, 'success');
+                }
+            })
+            .catch(error => {
+                log(`❌ Network error testing telegram page: ${error.message}`, 'error');
+            });
+        }
+        
+        function testAdminDashboard() {
+            log('🧪 Testing admin dashboard...', 'info');
+            
+            fetch('/admin', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (response.status === 500) {
+                    log(`❌ ADMIN DASHBOARD ERROR: ${response.status} ${response.statusText}`, 'error');
+                } else if (response.status === 401) {
+                    log(`🔒 Admin dashboard requires authentication (${response.status}) - Normal`, 'info');
+                } else {
+                    log(`✅ Admin dashboard responded: ${response.status}`, 'success');
+                }
+            })
+            .catch(error => {
+                log(`❌ Network error testing admin dashboard: ${error.message}`, 'error');
+            });
+        }
+        
+        // Monitor for Livewire update requests
+        function monitorLivewireRequests() {
+            if (!monitoring) return;
+            
+            // Intercept fetch requests
+            const originalFetch = window.fetch;
+            window.fetch = function(...args) {
+                const url = args[0];
+                
+                if (typeof url === 'string' && url.includes('livewire/update')) {
+                    log(`🔄 Livewire update request detected: ${url}`, 'info');
+                    
+                    return originalFetch.apply(this, args)
+                        .then(response => {
+                            if (response.status === 500) {
+                                log(`❌ LIVEWIRE UPDATE ERROR: ${response.status} ${response.statusText}`, 'error');
+                                // Try to get response body for more details
+                                response.clone().text().then(body => {
+                                    if (body.includes('telegram-stats-widget')) {
+                                        log(`🎯 ROOT CAUSE: telegram-stats-widget component issue detected`, 'error');
+                                    }
+                                    if (body.includes('ComponentNotFoundException')) {
+                                        log(`🎯 ROOT CAUSE: Livewire ComponentNotFoundException detected`, 'error');
+                                    }
+                                });
+                            } else {
+                                log(`✅ Livewire update success: ${response.status}`, 'success');
+                            }
+                            return response;
+                        })
+                        .catch(error => {
+                            log(`❌ Livewire update failed: ${error.message}`, 'error');
+                            throw error;
+                        });
+                }
+                
+                return originalFetch.apply(this, args);
+            };
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+            errorCount = 0;
+            document.getElementById('errorCount').textContent = '0';
+        }
+        
+        function toggleMonitoring() {
+            monitoring = !monitoring;
+            updateStatus(monitoring ? 'Monitoring Active' : 'Monitoring Paused', monitoring ? 'success' : 'error');
+        }
+        
+        // Initialize
+        monitorLivewireRequests();
+        updateStatus('Monitoring Active', 'success');
+        log('🚀 Livewire Error Monitor initialized', 'success');
+        log('📝 Click "Test Telegram Settings Page" to check for 500 errors', 'info');
+        log('🔍 Monitor will automatically catch any Livewire update errors', 'info');
+        
+        // Auto-test every 30 seconds if there's activity
+        setInterval(() => {
+            if (monitoring && Date.now() - lastRequestTime > 30000) {
+                testTelegramPage();
+                lastRequestTime = Date.now();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>

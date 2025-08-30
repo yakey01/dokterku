@@ -31,7 +31,7 @@ class WorkLocationAssignmentResource extends Resource
     
     protected static ?string $pluralModelLabel = 'Work Location Assignments';
     
-    protected static ?string $navigationGroup = '📍 PRESENSI';
+    protected static ?string $navigationGroup = 'Attendance';
     
     protected static ?int $navigationSort = 42;
 

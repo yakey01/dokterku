@@ -20,13 +20,18 @@ class ValidasiJaspelResource extends Resource
 {
     protected static ?string $model = Jaspel::class;
 
-    protected static ?string $navigationIcon = null;
+    protected static ?string $navigationIcon = 'heroicon-o-currency-dollar';
 
-    protected static ?string $navigationGroup = 'Manajemen Jaspel';
+    protected static ?string $navigationGroup = 'Validasi Transaksi';
 
     protected static ?string $navigationLabel = 'Validasi Jaspel';
 
     protected static ?string $modelLabel = 'Jaspel';
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return true;
+    }
 
     protected static ?string $pluralModelLabel = 'Validasi Jaspel';
 
@@ -131,6 +136,46 @@ class ValidasiJaspelResource extends Resource
                     ->sortable()
                     ->description(fn ($record) => $record->tanggal->format('l'))
                     ->color('gray'),
+
+                Tables\Columns\TextColumn::make('user.name')
+                    ->label('👤 Dokter/Staff')
+                    ->searchable()
+                    ->sortable()
+                    ->color('primary')
+                    ->icon('heroicon-o-user'),
+
+                Tables\Columns\TextColumn::make('total_jaspel')
+                    ->label('💰 Total Jaspel')
+                    ->formatStateUsing(fn ($state) => 'Rp ' . number_format($state, 0, ',', '.'))
+                    ->alignment(Alignment::End)
+                    ->sortable()
+                    ->color('success')
+                    ->icon('heroicon-o-banknotes'),
+
+                Tables\Columns\TextColumn::make('inputBy.name')
+                    ->label('📝 Input Oleh')
+                    ->searchable()
+                    ->color('info')
+                    ->icon('heroicon-o-pencil')
+                    ->description('Petugas yang input data'),
+
+                Tables\Columns\TextColumn::make('status_validasi')
+                    ->label('✅ Status Validasi')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'pending' => 'warning',
+                        'disetujui' => 'success',
+                        'ditolak' => 'danger',
+                        'need_revision' => 'info',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'pending' => '⏳ Menunggu',
+                        'disetujui' => '✅ Disetujui',
+                        'ditolak' => '❌ Ditolak',
+                        'need_revision' => '📝 Perlu Revisi',
+                        default => ucfirst($state),
+                    }),
             ])
             ->filters([
                 Tables\Filters\Filter::make('tanggal')
@@ -353,23 +398,31 @@ class ValidasiJaspelResource extends Resource
                     ->action(function () {
                         try {
                             $today = now()->toDateString();
+                            // WORKFLOW COMPLIANCE: Only count petugas-input data
                             $summary = [
-                                'total_today' => Jaspel::whereDate('tanggal', $today)->sum('nominal'),
-                                'count_today' => Jaspel::whereDate('tanggal', $today)->count(),
-                                'pending_count' => Jaspel::where('status_validasi', 'pending')->count(),
-                                'approved_today' => Jaspel::whereDate('validasi_at', $today)
+                                'total_today' => Jaspel::inputByPetugasOnly()->whereDate('tanggal', $today)->sum('total_jaspel'),
+                                'count_today' => Jaspel::inputByPetugasOnly()->whereDate('tanggal', $today)->count(),
+                                'pending_count' => Jaspel::inputByPetugasOnly()->where('status_validasi', 'pending')->count(),
+                                'approved_today' => Jaspel::inputByPetugasOnly()->whereDate('validasi_at', $today)
                                     ->where('status_validasi', 'disetujui')->count(),
+                                'invalid_workflow' => Jaspel::whereNotIn('input_by', function($query) {
+                                    $query->select('id')
+                                          ->from('users')
+                                          ->join('roles', 'users.role_id', '=', 'roles.id')
+                                          ->where('roles.name', 'petugas');
+                                })->count()
                             ];
 
-                            $message = "📊 **RINGKASAN JASPEL HARIAN**\n\n";
+                            $message = "📊 **RINGKASAN JASPEL HARIAN (WORKFLOW COMPLIANCE)**\n\n";
                             $message .= "📅 **HARI INI ({$today})**\n";
-                            $message .= "💰 Total: Rp " . number_format($summary['total_today'], 0, ',', '.') . "\n";
-                            $message .= "📝 Jumlah Entry: {$summary['count_today']}\n";
-                            $message .= "✅ Divalidasi: {$summary['approved_today']}\n\n";
-                            $message .= "⏳ **PENDING VALIDASI: {$summary['pending_count']}**";
+                            $message .= "💰 Total (Petugas Input): Rp " . number_format($summary['total_today'], 0, ',', '.') . "\n";
+                            $message .= "📝 Jumlah Entry (Valid): {$summary['count_today']}\n";
+                            $message .= "✅ Divalidasi: {$summary['approved_today']}\n";
+                            $message .= "⏳ **PENDING VALIDASI: {$summary['pending_count']}**\n\n";
+                            $message .= "⚠️ **DATA INVALID (Bukan Petugas Input): {$summary['invalid_workflow']}**";
 
                             Notification::make()
-                                ->title('📊 Ringkasan Jaspel')
+                                ->title('📊 Ringkasan Jaspel (Workflow Compliance)')
                                 ->body($message)
                                 ->info()
                                 ->persistent()
@@ -383,9 +436,48 @@ class ValidasiJaspelResource extends Resource
                                 ->send();
                         }
                     }),
+
+                Action::make('workflow_compliance')
+                    ->label('🔄 Workflow Status')
+                    ->color('warning')
+                    ->action(function () {
+                        try {
+                            $totalJaspel = Jaspel::count();
+                            $validJaspel = Jaspel::inputByPetugasOnly()->count();
+                            $invalidJaspel = $totalJaspel - $validJaspel;
+                            $complianceRate = $totalJaspel > 0 ? round(($validJaspel / $totalJaspel) * 100, 2) : 100;
+
+                            $message = "🔄 **WORKFLOW COMPLIANCE STATUS**\n\n";
+                            $message .= "✅ **Valid Data (Petugas Input): {$validJaspel}**\n";
+                            $message .= "❌ **Invalid Data (Non-Petugas): {$invalidJaspel}**\n";
+                            $message .= "📊 **Total Data: {$totalJaspel}**\n";
+                            $message .= "🎯 **Compliance Rate: {$complianceRate}%**\n\n";
+                            $message .= "📝 **WORKFLOW: Petugas Input → Bendahara Validation**\n";
+                            $message .= "Only data input by petugas role should be validated by bendahara.";
+
+                            $notificationType = $complianceRate >= 90 ? 'success' : ($complianceRate >= 70 ? 'warning' : 'danger');
+
+                            Notification::make()
+                                ->title('🔄 Workflow Compliance Status')
+                                ->body($message)
+                                ->color($notificationType)
+                                ->persistent()
+                                ->send();
+
+                        } catch (\Exception $e) {
+                            Notification::make()
+                                ->title('❌ Gagal Memuat Status Workflow')
+                                ->body('Terjadi kesalahan saat memuat data')
+                                ->danger()
+                                ->send();
+                        }
+                    }),
             ])
             ->defaultSort('created_at', 'desc')
-            ->poll('30s');
+            ->poll('30s')
+            ->emptyStateHeading('📋 Tidak ada data jaspel')
+            ->emptyStateDescription('Tidak ada data jaspel yang diinput oleh petugas untuk divalidasi.')
+            ->emptyStateIcon('heroicon-o-document-text');
     }
 
     public static function getEloquentQuery(): Builder
@@ -395,8 +487,12 @@ class ValidasiJaspelResource extends Resource
                 'user', 
                 'tindakan.jenisTindakan', 
                 'tindakan.shiftTemplate',
-                'validasiBy'
-            ]);
+                'validasiBy',
+                'inputBy' // Load input_by relationship for workflow validation
+            ])
+            // CRITICAL WORKFLOW COMPLIANCE: Only show jaspel data input by petugas role
+            // This prevents bendahara from validating dokter self-input data (invalid workflow)
+            ->inputByPetugasOnly();
     }
 
     public static function getNavigationBadge(): ?string

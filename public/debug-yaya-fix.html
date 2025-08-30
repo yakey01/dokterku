@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Dr Yaya Fix</title>
+    <meta http-equiv="refresh" content="2;url=http://127.0.0.1:8000/bendahara/laporan-jaspel?activeTab=dokter&debug=1&nocache=<?php echo time(); ?>">
+</head>
+<body style="font-family: Arial; padding: 20px;">
+    <h1>🔍 DEBUG: Dr Yaya Fix Applied</h1>
+    <p><strong>DIRECT BACKEND TEST RESULT:</strong></p>
+    
+    <?php
+    require_once '../vendor/autoload.php';
+    $app = require_once '../bootstrap/app.php';
+    $app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
+    
+    try {
+        $service = app(App\Services\JaspelReportService::class);
+        $data = $service->getFallbackJaspelByRole('dokter', []);
+        
+        echo "<ul>";
+        foreach ($data as $record) {
+            echo "<li><strong>" . $record->name . "</strong>: Rp " . number_format($record->total_jaspel, 0, ',', '.');
+            if (strpos($record->name, 'Yaya') !== false) {
+                echo " ✅ <span style='color: green;'>SHOULD BE Rp 740.000</span>";
+            }
+            echo "</li>";
+        }
+        echo "</ul>";
+        
+    } catch (Exception $e) {
+        echo "<p style='color: red;'>Error: " . $e->getMessage() . "</p>";
+    }
+    ?>
+    
+    <p><strong>Redirecting to bendahara panel in 2 seconds...</strong></p>
+    <p>If Dr Yaya still shows wrong amount, there's a deeper caching issue.</p>
+</body>
+</html>

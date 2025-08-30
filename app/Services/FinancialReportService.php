@@ -205,14 +205,14 @@ class FinancialReportService
     {
         try {
             // Get income by source
-            $pendapatanByCategory = DB::table('pendapatan_harian')
-                ->join('pendapatan', 'pendapatan_harian.pendapatan_id', '=', 'pendapatan.id')
+            $pendapatanByCategory = DB::table('pendapatan_harians')
+                ->join('pendapatan', 'pendapatan_harians.pendapatan_id', '=', 'pendapatan.id')
                 ->select('pendapatan.kategori', 'pendapatan.nama_pendapatan')
-                ->selectRaw('SUM(pendapatan_harian.nominal) as total')
-                ->selectRaw('COUNT(pendapatan_harian.id) as count')
-                ->selectRaw('AVG(pendapatan_harian.nominal) as average')
-                ->whereBetween('pendapatan_harian.tanggal_input', [$dateFrom->format('Y-m-d'), $dateTo->format('Y-m-d')])
-                ->where('pendapatan_harian.status_validasi', 'disetujui')
+                ->selectRaw('SUM(pendapatan_harians.nominal) as total')
+                ->selectRaw('COUNT(pendapatan_harians.id) as count')
+                ->selectRaw('AVG(pendapatan_harians.nominal) as average')
+                ->whereBetween('pendapatan_harians.tanggal_input', [$dateFrom->format('Y-m-d'), $dateTo->format('Y-m-d')])
+                ->where('pendapatan_harians.status_validasi', 'disetujui')
                 ->groupBy('pendapatan.kategori', 'pendapatan.nama_pendapatan')
                 ->orderByDesc('total')
                 ->get();

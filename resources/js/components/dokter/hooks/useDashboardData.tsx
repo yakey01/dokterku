@@ -10,18 +10,40 @@ export const useDashboardData = () => {
 
   // Auto-fetch data on mount if cache is invalid
   useEffect(() => {
-    // TEMPORARY FIX: Disable auto-fetch to prevent 429 errors
-    console.log('🚫 DISABLED: Auto-fetch temporarily disabled to prevent rate limiting');
+    // Rate limiting protection with exponential backoff
+    const fetchWithBackoff = async (fetchFn: () => Promise<void>, maxRetries = 3) => {
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+          await fetchFn();
+          break; // Success, exit retry loop
+        } catch (error: any) {
+          if (error?.response?.status === 429 && attempt < maxRetries - 1) {
+            // Rate limited, wait with exponential backoff
+            const delay = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s
+            console.warn(`🔄 Rate limited, retrying in ${delay}ms... (attempt ${attempt + 1}/${maxRetries})`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+          } else {
+            console.error(`❌ Fetch failed after ${attempt + 1} attempts:`, error);
+            break;
+          }
+        }
+      }
+    };
+
+    // Re-enabled auto-fetch with proper error handling
+    if (!cache.isDashboardCacheValid() || state.metrics.jaspel.currentMonth === 0) {
+      console.log('🔄 Auto-fetching dashboard data with rate limiting protection...');
+      fetchWithBackoff(() => actions.fetchDashboardData());
+    }
     
-    // TODO: Re-enable with proper error handling
-    // if (!cache.isDashboardCacheValid() || state.metrics.jaspel.currentMonth === 0) {
-    //   actions.fetchDashboardData();
-    // }
-    
-    // if (!cache.isLeaderboardCacheValid() || state.leaderboard.length === 0) {
-    //   actions.fetchLeaderboard();
-    // }
-  }, []);
+    if (!cache.isLeaderboardCacheValid() || state.leaderboard.length === 0) {
+      console.log('🔄 Auto-fetching leaderboard data with rate limiting protection...');
+      // Add delay to prevent simultaneous requests
+      setTimeout(() => {
+        fetchWithBackoff(() => actions.fetchLeaderboard());
+      }, 500);
+    }
+  }, [cache, state.metrics.jaspel.currentMonth, state.leaderboard.length, actions]);
 
   // Memoized computed values for performance
   const computedData = useMemo(() => {

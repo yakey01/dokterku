@@ -5,6 +5,7 @@ namespace App\Filament\Bendahara\Resources;
 use App\Models\Tindakan;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -90,29 +91,57 @@ class ValidationCenterResource extends Resource
                                     ->label('Status Validasi')
                                     ->options([
                                         'pending' => 'Menunggu Validasi',
-                                        'approved' => 'Disetujui',
-                                        'rejected' => 'Ditolak',
+                                        'disetujui' => 'Disetujui',
+                                        'ditolak' => 'Ditolak',
                                     ])
                                     ->required()
-                                    ->native(false),
+                                    ->native(false)
+                                    ->reactive()
+                                    ->afterStateUpdated(function ($state, Forms\Set $set) {
+                                        // Auto-sync status field when status_validasi changes
+                                        $newStatus = match($state) {
+                                            'disetujui' => 'selesai',
+                                            'ditolak' => 'batal', 
+                                            'pending' => 'pending',
+                                            default => 'pending'
+                                        };
+                                        $set('status', $newStatus);
+                                    }),
                                     
                                 Forms\Components\TextInput::make('validatedBy.name')
                                     ->label('Divalidasi Oleh')
                                     ->disabled()
-                                    ->visible(fn (Forms\Get $get) => in_array($get('status_validasi'), ['approved', 'rejected'])),
+                                    ->visible(fn (Forms\Get $get) => in_array($get('status_validasi'), ['disetujui', 'ditolak'])),
                             ]),
                             
                         Forms\Components\DateTimePicker::make('validated_at')
                             ->label('Tanggal Validasi')
                             ->disabled()
-                            ->visible(fn (Forms\Get $get) => in_array($get('status_validasi'), ['approved', 'rejected'])),
+                            ->visible(fn (Forms\Get $get) => in_array($get('status_validasi'), ['disetujui', 'ditolak'])),
                             
                         Forms\Components\Textarea::make('komentar_validasi')
                             ->label('Komentar Validasi')
                             ->placeholder('Tambahkan komentar validasi...')
                             ->columnSpanFull(),
+                    ]),
+
+                // Status field synchronized with status_validasi
+                Forms\Components\Section::make('Status Tindakan')
+                    ->schema([
+                        Forms\Components\Select::make('status')
+                            ->label('Status Tindakan')
+                            ->options([
+                                'pending' => '⏳ Menunggu',
+                                'selesai' => '✅ Selesai',
+                                'batal' => '❌ Batal',
+                            ])
+                            ->required()
+                            ->disabled()
+                            ->helperText('Status ini akan berubah otomatis sesuai status validasi')
+                            ->dehydrated(),
                     ])
-                    ->visible(fn (Forms\Get $get) => $get('status_validasi') !== 'pending'),
+                    ->collapsed()
+                    ->collapsible(),
             ]);
     }
 
@@ -144,30 +173,12 @@ class ValidationCenterResource extends Resource
                 Tables\Columns\TextColumn::make('tarif')
                     ->label('Tarif')
                     ->money('IDR')
-                    ->sortable()
-                    ->summarize([
-                        Tables\Columns\Summarizers\Sum::make()
-                            ->money('IDR')
-                            ->label('Total'),
-                    ]),
+                    ->sortable(),
 
                 Tables\Columns\TextColumn::make('jaspel_diterima')
                     ->label('Jaspel Diterima')
                     ->money('IDR')
                     ->sortable(false)
-                    ->summarize([
-                        Tables\Columns\Summarizers\Summarizer::make()
-                            ->label('Total Jaspel')
-                            ->using(function ($query) {
-                                // Get records and sum their jaspel_diterima accessor
-                                $records = \App\Models\Tindakan::whereIn('id', $query->pluck('id'))
-                                    ->with('jenisTindakan')
-                                    ->get();
-                                
-                                $total = $records->sum('jaspel_diterima');
-                                return 'Rp ' . number_format($total, 0, ',', '.');
-                            }),
-                    ])
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('status_validasi')
@@ -175,18 +186,18 @@ class ValidationCenterResource extends Resource
                     ->badge()
                     ->colors([
                         'warning' => 'pending',
-                        'success' => 'approved',
-                        'danger' => 'rejected',
+                        'success' => 'disetujui',
+                        'danger' => 'ditolak',
                     ])
                     ->icons([
                         'heroicon-o-clock' => 'pending',
-                        'heroicon-o-check-circle' => 'approved',
-                        'heroicon-o-x-circle' => 'rejected',
+                        'heroicon-o-check-circle' => 'disetujui',
+                        'heroicon-o-x-circle' => 'ditolak',
                     ])
                     ->formatStateUsing(fn (string $state): string => match ($state) {
                         'pending' => 'Menunggu Validasi',
-                        'approved' => 'Disetujui',
-                        'rejected' => 'Ditolak',
+                        'disetujui' => 'Disetujui',
+                        'ditolak' => 'Ditolak',
                         default => ucfirst($state),
                     })
                     ->sortable(),
@@ -240,8 +251,8 @@ class ValidationCenterResource extends Resource
                     ->label('Status Validasi')
                     ->options([
                         'pending' => 'Menunggu Validasi',
-                        'approved' => 'Disetujui', 
-                        'rejected' => 'Ditolak',
+                        'disetujui' => 'Disetujui', 
+                        'ditolak' => 'Ditolak',
                     ])
                     ->placeholder('All Status'),
 
@@ -331,98 +342,83 @@ class ValidationCenterResource extends Resource
                     }),
             ])
             ->actions([
-                ActionGroup::make([
-                    // Quick Validation Actions (Pending only)
-                    Action::make('quick_approve')
-                        ->label('⚡ Quick Approve')
-                        ->icon('heroicon-o-check-circle')
-                        ->color('success')
-                        ->visible(fn (Tindakan $record): bool => $record->status_validasi === 'pending')
-                        ->requiresConfirmation()
-                        ->modalHeading('⚡ Quick Approve')
-                        ->modalDescription('Approve this tindakan without additional comments?')
-                        ->modalSubmitActionLabel('Approve')
-                        ->action(function (Tindakan $record) {
-                            static::quickValidate($record, 'approved');
-                        }),
+                // INLINE ACTIONS - No Dropdown, Direct Visibility
+                
+                // Quick Approve - Green (Pending Only)
+                Action::make('approve')
+                    ->label('✅')
+                    ->tooltip('Quick Approve')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->size('sm')
+                    ->button()
+                    ->visible(fn (Tindakan $record): bool => $record->status_validasi === 'pending')
+                    ->requiresConfirmation()
+                    ->modalHeading('✅ Quick Approve')
+                    ->modalDescription('Approve this medical procedure?')
+                    ->modalSubmitActionLabel('Approve')
+                    ->action(function (Tindakan $record) {
+                        static::quickValidate($record, 'approved');
+                    }),
 
-                    Action::make('quick_reject')
-                        ->label('⚡ Quick Reject')
-                        ->icon('heroicon-o-x-circle')
-                        ->color('danger')
-                        ->visible(fn (Tindakan $record): bool => $record->status_validasi === 'pending')
-                        ->form([
-                            Forms\Components\Textarea::make('rejection_reason')
-                                ->label('Rejection Reason')
-                                ->required()
-                                ->placeholder('Please provide reason for rejection...')
-                        ])
-                        ->action(function (Tindakan $record, array $data) {
-                            static::quickValidate($record, 'rejected', $data['rejection_reason']);
-                        }),
+                // Quick Reject - Red (Pending Only)  
+                Action::make('reject')
+                    ->label('❌')
+                    ->tooltip('Quick Reject')
+                    ->icon('heroicon-o-x-circle')
+                    ->color('danger')
+                    ->size('sm')
+                    ->button()
+                    ->visible(fn (Tindakan $record): bool => $record->status_validasi === 'pending')
+                    ->form([
+                        Forms\Components\Textarea::make('rejection_reason')
+                            ->label('Rejection Reason')
+                            ->required()
+                            ->placeholder('Please provide reason for rejection...')
+                            ->rows(3)
+                    ])
+                    ->action(function (Tindakan $record, array $data) {
+                        static::quickValidate($record, 'rejected', $data['rejection_reason']);
+                    }),
 
-                    Action::make('approve_with_comment')
-                        ->label('✅ Approve with Comment')
-                        ->icon('heroicon-o-chat-bubble-left-ellipsis')
-                        ->color('success')
-                        ->visible(fn (Tindakan $record): bool => $record->status_validasi === 'pending')
-                        ->form([
-                            Forms\Components\Textarea::make('approval_comment')
-                                ->label('Approval Comment')
-                                ->placeholder('Add validation notes...')
-                        ])
-                        ->action(function (Tindakan $record, array $data) {
-                            static::quickValidate($record, 'approved', $data['approval_comment'] ?? null);
-                        }),
+                // View Details - Blue (All Records)
+                Tables\Actions\ViewAction::make()
+                    ->label('👁️')
+                    ->tooltip('View Details')
+                    ->color('info')
+                    ->size('sm')
+                    ->button()
+                    ->modalWidth('4xl'),
 
-                    // Review Actions (Processed items)
-                    Action::make('revert_to_pending')
-                        ->label('🔄 Revert to Pending')
-                        ->icon('heroicon-o-arrow-path')
-                        ->color('warning')
-                        ->visible(fn (Tindakan $record): bool => in_array($record->status_validasi, ['approved', 'rejected']))
-                        ->requiresConfirmation()
-                        ->modalHeading('🔄 Revert to Pending')
-                        ->modalDescription('This will return the tindakan to pending status for re-validation.')
-                        ->modalSubmitActionLabel('Revert')
-                        ->form([
-                            Forms\Components\Textarea::make('revert_reason')
-                                ->label('Revert Reason')
-                                ->required()
-                                ->placeholder('Why is this being reverted?')
-                        ])
-                        ->action(function (Tindakan $record, array $data) {
-                            static::revertToPending($record, $data['revert_reason']);
-                        }),
+                // Edit - Yellow (Admin/Bendahara Only)
+                Tables\Actions\EditAction::make()
+                    ->label('✏️')
+                    ->tooltip('Edit Record')
+                    ->color('warning')
+                    ->size('sm')
+                    ->button()
+                    ->visible(fn (Tindakan $record): bool => Auth::user()->hasRole(['admin', 'bendahara']))
+                    ->modalWidth('4xl'),
 
-                    // Universal Actions
-                    Tables\Actions\ViewAction::make()
-                        ->label('👁️ View Details')
-                        ->modalWidth('4xl'),
-
-                    Tables\Actions\EditAction::make()
-                        ->label('✏️ Edit')
-                        ->visible(fn (Tindakan $record): bool => Auth::user()->hasRole(['admin', 'bendahara']))
-                        ->modalWidth('4xl'),
-
-                    Tables\Actions\DeleteAction::make()
-                        ->label('🗑️ Delete')
-                        ->color('danger')
-                        ->visible(fn (Tindakan $record): bool => Auth::user()->hasRole(['admin', 'bendahara']))
-                        ->requiresConfirmation()
-                        ->modalHeading('🗑️ Hapus Data Validasi')
-                        ->modalDescription('Apakah Anda yakin ingin menghapus data validasi ini? Data yang telah dihapus tidak dapat dikembalikan.')
-                        ->modalSubmitActionLabel('Ya, Hapus')
-                        ->modalCancelActionLabel('Batal')
-                        ->action(function (Tindakan $record) {
-                            static::handleDelete($record);
-                        }),
-                ])
-                ->label('⚙️ Actions')
-                ->icon('heroicon-o-ellipsis-vertical')
-                ->size('sm')
-                ->color('gray')
-                ->button(),
+                // Revert - Orange (Approved/Rejected Only)
+                Action::make('revert')
+                    ->label('🔄')
+                    ->tooltip('Revert to Pending')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('gray')
+                    ->size('sm')
+                    ->button()
+                    ->visible(fn (Tindakan $record): bool => in_array($record->status_validasi, ['disetujui', 'ditolak']))
+                    ->form([
+                        Forms\Components\Textarea::make('revert_reason')
+                            ->label('Revert Reason')
+                            ->required()
+                            ->placeholder('Why is this being reverted?')
+                            ->rows(3)
+                    ])
+                    ->action(function (Tindakan $record, array $data) {
+                        static::revertToPending($record, $data['revert_reason']);
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -457,25 +453,7 @@ class ValidationCenterResource extends Resource
                             );
                         }),
 
-                    // Export Actions
-                    BulkAction::make('export_selected')
-                        ->label('📤 Export Selected')
-                        ->icon('heroicon-o-arrow-down-tray')
-                        ->color('info')
-                        ->form([
-                            Forms\Components\Select::make('export_format')
-                                ->label('Export Format')
-                                ->options([
-                                    'xlsx' => 'Excel (.xlsx)',
-                                    'csv' => 'CSV (.csv)',
-                                    'pdf' => 'PDF (.pdf)'
-                                ])
-                                ->default('xlsx')
-                                ->required(),
-                        ])
-                        ->action(function (Collection $records, array $data) {
-                            static::exportRecords($records, $data['export_format']);
-                        }),
+                    // Export functionality removed for cleaner interface
 
                     // Bulk Assignment
                     BulkAction::make('bulk_assign_validator')
@@ -544,61 +522,24 @@ class ValidationCenterResource extends Resource
     protected static function quickValidate(Tindakan $record, string $status, ?string $comment = null): void
     {
         try {
-            // Use database transaction for consistency
-            \DB::transaction(function() use ($record, $status, $comment) {
-                // Map validation status to consistent format
-                $mappedStatus = $status === 'approved' ? 'disetujui' : ($status === 'rejected' ? 'ditolak' : $status);
-                
-                $record->update([
-                    'status_validasi' => $mappedStatus,
-                    'status' => $mappedStatus === 'disetujui' ? 'selesai' : 'batal',
-                    'validated_by' => Auth::id(),
-                    'validated_at' => now(),
-                    'komentar_validasi' => $comment ?? ($mappedStatus === 'disetujui' ? 'Quick approved' : 'Quick rejected'),
-                ]);
+            // Map validation status to consistent format
+            $mappedStatus = $status === 'approved' ? 'disetujui' : ($status === 'rejected' ? 'ditolak' : $status);
+            
+            $record->update([
+                'status_validasi' => $mappedStatus,
+                'status' => $mappedStatus === 'disetujui' ? 'selesai' : 'batal',
+                'validated_by' => Auth::id(),
+                'validated_at' => now(),
+                'komentar_validasi' => $comment ?? ($mappedStatus === 'disetujui' ? 'Quick approved' : 'Quick rejected'),
+            ]);
 
-                // Update or create related Jaspel records with matching status
-                if ($mappedStatus === 'disetujui') {
-                    try {
-                        $jaspelService = app(\App\Services\JaspelCalculationService::class);
-                        $createdJaspel = $jaspelService->calculateJaspelFromTindakan($record);
-                        
-                        // Update newly created Jaspel records to 'disetujui' status
-                        if (is_array($createdJaspel)) {
-                            foreach ($createdJaspel as $jaspel) {
-                                if ($jaspel instanceof \App\Models\Jaspel) {
-                                    $jaspel->update([
-                                        'status_validasi' => 'disetujui',
-                                        'validasi_by' => Auth::id(),
-                                        'validasi_at' => now(),
-                                        'catatan_validasi' => 'Auto-approved with Tindakan validation'
-                                    ]);
-                                }
-                            }
-                        }
-                        
-                        $jaspelCount = is_array($createdJaspel) ? count($createdJaspel) : 0;
-                        $GLOBALS['validation_message'] = "Tindakan berhasil disetujui dan {$jaspelCount} record Jaspel dibuat & disetujui";
-                    } catch (\Exception $jaspelError) {
-                        \Log::warning('Failed to auto-generate Jaspel: ' . $jaspelError->getMessage());
-                        $GLOBALS['validation_message'] = 'Tindakan berhasil disetujui (Jaspel akan digenerate manual)';
-                    }
-                } else {
-                    // If rejected, also reject existing Jaspel records
-                    $record->jaspel()->update([
-                        'status_validasi' => 'ditolak',
-                        'validasi_by' => Auth::id(),
-                        'validasi_at' => now(),
-                        'catatan_validasi' => 'Rejected due to Tindakan rejection: ' . ($comment ?? 'Quick rejected')
-                    ]);
-                    
-                    $GLOBALS['validation_message'] = 'Tindakan berhasil ditolak dan Jaspel terkait diperbarui';
-                }
-            });
+            $message = $mappedStatus === 'disetujui' 
+                ? 'Tindakan berhasil disetujui'
+                : 'Tindakan berhasil ditolak';
             
             Notification::make()
                 ->title('✅ Success')
-                ->body($GLOBALS['validation_message'] ?? 'Validasi berhasil')
+                ->body($message)
                 ->success()
                 ->send();
 
@@ -685,27 +626,17 @@ class ValidationCenterResource extends Resource
     protected static function revertToPending(Tindakan $record, string $reason): void
     {
         try {
-            \DB::transaction(function() use ($record, $reason) {
-                $record->update([
-                    'status_validasi' => 'pending',
-                    'status' => 'pending',
-                    'validated_by' => null,
-                    'validated_at' => null,
-                    'komentar_validasi' => "Reverted by " . Auth::user()->name . ": {$reason}",
-                ]);
-
-                // Also revert related Jaspel records to pending
-                $record->jaspel()->update([
-                    'status_validasi' => 'pending',
-                    'validasi_by' => null,
-                    'validasi_at' => null,
-                    'catatan_validasi' => "Reverted due to Tindakan revert: {$reason}"
-                ]);
-            });
+            $record->update([
+                'status_validasi' => 'pending',
+                'status' => 'pending',
+                'validated_by' => null,
+                'validated_at' => null,
+                'komentar_validasi' => "Reverted by " . Auth::user()->name . ": {$reason}",
+            ]);
 
             Notification::make()
                 ->title('🔄 Reverted Successfully')
-                ->body('Tindakan and related Jaspel records have been returned to pending status')
+                ->body('Tindakan has been returned to pending status')
                 ->success()
                 ->send();
 
@@ -718,15 +649,7 @@ class ValidationCenterResource extends Resource
         }
     }
 
-    protected static function exportRecords(Collection $records, string $format): void
-    {
-        // Export functionality placeholder
-        Notification::make()
-            ->title('📤 Export Initiated')
-            ->body("Exporting {$records->count()} records to {$format} format")
-            ->info()
-            ->send();
-    }
+    // Export functionality removed for cleaner world-class interface
 
     protected static function bulkAssignValidator(Collection $records, int $validatorId): void
     {
@@ -892,6 +815,7 @@ class ValidationCenterResource extends Resource
         return [
             'index' => \App\Filament\Bendahara\Resources\ValidationCenterResource\Pages\ListValidations::route('/'),
             'view' => \App\Filament\Bendahara\Resources\ValidationCenterResource\Pages\ViewValidation::route('/{record}'),
+            'edit' => \App\Filament\Bendahara\Resources\ValidationCenterResource\Pages\EditValidation::route('/{record}/edit'),
         ];
     }
 }

@@ -15,11 +15,13 @@ class RefreshCsrfToken
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // For login pages, aggressively regenerate session to clear stale tokens
+        // For login pages, gently refresh session (Safari-compatible)
         if ($request->is('*/login') || $request->routeIs('*.auth.login')) {
-            session()->invalidate();
+            // Less aggressive approach for Safari compatibility
+            if (!session()->isStarted()) {
+                session()->start();
+            }
             session()->regenerateToken();
-            session()->migrate(true);
         }
         
         // Ensure session is started and CSRF token exists

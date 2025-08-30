@@ -23,7 +23,7 @@ class JadwalJagaResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
     
-    protected static ?string $navigationGroup = '📅 KALENDAR DAN JADWAL';
+    protected static ?string $navigationGroup = 'Schedule Management';
     
     protected static ?string $navigationLabel = 'Jadwal Jaga';
     

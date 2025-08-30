@@ -70,6 +70,12 @@ class Dokter extends Model
         return $this->hasMany(Tindakan::class);
     }
 
+    // Add presensis relationship for DokterPresensi
+    public function presensis(): HasMany
+    {
+        return $this->hasMany(DokterPresensi::class);
+    }
+
     // Cached relationship accessors
     public function getCachedUserAttribute()
     {

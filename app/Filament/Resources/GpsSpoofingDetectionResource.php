@@ -26,7 +26,7 @@ class GpsSpoofingDetectionResource extends Resource
 
     protected static ?string $pluralModelLabel = 'GPS Spoofing Detections';
 
-    protected static ?string $navigationGroup = '📍 PRESENSI';
+    protected static ?string $navigationGroup = 'Attendance';
 
     protected static ?int $navigationSort = 44;
 

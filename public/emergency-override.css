@@ -1,0 +1,217 @@
+/* ULTIMATE EMERGENCY DARK MODE OVERRIDE */
+
+/* Force dark mode at highest specificity */
+html.dark,
+html.dark body,
+html.dark * {
+    background-color: #0a0a0a !important;
+    color: #f8fafc !important;
+}
+
+/* Critical layout structure */
+html.dark .fi-sidebar {
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 280px !important;
+    height: 100vh !important;
+    background: linear-gradient(180deg, #000000, #0a0a0a) !important;
+    border-right: 2px solid #404040 !important;
+    z-index: 40 !important;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    padding: 1rem !important;
+}
+
+html.dark .fi-page {
+    margin-left: 280px !important;
+    padding: 2rem !important;
+    min-height: 100vh !important;
+    background: #0a0a0a !important;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+html.dark .fi-main {
+    background: #0a0a0a !important;
+    color: #f8fafc !important;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Navigation items */
+html.dark .fi-sidebar-nav-item {
+    background: #171717 !important;
+    border: 1px solid #404040 !important;
+    border-radius: 0.5rem !important;
+    margin-bottom: 0.5rem !important;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+html.dark .fi-sidebar-nav-item a,
+html.dark .fi-sidebar-nav-item button {
+    color: #e2e8f0 !important;
+    padding: 0.75rem 1rem !important;
+    display: flex !important;
+    align-items: center !important;
+    text-decoration: none !important;
+    width: 100% !important;
+    background: transparent !important;
+    border: none !important;
+}
+
+html.dark .fi-sidebar-nav-item:hover {
+    background: #262626 !important;
+}
+
+html.dark .fi-sidebar-nav-item:hover a,
+html.dark .fi-sidebar-nav-item:hover button {
+    color: #f8fafc !important;
+}
+
+html.dark .fi-sidebar-nav-item.fi-active {
+    background: linear-gradient(135deg, #60a5fa, #3b82f6) !important;
+}
+
+html.dark .fi-sidebar-nav-item.fi-active a,
+html.dark .fi-sidebar-nav-item.fi-active button {
+    color: white !important;
+    font-weight: 600 !important;
+}
+
+/* Headers and content */
+html.dark .fi-header {
+    background: #171717 !important;
+    border: 1px solid #404040 !important;
+    border-radius: 0.75rem !important;
+    padding: 2rem !important;
+    margin-bottom: 2rem !important;
+    color: #f8fafc !important;
+}
+
+html.dark .fi-header-heading {
+    color: #f8fafc !important;
+    font-size: 2rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 0.5rem !important;
+}
+
+html.dark .fi-section {
+    background: #171717 !important;
+    border: 1px solid #404040 !important;
+    border-radius: 0.75rem !important;
+    padding: 1.5rem !important;
+    margin-bottom: 1rem !important;
+    color: #f8fafc !important;
+}
+
+html.dark .fi-widget {
+    background: #171717 !important;
+    border: 1px solid #404040 !important;
+    border-radius: 0.75rem !important;
+    padding: 1.5rem !important;
+    margin-bottom: 1rem !important;
+    color: #f8fafc !important;
+}
+
+/* Buttons */
+html.dark .fi-btn-primary {
+    background: linear-gradient(135deg, #60a5fa, #3b82f6) !important;
+    color: white !important;
+    border: none !important;
+    padding: 0.75rem 1.5rem !important;
+    border-radius: 0.5rem !important;
+    font-weight: 600 !important;
+}
+
+html.dark .fi-btn-secondary {
+    background: #262626 !important;
+    border: 1px solid #404040 !important;
+    color: #e2e8f0 !important;
+    padding: 0.75rem 1.5rem !important;
+    border-radius: 0.5rem !important;
+    font-weight: 600 !important;
+}
+
+/* Tables */
+html.dark .fi-ta-table {
+    background: #171717 !important;
+    border: 1px solid #404040 !important;
+    border-radius: 0.75rem !important;
+    overflow: hidden !important;
+}
+
+html.dark .fi-ta-header-cell {
+    background: #0a0a0a !important;
+    color: #e2e8f0 !important;
+    padding: 1rem 1.5rem !important;
+    font-weight: 600 !important;
+    border-bottom: 1px solid #404040 !important;
+}
+
+html.dark .fi-ta-cell {
+    background: #171717 !important;
+    color: #f8fafc !important;
+    padding: 1rem 1.5rem !important;
+    border-bottom: 1px solid #2a2a2a !important;
+}
+
+html.dark .fi-ta-row:hover .fi-ta-cell {
+    background: #262626 !important;
+}
+
+/* Forms */
+html.dark .fi-input {
+    background: #262626 !important;
+    border: 1px solid #404040 !important;
+    color: #f8fafc !important;
+    padding: 0.75rem 1rem !important;
+    border-radius: 0.5rem !important;
+}
+
+html.dark .fi-input:focus {
+    border-color: #60a5fa !important;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2) !important;
+}
+
+html.dark .fi-fo-field-wrp-label {
+    color: #e2e8f0 !important;
+    font-weight: 500 !important;
+    margin-bottom: 0.5rem !important;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 1024px) {
+    html.dark .fi-sidebar {
+        transform: translateX(-100%) !important;
+    }
+    
+    html.dark .fi-sidebar.fi-sidebar-open {
+        transform: translateX(0) !important;
+    }
+    
+    html.dark .fi-page {
+        margin-left: 0 !important;
+    }
+}
+
+/* Debug indicator */
+html.dark body::after {
+    content: '🎨 Ultimate Override Active';
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    background: #ef4444;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    z-index: 9999;
+    font-family: monospace;
+}

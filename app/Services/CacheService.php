@@ -16,11 +16,12 @@ class CacheService
 {
     private LoggingService $loggingService;
     
-    // Cache configuration
+    // Cache configuration - OPTIMIZED for loop prevention
     private const DEFAULT_TTL = 3600; // 1 hour
     private const QUERY_CACHE_TTL = 1800; // 30 minutes
     private const VIEW_CACHE_TTL = 900; // 15 minutes
-    private const API_CACHE_TTL = 300; // 5 minutes
+    private const API_CACHE_TTL = 900; // 15 minutes (increased from 5 min)
+    private const DASHBOARD_CACHE_TTL = 1200; // 20 minutes for dashboard stability
     private const LONG_CACHE_TTL = 86400; // 24 hours
     
     // Cache tags for organized cache management
@@ -100,7 +101,7 @@ class CacheService
     public function cacheDashboard(string $key, callable $callback, ?int $ttl = null): mixed
     {
         $cacheKey = self::CACHE_PREFIXES['dashboard'] . $key;
-        $ttl = $ttl ?? self::DEFAULT_TTL;
+        $ttl = $ttl ?? self::DASHBOARD_CACHE_TTL; // Use dashboard-specific TTL
         
         return $this->remember($cacheKey, $ttl, $callback, self::CACHE_TAGS['dashboard']);
     }
@@ -179,6 +180,74 @@ class CacheService
             
             // Return callback result directly on cache failure
             return $callback();
+        }
+    }
+    
+    /**
+     * Smart cache warming for dashboard loop prevention
+     */
+    public function warmDashboardCache(): void
+    {
+        try {
+            $today = now();
+            
+            // Pre-warm today stats cache
+            $this->cacheDashboard("manajer_today_stats_{$today->format('Y-m-d')}", function() use ($today) {
+                // This will be populated by actual controller logic
+                return null;
+            });
+            
+            // Pre-warm finance overview cache
+            $this->cacheDashboard("manajer_finance_overview_{$today->year}_{$today->month}", function() use ($today) {
+                return null;
+            });
+            
+            // Pre-warm attendance cache
+            $this->cacheDashboard("manajer_attendance_today_{$today->format('Y-m-d')}", function() use ($today) {
+                return null;
+            });
+            
+        } catch (\Exception $e) {
+            Log::error('Cache warming failed', ['error' => $e->getMessage()]);
+        }
+    }
+    
+    /**
+     * Selective cache invalidation for loop prevention
+     */
+    public function smartInvalidate(string $changeType, array $affectedData = []): void
+    {
+        try {
+            switch ($changeType) {
+                case 'financial_update':
+                    // Only invalidate today stats if significant change
+                    if (isset($affectedData['amount']) && $affectedData['amount'] > 100000) {
+                        $this->forget("manajer_today_stats_" . now()->format('Y-m-d'), 'dashboard');
+                    }
+                    break;
+                    
+                case 'attendance_update':
+                    // Only invalidate if status change affects count
+                    if (isset($affectedData['status_change']) && $affectedData['status_change']) {
+                        $this->forget("manajer_attendance_today_" . now()->format('Y-m-d'), 'dashboard');
+                    }
+                    break;
+                    
+                case 'patient_update':
+                    // Patient data changes less frequently
+                    $this->forget("manajer_today_stats_" . now()->format('Y-m-d'), 'dashboard');
+                    break;
+                    
+                default:
+                    // Conservative approach for unknown changes
+                    $this->flushTag('dashboard');
+            }
+            
+        } catch (\Exception $e) {
+            Log::error('Smart cache invalidation failed', [
+                'change_type' => $changeType,
+                'error' => $e->getMessage()
+            ]);
         }
     }
     

@@ -21,17 +21,17 @@ class LeaderboardController extends Controller
             $currentYear = Carbon::now()->year;
             $workingDays = $this->getWorkingDaysInMonth($currentMonth, $currentYear);
             
-            // Get doctors with their attendance stats
+            // Get doctors with their attendance stats and patient data
             // Role IDs: 6 = dokter, 8 = dokter_gigi (only doctors, not paramedis)
             $topDoctors = User::whereIn('role_id', [6, 8])
                 ->where('is_active', true)
-                ->with('role')
+                ->with(['role', 'dokter'])
                 ->withCount([
                     'attendances as total_attendance' => function ($query) use ($currentMonth, $currentYear) {
                         $query->whereMonth('date', $currentMonth)
                               ->whereYear('date', $currentYear)
                               ->where('status', 'present')
-                              ->whereNotNull('time_out');
+                              ->whereNotNull('time_out'); // ✅ FIX: Remove distinct from count, handle in PHP
                     }
                 ])
                 ->with(['attendances' => function ($query) use ($currentMonth, $currentYear) {
@@ -42,7 +42,7 @@ class LeaderboardController extends Controller
                           ->select('user_id', 'date', 'time_in', 'time_out');
                 }])
                 ->get()
-                ->map(function ($doctor) use ($workingDays) {
+                ->map(function ($doctor) use ($workingDays, $currentMonth, $currentYear) {
                     // Calculate total hours from attendances
                     $totalHours = $doctor->attendances->reduce(function ($carry, $attendance) {
                         // Handle both datetime and time-only formats
@@ -68,16 +68,19 @@ class LeaderboardController extends Controller
                         return $carry + $hours;
                     }, 0);
                     
-                    // Calculate attendance rate
+                    // ✅ FIX: Count distinct attendance dates for accurate calculation
+                    $distinctAttendanceDays = $doctor->attendances->unique('date')->count();
+                    
+                    // ✅ FIX: Standardized attendance rate calculation using distinct dates
                     $attendanceRate = $workingDays > 0 
-                        ? round(($doctor->total_attendance / $workingDays) * 100, 1)
+                        ? round(($distinctAttendanceDays / $workingDays) * 100, 1)
                         : 0;
                     
-                    // Calculate level based on attendance rate and experience
-                    $level = $this->calculateLevel($attendanceRate, $doctor->total_attendance);
+                    // Calculate level based on attendance rate and experience  
+                    $level = $this->calculateLevel($attendanceRate, $distinctAttendanceDays);
                     
-                    // Calculate XP (experience points)
-                    $xp = $this->calculateXP($doctor->total_attendance, $totalHours, $attendanceRate);
+                    // Calculate XP (experience points) using distinct attendance days
+                    $xp = $this->calculateXP($distinctAttendanceDays, max(0, $totalHours), $attendanceRate);
                     
                     return [
                         'id' => $doctor->id,
@@ -86,11 +89,18 @@ class LeaderboardController extends Controller
                         'attendance_rate' => min($attendanceRate, 100), // Cap at 100%
                         'level' => $level,
                         'xp' => $xp,
-                        'total_days' => $doctor->total_attendance,
-                        'total_hours' => $totalHours,
+                        'total_days' => $distinctAttendanceDays, // ✅ FIX: Use distinct days count
+                        'total_hours' => max(0, $totalHours), // ✅ FIX: Prevent negative hours
                         'avatar' => $doctor->avatar_url ?? null,
                         'department' => $doctor->department ?? 'Umum',
                         'streak_days' => $this->calculateStreak($doctor->id),
+                        // ✅ FIXED: Add missing patient and procedure data
+                        'total_patients' => $this->calculatePatientCount($doctor, $currentMonth, $currentYear),
+                        'procedures_count' => $this->calculateProcedureCount($doctor, $currentMonth, $currentYear),
+                        'consultation_hours' => max(0, min($totalHours, 8 * $distinctAttendanceDays)), // ✅ FIX: Cap at 8 hours per distinct day, prevent negative
+                        'month' => $currentMonth,
+                        'year' => $currentYear,
+                        'monthLabel' => Carbon::create($currentYear, $currentMonth, 1)->format('F Y'),
                     ];
                 })
                 ->sortByDesc('attendance_rate')
@@ -220,5 +230,44 @@ class LeaderboardController extends Controller
             3 => '🥉', // Bronze medal for 3rd
             default => '⭐'
         };
+    }
+    
+    /**
+     * Calculate patient count for a doctor in given month/year
+     * ✅ CORRECTED: Uses bendahara-validated data from jumlah_pasien_harians table
+     */
+    private function calculatePatientCount($doctor, int $month, int $year): int
+    {
+        // If doctor doesn't have dokter relation, return 0
+        if (!$doctor->dokter) {
+            return 0;
+        }
+        
+        return DB::table('jumlah_pasien_harians')
+            ->where('dokter_id', $doctor->dokter->id)
+            ->whereMonth('tanggal', $month)
+            ->whereYear('tanggal', $year)
+            ->where('status_validasi', 'approved')
+            ->sum(DB::raw('jumlah_pasien_umum + jumlah_pasien_bpjs'));
+    }
+    
+    /**
+     * Calculate procedure count for a doctor in given month/year
+     * ✅ CORRECTED: Uses bendahara-validated data from jumlah_pasien_harians table
+     */
+    private function calculateProcedureCount($doctor, int $month, int $year): int
+    {
+        // If doctor doesn't have dokter relation, return 0
+        if (!$doctor->dokter) {
+            return 0;
+        }
+        
+        // Count number of validated daily entries as procedures
+        return DB::table('jumlah_pasien_harians')
+            ->where('dokter_id', $doctor->dokter->id)
+            ->whereMonth('tanggal', $month)
+            ->whereYear('tanggal', $year)
+            ->where('status_validasi', 'approved')
+            ->count();
     }
 }

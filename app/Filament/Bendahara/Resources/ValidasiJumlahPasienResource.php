@@ -153,8 +153,74 @@ class ValidasiJumlahPasienResource extends Resource
                     ->alignment(Alignment::Center)
                     ->toggleable(),
 
+                Tables\Columns\TextColumn::make('calculated_jaspel')
+                    ->label('💰 Jaspel (Terhitung)')
+                    ->getStateUsing(function ($record) {
+                        // Calculate from procedures + patient count
+                        $procedureRevenue = 0;
+                        $patientJaspel = 0;
+                        
+                        // Get procedure revenue for this doctor on this date
+                        if ($record->dokter_id) {
+                            $procedureRevenue = \App\Models\Tindakan::where('dokter_id', $record->dokter_id)
+                                ->whereDate('tanggal_tindakan', $record->tanggal)
+                                ->where('status_validasi', 'disetujui')
+                                ->sum('jasa_dokter') ?? 0;
+                        }
+                        
+                        // Calculate patient-based jaspel
+                        try {
+                            $jaspelService = app(\App\Services\Jaspel\UnifiedJaspelCalculationService::class);
+                            $patientCalculation = $jaspelService->calculateForPasienRecord($record);
+                            $patientJaspel = $patientCalculation['total'] ?? 0;
+                        } catch (\Exception $e) {
+                            \Log::warning('Failed to calculate patient jaspel', [
+                                'record_id' => $record->id,
+                                'error' => $e->getMessage()
+                            ]);
+                            $patientJaspel = 0;
+                        }
+                        
+                        return $procedureRevenue + $patientJaspel;
+                    })
+                    ->formatStateUsing(function ($state) {
+                        // Handle null, empty string, or zero values
+                        if (is_null($state) || $state === '' || $state == 0) {
+                            return 'Rp 0';
+                        }
+                        // Format as Indonesian Rupiah
+                        return 'Rp ' . number_format((float)$state, 0, ',', '.');
+                    })
+                    ->alignment(Alignment::End)
+                    ->sortable(false)
+                    ->color(fn ($state) => !is_null($state) && $state > 0 ? 'success' : 'gray')
+                    ->icon('heroicon-o-calculator')
+                    ->description(function ($record) {
+                        // Show breakdown in description
+                        $procedureRevenue = 0;
+                        $patientJaspel = 0;
+                        
+                        if ($record->dokter_id) {
+                            $procedureRevenue = \App\Models\Tindakan::where('dokter_id', $record->dokter_id)
+                                ->whereDate('tanggal_tindakan', $record->tanggal)
+                                ->where('status_validasi', 'disetujui')
+                                ->sum('jasa_dokter') ?? 0;
+                        }
+                        
+                        try {
+                            $jaspelService = app(\App\Services\Jaspel\UnifiedJaspelCalculationService::class);
+                            $patientCalculation = $jaspelService->calculateForPasienRecord($record);
+                            $patientJaspel = $patientCalculation['total'] ?? 0;
+                        } catch (\Exception $e) {
+                            $patientJaspel = 0;
+                        }
+                        
+                        return 'Tindakan: Rp ' . number_format($procedureRevenue, 0, ',', '.') . ' | Pasien: Rp ' . number_format($patientJaspel, 0, ',', '.');
+                    })
+                    ->toggleable(isToggledHiddenByDefault: false),
+
                 Tables\Columns\TextColumn::make('jaspel_rupiah')
-                    ->label('💰 Jaspel')
+                    ->label('📝 Jaspel Manual')
                     ->formatStateUsing(function ($state) {
                         // Handle null, empty string, or zero values
                         if (is_null($state) || $state === '' || $state == 0) {
@@ -165,10 +231,10 @@ class ValidasiJumlahPasienResource extends Resource
                     })
                     ->alignment(Alignment::End)
                     ->sortable()
-                    ->color(fn ($state) => !is_null($state) && $state > 0 ? 'success' : 'gray')
-                    ->icon('heroicon-o-banknotes')
-                    ->description('Jasa Pelayanan')
-                    ->toggleable(isToggledHiddenByDefault: false),
+                    ->color(fn ($state) => !is_null($state) && $state > 0 ? 'warning' : 'gray')
+                    ->icon('heroicon-o-pencil-square')
+                    ->description('Manual Entry (Legacy)')
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('status_validasi')
                     ->label('Status')
@@ -230,14 +296,8 @@ class ValidasiJumlahPasienResource extends Resource
                     ->relationship('dokter', 'nama_lengkap')
                     ->preload(),
 
-                Tables\Filters\SelectFilter::make('status_validasi')
-                    ->label('Status Validasi')
-                    ->options([
-                        'pending' => 'Menunggu Validasi',
-                        'approved' => 'Disetujui',
-                        'rejected' => 'Ditolak',
-                        'need_revision' => 'Perlu Revisi',
-                    ]),
+                // Status filter moved to tabs in ListValidasiJumlahPasien page
+                // Tables\Filters\SelectFilter::make('status_validasi') - removed in favor of tabs
 
                 Tables\Filters\Filter::make('pasien_banyak')
                     ->label('Pasien > 50')
@@ -283,6 +343,13 @@ class ValidasiJumlahPasienResource extends Resource
                                     'validasi_by' => Auth::id(),
                                     'validasi_at' => now(),
                                 ]);
+
+                                // Clear manager dashboard cache for real-time updates
+                                \Illuminate\Support\Facades\Cache::forget('manajer_today_stats_' . now()->format('Y-m-d'));
+                                \Illuminate\Support\Facades\Cache::forget('manajer.today_stats');
+                                
+                                // Trigger real-time update event for patient count approval
+                                event(new \App\Events\DataInputDisimpan($record, Auth::user()));
 
                                 Notification::make()
                                     ->title('✅ Data Pasien Disetujui')
@@ -348,7 +415,123 @@ class ValidasiJumlahPasienResource extends Resource
                 ->button()
                 ->size('sm'),
             ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\BulkAction::make('bulk_approve')
+                        ->label('✅ Setujui Massal')
+                        ->color('success')
+                        ->icon('heroicon-o-check-circle')
+                        ->requiresConfirmation()
+                        ->modalHeading('Setujui Data Pasien Massal')
+                        ->modalDescription(fn (array $records) => 
+                            'Anda akan menyetujui ' . count($records) . ' data pasien. Total pasien: ' . 
+                            collect($records)->sum(fn($r) => $r->jumlah_pasien_umum + $r->jumlah_pasien_bpjs) . ' pasien.'
+                        )
+                        ->action(function (array $records) {
+                            $approved = 0;
+                            $totalPatients = 0;
+                            
+                            foreach ($records as $record) {
+                                if ($record->status_validasi === 'pending') {
+                                    $record->update([
+                                        'status_validasi' => 'approved',
+                                        'validasi_by' => Auth::id(),
+                                        'validasi_at' => now(),
+                                    ]);
+                                    $approved++;
+                                    $totalPatients += $record->jumlah_pasien_umum + $record->jumlah_pasien_bpjs;
+                                }
+                            }
+                            
+                            // Clear manager dashboard cache
+                            \Illuminate\Support\Facades\Cache::forget('manajer_today_stats_' . now()->format('Y-m-d'));
+                            
+                            Notification::make()
+                                ->title('✅ Validasi Massal Berhasil')
+                                ->body("{$approved} data pasien disetujui dengan total {$totalPatients} pasien")
+                                ->success()
+                                ->send();
+                        }),
+                        
+                    Tables\Actions\BulkAction::make('bulk_reject')
+                        ->label('❌ Tolak Massal')
+                        ->color('danger')
+                        ->icon('heroicon-o-x-circle')
+                        ->requiresConfirmation()
+                        ->form([
+                            Forms\Components\Textarea::make('bulk_rejection_reason')
+                                ->label('Alasan Penolakan Massal')
+                                ->placeholder('Jelaskan alasan penolakan untuk semua data...')
+                                ->required()
+                                ->rows(3),
+                        ])
+                        ->action(function (array $records, array $data) {
+                            $rejected = 0;
+                            
+                            foreach ($records as $record) {
+                                if ($record->status_validasi === 'pending') {
+                                    $record->update([
+                                        'status_validasi' => 'rejected',
+                                        'catatan_validasi' => $data['bulk_rejection_reason'],
+                                        'validasi_by' => Auth::id(),
+                                        'validasi_at' => now(),
+                                    ]);
+                                    $rejected++;
+                                }
+                            }
+                            
+                            Notification::make()
+                                ->title('❌ Penolakan Massal Berhasil')
+                                ->body("{$rejected} data pasien ditolak")
+                                ->warning()
+                                ->send();
+                        }),
+                ])
+            ])
             ->headerActions([
+                Action::make('auto_validation_setup')
+                    ->label('⚡ Validasi Otomatis')
+                    ->color('warning')
+                    ->icon('heroicon-o-bolt')
+                    ->form([
+                        Forms\Components\Toggle::make('enable_auto_validation')
+                            ->label('Aktifkan Validasi Otomatis')
+                            ->helperText('Auto-approve data yang memenuhi kriteria standard'),
+                        Forms\Components\TextInput::make('max_patient_threshold')
+                            ->label('Batas Maksimal Pasien')
+                            ->numeric()
+                            ->default(50)
+                            ->helperText('Data dengan pasien ≤ nilai ini akan di-approve otomatis'),
+                        Forms\Components\TextInput::make('max_jaspel_threshold') 
+                            ->label('Batas Maksimal JASPEL (Rp)')
+                            ->numeric()
+                            ->default(500000)
+                            ->prefix('Rp')
+                            ->helperText('Data dengan JASPEL ≤ nilai ini akan di-approve otomatis'),
+                    ])
+                    ->action(function (array $data) {
+                        if ($data['enable_auto_validation']) {
+                            $autoApproved = JumlahPasienHarian::where('status_validasi', 'pending')
+                                ->whereRaw('(jumlah_pasien_umum + jumlah_pasien_bpjs) <= ?', [$data['max_patient_threshold']])
+                                ->where('jaspel_rupiah', '<=', $data['max_jaspel_threshold'])
+                                ->update([
+                                    'status_validasi' => 'approved',
+                                    'validasi_by' => Auth::id(),
+                                    'validasi_at' => now(),
+                                    'catatan_validasi' => 'Auto-approved: Memenuhi kriteria standard (≤' . $data['max_patient_threshold'] . ' pasien, ≤Rp' . number_format($data['max_jaspel_threshold']) . ')'
+                                ]);
+                            
+                            // Clear manager dashboard cache
+                            \Illuminate\Support\Facades\Cache::forget('manajer_today_stats_' . now()->format('Y-m-d'));
+                            
+                            Notification::make()
+                                ->title('⚡ Validasi Otomatis Selesai')
+                                ->body("{$autoApproved} data pasien di-approve otomatis berdasarkan kriteria")
+                                ->success()
+                                ->send();
+                        }
+                    }),
+                    
                 Action::make('patient_summary')
                     ->label('👥 Ringkasan Pasien')
                     ->color('info')
@@ -365,10 +548,8 @@ class ValidasiJumlahPasienResource extends Resource
                             'monthly_avg' => JumlahPasienHarian::whereMonth('tanggal', now()->month)
                                 ->selectRaw('AVG(jumlah_pasien_umum + jumlah_pasien_bpjs) as avg')
                                 ->value('avg') ?? 0,
-                            'total_jaspel_today' => JumlahPasienHarian::whereDate('tanggal', $today)
-                                ->sum('jaspel_rupiah') ?? 0,
-                            'avg_jaspel_monthly' => JumlahPasienHarian::whereMonth('tanggal', now()->month)
-                                ->avg('jaspel_rupiah') ?? 0,
+                            'total_jaspel_today' => static::calculateTotalJaspelForDate($today),
+                            'avg_jaspel_monthly' => static::calculateAvgJaspelForMonth(now()->month, now()->year),
                         ];
 
                         $message = "👥 **RINGKASAN PASIEN HARIAN**\n\n";
@@ -397,7 +578,7 @@ class ValidasiJumlahPasienResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        return static::getModel()::where('status_validasi', ValidationStatus::PENDING)->count();
+        return static::getModel()::whereIn('status_validasi', ['pending', 'menunggu'])->count() ?: null;
     }
 
     public static function canAccess(): bool
@@ -413,7 +594,7 @@ class ValidasiJumlahPasienResource extends Resource
     
     public static function shouldRegisterNavigation(): bool
     {
-        return static::canAccess();
+        return true;
     }
 
     public static function getPages(): array
@@ -421,5 +602,82 @@ class ValidasiJumlahPasienResource extends Resource
         return [
             'index' => ValidasiJumlahPasienResource\Pages\ListValidasiJumlahPasien::route('/'),
         ];
+    }
+
+    /**
+     * Calculate total jaspel for a specific date using procedure + patient calculation
+     */
+    private static function calculateTotalJaspelForDate(string $date): float
+    {
+        $records = JumlahPasienHarian::whereDate('tanggal', $date)->get();
+        $total = 0;
+        
+        foreach ($records as $record) {
+            // Calculate procedure revenue
+            $procedureRevenue = 0;
+            if ($record->dokter_id) {
+                $procedureRevenue = \App\Models\Tindakan::where('dokter_id', $record->dokter_id)
+                    ->whereDate('tanggal_tindakan', $record->tanggal)
+                    ->where('status_validasi', 'disetujui')
+                    ->sum('jasa_dokter') ?? 0;
+            }
+            
+            // Calculate patient jaspel
+            $patientJaspel = 0;
+            try {
+                $jaspelService = app(\App\Services\Jaspel\UnifiedJaspelCalculationService::class);
+                $patientCalculation = $jaspelService->calculateForPasienRecord($record);
+                $patientJaspel = $patientCalculation['total'] ?? 0;
+            } catch (\Exception $e) {
+                $patientJaspel = 0;
+            }
+            
+            $total += $procedureRevenue + $patientJaspel;
+        }
+        
+        return $total;
+    }
+
+    /**
+     * Calculate average jaspel for a specific month using procedure + patient calculation
+     */
+    private static function calculateAvgJaspelForMonth(int $month, int $year): float
+    {
+        $records = JumlahPasienHarian::whereMonth('tanggal', $month)
+            ->whereYear('tanggal', $year)
+            ->get();
+            
+        if ($records->isEmpty()) {
+            return 0;
+        }
+        
+        $total = 0;
+        $count = 0;
+        
+        foreach ($records as $record) {
+            // Calculate procedure revenue
+            $procedureRevenue = 0;
+            if ($record->dokter_id) {
+                $procedureRevenue = \App\Models\Tindakan::where('dokter_id', $record->dokter_id)
+                    ->whereDate('tanggal_tindakan', $record->tanggal)
+                    ->where('status_validasi', 'disetujui')
+                    ->sum('jasa_dokter') ?? 0;
+            }
+            
+            // Calculate patient jaspel
+            $patientJaspel = 0;
+            try {
+                $jaspelService = app(\App\Services\Jaspel\UnifiedJaspelCalculationService::class);
+                $patientCalculation = $jaspelService->calculateForPasienRecord($record);
+                $patientJaspel = $patientCalculation['total'] ?? 0;
+            } catch (\Exception $e) {
+                $patientJaspel = 0;
+            }
+            
+            $total += $procedureRevenue + $patientJaspel;
+            $count++;
+        }
+        
+        return $count > 0 ? $total / $count : 0;
     }
 }

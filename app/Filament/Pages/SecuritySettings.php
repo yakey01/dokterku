@@ -68,7 +68,7 @@ class SecuritySettings extends Page
                 ->action('loadSecurityData'),
                 
             Action::make('setup_2fa')
-                ->icon('heroicon-o-device-phone-mobile')
+                ->icon('heroicon-o-device-tablet')
                 ->color('primary')
                 ->visible(fn() => !app(TwoFactorAuthService::class)->isEnabled(Auth::user()))
                 ->url(route('filament.admin.pages.two-factor-setup')),

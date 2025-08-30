@@ -19,6 +19,14 @@ use App\Http\Controllers\Api\V2\HospitalLocationController;
 |
 */
 
+// 🚀 NEW: API Version 3 - Unified Dashboard System
+Route::prefix('v3')->group(function () {
+    require __DIR__ . '/api/v3.php';
+});
+
+// ⚠️ DEPRECATED: Legacy dashboard routes (will be removed in future versions)
+// Please migrate to API V3 unified dashboard system
+
 // 🚀 Dashboard Routes - Higher rate limits for real-time features  
 Route::prefix('v2/dashboards')->middleware(['auth:sanctum', 'throttle:240,1'])->name('api.v2.dashboards.')->group(function () {
     // Paramedis Dashboard

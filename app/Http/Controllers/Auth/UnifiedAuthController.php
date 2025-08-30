@@ -30,8 +30,6 @@ class UnifiedAuthController extends Controller
      */
     public function store(Request $request)
     {
-        // CSRF protection is handled by middleware exclusion for this route
-
         // Rate limiting check
         $key = 'login_attempts:' . $request->ip();
         $maxAttempts = 5;
@@ -319,6 +317,9 @@ class UnifiedAuthController extends Controller
             \Illuminate\Support\Facades\RateLimiter::clear($key);
             
             $request->session()->regenerate();
+            
+            // CRITICAL: Save session immediately to prevent race conditions
+            $request->session()->save();
 
             $user = Auth::user();
             
@@ -427,7 +428,19 @@ class UnifiedAuthController extends Controller
                 ]);
             }
             
-            // Handle regular form requests
+            // Handle regular form requests - Enhanced logging for redirect loop debugging
+            Log::info('UnifiedAuthController: About to redirect after successful login', [
+                'user_id' => $user->id,
+                'user_email' => $user->email,
+                'redirect_url' => $redirectUrl,
+                'session_id' => $request->session()->getId(),
+                'auth_check' => Auth::check(),
+                'auth_id' => Auth::id()
+            ]);
+            
+            // Additional session save to ensure persistence
+            $request->session()->save();
+            
             return redirect($redirectUrl);
         }
 

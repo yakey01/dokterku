@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { debug, api, transform, performance, state, prodError } from '../../utils/debugLogger';
 import getUnifiedAuthInstance from '../../utils/UnifiedAuth';
 import { HoursFormatter } from '../../utils/hoursFormatter';
+import { formatDate as formatShortDate } from '../../utils/dokter/attendanceHelpers';
 import { 
   Calendar, 
   Clock, 
@@ -473,6 +474,30 @@ const JadwalJaga = ({ userData, onNavigate }: JadwalJagaProps) => {
             state('JadwalJaga', `Schedule data has changed, updating UI with ${transformedMissions.length} cards`);
           }
           setMissions(transformedMissions);
+          
+          // 🔄 BROADCAST EVENT: Notify other components of status changes
+          const completedMissions = transformedMissions.filter(m => m.status === 'completed');
+          if (completedMissions.length > 0) {
+            // Dispatch event untuk Presensi History component
+            window.dispatchEvent(new CustomEvent('jadwal-status-changed', {
+              detail: {
+                type: 'completed_missions_loaded',
+                count: completedMissions.length,
+                missions: completedMissions.map(m => ({
+                  id: m.id,
+                  date: m.full_date,
+                  status: m.status_jaga,
+                  time: m.time
+                })),
+                timestamp: new Date().toISOString()
+              }
+            }));
+            
+            console.log('🔔 Broadcasting jadwal status change event', {
+              completed_count: completedMissions.length,
+              timestamp: new Date().toISOString()
+            });
+          }
         }
         debug.log('JadwalJaga: Data loaded successfully');
     } catch (err) {
@@ -641,7 +666,7 @@ const JadwalJaga = ({ userData, onNavigate }: JadwalJagaProps) => {
           id: schedule.id || index + 1,
           title: schedule.title || shiftInfo.nama_shift || "Dokter Jaga",
           subtitle: getShiftSubtitle(shiftInfo.nama_shift),
-          date: new Date(schedule.start).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
+          date: formatShortDate(new Date(schedule.start)),
           full_date: schedule.start,
           day_name: new Date(schedule.start).toLocaleDateString('id-ID', { weekday: 'long' }),
           time: shiftTime,
@@ -698,7 +723,7 @@ const JadwalJaga = ({ userData, onNavigate }: JadwalJagaProps) => {
           id: schedule.id || index + 1,
           title: shiftTemplate.nama_shift || "Dokter Jaga",
           subtitle: getShiftSubtitle(shiftTemplate.nama_shift),
-          date: new Date(scheduleDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
+          date: formatShortDate(new Date(scheduleDate)),
           full_date: scheduleDate,
           day_name: new Date(scheduleDate).toLocaleDateString('id-ID', { weekday: 'long' }),
           time: shiftTime,
@@ -738,7 +763,7 @@ const JadwalJaga = ({ userData, onNavigate }: JadwalJagaProps) => {
           id: schedule.id || index + 1,
           title: "Dokter Jaga",
           subtitle: "General Medical Duty",
-          date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
+          date: formatShortDate(new Date()),
           full_date: new Date().toISOString(),
           day_name: new Date().toLocaleDateString('id-ID', { weekday: 'long' }),
           time: '08:00 - 16:00',
@@ -854,7 +879,7 @@ const JadwalJaga = ({ userData, onNavigate }: JadwalJagaProps) => {
           id: schedule.id || index + 1,
           title: schedule.title || shiftInfo.nama_shift || "Dokter Jaga",
           subtitle: getShiftSubtitle(shiftInfo.nama_shift),
-          date: new Date(schedule.start).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
+          date: formatShortDate(new Date(schedule.start)),
           full_date: schedule.start,
           day_name: new Date(schedule.start).toLocaleDateString('id-ID', { weekday: 'long' }),
           time: shiftTime,
@@ -911,7 +936,7 @@ const JadwalJaga = ({ userData, onNavigate }: JadwalJagaProps) => {
           id: schedule.id || index + 1,
           title: shiftTemplate.nama_shift || "Dokter Jaga",
           subtitle: getShiftSubtitle(shiftTemplate.nama_shift),
-          date: new Date(scheduleDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
+          date: formatShortDate(new Date(scheduleDate)),
           full_date: scheduleDate,
           day_name: new Date(scheduleDate).toLocaleDateString('id-ID', { weekday: 'long' }),
           time: shiftTime,
@@ -937,7 +962,7 @@ const JadwalJaga = ({ userData, onNavigate }: JadwalJagaProps) => {
           id: schedule.id || index + 1,
           title: "Dokter Jaga",
           subtitle: "General Medical Duty",
-          date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
+          date: formatShortDate(new Date()),
           full_date: new Date().toISOString(),
           day_name: new Date().toLocaleDateString('id-ID', { weekday: 'long' }),
           time: '08:00 - 16:00',
@@ -1417,7 +1442,7 @@ const JadwalJaga = ({ userData, onNavigate }: JadwalJagaProps) => {
                               {mission.subtitle || 'Shift Jaga'}
                             </p>
                             <div className={`text-gray-400 ${isIpad ? 'text-xs' : 'text-xs'} mt-1`}>
-                              {mission.day_name} • {new Date(mission.full_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                              {mission.day_name} • {formatShortDate(new Date(mission.full_date))}
                             </div>
                           </div>
                         </div>

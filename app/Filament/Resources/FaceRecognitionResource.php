@@ -25,7 +25,7 @@ class FaceRecognitionResource extends Resource
     protected static ?string $navigationLabel = 'Face Recognition';
     protected static ?string $modelLabel = 'Face Recognition';
     protected static ?string $pluralModelLabel = 'Face Recognitions';
-    protected static ?string $navigationGroup = '📍 PRESENSI';
+    protected static ?string $navigationGroup = 'Attendance';
     protected static ?int $navigationSort = 43;
 
     public static function form(Form $form): Form

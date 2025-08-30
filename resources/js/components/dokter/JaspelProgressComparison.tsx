@@ -119,7 +119,34 @@ const JaspelProgressComparison: React.FC<JaspelProgressComparisonProps> = ({
     );
   }
 
-  const { current_month, previous_month, comparison } = data;
+  // Safe destructuring with fallback values
+  const current_month = data?.current_month || {
+    total: 0,
+    approved: 0,
+    pending: 0,
+    rejected: 0,
+    count: 0,
+    month_name: 'Loading...',
+    month: new Date().getMonth() + 1,
+    year: new Date().getFullYear()
+  };
+  
+  const previous_month = data?.previous_month || {
+    total: 0,
+    approved: 0,
+    pending: 0,
+    rejected: 0,
+    count: 0,
+    month_name: 'Loading...',
+    month: new Date().getMonth(),
+    year: new Date().getFullYear()
+  };
+  
+  const comparison = data?.comparison || {
+    total_change: 0,
+    total_change_percentage: 0,
+    trend: 'stable' as const
+  };
   
   // Determine colors based on trend
   const getTrendColors = () => {
@@ -246,7 +273,7 @@ const JaspelProgressComparison: React.FC<JaspelProgressComparisonProps> = ({
               <div className="flex items-center">
                 <Trophy className="w-5 h-5 text-purple-400 mr-3" />
                 <div>
-                  <p className="text-purple-300 text-sm font-medium">{current_month.month_name}</p>
+                  <p className="text-purple-300 text-sm font-medium">{current_month?.month_name || 'Loading...'}</p>
                   <p className="text-xs text-gray-400">Bulan Ini</p>
                 </div>
               </div>
@@ -265,7 +292,7 @@ const JaspelProgressComparison: React.FC<JaspelProgressComparisonProps> = ({
               <div className="flex items-center">
                 <Calendar className="w-5 h-5 text-gray-400 mr-3" />
                 <div>
-                  <p className="text-gray-300 text-sm font-medium">{previous_month.month_name}</p>
+                  <p className="text-gray-300 text-sm font-medium">{previous_month?.month_name || 'Loading...'}</p>
                   <p className="text-xs text-gray-400">Bulan Lalu</p>
                 </div>
               </div>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug: Manager Dashboard</title>
+    <meta name="csrf-token" content="debug-token-123">
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .debug-panel {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: black;
+            color: lime;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            max-width: 300px;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body>
+    <div id="debug-info" class="debug-panel">
+        <div>🔍 Debug Mode Active</div>
+        <div id="api-status">📡 API: Waiting...</div>
+        <div id="data-status">📊 Data: Not loaded</div>
+        <div id="render-status">🎨 Render: Initial</div>
+    </div>
+    
+    <div id="root"></div>
+
+    <script>
+        // Mock API data for testing
+        const mockApiResponse = {
+            success: true,
+            data: {
+                revenue: { amount: 1000000, formatted: "Rp 1.000.000" },
+                expenses: { amount: 150000, formatted: "Rp 150.000" },
+                profit: { amount: 850000, formatted: "Rp 850.000" },
+                patients: { count: 25 },
+                attendance: { present: 8 }
+            }
+        };
+
+        // Override axios for testing
+        const originalAxios = axios.get;
+        axios.get = async (url, config) => {
+            document.getElementById('api-status').textContent = `📡 API: ${url}`;
+            
+            // Simulate API delay
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            if (url.includes('today-stats')) {
+                document.getElementById('data-status').textContent = `📊 Data: Mock returned (Revenue: ${mockApiResponse.data.revenue.amount})`;
+                return { status: 200, data: mockApiResponse };
+            }
+            
+            // Default mock response
+            return { status: 200, data: { success: true, data: {} } };
+        };
+
+        // Simple test component
+        function TestComponent() {
+            const [revenue, setRevenue] = React.useState(0);
+            const [expenses, setExpenses] = React.useState(0);
+            const [loading, setLoading] = React.useState(true);
+            const [error, setError] = React.useState('');
+
+            const fetchData = async () => {
+                try {
+                    setLoading(true);
+                    const response = await axios.get('/api/v2/dashboards/dokter/manajer/today-stats');
+                    
+                    if (response.data.success) {
+                        const data = response.data.data;
+                        setRevenue(data.revenue?.amount || 0);
+                        setExpenses(data.expenses?.amount || 0);
+                        document.getElementById('render-status').textContent = `🎨 Render: Success (R:${data.revenue?.amount}, E:${data.expenses?.amount})`;
+                    } else {
+                        setError('API response not successful');
+                    }
+                } catch (err) {
+                    setError('Failed to fetch: ' + err.message);
+                    document.getElementById('render-status').textContent = `🎨 Render: Error (${err.message})`;
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            React.useEffect(() => {
+                fetchData();
+            }, []);
+
+            return React.createElement('div', { className: 'p-8 max-w-4xl mx-auto' },
+                React.createElement('h1', { className: 'text-3xl font-bold mb-8 text-center' }, 'Manager Dashboard Debug'),
+                
+                // Revenue Card
+                React.createElement('div', { 
+                    className: 'bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-2xl p-6 text-white shadow-lg mb-4' 
+                },
+                    React.createElement('h3', { className: 'text-2xl font-bold mb-1' },
+                        loading ? 'Loading...' : 
+                        error ? `Error: ${error}` :
+                        `Rp ${revenue.toLocaleString('id-ID')}`
+                    ),
+                    React.createElement('div', { className: 'text-xs opacity-70 mt-1' },
+                        `Debug Revenue: ${revenue} | Loading: ${loading}`
+                    ),
+                    React.createElement('p', { className: 'text-sm opacity-90' }, 'Total Pendapatan')
+                ),
+                
+                // Expenses Card
+                React.createElement('div', { 
+                    className: 'bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl p-6 text-white shadow-lg mb-4' 
+                },
+                    React.createElement('h3', { className: 'text-2xl font-bold mb-1' },
+                        loading ? 'Loading...' : 
+                        error ? `Error: ${error}` :
+                        `Rp ${expenses.toLocaleString('id-ID')}`
+                    ),
+                    React.createElement('div', { className: 'text-xs opacity-70 mt-1' },
+                        `Debug Expenses: ${expenses} | Loading: ${loading}`
+                    ),
+                    React.createElement('p', { className: 'text-sm opacity-90' }, 'Total Pengeluaran')
+                ),
+                
+                // Debug Info
+                React.createElement('div', { className: 'bg-black text-lime-400 p-4 rounded-lg font-mono text-sm' },
+                    React.createElement('div', {}, `Revenue Value: ${revenue}`),
+                    React.createElement('div', {}, `Expenses Value: ${expenses}`),
+                    React.createElement('div', {}, `Loading State: ${loading}`),
+                    React.createElement('div', {}, `Error State: ${error || 'None'}`),
+                    React.createElement('button', {
+                        onClick: fetchData,
+                        className: 'mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700'
+                    }, 'Refresh Data')
+                )
+            );
+        }
+
+        // Render the component
+        ReactDOM.render(React.createElement(TestComponent), document.getElementById('root'));
+    </script>
+</body>
+</html>

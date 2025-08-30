@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✨ Minimalist Glass Table Demo - Inspired by Top SaaS Platforms</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+            color: #1f2937;
+            min-height: 100vh;
+            padding: 2rem;
+            line-height: 1.5;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.025em;
+        }
+
+        .page-subtitle {
+            font-size: 1rem;
+            color: #6b7280;
+            font-weight: 400;
+        }
+
+        /* ================================================================ */
+        /* MINIMALIST GLASS TABLE CONTAINER - INSPIRED BY MODERN SAAS UI */
+        /* ================================================================ */
+
+        .glass-table-container {
+            /* Subtle Glass Background */
+            background: rgba(255, 255, 255, 0.85);
+            
+            /* Light Backdrop Filter */
+            backdrop-filter: blur(10px) saturate(110%);
+            -webkit-backdrop-filter: blur(10px) saturate(110%);
+            
+            /* Clean Minimal Border */
+            border: 1px solid rgba(229, 231, 235, 0.8);
+            border-radius: 12px;
+            
+            /* Subtle Shadow System */
+            box-shadow: 
+                0 1px 3px 0 rgba(0, 0, 0, 0.1),
+                0 1px 2px -1px rgba(0, 0, 0, 0.1);
+            
+            /* Clean Transitions */
+            transition: all 0.2s ease;
+            
+            /* Layout */
+            overflow: hidden;
+            margin: 0 auto;
+            max-width: 1200px;
+        }
+
+        .glass-table-container:hover {
+            /* Enhanced Glass Effect on Hover */
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px) saturate(115%);
+            -webkit-backdrop-filter: blur(12px) saturate(115%);
+            
+            /* Minimal Border Enhancement */
+            border-color: rgba(209, 213, 219, 0.9);
+            
+            /* Subtle Shadow Enhancement */
+            box-shadow: 
+                0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+
+        /* ================================================================ */
+        /* MINIMALIST TABLE STYLING */
+        /* ================================================================ */
+
+        .minimalist-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+            color: #374151;
+            background: transparent;
+        }
+
+        /* Clean Headers */
+        .minimalist-table thead th {
+            background: rgba(249, 250, 251, 0.8);
+            border-bottom: 1px solid rgba(229, 231, 235, 0.8);
+            color: #374151;
+            font-weight: 600;
+            font-size: 0.8125rem;
+            letter-spacing: 0.025em;
+            text-transform: uppercase;
+            padding: 1rem 1.25rem;
+            text-align: left;
+            transition: all 0.2s ease;
+        }
+
+        /* Clean Rows */
+        .minimalist-table tbody tr {
+            background: rgba(255, 255, 255, 0.6);
+            border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+            color: #374151;
+            transition: all 0.15s ease;
+            position: relative;
+        }
+
+        .minimalist-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        /* Subtle Hover Effects */
+        .minimalist-table tbody tr:hover {
+            background: rgba(249, 250, 251, 0.9);
+            border-bottom-color: rgba(209, 213, 219, 0.8);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Cell Styling */
+        .minimalist-table td,
+        .minimalist-table th {
+            padding: 1rem 1.25rem;
+            text-align: left;
+            border-right: 1px solid rgba(229, 231, 235, 0.3);
+        }
+
+        .minimalist-table td:last-child,
+        .minimalist-table th:last-child {
+            border-right: none;
+        }
+
+        /* Enhanced Cell Hover */
+        .minimalist-table tbody tr:hover td {
+            color: #111827;
+        }
+
+        /* ================================================================ */
+        /* MINIMALIST BADGES & COMPONENTS */
+        /* ================================================================ */
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(243, 244, 246, 0.8);
+            border: 1px solid rgba(229, 231, 235, 0.8);
+            border-radius: 6px;
+            color: #374151;
+            font-weight: 500;
+            font-size: 0.8125rem;
+            padding: 0.25rem 0.75rem;
+            transition: all 0.15s ease;
+        }
+
+        .badge:hover {
+            background: rgba(229, 231, 235, 0.9);
+            border-color: rgba(209, 213, 219, 0.9);
+        }
+
+        .badge-primary { 
+            background: rgba(239, 246, 255, 0.8); 
+            color: #1d4ed8; 
+            border-color: rgba(191, 219, 254, 0.8);
+        }
+        
+        .badge-success { 
+            background: rgba(236, 253, 245, 0.8); 
+            color: #047857; 
+            border-color: rgba(167, 243, 208, 0.8);
+        }
+        
+        .badge-warning { 
+            background: rgba(255, 251, 235, 0.8); 
+            color: #d97706; 
+            border-color: rgba(254, 215, 170, 0.8);
+        }
+        
+        .badge-info { 
+            background: rgba(236, 254, 255, 0.8); 
+            color: #0891b2; 
+            border-color: rgba(165, 243, 252, 0.8);
+        }
+
+        /* Action Buttons */
+        .action-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .action-btn {
+            background: rgba(249, 250, 251, 0.8);
+            border: 1px solid rgba(229, 231, 235, 0.8);
+            border-radius: 6px;
+            color: #6b7280;
+            font-weight: 500;
+            padding: 0.5rem 0.75rem;
+            transition: all 0.15s ease;
+            cursor: pointer;
+            font-size: 0.8125rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .action-btn:hover {
+            background: rgba(243, 244, 246, 0.9);
+            border-color: rgba(209, 213, 219, 0.9);
+            color: #374151;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Search Bar */
+        .search-container {
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .search-input {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(229, 231, 235, 0.8);
+            border-radius: 8px;
+            color: #374151;
+            font-weight: 400;
+            padding: 0.75rem 1rem;
+            transition: all 0.2s ease;
+            width: 100%;
+            max-width: 320px;
+            font-size: 0.875rem;
+        }
+
+        .search-input:focus {
+            background: rgba(255, 255, 255, 0.95);
+            border-color: rgba(99, 102, 241, 0.5);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .search-input::placeholder {
+            color: #9ca3af;
+        }
+
+        /* Table Actions */
+        .table-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 8px;
+            backdrop-filter: blur(8px);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .primary-btn {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            border: none;
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.8125rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .primary-btn:hover {
+            background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Pagination */
+        .pagination {
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .page-item {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(229, 231, 235, 0.8);
+            border-radius: 6px;
+            color: #6b7280;
+            font-weight: 500;
+            padding: 0.5rem 0.75rem;
+            transition: all 0.15s ease;
+            cursor: pointer;
+            font-size: 0.8125rem;
+        }
+
+        .page-item:hover {
+            background: rgba(243, 244, 246, 0.9);
+            border-color: rgba(209, 213, 219, 0.9);
+            color: #374151;
+        }
+
+        .page-item.active {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            border-color: #4f46e5;
+            color: white;
+        }
+
+        /* Status Indicator */
+        .status-indicator {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: rgba(236, 253, 245, 0.9);
+            border: 1px solid rgba(167, 243, 208, 0.8);
+            border-radius: 8px;
+            color: #047857;
+            padding: 0.75rem 1rem;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            font-size: 0.8125rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .glass-table-container {
+                margin: 0.5rem;
+                border-radius: 8px;
+            }
+            
+            .minimalist-table tbody tr:hover {
+                transform: none;
+            }
+            
+            .minimalist-table td,
+            .minimalist-table th {
+                padding: 0.75rem 1rem;
+                font-size: 0.8125rem;
+            }
+            
+            .table-actions {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .primary-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* Demo Info Box */
+        .demo-info {
+            background: rgba(239, 246, 255, 0.8);
+            border: 1px solid rgba(191, 219, 254, 0.8);
+            border-radius: 8px;
+            color: #1e40af;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(8px);
+            text-align: center;
+        }
+
+        /* Comparison Section */
+        .comparison-section {
+            margin-top: 3rem;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(229, 231, 235, 0.8);
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .comparison-card {
+            background: rgba(249, 250, 251, 0.8);
+            padding: 1.25rem;
+            border-radius: 8px;
+            border: 1px solid rgba(229, 231, 235, 0.6);
+        }
+
+        .comparison-card h4 {
+            color: #1f2937;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            font-size: 0.9375rem;
+        }
+
+        .comparison-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .comparison-card li {
+            color: #6b7280;
+            margin: 0.5rem 0;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .comparison-card li::before {
+            content: "✓";
+            color: #059669;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        /* Accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            .glass-table-container,
+            .minimalist-table tbody tr,
+            .action-btn,
+            .primary-btn {
+                transition: none !important;
+                transform: none !important;
+            }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+                color: #f3f4f6;
+            }
+            
+            .glass-table-container {
+                background: rgba(31, 41, 55, 0.85);
+                border-color: rgba(75, 85, 99, 0.8);
+            }
+            
+            .minimalist-table thead th {
+                background: rgba(17, 24, 39, 0.8);
+                color: #f3f4f6;
+                border-bottom-color: rgba(75, 85, 99, 0.8);
+            }
+            
+            .minimalist-table tbody tr {
+                background: rgba(31, 41, 55, 0.6);
+                color: #f3f4f6;
+                border-bottom-color: rgba(75, 85, 99, 0.5);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="status-indicator">
+        ✨ Minimalist Glass Demo Active
+    </div>
+
+    <div class="page-header">
+        <h1 class="page-title">✨ Minimalist Glass Table</h1>
+        <p class="page-subtitle">
+            Modern SaaS-inspired design dengan subtle glassmorphism effects
+        </p>
+    </div>
+
+    <div class="demo-info">
+        <strong>🎯 Design Inspiration:</strong> Berdasarkan analisis top 10 SaaS platforms seperti 
+        Linear, Notion, Stripe Dashboard, dan modern web applications dengan fokus pada minimalism dan clarity.
+    </div>
+
+    <div class="search-container">
+        <input type="text" class="search-input" placeholder="🔍 Search data..." />
+    </div>
+
+    <div class="table-actions">
+        <h3 style="color: #374151; font-weight: 600; font-size: 1rem;">📊 Data Management</h3>
+        <div class="header-actions">
+            <button class="primary-btn">➕ Add New</button>
+            <button class="primary-btn">📤 Export</button>
+            <button class="primary-btn">🔄 Refresh</button>
+        </div>
+    </div>
+
+    <div class="glass-table-container">
+        <table class="minimalist-table">
+            <thead>
+                <tr>
+                    <th>📅 Date</th>
+                    <th>🏥 Department</th>
+                    <th>⏰ Shift</th>
+                    <th>👨‍⚕️ Doctor</th>
+                    <th>👥 General</th>
+                    <th>🆔 BPJS</th>
+                    <th>📊 Total</th>
+                    <th>✅ Status</th>
+                    <th>⚙️ Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="font-weight: 600;">27/08/2025</td>
+                    <td><span class="badge badge-primary">General Practice</span></td>
+                    <td><span class="badge badge-warning">🌅 Morning</span></td>
+                    <td>
+                        <strong style="color: #059669;">dr. Yaya Mulyana, M.Kes</strong><br>
+                        <small style="color: #9ca3af;">NIK: 1234567890 | SIP: SIP001</small>
+                    </td>
+                    <td style="text-align: center; color: #1d4ed8; font-weight: 600; font-size: 1rem;">15</td>
+                    <td style="text-align: center; color: #0891b2; font-weight: 600; font-size: 1rem;">8</td>
+                    <td style="text-align: center;"><span class="badge badge-success">23</span></td>
+                    <td><span class="badge badge-success">✅ Approved</span></td>
+                    <td>
+                        <div class="action-group">
+                            <button class="action-btn">✏️ Edit</button>
+                            <button class="action-btn">🗑️ Delete</button>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="font-weight: 600;">26/08/2025</td>
+                    <td><span class="badge badge-success">Dental</span></td>
+                    <td><span class="badge badge-info">🌇 Evening</span></td>
+                    <td>
+                        <strong style="color: #059669;">drg. Siti Rahman</strong><br>
+                        <small style="color: #9ca3af;">NIK: 0987654321 | SIP: SIP002</small>
+                    </td>
+                    <td style="text-align: center; color: #1d4ed8; font-weight: 600; font-size: 1rem;">12</td>
+                    <td style="text-align: center; color: #0891b2; font-weight: 600; font-size: 1rem;">5</td>
+                    <td style="text-align: center;"><span class="badge badge-success">17</span></td>
+                    <td><span class="badge badge-warning">⏳ Pending</span></td>
+                    <td>
+                        <div class="action-group">
+                            <button class="action-btn">✏️ Edit</button>
+                            <button class="action-btn">🗑️ Delete</button>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="font-weight: 600;">25/08/2025</td>
+                    <td><span class="badge badge-primary">General Practice</span></td>
+                    <td><span class="badge badge-warning">🌅 Morning</span></td>
+                    <td>
+                        <strong style="color: #059669;">dr. Ahmad Wijaya</strong><br>
+                        <small style="color: #9ca3af;">NIK: 1122334455 | SIP: SIP003</small>
+                    </td>
+                    <td style="text-align: center; color: #1d4ed8; font-weight: 600; font-size: 1rem;">20</td>
+                    <td style="text-align: center; color: #0891b2; font-weight: 600; font-size: 1rem;">10</td>
+                    <td style="text-align: center;"><span class="badge badge-success">30</span></td>
+                    <td><span class="badge badge-success">✅ Approved</span></td>
+                    <td>
+                        <div class="action-group">
+                            <button class="action-btn">👁️ View</button>
+                            <button class="action-btn">📊 Report</button>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="font-weight: 600;">24/08/2025</td>
+                    <td><span class="badge badge-success">Dental</span></td>
+                    <td><span class="badge badge-info">🌇 Evening</span></td>
+                    <td>
+                        <strong style="color: #059669;">drg. Maria Santoso</strong><br>
+                        <small style="color: #9ca3af;">NIK: 5566778899 | SIP: SIP004</small>
+                    </td>
+                    <td style="text-align: center; color: #1d4ed8; font-weight: 600; font-size: 1rem;">8</td>
+                    <td style="text-align: center; color: #0891b2; font-weight: 600; font-size: 1rem;">12</td>
+                    <td style="text-align: center;"><span class="badge badge-success">20</span></td>
+                    <td><span class="badge badge-success">✅ Approved</span></td>
+                    <td>
+                        <div class="action-group">
+                            <button class="action-btn">✏️ Edit</button>
+                            <button class="action-btn">📈 Analytics</button>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="font-weight: 600;">23/08/2025</td>
+                    <td><span class="badge badge-primary">General Practice</span></td>
+                    <td><span class="badge badge-warning">🌅 Morning</span></td>
+                    <td>
+                        <strong style="color: #059669;">dr. Budi Hartono</strong><br>
+                        <small style="color: #9ca3af;">NIK: 9988776655 | SIP: SIP005</small>
+                    </td>
+                    <td style="text-align: center; color: #1d4ed8; font-weight: 600; font-size: 1rem;">18</td>
+                    <td style="text-align: center; color: #0891b2; font-weight: 600; font-size: 1rem;">7</td>
+                    <td style="text-align: center;"><span class="badge badge-success">25</span></td>
+                    <td><span class="badge badge-success">✅ Approved</span></td>
+                    <td>
+                        <div class="action-group">
+                            <button class="action-btn">👁️ View</button>
+                            <button class="action-btn">📋 Details</button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="pagination">
+        <div class="page-item">‹ Previous</div>
+        <div class="page-item active">1</div>
+        <div class="page-item">2</div>
+        <div class="page-item">3</div>
+        <div class="page-item">4</div>
+        <div class="page-item">Next ›</div>
+    </div>
+
+    <div class="comparison-section">
+        <h3 style="color: #1f2937; margin-bottom: 1rem; font-size: 1.25rem; font-weight: 700; text-align: center;">
+            ✨ Modern SaaS Design Principles Applied
+        </h3>
+        
+        <div class="comparison-grid">
+            <div class="comparison-card">
+                <h4>🎨 Visual Hierarchy</h4>
+                <ul>
+                    <li>Subtle glassmorphism effects</li>
+                    <li>10px backdrop blur for depth</li>
+                    <li>Minimal color palette</li>
+                    <li>Clean typography system</li>
+                </ul>
+            </div>
+            
+            <div class="comparison-card">
+                <h4>⚡ Interaction Design</h4>
+                <ul>
+                    <li>Gentle hover animations</li>
+                    <li>Micro-interactions on buttons</li>
+                    <li>Smooth state transitions</li>
+                    <li>Focus indicators for accessibility</li>
+                </ul>
+            </div>
+            
+            <div class="comparison-card">
+                <h4>🔧 Technical Excellence</h4>
+                <ul>
+                    <li>Responsive grid system</li>
+                    <li>Dark mode compatibility</li>
+                    <li>Reduced motion support</li>
+                    <li>Mobile-first approach</li>
+                </ul>
+            </div>
+            
+            <div class="comparison-card">
+                <h4>🎯 SaaS Best Practices</h4>
+                <ul>
+                    <li>Data-dense information display</li>
+                    <li>Clear action hierarchy</li>
+                    <li>Status indication system</li>
+                    <li>Consistent spacing patterns</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.2); border-radius: 8px; text-align: center;">
+            <h4 style="color: #059669; margin-bottom: 0.75rem; font-size: 1rem;">🚀 Implementation Ready</h4>
+            <p style="color: #047857; font-size: 0.9375rem; line-height: 1.6;">
+                Design ini dapat langsung diterapkan pada <strong>/petugas/jumlah-pasien-harians</strong> 
+                dengan CSS targeting yang lebih spesifik dan modern approach yang sustainable.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced search functionality
+        document.querySelector('.search-input').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('.minimalist-table tbody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                    row.style.opacity = '1';
+                } else {
+                    row.style.opacity = '0.4';
+                }
+            });
+        });
+
+        // Enhanced row interactions
+        document.querySelectorAll('.minimalist-table tbody tr').forEach(row => {
+            row.addEventListener('click', function() {
+                // Remove active state from other rows
+                document.querySelectorAll('.minimalist-table tbody tr').forEach(r => {
+                    r.style.background = '';
+                });
+                
+                // Add active state to clicked row
+                this.style.background = 'rgba(99, 102, 241, 0.1)';
+                
+                // Reset after delay
+                setTimeout(() => {
+                    this.style.background = '';
+                }, 2000);
+            });
+        });
+
+        // Action button functionality
+        document.querySelectorAll('.action-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const action = this.textContent.trim();
+                console.log(`Action clicked: ${action}`);
+                
+                // Visual feedback
+                this.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 150);
+            });
+        });
+
+        // Primary button functionality
+        document.querySelectorAll('.primary-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const action = this.textContent.trim();
+                console.log(`Primary action: ${action}`);
+                
+                // Visual feedback
+                this.style.transform = 'translateY(-2px)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 200);
+            });
+        });
+
+        // Page item functionality
+        document.querySelectorAll('.page-item').forEach(item => {
+            item.addEventListener('click', function() {
+                // Remove active state from all items
+                document.querySelectorAll('.page-item').forEach(p => p.classList.remove('active'));
+                
+                // Add active state to clicked item (if it's a number)
+                if (!isNaN(this.textContent.trim())) {
+                    this.classList.add('active');
+                }
+            });
+        });
+
+        // Load completion
+        window.addEventListener('load', function() {
+            console.log('✨ Minimalist Glass Table Demo Loaded Successfully!');
+            console.log('🎯 Modern SaaS Design Inspired by: Linear, Notion, Stripe, Vercel');
+            console.log('🔧 Features: Subtle Glassmorphism + Clean Interactions + Responsive Design');
+        });
+    </script>
+</body>
+</html>

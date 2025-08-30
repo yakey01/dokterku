@@ -20,7 +20,53 @@ Route::get('/chart-debug', function () {
     return view('chart-debug');
 });
 
-// Include role-specific routes
+// CRITICAL FIX: Handle GET requests to Livewire endpoints gracefully
+// This prevents the "Method Not Allowed" error from breaking the admin panel
+Route::get('/livewire/update', function () {
+    \Log::warning('GET request to /livewire/update blocked', [
+        'referer' => request()->header('Referer'),
+        'user_agent' => request()->userAgent(),
+        'ip' => request()->ip(),
+        'session_id' => session()->getId()
+    ]);
+    
+    // Return proper JSON error response for AJAX requests
+    if (request()->expectsJson() || request()->wantsJson()) {
+        return response()->json([
+            'message' => 'Invalid request method. Livewire updates must use POST.',
+            'error' => 'method_not_allowed'
+        ], 405);
+    }
+    
+    // For browser requests, redirect back to referer or home
+    $redirectTo = request()->header('Referer') ?: url('/');
+    return redirect($redirectTo)
+        ->with('error', 'Invalid request detected. Please try again.');
+})->name('livewire.get.fallback');
+
+// Also handle GET requests to other Livewire endpoints
+Route::get('/livewire/{path}', function ($path) {
+    \Log::warning('GET request to /livewire/' . $path . ' blocked', [
+        'path' => $path,
+        'referer' => request()->header('Referer'),
+        'user_agent' => request()->userAgent(),
+        'ip' => request()->ip(),
+        'session_id' => session()->getId()
+    ]);
+    
+    if (request()->expectsJson() || request()->wantsJson()) {
+        return response()->json([
+            'message' => 'Invalid request method for Livewire endpoint.',
+            'error' => 'method_not_allowed'
+        ], 405);
+    }
+    
+    $redirectTo = request()->header('Referer') ?: url('/');
+    return redirect($redirectTo)
+        ->with('error', 'Invalid request detected. Please try again.');
+})->where('path', '.*')->name('livewire.fallback');
+
+// Include role-specific routes BEFORE catch-all routes to ensure proper precedence
 require __DIR__.'/admin.php';
 require __DIR__.'/petugas.php';
 require __DIR__.'/dokter.php';
@@ -37,6 +83,8 @@ Route::get('/debug-work-location', function () {
 Route::get('/test-welcome-login', function () {
     return view('test-welcome-login');
 });
+
+
 
 
 // Test route for Presensi component
@@ -119,7 +167,8 @@ Route::prefix('api/v2/dashboards/dokter')->middleware(['web', 'auth'])->group(fu
     Route::get('/', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'index']);
     Route::get('/jadwal-jaga', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'getJadwalJaga']);
     Route::get('/work-location/status', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'getWorkLocationStatus']);
-    Route::get('/leaderboard', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'leaderboard']);
+    // ❌ REMOVED: Conflicting leaderboard route - use API v2 route instead
+    // Route::get('/leaderboard', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'leaderboard']);
     
     // Profile management
     Route::post('/update-profile', [App\Http\Controllers\Api\V2\Dashboards\DokterDashboardController::class, 'updateProfile']);
@@ -2544,4 +2593,9 @@ Route::middleware(['auth', 'role:manajer'])->group(function () {
     Route::get('/manager-dashboard-old', function () {
         return view('manager.standalone-dashboard');
     })->name('manager.dashboard.old');
+});
+
+// React Key Validation Test Route
+Route::get('/validate-react-keys', function () {
+    return response()->file(public_path('../validate-react-browser-keys.html'));
 });

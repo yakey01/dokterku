@@ -19,12 +19,19 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
+use App\Services\UnifiedRevenueCalculationService;
+use App\Events\ManagerRevenueUpdated;
+use App\Events\ManagerKPIUpdated;
+use App\Events\ManagerCriticalAlert;
 
 class ManagerDashboardController extends Controller
 {
-    public function __construct()
+    protected UnifiedRevenueCalculationService $revenueService;
+    
+    public function __construct(UnifiedRevenueCalculationService $revenueService)
     {
         $this->middleware(['auth:sanctum', 'role:manajer']);
+        $this->revenueService = $revenueService;
     }
 
     /**
@@ -38,9 +45,13 @@ class ManagerDashboardController extends Controller
         $data = Cache::remember($cacheKey, 300, function () use ($date) {
             $carbonDate = Carbon::parse($date);
             
-            // Today's financial data
-            $todayRevenue = PendapatanHarian::whereDate('tanggal_input', $date)->sum('nominal') ?? 0;
-            $todayExpenses = PengeluaranHarian::whereDate('tanggal_input', $date)->sum('nominal') ?? 0;
+            // Use unified revenue calculation service
+            $revenueData = $this->revenueService->getManagerDashboardRevenue($date);
+            $todayRevenue = $revenueData['today']['revenue'];
+            
+            $todayExpenses = PengeluaranHarian::whereDate('tanggal_input', $date)
+                ->whereIn('status_validasi', ['approved', 'disetujui'])
+                ->sum('nominal') ?? 0;
             
             // Today's patient data
             $patientData = JumlahPasienHarian::whereDate('tanggal', $date)->first();
@@ -76,22 +87,14 @@ class ManagerDashboardController extends Controller
                     ];
                 });
             
-            // Monthly comparison
-            $monthlyRevenue = PendapatanHarian::whereMonth('tanggal_input', $carbonDate->month)
-                ->whereYear('tanggal_input', $carbonDate->year)
-                ->sum('nominal') ?? 0;
+            // Use unified revenue service for monthly data
+            $monthlyRevenue = $revenueData['monthly']['revenue'];
+            $revenueChange = $revenueData['monthly']['change_percentage'];
                 
             $monthlyExpenses = PengeluaranHarian::whereMonth('tanggal_input', $carbonDate->month)
                 ->whereYear('tanggal_input', $carbonDate->year)
+                ->whereIn('status_validasi', ['approved', 'disetujui'])
                 ->sum('nominal') ?? 0;
-            
-            // Previous month for comparison
-            $lastMonth = $carbonDate->copy()->subMonth();
-            $lastMonthRevenue = PendapatanHarian::whereMonth('tanggal_input', $lastMonth->month)
-                ->whereYear('tanggal_input', $lastMonth->year)
-                ->sum('nominal') ?? 0;
-            
-            $revenueChange = $this->calculatePercentageChange($monthlyRevenue, $lastMonthRevenue);
             
             return [
                 'date' => $date,
@@ -123,10 +126,36 @@ class ManagerDashboardController extends Controller
             ];
         });
         
+        // Broadcast revenue update event for real-time dashboard
+        if (isset($revenueData)) {
+            event(new ManagerRevenueUpdated(
+                $revenueData['today']['revenue'],
+                $revenueData['monthly']['revenue'], 
+                $revenueData['monthly']['change_percentage'],
+                $date,
+                $revenueData['monthly']['sources']
+            ));
+        }
+        
+        // Check for critical alerts
+        if ($data['financial']['today_profit'] < 0) {
+            event(new ManagerCriticalAlert(
+                'negative_profit',
+                'Profit Harian Negatif',
+                'Keuntungan hari ini negatif: Rp ' . number_format($data['financial']['today_profit']),
+                'high',
+                ['profit' => $data['financial']['today_profit'], 'date' => $date]
+            ));
+        }
+        
         return response()->json([
             'success' => true,
             'data' => $data,
             'cache_key' => $cacheKey,
+            'broadcasting' => [
+                'revenue_event_sent' => isset($revenueData),
+                'channels' => ['financial.updates', 'management.oversight', 'manajer.kpi-updates']
+            ]
         ]);
     }
 

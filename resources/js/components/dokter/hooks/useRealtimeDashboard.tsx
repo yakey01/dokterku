@@ -55,9 +55,19 @@ export const useRealtimeDashboard = () => {
         
         cacheManager.update('dashboard-metrics', updatedMetrics, 'websocket');
         
-        // TEMPORARY FIX: Disable forced refresh to prevent 429 errors
-        console.log('🚫 DISABLED: Real-time fetch temporarily disabled');
-        // actions.fetchDashboardData();
+        // Re-enabled real-time fetch with rate limiting protection
+        console.log('📡 Real-time attendance update: Refreshing dashboard data...');
+        
+        // Add delay to prevent simultaneous requests and rate limiting
+        setTimeout(() => {
+          actions.fetchDashboardData().catch((error: any) => {
+            if (error?.response?.status === 429) {
+              console.warn('⚠️ Rate limited during WebSocket update, will retry later');
+            } else {
+              console.error('❌ WebSocket dashboard refresh failed:', error);
+            }
+          });
+        }, 1000); // 1 second delay
       }
       
     } catch (error) {
@@ -110,9 +120,19 @@ export const useRealtimeDashboard = () => {
           }).showToast();
         }
         
-        // TEMPORARY FIX: Disable forced refresh to prevent 429 errors
-        console.log('🚫 DISABLED: JASPEL real-time fetch temporarily disabled');
-        // actions.fetchDashboardData();
+        // Re-enabled JASPEL real-time fetch with rate limiting protection
+        console.log('📡 Real-time JASPEL update: Refreshing dashboard data...');
+        
+        // Add delay to prevent simultaneous requests and rate limiting
+        setTimeout(() => {
+          actions.fetchDashboardData().catch((error: any) => {
+            if (error?.response?.status === 429) {
+              console.warn('⚠️ Rate limited during JASPEL WebSocket update, will retry later');
+            } else {
+              console.error('❌ WebSocket JASPEL refresh failed:', error);
+            }
+          });
+        }, 1500); // 1.5 second delay
       }
       
     } catch (error) {

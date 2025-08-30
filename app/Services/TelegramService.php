@@ -11,6 +11,15 @@ use Telegram\Bot\Laravel\Facades\Telegram;
 
 class TelegramService
 {
+    protected ?TelegramTemplateService $templateService = null;
+
+    public function __construct()
+    {
+        // Initialize template service if available
+        if (class_exists(TelegramTemplateService::class)) {
+            $this->templateService = app(TelegramTemplateService::class);
+        }
+    }
     public function sendMessage(string $chatId, string $message, array $options = []): bool
     {
         Log::info('TelegramService::sendMessage called', [
@@ -178,7 +187,28 @@ class TelegramService
         return $results;
     }
 
-    public function formatNotificationMessage(string $type, array $data = []): string
+    public function formatNotificationMessage(string $type, array $data = [], ?string $targetRole = null): string
+    {
+        // Use template service if available
+        if ($this->templateService) {
+            try {
+                return $this->templateService->generateMessage($type, $data, $targetRole);
+            } catch (\Exception $e) {
+                Log::warning('Template service failed, falling back to legacy formatting', [
+                    'error' => $e->getMessage(),
+                    'type' => $type,
+                ]);
+            }
+        }
+
+        // Legacy formatting as fallback
+        return $this->formatMessageLegacy($type, $data);
+    }
+
+    /**
+     * Legacy message formatting method (kept as fallback)
+     */
+    protected function formatMessageLegacy(string $type, array $data = []): string
     {
         $emoji = $this->getNotificationEmoji($type);
         $title = $this->getNotificationTitle($type);
@@ -201,6 +231,9 @@ class TelegramService
                 case TelegramNotificationType::PASIEN:
                     $message .= '👤 Nama Pasien: '.($data['patient_name'] ?? '-')."\n";
                     $message .= '🩺 Tindakan: '.($data['procedure'] ?? '-')."\n";
+                    if (isset($data['dokter_name'])) {
+                        $message .= '👨‍⚕️ Dokter: '.$data['dokter_name']."\n";
+                    }
                     break;
 
                 case TelegramNotificationType::VALIDASI_DISETUJUI:
@@ -244,6 +277,121 @@ class TelegramService
                     $message .= '📉 Total Pengeluaran: Rp '.number_format($data['total_expense'] ?? 0, 0, ',', '.')."\n";
                     $message .= '💰 Saldo: Rp '.number_format(($data['total_income'] ?? 0) - ($data['total_expense'] ?? 0), 0, ',', '.')."\n";
                     break;
+
+                // Enhanced notification types
+                case TelegramNotificationType::PRESENSI_DOKTER:
+                case TelegramNotificationType::PRESENSI_PARAMEDIS:
+                    $message .= '👤 Nama: '.($data['staff_name'] ?? '-')."\n";
+                    $message .= '⏰ Jenis: '.($data['type'] ?? 'Check-in')."\n";
+                    $message .= '🕐 Waktu: '.($data['time'] ?? now()->format('H:i:s'))."\n";
+                    if (isset($data['shift'])) {
+                        $message .= '⌚ Shift: '.$data['shift']."\n";
+                    }
+                    break;
+
+                case TelegramNotificationType::TINDAKAN_BARU:
+                    $message .= '👤 Pasien: '.($data['patient_name'] ?? '-')."\n";
+                    $message .= '🩺 Tindakan: '.($data['procedure'] ?? '-')."\n";
+                    $message .= '👨‍⚕️ Dokter: '.($data['dokter_name'] ?? '-')."\n";
+                    $message .= '💰 Tarif: Rp '.number_format($data['tarif'] ?? 0, 0, ',', '.')."\n";
+                    if (isset($data['paramedis_name'])) {
+                        $message .= '👩‍⚕️ Paramedis: '.$data['paramedis_name']."\n";
+                    }
+                    break;
+
+                case TelegramNotificationType::VALIDASI_PENDING:
+                    $message .= '📋 Jenis: '.($data['type'] ?? '-')."\n";
+                    $message .= '💰 Nilai: Rp '.number_format($data['amount'] ?? 0, 0, ',', '.')."\n";
+                    $message .= '👤 Input oleh: '.($data['input_by'] ?? '-')."\n";
+                    $message .= '📅 Tanggal: '.($data['date'] ?? now()->format('d/m/Y'))."\n";
+                    $message .= '⚠️ Status: Menunggu validasi bendahara';
+                    break;
+
+                case TelegramNotificationType::JASPEL_DOKTER_READY:
+                    $message .= '👨‍⚕️ Dokter: '.($data['dokter_name'] ?? '-')."\n";
+                    $message .= '💰 Total Jaspel: Rp '.number_format($data['total_jaspel'] ?? 0, 0, ',', '.')."\n";
+                    $message .= '📊 Jumlah Tindakan: '.($data['total_procedures'] ?? 0).' tindakan'."\n";
+                    $message .= '📅 Periode: '.($data['period'] ?? '-')."\n";
+                    $message .= '💳 Status: Siap dicairkan';
+                    break;
+
+                case TelegramNotificationType::LAPORAN_SHIFT:
+                    $message .= '⌚ Shift: '.($data['shift'] ?? '-')."\n";
+                    $message .= '📅 Tanggal: '.($data['date'] ?? now()->format('d/m/Y'))."\n";
+                    $message .= '👤 Penanggung Jawab: '.($data['pic'] ?? '-')."\n";
+                    if (isset($data['patient_count'])) {
+                        $message .= '👥 Jumlah Pasien: '.$data['patient_count'].' pasien'."\n";
+                    }
+                    if (isset($data['procedure_count'])) {
+                        $message .= '🩺 Jumlah Tindakan: '.$data['procedure_count'].' tindakan'."\n";
+                    }
+                    break;
+
+                case TelegramNotificationType::EMERGENCY_ALERT:
+                    $message .= '🚨 Level: '.($data['level'] ?? 'HIGH')."\n";
+                    $message .= '📍 Lokasi: '.($data['location'] ?? 'Rumah Sakit')."\n";
+                    $message .= '📝 Deskripsi: '.($data['description'] ?? 'Situasi emergency')."\n";
+                    $message .= '👤 Dilaporkan oleh: '.($data['reporter'] ?? '-')."\n";
+                    $message .= '⚡ Tindakan segera diperlukan!';
+                    break;
+
+                case TelegramNotificationType::SISTEM_MAINTENANCE:
+                    $message .= '🔧 Jenis: '.($data['type'] ?? 'Maintenance terjadwal')."\n";
+                    $message .= '⏰ Waktu: '.($data['start_time'] ?? 'Segera')."\n";
+                    if (isset($data['end_time'])) {
+                        $message .= '⏱️ Estimasi selesai: '.$data['end_time']."\n";
+                    }
+                    if (isset($data['affected_services'])) {
+                        $message .= '🎯 Layanan terdampak: '.$data['affected_services']."\n";
+                    }
+                    $message .= '📝 Deskripsi: '.($data['description'] ?? 'Maintenance sistem');
+                    break;
+
+                case TelegramNotificationType::APPROVAL_REQUEST:
+                    $message .= '📝 Jenis Permohonan: '.($data['request_type'] ?? '-')."\n";
+                    $message .= '👤 Pemohon: '.($data['requester'] ?? '-')."\n";
+                    $message .= '📅 Tanggal: '.($data['date'] ?? now()->format('d/m/Y'))."\n";
+                    if (isset($data['amount'])) {
+                        $message .= '💰 Nilai: Rp '.number_format($data['amount'], 0, ',', '.')."\n";
+                    }
+                    $message .= '📝 Deskripsi: '.($data['description'] ?? '-')."\n";
+                    $message .= '⏳ Menunggu persetujuan atasan';
+                    break;
+
+                case TelegramNotificationType::JADWAL_JAGA_UPDATE:
+                    $message .= '👤 Staff: '.($data['staff_name'] ?? '-')."\n";
+                    $message .= '📅 Tanggal: '.($data['date'] ?? '-')."\n";
+                    $message .= '⌚ Shift: '.($data['shift'] ?? '-')."\n";
+                    $message .= '🔄 Jenis Update: '.($data['update_type'] ?? 'Perubahan jadwal')."\n";
+                    if (isset($data['old_shift'])) {
+                        $message .= '⏰ Shift Lama: '.$data['old_shift']."\n";
+                    }
+                    if (isset($data['reason'])) {
+                        $message .= '📝 Alasan: '.$data['reason']."\n";
+                    }
+                    break;
+
+                case TelegramNotificationType::CUTI_REQUEST:
+                    $message .= '👤 Pemohon: '.($data['staff_name'] ?? '-')."\n";
+                    $message .= '🏷️ Jenis Cuti: '.($data['leave_type'] ?? '-')."\n";
+                    $message .= '📅 Mulai: '.($data['start_date'] ?? '-')."\n";
+                    $message .= '📅 Selesai: '.($data['end_date'] ?? '-')."\n";
+                    $message .= '📊 Durasi: '.($data['duration'] ?? '-').' hari'."\n";
+                    $message .= '📝 Alasan: '.($data['reason'] ?? '-')."\n";
+                    $message .= '⏳ Status: '.($data['status'] ?? 'Menunggu persetujuan');
+                    break;
+
+                case TelegramNotificationType::SHIFT_ASSIGNMENT:
+                    $message .= '👤 Staff: '.($data['staff_name'] ?? '-')."\n";
+                    $message .= '🏷️ Role: '.($data['role'] ?? '-')."\n";
+                    $message .= '📅 Tanggal: '.($data['date'] ?? '-')."\n";
+                    $message .= '⌚ Shift: '.($data['shift'] ?? '-')."\n";
+                    $message .= '🕐 Jam Kerja: '.($data['work_hours'] ?? '-')."\n";
+                    if (isset($data['location'])) {
+                        $message .= '📍 Lokasi: '.$data['location']."\n";
+                    }
+                    $message .= '📝 Status: Penugasan baru';
+                    break;
             }
         }
 
@@ -266,6 +414,19 @@ class TelegramService
                 TelegramNotificationType::VALIDASI_DISETUJUI => '✅',
                 TelegramNotificationType::JASPEL_SELESAI => '💼',
                 TelegramNotificationType::BACKUP_GAGAL => '🚨',
+                // Enhanced notification types
+                TelegramNotificationType::PRESENSI_DOKTER => '🩺',
+                TelegramNotificationType::PRESENSI_PARAMEDIS => '👩‍⚕️',
+                TelegramNotificationType::TINDAKAN_BARU => '🏥',
+                TelegramNotificationType::VALIDASI_PENDING => '⏳',
+                TelegramNotificationType::JASPEL_DOKTER_READY => '💵',
+                TelegramNotificationType::LAPORAN_SHIFT => '📋',
+                TelegramNotificationType::EMERGENCY_ALERT => '🚨',
+                TelegramNotificationType::SISTEM_MAINTENANCE => '🔧',
+                TelegramNotificationType::APPROVAL_REQUEST => '📝',
+                TelegramNotificationType::JADWAL_JAGA_UPDATE => '📅',
+                TelegramNotificationType::CUTI_REQUEST => '🏖️',
+                TelegramNotificationType::SHIFT_ASSIGNMENT => '⏰',
             };
         }
 
@@ -285,6 +446,19 @@ class TelegramService
                 TelegramNotificationType::VALIDASI_DISETUJUI => 'Validasi Disetujui',
                 TelegramNotificationType::JASPEL_SELESAI => 'Jaspel Selesai',
                 TelegramNotificationType::BACKUP_GAGAL => 'Backup Gagal',
+                // Enhanced notification types
+                TelegramNotificationType::PRESENSI_DOKTER => 'Presensi Dokter',
+                TelegramNotificationType::PRESENSI_PARAMEDIS => 'Presensi Paramedis',
+                TelegramNotificationType::TINDAKAN_BARU => 'Tindakan Medis Baru',
+                TelegramNotificationType::VALIDASI_PENDING => 'Menunggu Validasi',
+                TelegramNotificationType::JASPEL_DOKTER_READY => 'Jaspel Siap Dicairkan',
+                TelegramNotificationType::LAPORAN_SHIFT => 'Laporan Pergantian Shift',
+                TelegramNotificationType::EMERGENCY_ALERT => 'Alert Emergency',
+                TelegramNotificationType::SISTEM_MAINTENANCE => 'Maintenance Sistem',
+                TelegramNotificationType::APPROVAL_REQUEST => 'Permohonan Persetujuan',
+                TelegramNotificationType::JADWAL_JAGA_UPDATE => 'Update Jadwal Jaga',
+                TelegramNotificationType::CUTI_REQUEST => 'Permohonan Cuti',
+                TelegramNotificationType::SHIFT_ASSIGNMENT => 'Penugasan Shift Baru',
             };
         }
 
@@ -346,5 +520,197 @@ class TelegramService
         }
 
         return false;
+    }
+
+    /**
+     * Send cross-role notification (e.g., when bendahara validates, notify dokter)
+     */
+    public function sendCrossRoleNotification(array $targetRoles, string $notificationType, array $data, ?int $excludeUserId = null): array
+    {
+        Log::info('TelegramService::sendCrossRoleNotification called', [
+            'target_roles' => $targetRoles,
+            'notification_type' => $notificationType,
+            'exclude_user_id' => $excludeUserId,
+        ]);
+
+        $results = [];
+        $message = $this->formatNotificationMessage($notificationType, $data);
+
+        foreach ($targetRoles as $role) {
+            // Skip if this is the same user who triggered the action
+            if ($excludeUserId && isset($data['user_id']) && $data['user_id'] == $excludeUserId) {
+                continue;
+            }
+
+            $results[$role] = $this->sendNotificationToRole($role, $notificationType, $message);
+        }
+
+        return $results;
+    }
+
+    /**
+     * Send notification to specific user by ID
+     */
+    public function sendNotificationToUser(int $userId, string $notificationType, array $data): bool
+    {
+        Log::info('TelegramService::sendNotificationToUser called', [
+            'user_id' => $userId,
+            'notification_type' => $notificationType,
+        ]);
+
+        // Find user's telegram setting
+        $userSetting = TelegramSetting::where('user_id', $userId)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$userSetting || !$userSetting->chat_id) {
+            Log::warning("No telegram setting found for user ID: {$userId}");
+            return false;
+        }
+
+        if (!$userSetting->hasNotificationType($notificationType)) {
+            Log::warning("Notification type {$notificationType} not enabled for user {$userId}");
+            return false;
+        }
+
+        // Get user's role for template customization
+        $user = \App\Models\User::find($userId);
+        $userRole = $user ? ($user->role->name ?? null) : null;
+        
+        $message = $this->formatNotificationMessage($notificationType, $data, $userRole);
+        return $this->sendMessage($userSetting->chat_id, $message);
+    }
+
+    /**
+     * Send emergency notification to all active roles
+     */
+    public function sendEmergencyNotification(string $message, array $data = []): array
+    {
+        Log::info('TelegramService::sendEmergencyNotification called');
+
+        $emergencyRoles = ['admin', 'manajer', 'dokter', 'paramedis'];
+        $formattedMessage = $this->formatNotificationMessage(
+            TelegramNotificationType::EMERGENCY_ALERT->value, 
+            array_merge($data, ['description' => $message])
+        );
+
+        $results = [];
+        foreach ($emergencyRoles as $role) {
+            $results[$role] = $this->sendNotificationToRole(
+                $role, 
+                TelegramNotificationType::EMERGENCY_ALERT->value, 
+                $formattedMessage
+            );
+        }
+
+        return $results;
+    }
+
+    /**
+     * Send notification with retry mechanism
+     */
+    public function sendNotificationWithRetry(string $chatId, string $message, int $maxRetries = 3): bool
+    {
+        $attempt = 0;
+        
+        while ($attempt < $maxRetries) {
+            $attempt++;
+            
+            if ($this->sendMessage($chatId, $message)) {
+                return true;
+            }
+            
+            if ($attempt < $maxRetries) {
+                Log::warning("Telegram notification attempt {$attempt} failed, retrying...");
+                sleep(2 ** $attempt); // Exponential backoff
+            }
+        }
+        
+        Log::error("Telegram notification failed after {$maxRetries} attempts");
+        return false;
+    }
+
+    /**
+     * Get notification statistics
+     */
+    public function getNotificationStats(): array
+    {
+        $activeSettings = TelegramSetting::where('is_active', true)->count();
+        $totalSettings = TelegramSetting::count();
+        
+        $roleStats = TelegramSetting::where('is_active', true)
+            ->selectRaw('role, COUNT(*) as count')
+            ->groupBy('role')
+            ->pluck('count', 'role')
+            ->toArray();
+
+        return [
+            'active_settings' => $activeSettings,
+            'total_settings' => $totalSettings,
+            'role_distribution' => $roleStats,
+            'bot_configured' => $this->isConfigured(),
+        ];
+    }
+
+    /**
+     * Validate notification routing for specific user and type
+     */
+    public function validateNotificationRouting(int $userId, string $notificationType): array
+    {
+        $user = \App\Models\User::find($userId);
+        
+        if (!$user) {
+            return [
+                'valid' => false,
+                'reason' => 'User not found',
+            ];
+        }
+
+        $userRole = $user->role->name ?? null;
+        if (!$userRole) {
+            return [
+                'valid' => false,
+                'reason' => 'User role not found',
+            ];
+        }
+
+        // Check if notification type is valid for user role
+        $roleNotifications = TelegramNotificationType::getForRole($userRole);
+        $notificationTypes = array_map(fn($enum) => $enum->value, $roleNotifications);
+        
+        if (!in_array($notificationType, $notificationTypes)) {
+            return [
+                'valid' => false,
+                'reason' => "Notification type '{$notificationType}' not valid for role '{$userRole}'",
+                'valid_types' => $notificationTypes,
+            ];
+        }
+
+        // Check telegram setting
+        $setting = TelegramSetting::where('user_id', $userId)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$setting) {
+            return [
+                'valid' => false,
+                'reason' => 'No active telegram setting found for user',
+            ];
+        }
+
+        if (!$setting->hasNotificationType($notificationType)) {
+            return [
+                'valid' => false,
+                'reason' => 'Notification type not enabled in user settings',
+                'enabled_types' => $setting->notification_types ?? [],
+            ];
+        }
+
+        return [
+            'valid' => true,
+            'user_role' => $userRole,
+            'chat_id' => $setting->chat_id,
+            'enabled_types' => $setting->notification_types ?? [],
+        ];
     }
 }

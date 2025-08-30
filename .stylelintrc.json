@@ -1,0 +1,18 @@
+{
+  "rules": {
+    "at-rule-no-unknown": [
+      true,
+      {
+        "ignoreAtRules": ["tailwind", "apply", "layer", "variants", "responsive", "screen"]
+      }
+    ],
+    "at-rule-no-unknown": null,
+    "no-descending-specificity": null,
+    "selector-class-pattern": null
+  },
+  "ignoreFiles": [
+    "vendor/**/*.css",
+    "node_modules/**/*.css",
+    "public/build/**/*.css"
+  ]
+}

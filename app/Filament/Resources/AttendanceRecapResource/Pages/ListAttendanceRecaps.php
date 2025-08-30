@@ -107,6 +107,14 @@ class ListAttendanceRecaps extends ListRecords
         $staffType = request('tableFilters.staff_type.value');
         $statusFilter = request('tableFilters.status.value');
         
+        // Store context in session for action resolution
+        session([
+            'attendance_recap_month' => $month,
+            'attendance_recap_year' => $year,
+            'attendance_recap_staff_type' => $staffType,
+            'attendance_recap_status' => $statusFilter
+        ]);
+        
         // Get data from our custom method
         $data = AttendanceRecap::getRecapData($month, $year, $staffType);
         
@@ -115,13 +123,9 @@ class ListAttendanceRecaps extends ListRecords
             $data = $data->where('status', $statusFilter);
         }
         
-        // Convert to models
+        // Convert to models using the new createVirtualModel method
         $models = $data->map(function ($item) {
-            $model = new AttendanceRecap();
-            $model->fill($item);
-            $model->exists = true;
-            $model->id = $item['staff_id']; // Set ID for Filament
-            return $model;
+            return AttendanceRecap::createVirtualModel($item);
         });
 
         // Handle sorting

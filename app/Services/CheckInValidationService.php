@@ -7,6 +7,7 @@ use App\Models\Attendance;
 use App\Models\JadwalJaga;
 use App\Models\WorkLocation;
 use App\Models\ShiftTemplate;
+use App\Services\AttendanceToleranceService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -38,7 +39,7 @@ class CheckInValidationService
         }
 
         // 4. Validate check-in time window
-        $timeValidation = $this->validateCheckInWindow($shiftValidation['shift'], Carbon::now());
+        $timeValidation = $this->validateCheckInWindow($shiftValidation['shift'], Carbon::now(), $user);
         if (!$timeValidation['valid']) {
             return $this->formatRejection($timeValidation['code'], $timeValidation['message'], $timeValidation);
         }
@@ -269,7 +270,10 @@ class CheckInValidationService
             }
             $shiftStart = Carbon::parse($date->format('Y-m-d') . ' ' . $jamMasuk);
             
-            $toleranceEarly = config('attendance.check_in_tolerance_early', 30);
+            // Use unified attendance tolerance service
+            $toleranceService = new AttendanceToleranceService();
+            $toleranceData = $toleranceService->getCheckinTolerance($user);
+            $toleranceEarly = $toleranceData['early'];
             $windowStart = $shiftStart->copy()->subMinutes($toleranceEarly);
             
             // DEVELOPMENT MODE: Allow early access to shifts for testing
@@ -333,7 +337,7 @@ class CheckInValidationService
     /**
      * 4. Validate check-in is within allowed time window
      */
-    private function validateCheckInWindow(ShiftTemplate $shift, Carbon $currentTime): array
+    private function validateCheckInWindow(ShiftTemplate $shift, Carbon $currentTime, User $user = null): array
     {
         // DEVELOPMENT MODE: Bypass time validation for testing
         if (in_array(config('app.env'), ['local', 'development', 'dev'])) {
@@ -377,9 +381,17 @@ class CheckInValidationService
             $shiftEnd->addDay();
         }
 
-        // Get tolerance settings from config or shift
-        $toleranceEarly = config('attendance.check_in_tolerance_early', 30); // minutes
-        $toleranceLate = config('attendance.check_in_tolerance_late', 60); // minutes
+        // Get tolerance settings from AttendanceToleranceService (with fallback to config)
+        if ($user) {
+            $toleranceService = app(AttendanceToleranceService::class);
+            $toleranceData = $toleranceService->getCheckinTolerance($user, $currentTime);
+            $toleranceEarly = $toleranceData['early'];
+            $toleranceLate = $toleranceData['late'];
+        } else {
+            // Fallback to config for backward compatibility
+            $toleranceEarly = config('attendance.check_in_tolerance_early', 30); // minutes
+            $toleranceLate = config('attendance.check_in_tolerance_late', 60); // minutes
+        }
 
         // Calculate window
         $windowStart = $shiftStart->copy()->subMinutes($toleranceEarly);

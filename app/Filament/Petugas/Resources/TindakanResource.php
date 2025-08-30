@@ -33,17 +33,22 @@ class TindakanResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
 
-    protected static ?string $navigationLabel = '🩺 Input Tindakan';
+    protected static ?string $navigationLabel = '🩺 Tindakan & History';
     
     protected static ?string $navigationGroup = 'Tindakan Medis';
 
     protected static ?string $modelLabel = 'Tindakan';
 
-    protected static ?string $pluralModelLabel = 'Input Tindakan';
+    protected static ?string $pluralModelLabel = 'Tindakan & History';
 
     protected static ?int $navigationSort = 1;
 
     public static function shouldRegisterNavigation(): bool
+    {
+        return true;
+    }
+
+    public static function canViewAny(): bool
     {
         return true;
     }
@@ -468,36 +473,82 @@ class TindakanResource extends Resource
                     ->weight('bold')
                     ->color('warning'),
 
-                Tables\Columns\TextColumn::make('status')
-                    ->label('📊 Status')
+                Tables\Columns\TextColumn::make('jaspel_diterima')
+                    ->label('💰 Jaspel Diterima')
+                    ->money('IDR')
+                    ->sortable(false)
+                    ->alignEnd()
+                    ->color('success')
+                    ->weight('medium')
+                    ->toggleable(),
+
+                Tables\Columns\TextColumn::make('status_gabungan')
+                    ->label('📊 Status & Validasi')
                     ->badge()
+                    ->getStateUsing(function (Tindakan $record): string {
+                        // Enhanced logic for better status synchronization visibility
+                        
+                        // Priority 1: Check validation status first (bendahara decisions)
+                        if ($record->status_validasi === 'disetujui') {
+                            return 'disetujui';
+                        }
+                        
+                        if ($record->status_validasi === 'ditolak') {
+                            return 'ditolak';
+                        }
+                        
+                        // Priority 2: For pending validation, check tindakan status
+                        if ($record->status_validasi === 'pending') {
+                            return match($record->status) {
+                                'batal' => 'batal',
+                                'selesai' => 'selesai_belum_validasi',
+                                'pending' => 'pending',
+                                default => 'pending'
+                            };
+                        }
+                        
+                        // Fallback
+                        return 'pending';
+                    })
                     ->color(fn (string $state): string => match ($state) {
                         'pending' => 'warning',
-                        'selesai' => 'success',
+                        'selesai_belum_validasi' => 'info',
+                        'disetujui' => 'success',
+                        'ditolak' => 'danger',
                         'batal' => 'danger',
-                    })
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'pending' => '⏳ Menunggu',
-                        'selesai' => '✅ Selesai',
-                        'batal' => '❌ Batal',
-                        default => $state
-                    }),
-
-                Tables\Columns\TextColumn::make('status_validasi')
-                    ->label('✔️ Validasi')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'pending' => 'gray',
-                        'approved' => 'success',
-                        'rejected' => 'danger',
                         default => 'gray'
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'pending' => '⏳ Pending',
-                        'approved' => '✅ Disetujui',
-                        'rejected' => '❌ Ditolak',
+                        'pending' => '⏳ Menunggu Validasi',
+                        'selesai_belum_validasi' => '✅ Selesai (Belum Validasi)',
+                        'disetujui' => '🎉 Disetujui Bendahara',
+                        'ditolak' => '❌ Ditolak Bendahara',
+                        'batal' => '🚫 Dibatalkan',
                         default => $state
                     })
+                    ->sortable(query: function (Builder $query, string $direction): Builder {
+                        return $query->orderByRaw("
+                            CASE 
+                                WHEN status_validasi = 'disetujui' THEN 1
+                                WHEN status_validasi = 'ditolak' THEN 2  
+                                WHEN status = 'batal' THEN 3
+                                WHEN status = 'selesai' THEN 4
+                                ELSE 5
+                            END " . $direction
+                        );
+                    }),
+
+                Tables\Columns\TextColumn::make('inputBy.name')
+                    ->label('👤 Input Oleh')
+                    ->searchable()
+                    ->sortable()
+                    ->badge()
+                    ->color(fn (Tindakan $record) => 
+                        $record->input_by === Auth::id() ? 'success' : 'gray'
+                    )
+                    ->icon(fn (Tindakan $record) => 
+                        $record->input_by === Auth::id() ? 'heroicon-m-user-circle' : 'heroicon-m-users'
+                    )
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('created_at')
@@ -508,6 +559,20 @@ class TindakanResource extends Resource
                     ->color('gray'),
             ])
             ->filters([
+                Tables\Filters\SelectFilter::make('data_scope')
+                    ->label('Tampilkan Data')
+                    ->options([
+                        'all' => '👥 Semua Data (History Lengkap)',
+                        'mine' => '✅ Data Saya Saja',
+                    ])
+                    ->default('all')
+                    ->query(function (Builder $query, array $data): Builder {
+                        if (isset($data['value']) && $data['value'] === 'mine') {
+                            return $query->where('input_by', Auth::id());
+                        }
+                        return $query; // Show all data by default
+                    }),
+
                 Tables\Filters\Filter::make('tanggal_tindakan')
                     ->form([
                         Forms\Components\DatePicker::make('dari')
@@ -518,21 +583,38 @@ class TindakanResource extends Resource
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
                             ->when(
-                                $data['dari'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('tanggal_tindakan', '>=', $date),
+                                isset($data['dari']) && !empty($data['dari']),
+                                fn (Builder $query, $date): Builder => $query->whereDate('tanggal_tindakan', '>=', $data['dari']),
                             )
                             ->when(
-                                $data['sampai'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('tanggal_tindakan', '<=', $date),
+                                isset($data['sampai']) && !empty($data['sampai']),
+                                fn (Builder $query, $date): Builder => $query->whereDate('tanggal_tindakan', '<=', $data['sampai']),
                             );
                     }),
 
-                Tables\Filters\SelectFilter::make('status')
+                Tables\Filters\SelectFilter::make('status_gabungan')
+                    ->label('Status & Validasi')
                     ->options([
-                        'pending' => 'Menunggu',
-                        'selesai' => 'Selesai',
-                        'batal' => 'Batal',
-                    ]),
+                        'pending' => '⏳ Menunggu Validasi',
+                        'selesai_belum_validasi' => '✅ Selesai (Belum Validasi)',
+                        'disetujui' => '🎉 Disetujui Bendahara',
+                        'ditolak' => '❌ Ditolak Bendahara',
+                        'batal' => '🚫 Dibatalkan',
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        if (!isset($data['value']) || $data['value'] === null) {
+                            return $query;
+                        }
+                        
+                        return match($data['value']) {
+                            'pending' => $query->where('status_validasi', 'pending')->where('status', 'pending'),
+                            'selesai_belum_validasi' => $query->where('status', 'selesai')->where('status_validasi', 'pending'),
+                            'disetujui' => $query->where('status_validasi', 'disetujui'),
+                            'ditolak' => $query->where('status_validasi', 'ditolak'),
+                            'batal' => $query->where('status', 'batal'),
+                            default => $query
+                        };
+                    }),
 
                 Tables\Filters\SelectFilter::make('jenis_tindakan_id')
                     ->label('Jenis Tindakan')
@@ -556,7 +638,9 @@ class TindakanResource extends Resource
                     ->color('warning')
                     ->size('sm')
                     ->visible(fn (Tindakan $record): bool => 
-                        $record->status === 'pending' && $record->status_validasi !== 'approved'
+                        $record->input_by === Auth::id() && 
+                        $record->status === 'pending' && 
+                        $record->status_validasi !== 'disetujui'
                     ),
                 
                 // More actions in dropdown
@@ -565,7 +649,9 @@ class TindakanResource extends Resource
                         ->label('🗑️ Hapus')
                         ->color('danger')
                         ->visible(fn (Tindakan $record): bool => 
-                            $record->status === 'pending' && $record->status_validasi !== 'approved'
+                            $record->input_by === Auth::id() && 
+                            $record->status === 'pending' && 
+                            $record->status_validasi !== 'disetujui'
                         ),
                     
                     // Submit for validation
@@ -573,7 +659,11 @@ class TindakanResource extends Resource
                         ->label('📤 Ajukan Validasi')
                         ->icon('heroicon-o-paper-airplane')
                         ->color('primary')
-                        ->visible(fn (Tindakan $record): bool => $record->status_validasi === 'pending' && $record->submitted_at === null)
+                        ->visible(fn (Tindakan $record): bool => 
+                            $record->input_by === Auth::id() && 
+                            $record->status_validasi === 'pending' && 
+                            $record->submitted_at === null
+                        )
                         ->requiresConfirmation()
                         ->modalHeading('📤 Ajukan Validasi Tindakan')
                         ->modalDescription('Pastikan semua data sudah benar sebelum mengajukan validasi.')
@@ -813,8 +903,8 @@ class TindakanResource extends Resource
                                 ->label('Status Validasi')
                                 ->options([
                                     'pending' => 'Menunggu Validasi',
-                                    'approved' => 'Disetujui',
-                                    'rejected' => 'Ditolak',
+                                    'disetujui' => 'Disetujui',
+                                    'ditolak' => 'Ditolak',
                                 ])
                                 ->nullable(),
                         ])
@@ -925,7 +1015,7 @@ class TindakanResource extends Resource
                                 $updates = $records->map(function ($record) {
                                     return [
                                         'id' => $record->id,
-                                        'status_validasi' => 'approved',
+                                        'status_validasi' => 'disetujui',
                                         'status' => 'selesai'
                                     ];
                                 })->toArray();
@@ -962,7 +1052,7 @@ class TindakanResource extends Resource
                     ->color('primary'),
             ])
             ->defaultSort('tanggal_tindakan', 'desc')
-            ->poll('30s')
+            ->poll('5s') // Reduced polling with broadcast events for real-time status sync
             ->striped()
             ->defaultPaginationPageOption(25);
     }
@@ -970,8 +1060,7 @@ class TindakanResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->where('input_by', Auth::id())
-            ->with(['jenisTindakan', 'pasien', 'dokter', 'paramedis', 'nonParamedis', 'shift']);
+            ->with(['jenisTindakan', 'pasien', 'dokter', 'paramedis', 'nonParamedis', 'shift', 'inputBy']);
     }
 
     public static function getRelations(): array

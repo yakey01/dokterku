@@ -259,7 +259,7 @@ export const withPerformanceMonitoring = <P extends object>(
       console.log(`⚡ ${componentName} render time: ${renderTime.toFixed(2)}ms`);
     });
 
-    return <Component {...props} />;
+    return React.createElement(Component, props);
   });
 };
 

@@ -25,7 +25,7 @@ class BendaharaMiddleware
                 'url' => $request->fullUrl(),
             ]);
             
-            return redirect('/login');
+            return redirect('/bendahara/login');
         }
 
         // Check if user has bendahara role

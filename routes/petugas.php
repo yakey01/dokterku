@@ -17,7 +17,10 @@ Route::middleware(['auth', 'role:petugas'])->prefix('petugas')->name('petugas.')
     
     // Dashboard - Handled by Filament Panel Provider
     // The main /petugas route is now managed by FilamentPanelProvider
-    // No need for manual redirect
+    // Add redirect for /dashboard to prevent 404
+    Route::get('/dashboard', function() {
+        return redirect('/petugas');
+    })->name('dashboard');
     
     // Enhanced Dashboard
     Route::get('/enhanced-dashboard', function() {
@@ -29,6 +32,9 @@ Route::middleware(['auth', 'role:petugas'])->prefix('petugas')->name('petugas.')
         // Patient Management
         Route::prefix('pasien')->name('pasien.')->controller(\App\Http\Controllers\Petugas\Enhanced\PasienController::class)->group(function () {
             Route::get('/', 'index')->name('index');
+            Route::get('/elegant-dark', function() {
+                return view('petugas.enhanced.pasien.elegant-dark-index');
+            })->name('elegant-dark');
             Route::get('/data', 'data')->name('data');
             Route::get('/create', 'create')->name('create');
             Route::post('/', 'store')->name('store');

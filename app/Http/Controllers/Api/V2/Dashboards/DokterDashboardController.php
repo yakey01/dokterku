@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Pegawai;
 use App\Models\Dokter;
+use App\Models\DokterPresensi;
 use App\Models\Tindakan;
 use App\Models\Jaspel;
 use App\Models\JumlahPasienHarian;
@@ -362,7 +363,7 @@ class DokterDashboardController extends Controller
                         return [
                             'id' => $jadwal->id,
                             'tanggal_jaga' => $jadwal->tanggal_jaga->format('Y-m-d'),
-                            'tanggal_formatted' => $jadwal->tanggal_jaga->format('d/m/Y'),
+                            'tanggal_formatted' => $jadwal->tanggal_jaga->format('d-n-y'), // ✅ UNIFIED: DD-MM-Y format
                             'pegawai_id' => $jadwal->pegawai_id,
                             'employee_name' => $jadwal->pegawai->name ?? $user->name,
                             'shift_template_id' => $jadwal->shift_template_id,
@@ -1026,94 +1027,152 @@ class DokterDashboardController extends Controller
             
             $today = Carbon::today('Asia/Jakarta');
             
-            // Presensi hari ini (multi-shift aware) with relationships for shift_info
-            $todayRecords = Attendance::where('user_id', $user->id)
-                ->whereDate('date', $today)
-                ->with(['shift', 'jadwalJaga.shiftTemplate']) // ✅ ADDED: Load relationships
-                ->orderBy('time_in')
+            // Get dokter record for this user
+            $dokter = Dokter::where('user_id', $user->id)->first();
+            
+            if (!$dokter) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Data dokter tidak ditemukan untuk user ini',
+                    'data' => [
+                        'today' => [
+                            'date' => $today->format('Y-m-d'),
+                            'time_in' => null,
+                            'time_out' => null,
+                            'status' => null,
+                            'work_duration' => null,
+                            'can_check_in' => false,
+                            'can_check_out' => false
+                        ],
+                        'today_records' => [],
+                        'history' => [],
+                        'stats' => [
+                            'total_missions' => 0,
+                            'perfect_missions' => 0,
+                            'good_missions' => 0,
+                            'late_missions' => 0,
+                            'incomplete_missions' => 0,
+                            'total_xp' => 0,
+                            'total_hours' => 0,
+                            'performance_rate' => 0,
+                            'attendance_rate' => 0
+                        ]
+                    ]
+                ], 404);
+            }
+            
+            // ✅ FIXED: Query DokterPresensi table instead of Attendance
+            $todayRecords = DokterPresensi::where('dokter_id', $dokter->id)
+                ->whereDate('tanggal', $today)
+                ->with(['dokter.user']) // Load dokter and user relationships
+                ->orderBy('jam_masuk')
                 ->get();
 
+            // ✅ FIXED: Adapt logic for DokterPresensi structure  
             $anyOpen = $todayRecords->contains(function ($a) {
-                return $a->time_in && !$a->time_out;
+                return $a->jam_masuk && !$a->jam_pulang;
             });
             // MULTIPLE CHECKOUT: Check if user has ANY attendance today (not just open)
             $hasAttendanceToday = $todayRecords->contains(function ($a) {
-                return $a->time_in !== null;
+                return $a->jam_masuk !== null;
             });
             // Choose a representative record: prefer the open one, otherwise last of today
             $attendanceToday = $todayRecords->firstWhere(function ($a) {
-                return $a->time_in && !$a->time_out;
+                return $a->jam_masuk && !$a->jam_pulang;
             }) ?? $todayRecords->last();
 
-            // History presensi dengan date range support
-            $historyQuery = Attendance::where('user_id', $user->id)
-                ->with(['shift', 'jadwalJaga.shiftTemplate'])
-                ->orderByDesc('date');
+            // ✅ FIXED: History presensi from DokterPresensi table
+            $historyQuery = DokterPresensi::where('dokter_id', $dokter->id)
+                ->with(['dokter.user'])
+                ->orderByDesc('tanggal');
             
             // Handle date range parameters from frontend
             if ($request->has('start') && $request->has('end')) {
                 $startDate = Carbon::parse($request->get('start'));
                 $endDate = Carbon::parse($request->get('end'));
-                $historyQuery->whereBetween('date', [$startDate, $endDate]);
+                $historyQuery->whereBetween('tanggal', [$startDate, $endDate]);
             } else {
                 // ✅ ENHANCED: Get more comprehensive history (last 90 days instead of just current month)
                 $startDate = Carbon::now()->subDays(90);
                 $endDate = Carbon::now();
-                $historyQuery->whereBetween('date', [$startDate, $endDate]);
+                $historyQuery->whereBetween('tanggal', [$startDate, $endDate]);
             }
             
-            // ✅ ADDED: Ensure we get all relevant attendance records
-            $historyQuery->whereNotNull('time_in'); // Only records with check-in
+            // ✅ FIXED: Ensure we get all relevant attendance records from DokterPresensi
+            $historyQuery->whereNotNull('jam_masuk'); // Only records with check-in
             
-            // ✅ FIXED: Get completed shifts separately to avoid query conflicts
-            $completedShiftsIds = collect();
-            try {
-                $completedShiftsQuery = JadwalJaga::where('pegawai_id', $user->id)
-                    ->where('tanggal_jaga', '<', Carbon::today())
-                    ->pluck('id');
-                
-                if ($completedShiftsQuery->isNotEmpty()) {
-                    $completedShiftsIds = $completedShiftsQuery;
-                }
-            } catch (\Exception $e) {
-                \Log::warning('Failed to get completed shifts for history:', [
-                    'user_id' => $user->id,
-                    'error' => $e->getMessage()
-                ]);
-                $completedShiftsIds = collect();
-            }
+            // ✅ REMOVED: No need for complex shift merging with DokterPresensi
             
-            // Get main attendance history
+            // ✅ FIXED: Get attendance history from DokterPresensi
             $attendanceHistory = $historyQuery->get();
             
-            // ✅ ADDED: Include attendance from completed shifts if not already in main query
-            if ($completedShiftsIds->isNotEmpty()) {
-                try {
-                    $completedShiftsAttendance = Attendance::where('user_id', $user->id)
-                        ->whereIn('jadwal_jaga_id', $completedShiftsIds)
-                        ->whereNotNull('time_in')
-                        ->with(['shift', 'jadwalJaga.shiftTemplate'])
-                        ->whereNotIn('id', $attendanceHistory->pluck('id'))
-                        ->get();
-                    
-                    $attendanceHistory = $attendanceHistory->merge($completedShiftsAttendance);
-                } catch (\Exception $e) {
-                    \Log::warning('Failed to get completed shifts attendance:', [
-                        'user_id' => $user->id,
-                        'error' => $e->getMessage()
-                    ]);
-                }
-            }
+            // ✅ REMOVED: No need for complex shift merging with DokterPresensi
             
-            // Process and deduplicate
+            // ✅ FIXED: Process DokterPresensi records
             $attendanceHistory = $attendanceHistory
-                ->unique('id')
-                ->sortByDesc('date')
+                ->sortByDesc('tanggal')
                 ->values()
-                ->map(function ($attendance) {
-                    // ✅ ENHANCED: Comprehensive shift_info extraction
-                    $shiftInfo = null;
-                    $jadwalJaga = $attendance->jadwalJaga;
+                ->map(function ($presensi) {
+                    // Calculate duration dari DokterPresensi data
+                    $durationFormatted = '-';
+                    $durationMinutes = 0;
+                    
+                    if ($presensi->jam_masuk && $presensi->jam_pulang) {
+                        $durationMinutes = $presensi->jam_masuk->diffInMinutes($presensi->jam_pulang);
+                        $hours = floor($durationMinutes / 60);
+                        $minutes = $durationMinutes % 60;
+                        $durationFormatted = $hours . 'h ' . $minutes . 'm';
+                    }
+                    
+                    // Determine status
+                    $status = 'incomplete';
+                    if ($presensi->jam_masuk && $presensi->jam_pulang) {
+                        if ($durationMinutes >= 480) { // 8 hours or more
+                            $status = 'perfect';
+                        } elseif ($durationMinutes >= 360) { // 6+ hours
+                            $status = 'good';
+                        } else {
+                            $status = 'late';
+                        }
+                    }
+                    
+                    return [
+                        'id' => $presensi->id,
+                        'date' => $presensi->tanggal->format('Y-m-d'),
+                        'tanggal' => $presensi->tanggal->format('d/m/Y'), // Mobile format
+                        'day_name' => $presensi->tanggal->format('l'),
+                        'full_date' => $presensi->tanggal->toISOString(),
+                        
+                        // ✅ FIXED: Use DokterPresensi fields
+                        'time_in' => $presensi->jam_masuk ? $presensi->jam_masuk->format('H:i') : null,
+                        'time_out' => $presensi->jam_pulang ? $presensi->jam_pulang->format('H:i') : null,
+                        'jam_masuk' => $presensi->jam_masuk ? $presensi->jam_masuk->format('H:i') : null,
+                        'jam_pulang' => $presensi->jam_pulang ? $presensi->jam_pulang->format('H:i') : null,
+                        
+                        // Duration and status
+                        'working_duration' => $durationFormatted,
+                        'work_duration' => $durationFormatted,
+                        'duration_minutes' => $durationMinutes,
+                        'status' => $status,
+                        'dynamic_status' => $presensi->jam_pulang ? 'Selesai' : 'Aktif',
+                        
+                        // Points and achievement (simplified)
+                        'points_earned' => $status === 'perfect' ? 150 : ($status === 'good' ? 100 : 50),
+                        'achievement_badge' => $status === 'perfect' ? '🏆 PERFECT' : ($status === 'good' ? '⭐ GOOD' : '⚠️ LATE'),
+                        
+                        // Shift info (basic)
+                        'shift_info' => [
+                            'shift_name' => 'Shift Dokter',
+                            'shift_start' => '08:00',
+                            'shift_end' => '16:00',
+                            'shift_duration' => '8j 0m'
+                        ],
+                        
+                        // Legacy compatibility
+                        'check_in_time' => $presensi->jam_masuk,
+                        'check_out_time' => $presensi->jam_pulang,
+                        'status_legacy' => $presensi->jam_pulang ? 'completed' : 'active'
+                    ];
                     
                     // ✅ FIX: Properly get shift template object
                     $shiftTemplate = null;
@@ -3136,7 +3195,7 @@ class DokterDashboardController extends Controller
                         return [
                             'id' => $jadwal->id,
                             'tanggal_jaga' => $jadwal->tanggal_jaga->format('Y-m-d'),
-                            'tanggal_formatted' => $jadwal->tanggal_jaga->format('d/m/Y'),
+                            'tanggal_formatted' => $jadwal->tanggal_jaga->format('d-n-y'), // ✅ UNIFIED: DD-MM-Y format
                             'pegawai_id' => $jadwal->pegawai_id,
                             'employee_name' => $user ? $user->name : 'Unknown',
                             'shift_template_id' => $jadwal->shift_template_id,

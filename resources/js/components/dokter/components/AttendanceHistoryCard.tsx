@@ -1,5 +1,6 @@
-import React from 'react';
-import { Calendar, Clock, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Calendar, Clock, CheckCircle, XCircle, AlertTriangle, RefreshCw } from 'lucide-react';
+import { useAttendanceHistoryUpdates } from '../../../utils/WebSocketManager';
 
 interface AttendanceRecord {
   date: string;
@@ -13,13 +14,40 @@ interface AttendanceHistoryCardProps {
   attendanceHistory: AttendanceRecord[];
   isLoading?: boolean;
   maxRecords?: number;
+  onRefreshData?: () => Promise<void>; // NEW: Callback to refresh data
 }
 
 const AttendanceHistoryCard: React.FC<AttendanceHistoryCardProps> = React.memo(({
   attendanceHistory,
   isLoading = false,
-  maxRecords = 7
+  maxRecords = 7,
+  onRefreshData
 }) => {
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastUpdateTime, setLastUpdateTime] = useState<string>('');
+
+  // 🚀 REAL-TIME: Listen for attendance updates via WebSocket
+  const wsStatus = useAttendanceHistoryUpdates((data) => {
+    console.log('📡 Attendance History: Real-time update received', data);
+    
+    // Show update notification
+    setLastUpdateTime(new Date().toLocaleTimeString('id-ID'));
+    
+    // Trigger data refresh if callback provided
+    if (onRefreshData && !isRefreshing) {
+      setIsRefreshing(true);
+      onRefreshData()
+        .then(() => {
+          console.log('✅ Attendance History: Data refreshed successfully');
+        })
+        .catch((error) => {
+          console.error('❌ Attendance History: Failed to refresh data', error);
+        })
+        .finally(() => {
+          setIsRefreshing(false);
+        });
+    }
+  });
   // Status icon mapping
   const getStatusIcon = (status: string) => {
     const statusLower = status.toLowerCase();
@@ -131,9 +159,36 @@ const AttendanceHistoryCard: React.FC<AttendanceHistoryCardProps> = React.memo((
 
   return (
     <div className="px-6 mb-8 relative z-10">
-      <h3 className="text-xl md:text-2xl font-bold mb-6 text-center bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-        Riwayat Presensi
-      </h3>
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-xl md:text-2xl font-bold text-center bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent flex-1">
+          Riwayat Presensi
+        </h3>
+        
+        {/* Real-time status indicator */}
+        <div className="flex items-center space-x-2 text-xs">
+          {wsStatus.connected ? (
+            <div className="flex items-center space-x-1 text-green-400">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <span>Real-time</span>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-1 text-gray-400">
+              <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+              <span>Offline</span>
+            </div>
+          )}
+          
+          {lastUpdateTime && (
+            <span className="text-gray-400">
+              • Update: {lastUpdateTime}
+            </span>
+          )}
+          
+          {isRefreshing && (
+            <RefreshCw className="w-4 h-4 text-blue-400 animate-spin" />
+          )}
+        </div>
+      </div>
       
       <div className="bg-white/5 backdrop-blur-2xl rounded-3xl p-6 border border-white/10">
         {/* Summary Statistics */}

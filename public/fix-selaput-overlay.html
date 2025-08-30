@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Selaput Overlay Fix</title>
+    <style>
+        /* Emergency fix for selaput overlay issue */
+        body {
+            background: #000 !important;
+            color: #fff !important;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+        
+        .emergency-fix {
+            max-width: 800px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #1a1a1a, #2a2a2a);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid #404040;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        }
+        
+        .fix-code {
+            background: #0a0a0a;
+            border: 1px solid #404040;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        
+        .emergency-btn {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 8px 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .emergency-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(239, 68, 68, 0.3);
+        }
+        
+        .warning {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid #ef4444;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .success {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid #22c55e;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="emergency-fix">
+        <h1>🚨 Admin Panel Selaput Overlay Fix</h1>
+        
+        <div class="warning">
+            <h3>⚠️ Emergency Issue Detected</h3>
+            <p>Your admin panel has an invisible "selaput" (overlay) blocking user interaction. This is likely caused by:</p>
+            <ul>
+                <li>Stuck modal backdrop (z-index: 50+)</li>
+                <li>Unclosed Livewire components</li>
+                <li>CSS backdrop-filter conflicts</li>
+                <li>Fixed positioning elements covering the page</li>
+            </ul>
+        </div>
+
+        <h2>🔧 Immediate Fix Options</h2>
+        
+        <h3>1. JavaScript Console Fix (Instant)</h3>
+        <p>Open browser console (F12) and run:</p>
+        <div class="fix-code">// Remove all modal overlays
+document.querySelectorAll('.fi-modal, [data-modal], [x-data*="modal"]').forEach(el => el.remove());
+
+// Remove backdrop filters
+document.querySelectorAll('*').forEach(el => {
+    const style = window.getComputedStyle(el);
+    if (style.backdropFilter && style.backdropFilter !== 'none') {
+        el.style.backdropFilter = 'none';
+        el.style.webkitBackdropFilter = 'none';
+    }
+});
+
+// Remove high z-index overlays
+document.querySelectorAll('*').forEach(el => {
+    const style = window.getComputedStyle(el);
+    const zIndex = parseInt(style.zIndex);
+    if (zIndex >= 50 && style.position === 'fixed') {
+        if (el.offsetHeight === window.innerHeight && el.offsetWidth === window.innerWidth) {
+            el.style.display = 'none';
+        }
+    }
+});
+
+// Reset Alpine.js modals
+if (window.Alpine) {
+    window.Alpine.store('modals', {});
+}
+
+console.log('🟢 Selaput overlay fix applied!');</div>
+
+        <button class="emergency-btn" onclick="executeEmergencyFix()">Execute Emergency Fix</button>
+
+        <h3>2. CSS Override Method</h3>
+        <p>Add this to your admin theme CSS:</p>
+        <div class="fix-code">/* Emergency Selaput Overlay Removal */
+.fi-modal, 
+[data-modal="true"],
+.modal-overlay,
+.backdrop-blur {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    z-index: -1 !important;
+    pointer-events: none !important;
+}
+
+/* Remove backdrop filters causing invisible overlays */
+* {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+/* Force visibility for admin elements */
+.fi-sidebar,
+.fi-main,
+.fi-page,
+.fi-topbar {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: auto !important;
+    pointer-events: auto !important;
+}
+
+/* Ensure no fixed overlays are blocking content */
+*[style*="z-index: 50"],
+*[style*="z-index: 51"],
+*[style*="z-index: 52"],
+*[style*="z-index: 53"],
+*[style*="z-index: 54"],
+*[style*="z-index: 55"] {
+    display: none !important;
+}</div>
+
+        <h3>3. Server-Side Fix</h3>
+        <p>Edit your admin theme CSS file:</p>
+        <div class="fix-code">File: /resources/css/filament/admin/theme.css
+
+Add at the end:
+/* EMERGENCY SELAPUT OVERLAY FIX */
+@media screen {
+    /* Remove all potential overlay elements */
+    .fi-modal-overlay,
+    .fi-slide-over-overlay,
+    [data-backdrop="true"],
+    [x-show="show"],
+    .backdrop-blur-sm,
+    .backdrop-blur-md,
+    .backdrop-blur-lg {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        z-index: -1 !important;
+    }
+    
+    /* Force admin content to be interactive */
+    .dark .fi-main *,
+    .dark .fi-page *,
+    .dark .fi-sidebar * {
+        pointer-events: auto !important;
+        user-select: auto !important;
+    }
+}</div>
+
+        <div class="success" id="fix-result" style="display: none;">
+            <h3>✅ Fix Applied Successfully!</h3>
+            <p>The selaput overlay has been removed. Your admin panel should now be fully interactive.</p>
+        </div>
+
+        <h2>🔍 Root Cause Analysis</h2>
+        <p><strong>Technical Details:</strong></p>
+        <ul>
+            <li><strong>Symptoms:</strong> Admin content visible but not interactive</li>
+            <li><strong>Cause:</strong> Invisible overlay element with high z-index</li>
+            <li><strong>Common Sources:</strong> Livewire modals, Alpine.js components, CSS backdrop-filter</li>
+            <li><strong>Fix Strategy:</strong> Remove/disable overlay elements and backdrop filters</li>
+        </ul>
+
+        <h2>🛡️ Prevention Measures</h2>
+        <ol>
+            <li>Always close modals properly in Livewire components</li>
+            <li>Use proper Alpine.js lifecycle methods</li>
+            <li>Avoid excessive backdrop-filter usage</li>
+            <li>Test z-index stacking contexts carefully</li>
+            <li>Implement proper cleanup in JavaScript components</li>
+        </ol>
+
+        <button class="emergency-btn" onclick="window.location.href = '/admin'">Return to Admin Panel</button>
+    </div>
+
+    <script>
+        function executeEmergencyFix() {
+            try {
+                // Remove all modal overlays
+                document.querySelectorAll('.fi-modal, [data-modal], [x-data*="modal"]').forEach(el => el.remove());
+
+                // Remove backdrop filters
+                document.querySelectorAll('*').forEach(el => {
+                    const style = window.getComputedStyle(el);
+                    if (style.backdropFilter && style.backdropFilter !== 'none') {
+                        el.style.backdropFilter = 'none';
+                        el.style.webkitBackdropFilter = 'none';
+                    }
+                });
+
+                // Remove high z-index overlays
+                document.querySelectorAll('*').forEach(el => {
+                    const style = window.getComputedStyle(el);
+                    const zIndex = parseInt(style.zIndex);
+                    if (zIndex >= 50 && style.position === 'fixed') {
+                        if (el.offsetHeight >= window.innerHeight * 0.8 && el.offsetWidth >= window.innerWidth * 0.8) {
+                            el.style.display = 'none';
+                        }
+                    }
+                });
+
+                // Reset Alpine.js modals if present
+                if (window.Alpine) {
+                    window.Alpine.store('modals', {});
+                }
+
+                // Show success message
+                document.getElementById('fix-result').style.display = 'block';
+                
+                // Auto-redirect after 3 seconds
+                setTimeout(() => {
+                    window.location.href = '/admin';
+                }, 3000);
+                
+                console.log('🟢 Emergency selaput overlay fix applied successfully!');
+                
+            } catch (error) {
+                console.error('❌ Fix execution error:', error);
+                alert('Fix execution completed with some warnings. Check console for details.');
+            }
+        }
+
+        // Auto-detect and fix common overlay issues on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔍 Scanning for selaput overlay issues...');
+            
+            let issuesFound = 0;
+            
+            // Check for stuck modals
+            const modals = document.querySelectorAll('.fi-modal, [data-modal="true"]');
+            if (modals.length > 0) {
+                console.log('⚠️ Found stuck modals:', modals.length);
+                issuesFound++;
+            }
+            
+            // Check for excessive backdrop filters
+            const backdrops = Array.from(document.querySelectorAll('*')).filter(el => {
+                const style = window.getComputedStyle(el);
+                return style.backdropFilter && style.backdropFilter !== 'none';
+            });
+            if (backdrops.length > 0) {
+                console.log('⚠️ Found backdrop filters:', backdrops.length);
+                issuesFound++;
+            }
+            
+            // Check for high z-index overlays
+            const overlays = Array.from(document.querySelectorAll('*')).filter(el => {
+                const style = window.getComputedStyle(el);
+                const zIndex = parseInt(style.zIndex);
+                return zIndex >= 50 && style.position === 'fixed';
+            });
+            if (overlays.length > 0) {
+                console.log('⚠️ Found high z-index overlays:', overlays.length);
+                issuesFound++;
+            }
+            
+            if (issuesFound === 0) {
+                console.log('✅ No obvious selaput overlay issues detected');
+            } else {
+                console.log('🚨 Total issues found:', issuesFound);
+            }
+        });
+    </script>
+</body>
+</html>

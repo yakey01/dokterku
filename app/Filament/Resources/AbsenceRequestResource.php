@@ -24,7 +24,7 @@ class AbsenceRequestResource extends Resource
     
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
     
-    protected static ?string $navigationGroup = '🏖️ CUTI DAN ABSEN';
+    protected static ?string $navigationGroup = 'Leave Management';
     
     protected static ?string $navigationLabel = 'Permintaan Izin';
     

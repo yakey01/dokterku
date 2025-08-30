@@ -86,7 +86,7 @@ class WorldClassDashboard extends Page
 
     public function getHeading(): string
     {
-        return 'Petugas Dashboard';
+        return 'Dashboard';
     }
 
     public function getSubheading(): ?string

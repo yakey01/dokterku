@@ -16,7 +16,7 @@ class AttendanceToleranceSettingResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-clock';
 
-    protected static ?string $navigationGroup = '📋 SCHEDULE MANAGEMENT';
+    protected static ?string $navigationGroup = 'Schedule Management';
 
     protected static ?string $navigationLabel = 'Tolerance Settings';
 

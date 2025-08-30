@@ -149,13 +149,13 @@ export const retryWithBackoff = async <T>(
 };
 
 /**
- * Format date for display (DD-MM-YY format: 13-08-25)
+ * Format date for display (DD-MM-Y format: 21-8-25, same as mobile app)
  */
 export const formatDate = (date: Date | string): string => {
   const d = typeof date === 'string' ? new Date(date) : date;
   
   const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const month = String(d.getMonth() + 1); // No leading zero for month
   const year = String(d.getFullYear()).slice(-2);
   
   return `${day}-${month}-${year}`;

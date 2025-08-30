@@ -8,6 +8,8 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/css/map-styles.css',
+                // Filament base theme - LOAD FIRST to prevent override issues
+                'vendor/filament/filament/resources/css/theme.css',
                 'resources/js/app.js',
                 // Manager Dashboard - Isolated Entry Point
                 'resources/js/manager-isolated.js',
@@ -21,8 +23,7 @@ export default defineConfig({
                 // 'resources/js/leaflet-utilities.ts', // Removed - using simple map component instead
                 // 'resources/js/test-presensi.tsx', // File not found, commented out
                 'resources/css/petugas-table-ux.css',
-                'resources/css/filament/admin/theme.css',
-                'resources/css/filament/bendahara/theme.css',
+                'resources/css/filament/admin/theme-pure.css',
                 'resources/css/filament/manajer/theme.css',
                 'resources/css/filament/paramedis/theme.css',
                 'resources/css/filament/petugas/theme.css',
@@ -41,6 +42,10 @@ export default defineConfig({
                 // New unified Manajer Dashboard
                 'resources/js/manajer-dashboard.tsx',
                 'resources/css/manajer-white-smoke-ui.css',
+                // Bendahara panel CSS - Isolated Architecture
+                'resources/css/filament/bendahara/isolated-theme.css',
+                // Bendahara validation tabs enhancement - CSS merged into theme.css
+                'resources/js/validation-tabs.js',
             ],
             refresh: true,
             detectTls: false,
@@ -55,8 +60,10 @@ export default defineConfig({
         strictPort: true,
         hmr: {
             host: '127.0.0.1',
-            port: 5173,
+            port: 5174,
             protocol: 'ws',
+            overlay: true,
+            timeout: 30000,
         },
         cors: true,
     },
@@ -74,7 +81,7 @@ export default defineConfig({
     build: {
         rollupOptions: {
             output: {
-                format: 'es', // ✅ EXPLICIT ES MODULES FORMAT
+                format: 'es',
                 assetFileNames: (assetInfo) => {
                     let extType = assetInfo.name.split('.').at(1);
                     if (/png|jpe?g|svg|gif|tiff|bmp|ico/i.test(extType)) {
@@ -84,13 +91,23 @@ export default defineConfig({
                 },
                 entryFileNames: `assets/js/[name]-[hash].js`,
                 chunkFileNames: `assets/js/[name]-[hash].js`,
+                manualChunks: {
+                    // Bundle icon chunks together to reduce preload overhead
+                    'icons': ['lucide-react']
+                }
             },
-            // ✅ REMOVED external configuration that was preventing lucide-react from being bundled
         },
-        sourcemap: false,
-        minify: 'esbuild', // ✅ USING ESBUILD: More reliable for import statements than terser
+        sourcemap: process.env.NODE_ENV === 'development',
+        minify: 'esbuild',
         target: 'es2020',
         chunkSizeWarningLimit: 1600,
         manifest: true,
+        modulePreload: {
+            // Only preload critical dependencies, not icon chunks
+            polyfill: false,
+            resolveDependencies: (filename, deps, { moduleGraph }) => {
+                return deps.filter(dep => !dep.includes('icon') && !dep.includes('lucide'));
+            }
+        },
     },
 });

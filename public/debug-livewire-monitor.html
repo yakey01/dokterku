@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Livewire 500 Error Monitor</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            margin: 20px;
+            background-color: #1e1e1e;
+            color: #fff;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .status {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .status-card {
+            flex: 1;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .status-ok { background-color: #27ae60; }
+        .status-warning { background-color: #f39c12; }
+        .status-error { background-color: #e74c3c; }
+        .log-container {
+            background-color: #2c3e50;
+            border-radius: 8px;
+            padding: 20px;
+            height: 400px;
+            overflow-y: auto;
+            border: 2px solid #34495e;
+        }
+        .log-entry {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 4px;
+            border-left: 4px solid;
+        }
+        .log-request { border-left-color: #3498db; background-color: rgba(52, 152, 219, 0.1); }
+        .log-success { border-left-color: #27ae60; background-color: rgba(39, 174, 96, 0.1); }
+        .log-error { border-left-color: #e74c3c; background-color: rgba(231, 76, 60, 0.1); }
+        .timestamp { color: #95a5a6; font-size: 12px; }
+        .component-name { color: #f1c40f; font-weight: bold; }
+        .error-details { 
+            background-color: rgba(231, 76, 60, 0.2); 
+            padding: 10px; 
+            border-radius: 4px; 
+            margin-top: 5px;
+            white-space: pre-wrap;
+        }
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-clear { background-color: #95a5a6; color: white; }
+        .btn-test { background-color: #3498db; color: white; }
+        .btn-admin { background-color: #9b59b6; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Livewire 500 Error Monitor</h1>
+            <p>Real-time monitoring of Livewire requests to identify 500 errors</p>
+        </div>
+
+        <div class="status">
+            <div class="status-card status-ok">
+                <h3>Requests Monitored</h3>
+                <div id="request-count">0</div>
+            </div>
+            <div class="status-card status-warning">
+                <h3>Errors Detected</h3>
+                <div id="error-count">0</div>
+            </div>
+            <div class="status-card status-error">
+                <h3>Components with Issues</h3>
+                <div id="component-count">0</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-clear" onclick="clearLogs()">Clear Logs</button>
+            <button class="btn-test" onclick="testLivewireRequest()">Test Livewire</button>
+            <button class="btn-admin" onclick="openAdminPanel()">Open Admin Panel</button>
+        </div>
+
+        <div class="log-container" id="log-container">
+            <div class="log-entry log-request">
+                <div class="timestamp">Ready to monitor...</div>
+                <div>Monitoring all XMLHttpRequests for /livewire/update</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let requestCount = 0;
+        let errorCount = 0;
+        let componentsWithIssues = new Set();
+
+        // Override XMLHttpRequest to monitor all requests
+        const originalXHR = window.XMLHttpRequest;
+        window.XMLHttpRequest = function() {
+            const xhr = new originalXHR();
+            const originalOpen = xhr.open;
+            const originalSend = xhr.send;
+            
+            let requestData = {};
+
+            xhr.open = function(method, url, ...args) {
+                requestData.method = method;
+                requestData.url = url;
+                requestData.timestamp = new Date().toISOString();
+                
+                return originalOpen.apply(this, [method, url, ...args]);
+            };
+
+            xhr.send = function(data) {
+                requestData.data = data;
+                
+                // Only monitor Livewire requests
+                if (requestData.url && requestData.url.includes('/livewire/update')) {
+                    requestCount++;
+                    updateCounters();
+                    
+                    logRequest('🔵 LIVEWIRE REQUEST', requestData, data);
+                    
+                    // Monitor response
+                    const originalOnReadyStateChange = xhr.onreadystatechange;
+                    xhr.onreadystatechange = function() {
+                        if (xhr.readyState === 4) { // Request completed
+                            const responseData = {
+                                status: xhr.status,
+                                statusText: xhr.statusText,
+                                response: xhr.responseText,
+                                headers: xhr.getAllResponseHeaders()
+                            };
+                            
+                            if (xhr.status === 500) {
+                                errorCount++;
+                                extractComponentFromError(data, responseData);
+                                logError('🔴 LIVEWIRE ERROR 500', requestData, responseData);
+                            } else if (xhr.status >= 200 && xhr.status < 300) {
+                                logSuccess('🟢 LIVEWIRE SUCCESS', requestData, responseData);
+                            } else {
+                                logError('⚠️ LIVEWIRE WARNING', requestData, responseData);
+                            }
+                            
+                            updateCounters();
+                        }
+                        
+                        if (originalOnReadyStateChange) {
+                            originalOnReadyStateChange.apply(this, arguments);
+                        }
+                    };
+                }
+                
+                return originalSend.apply(this, [data]);
+            };
+
+            return xhr;
+        };
+
+        // Also monitor fetch requests
+        const originalFetch = window.fetch;
+        window.fetch = function(url, options = {}) {
+            if (url && url.includes('/livewire/update')) {
+                requestCount++;
+                updateCounters();
+                
+                const requestData = {
+                    method: options.method || 'GET',
+                    url: url,
+                    timestamp: new Date().toISOString(),
+                    data: options.body
+                };
+                
+                logRequest('🔵 LIVEWIRE FETCH', requestData, options.body);
+                
+                return originalFetch(url, options).then(response => {
+                    const responseData = {
+                        status: response.status,
+                        statusText: response.statusText,
+                        url: response.url
+                    };
+                    
+                    if (response.status === 500) {
+                        errorCount++;
+                        extractComponentFromError(options.body, responseData);
+                        logError('🔴 LIVEWIRE FETCH ERROR 500', requestData, responseData);
+                    } else if (response.ok) {
+                        logSuccess('🟢 LIVEWIRE FETCH SUCCESS', requestData, responseData);
+                    } else {
+                        logError('⚠️ LIVEWIRE FETCH WARNING', requestData, responseData);
+                    }
+                    
+                    updateCounters();
+                    return response;
+                }).catch(error => {
+                    errorCount++;
+                    logError('🔴 LIVEWIRE FETCH ERROR', requestData, { error: error.message });
+                    updateCounters();
+                    throw error;
+                });
+            }
+            
+            return originalFetch(url, options);
+        };
+
+        function extractComponentFromError(requestBody, responseData) {
+            try {
+                if (typeof requestBody === 'string') {
+                    const payload = JSON.parse(requestBody);
+                    if (payload.fingerprint && payload.fingerprint.name) {
+                        componentsWithIssues.add(payload.fingerprint.name);
+                    }
+                }
+            } catch (e) {
+                // Could not parse request body
+            }
+        }
+
+        function logRequest(type, requestData, body) {
+            const logContainer = document.getElementById('log-container');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry log-request';
+            
+            let componentName = 'Unknown';
+            try {
+                if (body && typeof body === 'string') {
+                    const payload = JSON.parse(body);
+                    if (payload.fingerprint && payload.fingerprint.name) {
+                        componentName = payload.fingerprint.name;
+                    }
+                }
+            } catch (e) {}
+            
+            entry.innerHTML = `
+                <div class="timestamp">${new Date().toLocaleTimeString()}</div>
+                <div>${type} - <span class="component-name">${componentName}</span></div>
+                <div>URL: ${requestData.url}</div>
+                <div>Method: ${requestData.method}</div>
+            `;
+            
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function logSuccess(type, requestData, responseData) {
+            const logContainer = document.getElementById('log-container');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry log-success';
+            
+            entry.innerHTML = `
+                <div class="timestamp">${new Date().toLocaleTimeString()}</div>
+                <div>${type} - Status: ${responseData.status}</div>
+                <div>Response size: ${responseData.response ? responseData.response.length : 'N/A'} chars</div>
+            `;
+            
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function logError(type, requestData, responseData) {
+            const logContainer = document.getElementById('log-container');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry log-error';
+            
+            let errorDetails = '';
+            if (responseData.response) {
+                // Try to extract meaningful error information
+                try {
+                    const response = JSON.parse(responseData.response);
+                    errorDetails = JSON.stringify(response, null, 2);
+                } catch (e) {
+                    errorDetails = responseData.response.substring(0, 500);
+                }
+            }
+            
+            entry.innerHTML = `
+                <div class="timestamp">${new Date().toLocaleTimeString()}</div>
+                <div>${type} - Status: ${responseData.status} ${responseData.statusText}</div>
+                <div>URL: ${requestData.url}</div>
+                ${errorDetails ? `<div class="error-details">Response: ${errorDetails}</div>` : ''}
+            `;
+            
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function updateCounters() {
+            document.getElementById('request-count').textContent = requestCount;
+            document.getElementById('error-count').textContent = errorCount;
+            document.getElementById('component-count').textContent = componentsWithIssues.size;
+        }
+
+        function clearLogs() {
+            document.getElementById('log-container').innerHTML = `
+                <div class="log-entry log-request">
+                    <div class="timestamp">Logs cleared - ${new Date().toLocaleTimeString()}</div>
+                    <div>Monitoring resumed...</div>
+                </div>
+            `;
+            requestCount = 0;
+            errorCount = 0;
+            componentsWithIssues.clear();
+            updateCounters();
+        }
+
+        function testLivewireRequest() {
+            // Create a test request to see if monitoring works
+            fetch('/livewire/update/test', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Livewire': 'true'
+                },
+                body: JSON.stringify({
+                    fingerprint: { name: 'TestComponent' },
+                    serverMemo: {},
+                    updates: []
+                })
+            }).catch(() => {
+                // Expected to fail, just testing monitoring
+            });
+        }
+
+        function openAdminPanel() {
+            window.open('/admin', '_blank');
+        }
+
+        // Log when page loads
+        console.log('🔍 Livewire 500 Error Monitor loaded');
+        console.log('📊 All Livewire requests will be monitored');
+        console.log('🎯 Navigate to admin panel to trigger Livewire components');
+    </script>
+</body>
+</html>

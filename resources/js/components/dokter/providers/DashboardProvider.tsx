@@ -2,6 +2,7 @@ import React, { createContext, useContext, useReducer, useCallback, useEffect, R
 import doctorApi from '../../../utils/doctorApi';
 import { performanceMonitor } from '../../../utils/PerformanceMonitor';
 import AttendanceCalculator from '../../../utils/AttendanceCalculator';
+import { apiRateLimiter, withRateLimit } from '../../../utils/ApiRateLimiter';
 
 // Dashboard state interfaces
 interface DashboardMetrics {
@@ -226,6 +227,7 @@ interface DashboardContextType {
   actions: {
     fetchDashboardData: () => Promise<void>;
     fetchLeaderboard: () => Promise<void>;
+    fetchAttendanceHistory: () => Promise<void>; // NEW: For real-time history refresh
     refreshAll: () => Promise<void>;
     clearErrors: () => void;
     resetState: () => void;
@@ -274,11 +276,21 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children, 
     }, [state.lastUpdated.attendance]),
   };
 
-  // Fetch dashboard data with smart caching
+  // Fetch dashboard data with smart caching and rate limiting
   const fetchDashboardData = useCallback(async () => {
     // Check cache validity
     if (cache.isDashboardCacheValid() && state.metrics.jaspel.currentMonth > 0) {
       console.log('📊 Dashboard: Using cached data');
+      return;
+    }
+
+    // Check rate limiter
+    const permission = apiRateLimiter.canMakeRequest('dashboard');
+    if (!permission.allowed) {
+      console.warn(`🚫 Dashboard fetch blocked: ${permission.reason}`);
+      if (permission.retryAfter) {
+        console.warn(`⏰ Retry after: ${permission.retryAfter}ms`);
+      }
       return;
     }
 
@@ -289,10 +301,11 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children, 
       
       console.log('🔄 Dashboard: Fetching fresh data...');
       
-      // Parallel API calls with error handling
+      // Parallel API calls with error handling and rate limiting
       const [dashboardData, attendanceResponse] = await Promise.all([
-        doctorApi.getDashboard().catch(err => {
+        withRateLimit(() => doctorApi.getDashboard(), 'dashboard')().catch(err => {
           console.warn('Dashboard API failed:', err);
+          apiRateLimiter.recordFailure(err);
           return null;
         }),
         fetch('/api/v2/dashboards/dokter/presensi', {
@@ -496,11 +509,21 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children, 
     }
   }, [cache, state.metrics.jaspel.currentMonth]);
 
-  // Fetch leaderboard data with smart caching
+  // Fetch leaderboard data with smart caching and rate limiting
   const fetchLeaderboard = useCallback(async () => {
     // Check cache validity
     if (cache.isLeaderboardCacheValid() && state.leaderboard.length > 0) {
       console.log('🏆 Leaderboard: Using cached data');
+      return;
+    }
+
+    // Check rate limiter
+    const permission = apiRateLimiter.canMakeRequest('leaderboard');
+    if (!permission.allowed) {
+      console.warn(`🚫 Leaderboard fetch blocked: ${permission.reason}`);
+      if (permission.retryAfter) {
+        console.warn(`⏰ Retry after: ${permission.retryAfter}ms`);
+      }
       return;
     }
 
@@ -513,38 +536,68 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children, 
       const currentMonth = currentDate.getMonth() + 1;
       const currentYear = currentDate.getFullYear();
       
-      const response = await fetch(`/api/v2/dashboards/dokter/leaderboard?month=${currentMonth}&year=${currentYear}`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include'
-      });
+      // Use rate limited fetch
+      const protectedFetch = withRateLimit(
+        () => fetch(`/api/v2/dashboards/dokter/leaderboard?month=${currentMonth}&year=${currentYear}`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include'
+        }),
+        'leaderboard'
+      );
+      
+      const response = await protectedFetch();
       
       if (response.ok) {
         const data = await response.json();
         const leaderboard = data?.data?.leaderboard || data?.data || [];
         
         if (Array.isArray(leaderboard)) {
-          const transformedLeaderboard: LeaderboardDoctor[] = leaderboard.map((doctor: any, index: number) => ({
-            id: doctor.id || index + 1,
-            rank: doctor.rank || index + 1,
-            name: doctor.name || `Doctor ${index + 1}`,
-            level: doctor.level || Math.floor(Math.random() * 10) + 1,
-            xp: doctor.xp || doctor.experience_points || Math.floor(Math.random() * 5000) + 1000,
-            attendance_rate: doctor.attendance_rate || doctor.attendance || Math.floor(Math.random() * 30) + 70,
-            streak_days: doctor.streak_days || doctor.streak || 0,
-            total_hours: doctor.total_hours || Math.floor(Math.random() * 200) + 100,
-            total_days: doctor.total_days || currentDate.getDate(),
-            total_patients: doctor.total_patients || doctor.patient_count || (Math.max(8 - index, 3) * currentDate.getDate()),
-            consultation_hours: doctor.consultation_hours || 6 * currentDate.getDate(),
-            procedures_count: doctor.procedures_count || doctor.total_procedures || (Math.max(5 - Math.floor(index / 2), 2) * currentDate.getDate()),
-            badge: doctor.badge || (index === 0 ? '👑' : index === 1 ? '🥈' : index === 2 ? '🥉' : '⭐'),
-            month: currentMonth,
-            year: currentYear,
-            monthLabel: new Date(currentYear, currentMonth - 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })
-          }));
+          // ✅ FIXED: Remove dummy fallback data generation - use actual API data only
+          const transformedLeaderboard: LeaderboardDoctor[] = leaderboard
+            .filter((doctor: any) => {
+              // Filter out dummy test doctors and doctors without real data
+              const isDummyDoctor = doctor.name && (
+                doctor.name.includes('Dr. Dokter Umum') ||
+                doctor.name.includes('Dr. Spesialis Penyakit Dalam') ||
+                doctor.name.startsWith('Doctor ') ||
+                doctor.name === 'Test Doctor'
+              );
+              
+              // Only include doctors with actual patient data or valid attendance
+              const hasRealData = (
+                (doctor.total_patients !== undefined && doctor.total_patients > 0) ||
+                (doctor.attendance_rate !== undefined && doctor.attendance_rate > 0) ||
+                (doctor.total_hours !== undefined && doctor.total_hours > 0)
+              );
+              
+              return !isDummyDoctor && hasRealData;
+            })
+            .map((doctor: any, index: number) => ({
+              id: doctor.id,
+              rank: doctor.rank || index + 1,
+              name: doctor.name,
+              level: doctor.level || 1,
+              xp: doctor.xp || doctor.experience_points || 0,
+              attendance_rate: doctor.attendance_rate || doctor.attendance || 0,
+              streak_days: doctor.streak_days || doctor.streak || 0,
+              total_hours: doctor.total_hours || 0,
+              total_days: doctor.total_days || 0,
+              // ✅ CRITICAL FIX: Use only real patient data, no fallback generation
+              total_patients: doctor.total_patients || doctor.patient_count || 0,
+              consultation_hours: doctor.consultation_hours || 0,
+              procedures_count: doctor.procedures_count || doctor.total_procedures || 0,
+              badge: doctor.badge || (index === 0 ? '👑' : index === 1 ? '🥈' : index === 2 ? '🥉' : '⭐'),
+              month: currentMonth,
+              year: currentYear,
+              monthLabel: new Date(currentYear, currentMonth - 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })
+            }));
+          
+          // Record success for circuit breaker
+          apiRateLimiter.recordSuccess();
           
           dispatch({ type: 'SET_LEADERBOARD', payload: transformedLeaderboard });
           
@@ -568,6 +621,8 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children, 
           console.log('✅ Leaderboard: Data updated successfully');
         }
       } else {
+        // Record failure for circuit breaker
+        apiRateLimiter.recordFailure({ response });
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
@@ -575,6 +630,8 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children, 
       
     } catch (error) {
       console.error('❌ Leaderboard: Failed to fetch data:', error);
+      // Record failure for circuit breaker
+      apiRateLimiter.recordFailure(error);
       dispatch({ 
         type: 'SET_ERROR', 
         payload: { 
@@ -583,42 +640,99 @@ export const DashboardProvider: React.FC<DashboardProviderProps> = ({ children, 
         } 
       });
       
-      // Use fallback data on error
-      const currentDate = new Date();
-      const currentMonth = currentDate.getMonth() + 1;
-      const currentYear = currentDate.getFullYear();
-      
-      const fallbackLeaderboard: LeaderboardDoctor[] = [
-        {
-          id: 1, rank: 1, name: 'Dr. Sarah Johnson', level: 12, xp: 4250, attendance_rate: 98,
-          streak_days: 45, total_hours: 320, total_days: currentDate.getDate(),
-          total_patients: 12 * currentDate.getDate(), consultation_hours: 7 * currentDate.getDate(),
-          procedures_count: 5 * currentDate.getDate(), badge: '👑', month: currentMonth,
-          year: currentYear, monthLabel: new Date(currentYear, currentMonth - 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })
-        },
-        {
-          id: 2, rank: 2, name: userData?.name || 'Dr. Dokter Umum', level: 10, xp: 3850, attendance_rate: 95,
-          streak_days: 30, total_hours: 285, total_days: currentDate.getDate(),
-          total_patients: 11 * currentDate.getDate(), consultation_hours: 6 * currentDate.getDate(),
-          procedures_count: 4 * currentDate.getDate(), badge: '🥈', month: currentMonth,
-          year: currentYear, monthLabel: new Date(currentYear, currentMonth - 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })
-        }
-      ];
-      
-      dispatch({ type: 'SET_LEADERBOARD', payload: fallbackLeaderboard });
+      // ✅ FIXED: No fallback dummy data - use empty array on error
+      console.warn('🚫 Using empty leaderboard due to API error');
+      dispatch({ type: 'SET_LEADERBOARD', payload: [] });
     }
   }, [cache, state.leaderboard.length, userData]);
+
+  // Fetch attendance history specifically (for real-time updates)
+  const fetchAttendanceHistory = useCallback(async () => {
+    console.log('🔄 Attendance History: Fetching fresh data...');
+    
+    dispatch({ type: 'START_LOADING', payload: 'attendance' });
+    
+    try {
+      // Rate limiting check
+      const permission = apiRateLimiter.canMakeRequest('attendance-history');
+      if (!permission.allowed) {
+        console.warn(`🚫 Attendance history fetch blocked: ${permission.reason}`);
+        return;
+      }
+
+      const response = await withRateLimit(
+        () => fetch('/api/v2/dashboards/dokter/presensi', {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          credentials: 'include'
+        }),
+        'attendance-history'
+      )();
+
+      if (response.ok) {
+        const attendanceData = await response.json();
+        const history = attendanceData?.data?.history || attendanceData?.history || [];
+        
+        if (history.length > 0) {
+          const formattedHistory = history.map((record: any) => {
+            const dateValue = record?.date || record?.tanggal;
+            const checkIn = record?.time_in || record?.check_in || record?.jam_masuk;
+            const checkOut = record?.time_out || record?.check_out || record?.jam_keluar;
+            const statusValue = record?.status || record?.keterangan;
+            const hoursValue = record?.duration || record?.hours || record?.jam_kerja;
+
+            return {
+              date: typeof dateValue === 'string' ? dateValue : (dateValue?.toLocaleDateString?.('id-ID') || 'N/A'),
+              checkIn: checkIn || '-',
+              checkOut: checkOut || '-',
+              status: statusValue || 'Unknown',
+              hours: hoursValue || '0h 0m'
+            };
+          });
+          
+          // Record success and update state
+          apiRateLimiter.recordSuccess();
+          dispatch({ type: 'SET_ATTENDANCE_HISTORY', payload: formattedHistory });
+          dispatch({ type: 'UPDATE_CACHE_TIME', payload: { key: 'attendance' } });
+          
+          console.log('✅ Attendance History: Data refreshed successfully', formattedHistory.length, 'records');
+        }
+      } else {
+        apiRateLimiter.recordFailure({ response });
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+    } catch (error) {
+      console.error('❌ Attendance History: Failed to fetch data:', error);
+      apiRateLimiter.recordFailure(error);
+      
+      dispatch({ 
+        type: 'SET_ERROR', 
+        payload: { 
+          key: 'attendance', 
+          error: error instanceof Error ? error.message : 'Gagal memuat riwayat presensi' 
+        } 
+      });
+    } finally {
+      dispatch({ type: 'STOP_LOADING', payload: 'attendance' });
+    }
+  }, []);
 
   // Actions object
   const actions = {
     fetchDashboardData,
     fetchLeaderboard,
+    fetchAttendanceHistory,
     refreshAll: useCallback(async () => {
       await Promise.all([
         fetchDashboardData(),
-        fetchLeaderboard()
+        fetchLeaderboard(),
+        fetchAttendanceHistory()
       ]);
-    }, [fetchDashboardData, fetchLeaderboard]),
+    }, [fetchDashboardData, fetchLeaderboard, fetchAttendanceHistory]),
     clearErrors: useCallback(() => {
       dispatch({ type: 'SET_ERROR', payload: { key: 'dashboard', error: null } });
       dispatch({ type: 'SET_ERROR', payload: { key: 'leaderboard', error: null } });

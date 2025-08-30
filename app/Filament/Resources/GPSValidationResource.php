@@ -21,7 +21,7 @@ class GPSValidationResource extends Resource
     
     protected static ?string $navigationIcon = 'heroicon-o-map-pin';
     protected static ?string $navigationLabel = 'GPS Validation';
-    protected static ?string $navigationGroup = 'System Management';
+    protected static ?string $navigationGroup = 'System Administration';
     protected static ?int $navigationSort = 30;
 
     public static function form(Form $form): Form

@@ -29,7 +29,7 @@ class DiParamedisResource extends Resource
     
     protected static ?string $pluralModelLabel = 'Daftar Isian Paramedis';
     
-    protected static ?string $navigationGroup = '📋 LAPORAN';
+    protected static ?string $navigationGroup = 'System Administration';
     
     protected static ?int $navigationSort = 10;
 

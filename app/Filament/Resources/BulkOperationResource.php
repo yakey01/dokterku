@@ -33,7 +33,7 @@ class BulkOperationResource extends Resource
     
     protected static ?string $pluralModelLabel = 'Bulk Operations';
     
-    protected static ?string $navigationGroup = '⚙️ SYSTEM ADMINISTRATION';
+    protected static ?string $navigationGroup = 'System Administration';
     
     protected static ?int $navigationSort = 9;
     

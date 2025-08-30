@@ -29,7 +29,7 @@ class RoleController extends Controller
 
         Role::create($request->only(['name', 'description']));
 
-        return redirect()->route('admin.roles.index')
+        return redirect()->route('legacy-admin.roles.index')
             ->with('success', 'Role berhasil dibuat.');
     }
 
@@ -52,14 +52,14 @@ class RoleController extends Controller
 
         $role->update($request->only(['name', 'description']));
 
-        return redirect()->route('admin.roles.index')
+        return redirect()->route('legacy-admin.roles.index')
             ->with('success', 'Role berhasil diupdate.');
     }
 
     public function destroy(Role $role)
     {
         $role->delete();
-        return redirect()->route('admin.roles.index')
+        return redirect()->route('legacy-admin.roles.index')
             ->with('success', 'Role berhasil dihapus.');
     }
 }

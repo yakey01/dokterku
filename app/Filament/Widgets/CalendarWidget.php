@@ -13,23 +13,38 @@ class CalendarWidget extends FullCalendarWidget
 
     public function fetchEvents(array $fetchInfo): array
     {
-        return JadwalJaga::query()
-            ->with(['pegawai', 'shiftTemplate'])
-            ->whereBetween('tanggal_jaga', [$fetchInfo['start'], $fetchInfo['end']])
-            ->get()
-            ->map(
-                fn (JadwalJaga $event) => [
-                    'id' => $event->id,
-                    'title' => $event->title,
-                    'start' => $event->start,
-                    'end' => $event->end,
-                    'backgroundColor' => $event->color,
-                    'borderColor' => $event->color,
-                    'url' => JadwalJagaResource::getUrl(name: 'edit', parameters: ['record' => $event]),
-                    'shouldOpenUrlInNewTab' => false
-                ]
-            )
-            ->all();
+        try {
+            return JadwalJaga::query()
+                ->with(['pegawai', 'shiftTemplate'])
+                ->whereBetween('tanggal_jaga', [$fetchInfo['start'], $fetchInfo['end']])
+                ->get()
+                ->map(function (JadwalJaga $event) {
+                    // Build title safely with null checks
+                    $title = $event->pegawai?->name ?? 'Unknown Staff';
+                    if ($event->shiftTemplate?->nama_shift) {
+                        $title .= ' (' . $event->shiftTemplate->nama_shift . ')';
+                    }
+                    
+                    // Build start/end times safely
+                    $startTime = $event->shiftTemplate?->jam_masuk ?? '08:00';
+                    $endTime = $event->shiftTemplate?->jam_pulang ?? '16:00';
+                    
+                    return [
+                        'id' => $event->id,
+                        'title' => $title,
+                        'start' => $event->tanggal_jaga->format('Y-m-d') . 'T' . $startTime,
+                        'end' => $event->tanggal_jaga->format('Y-m-d') . 'T' . $endTime,
+                        'backgroundColor' => $event->shiftTemplate?->color ?? '#6b7280',
+                        'borderColor' => $event->shiftTemplate?->color ?? '#6b7280',
+                        'url' => JadwalJagaResource::getUrl(name: 'edit', parameters: ['record' => $event]),
+                        'shouldOpenUrlInNewTab' => false
+                    ];
+                })
+                ->all();
+        } catch (\Exception $e) {
+            \Log::error('CalendarWidget fetchEvents error: ' . $e->getMessage());
+            return [];
+        }
     }
 
     public function getViewData(): array

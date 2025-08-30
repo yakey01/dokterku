@@ -19,13 +19,20 @@ class LaporanKeuanganResource extends Resource
 
     protected static ?string $navigationIcon = null;
 
-    protected static ?string $navigationGroup = 'Laporan Keuangan';
+    // DISABLED: Prevent showing in bendahara panel due to missing model
+    protected static ?string $navigationGroup = null;
 
     protected static ?string $navigationLabel = 'Laporan Keuangan';
 
     protected static ?string $modelLabel = 'Laporan Keuangan';
 
     protected static ?string $pluralModelLabel = 'Laporan Keuangan';
+
+    // DISABLED: Prevent navigation registration due to missing model
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
 
     public static function table(Table $table): Table
     {

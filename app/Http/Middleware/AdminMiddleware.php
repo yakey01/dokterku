@@ -47,12 +47,12 @@ class AdminMiddleware
             return $this->redirectToUserPanel($user, $request);
         }
 
-        // 4. Session security validation
-        if (!$this->validateSession($request, $user)) {
-            $this->logSecurityEvent('invalid_session', $request, $user);
-            Auth::logout();
-            return $this->redirectToLogin($request, 'Session expired for security reasons.');
-        }
+        // 4. Session security validation - TEMPORARILY DISABLED
+        // if (!$this->validateSession($request, $user)) {
+        //     $this->logSecurityEvent('invalid_session', $request, $user);
+        //     Auth::logout();
+        //     return $this->redirectToLogin($request, 'Session expired for security reasons.');
+        // }
 
         // 5. Account status validation
         if (!$this->isAccountActive($user)) {

@@ -19,7 +19,7 @@ class BendaharaStyleDashboard extends Page
     
     protected static string $view = 'filament.petugas.pages.bendahara-style-dashboard';
     
-    protected static ?string $title = '🩺 Petugas Dashboard';
+    protected static ?string $title = 'Dashboard';
     
     protected static ?string $navigationLabel = 'Dashboard';
     
@@ -48,13 +48,12 @@ class BendaharaStyleDashboard extends Page
 
     public function getHeading(): string
     {
-        return '🩺 Petugas Dashboard';
+        return '';
     }
 
     public function getSubheading(): ?string
     {
-        $user = auth()->user();
-        return $user ? "Selamat datang, {$user->name}! Kelola pasien dan tindakan dengan mudah dan efisien." : null;
+        return null;
     }
 
     // Core Petugas Metrics - Similar to Bendahara Financial Analytics
@@ -66,10 +65,10 @@ class BendaharaStyleDashboard extends Page
             $today = now()->toDateString();
             $yesterday = now()->subDay()->toDateString();
             
-            // Current month data
+            // Current month data - Fix column name for patient count
             $currentPatients = JumlahPasienHarian::whereMonth('tanggal', $currentMonth->month)
                 ->whereYear('tanggal', $currentMonth->year)
-                ->sum('jumlah');
+                ->sum(DB::raw('jumlah_pasien_umum + jumlah_pasien_bpjs'));
                 
             $currentActions = Tindakan::whereMonth('created_at', $currentMonth->month)
                 ->whereYear('created_at', $currentMonth->year)
@@ -80,14 +79,15 @@ class BendaharaStyleDashboard extends Page
                 ->where('status_validasi', 'disetujui')
                 ->sum('nominal');
 
-            // Today's data
-            $todayPatients = JumlahPasienHarian::whereDate('tanggal', $today)->sum('jumlah');
+            // Today's data - Fix column name for patient count
+            $todayPatients = JumlahPasienHarian::whereDate('tanggal', $today)
+                ->sum(DB::raw('jumlah_pasien_umum + jumlah_pasien_bpjs'));
             $todayActions = Tindakan::whereDate('created_at', $today)->count();
 
-            // Last month for comparison
+            // Last month for comparison - Fix column name for patient count
             $lastPatients = JumlahPasienHarian::whereMonth('tanggal', $lastMonth->month)
                 ->whereYear('tanggal', $lastMonth->year)
-                ->sum('jumlah');
+                ->sum(DB::raw('jumlah_pasien_umum + jumlah_pasien_bpjs'));
                 
             $lastActions = Tindakan::whereMonth('created_at', $lastMonth->month)
                 ->whereYear('created_at', $lastMonth->year)
@@ -98,26 +98,29 @@ class BendaharaStyleDashboard extends Page
                 ->where('status_validasi', 'disetujui')
                 ->sum('nominal');
 
+            // Calculate real efficiency based on actual performance
+            $realEfficiency = $this->calculateRealEfficiency($currentPatients, $currentActions, $currentRevenue);
+
             return [
                 'current' => [
-                    'patients' => $currentPatients ?: 45, // Demo data
-                    'actions' => $currentActions ?: 78,
-                    'revenue' => $currentRevenue ?: 12500000,
-                    'efficiency' => 92.5,
+                    'patients' => $currentPatients,
+                    'actions' => $currentActions,
+                    'revenue' => $currentRevenue,
+                    'efficiency' => $realEfficiency,
                 ],
                 'today' => [
-                    'patients' => $todayPatients ?: 8,
-                    'actions' => $todayActions ?: 12,
+                    'patients' => $todayPatients,
+                    'actions' => $todayActions,
                 ],
                 'previous' => [
-                    'patients' => $lastPatients ?: 38,
-                    'actions' => $lastActions ?: 65,
-                    'revenue' => $lastRevenue ?: 9800000,
+                    'patients' => $lastPatients,
+                    'actions' => $lastActions,
+                    'revenue' => $lastRevenue,
                 ],
                 'growth' => [
-                    'patients' => $this->calculateGrowth($currentPatients ?: 45, $lastPatients ?: 38),
-                    'actions' => $this->calculateGrowth($currentActions ?: 78, $lastActions ?: 65),
-                    'revenue' => $this->calculateGrowth($currentRevenue ?: 12500000, $lastRevenue ?: 9800000),
+                    'patients' => $this->calculateGrowth($currentPatients, $lastPatients),
+                    'actions' => $this->calculateGrowth($currentActions, $lastActions),
+                    'revenue' => $this->calculateGrowth($currentRevenue, $lastRevenue),
                 ],
             ];
         });
@@ -163,7 +166,7 @@ class BendaharaStyleDashboard extends Page
                 
                 $monthlyPatients = JumlahPasienHarian::whereMonth('tanggal', $date->month)
                     ->whereYear('tanggal', $date->year)
-                    ->sum('jumlah');
+                    ->sum(DB::raw('jumlah_pasien_umum + jumlah_pasien_bpjs'));
                     
                 $monthlyActions = Tindakan::whereMonth('created_at', $date->month)
                     ->whereYear('created_at', $date->year)
@@ -174,9 +177,10 @@ class BendaharaStyleDashboard extends Page
                     ->where('status_validasi', 'disetujui')
                     ->sum('nominal');
                 
-                $trends['patients'][] = $monthlyPatients ?: rand(35, 55);
-                $trends['actions'][] = $monthlyActions ?: rand(60, 90);
-                $trends['revenue'][] = $monthlyRevenue ?: rand(8000000, 15000000);
+                // Use real data instead of random fallback
+                $trends['patients'][] = $monthlyPatients;
+                $trends['actions'][] = $monthlyActions;
+                $trends['revenue'][] = $monthlyRevenue;
             }
             
             return [
@@ -240,5 +244,43 @@ class BendaharaStyleDashboard extends Page
         }
         
         return round((($current - $previous) / $previous) * 100, 1);
+    }
+
+    /**
+     * Calculate real efficiency based on actual performance metrics
+     */
+    private function calculateRealEfficiency($currentPatients, $currentActions, $currentRevenue): float
+    {
+        // Base efficiency calculation
+        $patientEfficiency = 0;
+        $actionEfficiency = 0;
+        $revenueEfficiency = 0;
+        
+        // Patient efficiency (based on monthly target of 50 patients)
+        $monthlyPatientTarget = 50;
+        if ($monthlyPatientTarget > 0) {
+            $patientEfficiency = min(100, ($currentPatients / $monthlyPatientTarget) * 100);
+        }
+        
+        // Action efficiency (based on actions per patient ratio)
+        if ($currentPatients > 0) {
+            $actionsPerPatient = $currentActions / $currentPatients;
+            // Ideal ratio is 1.5-2 actions per patient
+            $idealRatio = 1.75;
+            $actionEfficiency = min(100, ($actionsPerPatient / $idealRatio) * 100);
+        }
+        
+        // Revenue efficiency (based on target revenue per action)
+        if ($currentActions > 0) {
+            $revenuePerAction = $currentRevenue / $currentActions;
+            // Target revenue per action (can be configurable)
+            $targetRevenuePerAction = 50000; // 50k per action
+            $revenueEfficiency = min(100, ($revenuePerAction / $targetRevenuePerAction) * 100);
+        }
+        
+        // Overall efficiency (weighted average)
+        $overallEfficiency = ($patientEfficiency * 0.4) + ($actionEfficiency * 0.3) + ($revenueEfficiency * 0.3);
+        
+        return round($overallEfficiency, 1);
     }
 }

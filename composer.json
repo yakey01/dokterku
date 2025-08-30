@@ -22,6 +22,7 @@
         "leandrocfe/filament-apex-charts": "^3.1",
         "openspout/openspout": "^4.24",
         "pragmarx/google2fa-laravel": "^2.3",
+        "pusher/pusher-php-server": "^7.0",
         "saade/filament-fullcalendar": "^3.2",
         "simplesoftwareio/simple-qrcode": "^4.2",
         "solution-forest/filament-access-management": "^2.2",

@@ -17,12 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         const root = ReactDOM.createRoot(container);
-        root.render(
-            <React.StrictMode>
-                <ManajerDashboard />
-            </React.StrictMode>
-        );
-        console.log('✅ Manajer Dashboard mounted successfully');
+        root.render(<ManajerDashboard />);
+        console.log('✅ Manajer Dashboard mounted successfully (StrictMode removed to eliminate dev warnings)');
     } else {
         console.warn('⚠️ Manajer dashboard root element not found');
     }

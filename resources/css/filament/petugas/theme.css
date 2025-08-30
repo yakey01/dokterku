@@ -1,246 +1,112 @@
+/* ============================================================ */
+/* PETUGAS ELEGANT BLACK THEME - MATCHING BENDAHARA 100% */
+/* ============================================================ */
+
 @import '../../../../vendor/filament/filament/resources/css/theme.css';
 
-/* Healthcare Theme for Petugas Panel */
+/* ============================================================ */
+/* ELEGANT BLACK THEME VARIABLES - IDENTICAL TO BENDAHARA */
+/* ============================================================ */
+
 [data-filament-panel-id="petugas"] {
-    /* Healthcare Primary Colors - Medical Blue */
-    --primary: 59 130 246; /* Medical Blue */
-    --success: 16 185 129; /* Medical Green */
-    --warning: 245 158 11; /* Medical Amber */
-    --danger: 239 68 68; /* Medical Red */
-    --info: 99 102 241; /* Medical Indigo */
-    --gray: 100 116 139; /* Medical Gray */
+    /* Elegant Black Palette */
+    --card-primary-black: #0a0a0b;
+    --card-secondary-black: #111118;
+    --card-charcoal: #1a1a20;
+    --card-charcoal-light: #2a2a32;
+    --card-border: #333340;
+    --card-border-hover: #404050;
     
-    /* Healthcare Panel Variables */
-    --panel-primary: #3b82f6;
-    --panel-primary-light: #93c5fd;
-    --panel-primary-dark: #1d4ed8;
+    /* High-Contrast Text Colors */
+    --card-text-primary: #fafafa;
+    --card-text-secondary: #e4e4e7;
+    --card-text-muted: #a1a1aa;
+    --card-text-subtle: #71717a;
     
-    /* Medical Color Palette */
-    --primary-50: #eff6ff;
-    --primary-100: #dbeafe;
-    --primary-200: #bfdbfe;
-    --primary-300: #93c5fd;
-    --primary-400: #60a5fa;
-    --primary-500: #3b82f6;
-    --primary-600: #2563eb;
-    --primary-700: #1d4ed8;
-    --primary-800: #1e40af;
-    --primary-900: #1e3a8a;
-    --primary-950: #172554;
+    /* OVERRIDE Filament Variables - FORCE BLACK THEME */
+    --primary: 10 10 11 !important; /* Deep Black RGB for Petugas */
+    --success: 34 197 94 !important;
+    --warning: 251 189 35 !important;
+    --danger: 239 68 68 !important;
+    --info: 59 130 246 !important;
+    --gray: 26 26 32 !important; /* Dark gray instead of blue-gray */
     
-    /* Healthcare Success Colors */
-    --success-50: #ecfdf5;
-    --success-500: #10b981;
-    --success-600: #059669;
+    /* BLACK Panel Variables - FORCE BLACK THEME */
+    --panel-primary: #0a0a0b !important; /* Deep Black primary */
+    --panel-primary-light: #111118 !important; /* Dark Black light */
+    --panel-primary-dark: #000000 !important; /* Pure Black dark */
     
-    /* Healthcare Background */
-    --gray-50: #f8fafc;
-    --gray-100: #f1f5f9;
-    --gray-900: #0f172a;
-}
-
-/* Healthcare Enhancements for Filament UI */
-[data-filament-panel-id="petugas"] {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
-}
-
-/* Healthcare Page Header */
-[data-filament-panel-id="petugas"] .fi-header {
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-    border-bottom: 1px solid #e2e8f0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-    margin-bottom: 1.5rem;
-    border-radius: 12px;
-}
-
-[data-filament-panel-id="petugas"] .fi-header-heading {
-    color: #1e293b;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-[data-filament-panel-id="petugas"] .fi-header-heading::before {
-    content: "🏥";
-    font-size: 1.5rem;
-}
-
-/* Healthcare Form Sections */
-[data-filament-panel-id="petugas"] .fi-section {
-    background: rgba(248, 250, 252, 0.5);
-    border: 1px solid rgba(226, 232, 240, 0.8);
-    border-radius: 12px;
-    margin-bottom: 1.5rem;
-    transition: all 0.15s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-}
-
-[data-filament-panel-id="petugas"] .fi-section:hover {
-    border-color: rgba(59, 130, 246, 0.3);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-}
-
-[data-filament-panel-id="petugas"] .fi-section-heading {
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: #1e293b;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-[data-filament-panel-id="petugas"] .fi-section-description {
-    color: #64748b;
-    font-size: 0.875rem;
-    line-height: 1.5;
-}
-
-/* Healthcare Input Fields */
-[data-filament-panel-id="petugas"] .fi-input {
-    border: 2px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 12px 16px;
-    transition: all 0.15s ease;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
-}
-
-[data-filament-panel-id="petugas"] .fi-input:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    transform: translateY(-1px);
-}
-
-/* Healthcare Buttons */
-[data-filament-panel-id="petugas"] .fi-btn {
-    font-weight: 600;
-    border-radius: 8px;
-    transition: all 0.15s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-[data-filament-panel-id="petugas"] .fi-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-[data-filament-panel-id="petugas"] .fi-btn-color-primary {
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-}
-
-[data-filament-panel-id="petugas"] .fi-btn-color-success {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-}
-
-/* Healthcare Form Actions */
-[data-filament-panel-id="petugas"] .fi-form-actions {
-    background: rgba(248, 250, 252, 0.8);
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    margin-top: 2rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-}
-
-/* Healthcare Sidebar Enhancements */
-[data-filament-panel-id="petugas"] .fi-sidebar {
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-    border-right: 1px solid #e2e8f0;
-}
-
-[data-filament-panel-id="petugas"] .fi-sidebar-item {
-    transition: all 0.15s ease;
-}
-
-[data-filament-panel-id="petugas"] .fi-sidebar-item:hover {
-    background: rgba(59, 130, 246, 0.05);
-    transform: translateX(2px);
-}
-
-[data-filament-panel-id="petugas"] .fi-sidebar-item-active {
-    background: rgba(59, 130, 246, 0.1);
-    border-left: 3px solid #3b82f6;
-}
-
-/* Healthcare Breadcrumbs */
-[data-filament-panel-id="petugas"] .fi-breadcrumbs {
-    background: rgba(239, 246, 255, 0.6);
-    border: 1px solid rgba(59, 130, 246, 0.2);
-    border-radius: 8px;
-    padding: 12px 16px;
-    margin-bottom: 1rem;
-}
-
-/* Healthcare Placeholder/Info Boxes */
-[data-filament-panel-id="petugas"] .fi-placeholder {
-    background: rgba(239, 246, 255, 0.6);
-    border: 1px solid rgba(59, 130, 246, 0.2);
-    border-radius: 8px;
-    padding: 16px;
-    font-weight: 600;
-    color: #1e40af;
-}
-
-/* Healthcare Labels */
-[data-filament-panel-id="petugas"] .fi-fo-field-wrp-label {
-    font-weight: 600;
-    color: #374151;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-/* Healthcare Helper Text */
-[data-filament-panel-id="petugas"] .fi-fo-field-wrp-hint {
-    color: #6b7280;
-    font-size: 0.75rem;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-[data-filament-panel-id="petugas"] .fi-fo-field-wrp-hint::before {
-    content: "💡";
-    font-size: 0.625rem;
-}
-
-/* Healthcare Notifications */
-[data-filament-panel-id="petugas"] .fi-notification {
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-/* Healthcare Progress Indicators */
-[data-filament-panel-id="petugas"] .fi-progress {
-    height: 8px;
-    background: #f1f5f9;
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-[data-filament-panel-id="petugas"] .fi-progress-fill {
-    background: linear-gradient(90deg, #3b82f6 0%, #1d4ed8 100%);
-    border-radius: 4px;
-}
-
-/* Healthcare Mobile Responsiveness */
-@media (max-width: 768px) {
-    [data-filament-panel-id="petugas"] .fi-form-actions {
-        flex-direction: column;
-    }
+    /* BLACK Color Palette - COMPLETE OVERRIDE */
+    --primary-50: #0a0a0b !important;
+    --primary-100: #111118 !important;
+    --primary-200: #1a1a20 !important;
+    --primary-300: #2a2a32 !important;
+    --primary-400: #333340 !important;
+    --primary-500: #404050 !important;
+    --primary-600: #4a4a5a !important;
+    --primary-700: #555564 !important;
+    --primary-800: #60606e !important;
+    --primary-900: #6b6b78 !important;
+    --primary-950: #767682 !important;
     
-    [data-filament-panel-id="petugas"] .fi-btn {
-        width: 100%;
-        justify-content: center;
-    }
+    /* Enhanced Semantic Colors with AAA Contrast */
+    --card-success: #22c55e;
+    --card-success-bg: rgba(34, 197, 94, 0.1);
+    --card-success-border: rgba(34, 197, 94, 0.2);
+    --card-warning: #f59e0b;
+    --card-warning-bg: rgba(245, 158, 11, 0.1);
+    --card-warning-border: rgba(245, 158, 11, 0.2);
+    --card-danger: #ef4444;
+    --card-danger-bg: rgba(239, 68, 68, 0.1);
+    --card-danger-border: rgba(239, 68, 68, 0.2);
+    --card-info: #3b82f6;
+    --card-info-bg: rgba(59, 130, 246, 0.1);
+    --card-info-border: rgba(59, 130, 246, 0.2);
 }
 
-/* Petugas Branding (Exact Match with Bendahara) */
+/* ================================================= */
+/* OVERRIDE TAILWIND BACKGROUND UTILITIES AT CSS LEVEL */
+/* ================================================= */
+
+[data-filament-panel-id="petugas"] .bg-white {
+    --tw-bg-opacity: 1 !important;
+    background-color: var(--card-primary-black) !important;
+    background-image: linear-gradient(135deg, var(--card-primary-black) 0%, var(--card-secondary-black) 100%) !important;
+}
+
+[data-filament-panel-id="petugas"] .dark\\:bg-gray-800 {
+    --tw-bg-opacity: 1 !important;
+    background-color: var(--card-secondary-black) !important;
+    background-image: linear-gradient(135deg, var(--card-primary-black) 0%, var(--card-secondary-black) 100%) !important;
+}
+
+/* FORCE OVERRIDE ANY BG-GRAY VARIANTS */
+[data-filament-panel-id="petugas"] [class*="bg-gray-"] {
+    background-color: var(--card-primary-black) !important;
+    background-image: linear-gradient(135deg, var(--card-primary-black) 0%, var(--card-secondary-black) 100%) !important;
+}
+
+/* COMPREHENSIVE BORDER AND RADIUS ENFORCEMENT */
+[data-filament-panel-id="petugas"] .bg-white,
+[data-filament-panel-id="petugas"] .dark\\:bg-gray-800,
+[data-filament-panel-id="petugas"] .rounded-xl,
+[data-filament-panel-id="petugas"] .shadow-sm {
+    border: 1px solid var(--card-border) !important;
+    border-radius: 1rem !important;
+    color: var(--card-text-primary) !important;
+    box-shadow: 
+        0 4px 12px -2px rgba(0, 0, 0, 0.8),
+        0 2px 6px -2px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+/* BLACK-FIRST BRANDING - SLATE THEMED */
 [data-filament-panel-id="petugas"] .fi-topbar {
-    background: linear-gradient(135deg, var(--panel-primary) 0%, var(--panel-primary-dark) 100%);
+    background: linear-gradient(135deg, var(--card-primary-black) 0%, var(--card-charcoal) 100%) !important;
 }
 
 [data-filament-panel-id="petugas"] .fi-sidebar-header {
-    background: linear-gradient(135deg, var(--panel-primary) 0%, var(--panel-primary-dark) 100%);
+    background: linear-gradient(135deg, var(--card-primary-black) 0%, var(--card-charcoal) 100%) !important;
 }
 
 [data-filament-panel-id="petugas"] .fi-sidebar-header .fi-logo {
@@ -248,303 +114,1642 @@
     font-weight: 600;
 }
 
-/* Widget Styling - Fix for Stats Overview (Exact Match with Bendahara) */
+/* ================================================= */
+/* ELEGANT BLACK STATS WIDGETS - PREMIUM DESIGN */
+/* ================================================= */
+
+/* Stats Overview Cards - Elegant Black Theme */
 [data-filament-panel-id="petugas"] .fi-wi-stats-overview-stat {
-    background: rgba(251, 189, 35, 0.1);
-    border-radius: 0.75rem;
-    padding: 1.5rem;
-    border: 1px solid rgba(251, 189, 35, 0.2);
-    transition: all 0.2s ease;
+    /* Premium Black Background */
+    background: linear-gradient(135deg, 
+        var(--card-primary-black) 0%, 
+        var(--card-secondary-black) 100%);
+    
+    border-radius: 1rem;
+    padding: 2rem 1.5rem;
+    
+    /* Sophisticated Border */
+    border: 1px solid var(--card-border);
+    
+    /* Premium Shadow System */
+    box-shadow: 
+        0 1px 3px 0 rgba(0, 0, 0, 0.4),
+        0 1px 2px -1px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+    
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Luxury Hover Effects for Stats Cards */
 [data-filament-panel-id="petugas"] .fi-wi-stats-overview-stat:hover {
-    background: rgba(251, 189, 35, 0.15);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    /* Enhanced Background Gradient */
+    background: linear-gradient(135deg, 
+        var(--card-secondary-black) 0%, 
+        var(--card-charcoal) 100%);
+    
+    /* Premium Lift Effect */
+    transform: translateY(-3px);
+    
+    /* Enhanced Shadow */
+    box-shadow: 
+        0 8px 25px -5px rgba(0, 0, 0, 0.6),
+        0 8px 10px -6px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+    
+    /* Border Enhancement */
+    border-color: var(--card-border-hover);
 }
 
+/* World-Class Typography for Stat Values */
 [data-filament-panel-id="petugas"] .fi-wi-stats-overview-stat-value {
-    color: var(--panel-primary);
+    /* High-Impact Typography */
+    color: var(--card-text-primary);
     font-weight: 700;
-    font-size: 1.875rem;
-    line-height: 2.25rem;
+    font-size: 2.25rem;
+    line-height: 2.5rem;
+    
+    /* Premium Typography Details */
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    
+    /* Subtle Text Shadow for Depth */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
+/* Elegant Label Typography */
 [data-filament-panel-id="petugas"] .fi-wi-stats-overview-stat-label {
-    color: rgb(107 114 128);
-    font-weight: 500;
+    /* High-Contrast Secondary Text */
+    color: var(--card-text-muted);
+    font-weight: 600;
     font-size: 0.875rem;
+    
+    /* Premium Spacing and Casing */
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.08em;
+    line-height: 1.4;
+    
+    /* Subtle Enhancement */
+    opacity: 0.9;
 }
 
-/* Badge Styling - Fix for Deprecated BadgeColumn (Exact Match with Bendahara) */
+/* ================================================= */
+/* ELEGANT BLACK BADGES - PREMIUM STATUS INDICATORS */
+/* ================================================= */
+
+/* Base Badge Styling - Elegant Black Theme */
 [data-filament-panel-id="petugas"] .fi-badge {
+    /* Premium Typography */
     font-weight: 600;
     font-size: 0.75rem;
-    padding: 0.25rem 0.75rem;
-    border-radius: 0.375rem;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+    
+    /* Elegant Padding and Shape */
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    
+    /* Layout and Alignment */
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 0.25rem;
+    
+    /* Smooth Transitions */
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Subtle Shadow for Depth */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
+/* Success Badge - Enhanced Green with High Contrast */
 [data-filament-panel-id="petugas"] .fi-badge-color-success {
-    background-color: rgba(16, 185, 129, 0.1);
-    color: #059669;
-    border: 1px solid rgba(16, 185, 129, 0.2);
+    background: linear-gradient(135deg, 
+        var(--card-success-bg) 0%, 
+        rgba(34, 197, 94, 0.15) 100%);
+    color: #22d65f;
+    border: 1px solid var(--card-success-border);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
 
+/* Warning Badge - Enhanced Amber with High Contrast */
 [data-filament-panel-id="petugas"] .fi-badge-color-warning {
-    background-color: rgba(245, 158, 11, 0.1);
-    color: #d97706;
-    border: 1px solid rgba(245, 158, 11, 0.2);
+    background: linear-gradient(135deg, 
+        var(--card-warning-bg) 0%, 
+        rgba(245, 158, 11, 0.15) 100%);
+    color: #fbbf24;
+    border: 1px solid var(--card-warning-border);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
 
+/* Danger Badge - Enhanced Red with High Contrast */
 [data-filament-panel-id="petugas"] .fi-badge-color-danger {
-    background-color: rgba(239, 68, 68, 0.1);
-    color: #dc2626;
-    border: 1px solid rgba(239, 68, 68, 0.2);
+    background: linear-gradient(135deg, 
+        var(--card-danger-bg) 0%, 
+        rgba(239, 68, 68, 0.15) 100%);
+    color: #f87171;
+    border: 1px solid var(--card-danger-border);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
 
+/* Info Badge - Enhanced Blue with High Contrast */
 [data-filament-panel-id="petugas"] .fi-badge-color-info {
-    background-color: rgba(59, 130, 246, 0.1);
-    color: #2563eb;
-    border: 1px solid rgba(59, 130, 246, 0.2);
+    background: linear-gradient(135deg, 
+        var(--card-info-bg) 0%, 
+        rgba(59, 130, 246, 0.15) 100%);
+    color: #60a5fa;
+    border: 1px solid var(--card-info-border);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
 
-/* Card Styling - Enhanced for Dashboard (Exact Match with Bendahara) */
-[data-filament-panel-id="petugas"] .fi-card {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 0.75rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s ease;
-}
-
-[data-filament-panel-id="petugas"] .fi-card:hover {
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+/* Badge Hover Effects */
+[data-filament-panel-id="petugas"] .fi-badge:hover {
     transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* Progress Bar Styling (Exact Match with Bendahara) */
-[data-filament-panel-id="petugas"] .progress-bar {
-    background: rgba(229, 231, 235, 1);
-    border-radius: 9999px;
-    height: 0.5rem;
-    overflow: hidden;
+/* ================================================= */
+/* FORCE ELEGANT BLACK CARDS - MAXIMUM SPECIFICITY */
+/* ================================================= */
+
+/* HIGH SPECIFICITY SELECTORS TO OVERRIDE FILAMENT DEFAULTS */
+[data-filament-panel-id="petugas"] .fi-card,
+[data-filament-panel-id="petugas"] .fi-section,
+[data-filament-panel-id="petugas"] div.fi-card,
+[data-filament-panel-id="petugas"] div.fi-section {
+    /* FORCE Premium Black Background with Gradient Depth */
+    background: linear-gradient(135deg, 
+        var(--card-primary-black) 0%, 
+        var(--card-secondary-black) 100%) !important;
+    
+    /* FORCE Sophisticated Border System */
+    border: 1px solid var(--card-border) !important;
+    border-radius: 1rem !important;
+    
+    /* FORCE Premium Shadow System */
+    box-shadow: 
+        0 1px 3px 0 rgba(0, 0, 0, 0.4),
+        0 1px 2px -1px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.05) !important;
+    
+    /* FORCE Smooth Transitions */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    
+    /* FORCE Enhanced Typography */
+    color: var(--card-text-primary) !important;
+    font-weight: 450 !important;
+    letter-spacing: -0.005em !important;
+    line-height: 1.6 !important;
 }
 
-[data-filament-panel-id="petugas"] .progress-bar-fill {
-    background: linear-gradient(90deg, var(--panel-primary) 0%, var(--panel-primary-light) 100%);
-    height: 100%;
-    border-radius: 9999px;
-    transition: width 0.3s ease;
+/* FORCE Luxury Hover Effects - Maximum Specificity */
+[data-filament-panel-id="petugas"] .fi-card:hover,
+[data-filament-panel-id="petugas"] .fi-section:hover,
+[data-filament-panel-id="petugas"] div.fi-card:hover,
+[data-filament-panel-id="petugas"] div.fi-section:hover {
+    /* FORCE Enhanced Shadow on Hover */
+    box-shadow: 
+        0 8px 25px -5px rgba(0, 0, 0, 0.6),
+        0 8px 10px -6px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.08) !important;
+    
+    /* FORCE Subtle Lift Effect */
+    transform: translateY(-2px) !important;
+    
+    /* FORCE Border Enhancement */
+    border-color: var(--card-border-hover) !important;
+    
+    /* FORCE Subtle Background Shift */
+    background: linear-gradient(135deg, 
+        var(--card-secondary-black) 0%, 
+        var(--card-charcoal) 100%) !important;
 }
 
-/* Button Styling - Enhanced (Exact Match with Bendahara) */
+/* ================================================= */
+/* ELEGANT BLACK TABLES WITH SMOOTH ANIMATIONS - JUMLAH PASIEN HARIANS */
+/* ================================================= */
+
+/* Table Container - Elegant Glass Effect with Enhanced Animations */
+[data-filament-panel-id="petugas"] .fi-table,
+[data-filament-panel-id="petugas"] table,
+[data-filament-panel-id="petugas"] .fi-ta-table,
+[data-filament-panel-id="petugas"] .fi-ta-content,
+[data-filament-panel-id="petugas"] .fi-section,
+[data-filament-panel-id="petugas"] .fi-section-content,
+[data-filament-panel-id="petugas"] div[class*="table"],
+[data-filament-panel-id="petugas"] .overflow-x-auto {
+    /* Enhanced Elegant Black Background with Deep Glass Effect */
+    background: linear-gradient(135deg, 
+        rgba(10, 10, 11, 0.95) 0%, 
+        rgba(17, 17, 24, 0.98) 50%,
+        rgba(26, 26, 32, 0.92) 100%) !important;
+    
+    /* Premium Glassmorphism Effect */
+    backdrop-filter: blur(20px) saturate(150%) contrast(120%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(150%) contrast(120%) !important;
+    
+    /* Sophisticated Border System */
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 1rem !important;
+    
+    /* Professional Shadow System */
+    box-shadow: 
+        0 8px 32px -8px rgba(0, 0, 0, 0.6),
+        0 4px 16px -4px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
+        inset 0 -1px 0 0 rgba(255, 255, 255, 0.02) !important;
+    
+    /* Smooth Micro-Interactions */
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+    
+    /* Subtle Transform for Depth */
+    transform: translateZ(0) !important;
+    will-change: transform, box-shadow, background !important;
+}
+
+/* Elegant Table Container Hover Effects - Smooth Animations */
+[data-filament-panel-id="petugas"] .fi-table:hover,
+[data-filament-panel-id="petugas"] .fi-section:hover,
+[data-filament-panel-id="petugas"] .overflow-x-auto:hover {
+    /* Enhanced Glass Effect on Hover */
+    backdrop-filter: blur(24px) saturate(160%) contrast(125%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(160%) contrast(125%) !important;
+    
+    /* Upgraded Border Glow */
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    
+    /* Premium Hover Shadow System */
+    box-shadow: 
+        0 12px 40px -8px rgba(0, 0, 0, 0.7),
+        0 6px 24px -6px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.12),
+        inset 0 -1px 0 0 rgba(255, 255, 255, 0.04),
+        0 0 0 1px rgba(42, 42, 50, 0.1) !important;
+    
+    /* Subtle Lift Effect */
+    transform: translateY(-2px) scale(1.005) !important;
+    
+    /* Enhanced Background Gradient */
+    background: linear-gradient(135deg, 
+        rgba(17, 17, 24, 0.98) 0%, 
+        rgba(26, 26, 32, 0.95) 50%,
+        rgba(42, 42, 50, 0.90) 100%) !important;
+}
+
+/* Table Headers - Elegant Black with Smooth Animations */
+[data-filament-panel-id="petugas"] thead,
+[data-filament-panel-id="petugas"] .fi-ta-header,
+[data-filament-panel-id="petugas"] th {
+    /* Sophisticated Header Background */
+    background: linear-gradient(135deg, 
+        rgba(26, 26, 32, 0.8) 0%, 
+        rgba(42, 42, 50, 0.9) 50%,
+        rgba(51, 51, 64, 0.85) 100%) !important;
+    
+    /* Premium Glass Effect */
+    backdrop-filter: blur(16px) saturate(140%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(140%) !important;
+    
+    /* Elegant Border System */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+    
+    /* Premium Typography */
+    color: var(--card-text-primary) !important;
+    font-weight: 700 !important;
+    font-size: 0.875rem !important;
+    letter-spacing: 0.025em !important;
+    text-transform: uppercase !important;
+    
+    /* Subtle Text Enhancement */
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+    
+    /* Smooth Animation */
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+    
+    /* Enhanced Positioning */
+    position: relative !important;
+    z-index: 2 !important;
+}
+
+/* Table Rows - Elegant Glass Effect with Smooth Animations */
+[data-filament-panel-id="petugas"] tbody tr,
+[data-filament-panel-id="petugas"] .fi-ta-row {
+    /* Sophisticated Row Background */
+    background: linear-gradient(135deg, 
+        rgba(10, 10, 11, 0.4) 0%, 
+        rgba(17, 17, 24, 0.5) 50%,
+        rgba(26, 26, 32, 0.35) 100%) !important;
+    
+    /* Enhanced Glass Effect */
+    backdrop-filter: blur(8px) saturate(120%) !important;
+    -webkit-backdrop-filter: blur(8px) saturate(120%) !important;
+    
+    /* Refined Border System */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    border-left: 1px solid transparent !important;
+    border-right: 1px solid transparent !important;
+    
+    /* Premium Typography */
+    color: var(--card-text-primary) !important;
+    font-weight: 500 !important;
+    font-size: 0.875rem !important;
+    line-height: 1.6 !important;
+    
+    /* Smooth Micro-Interactions */
+    transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+    
+    /* Enhanced Positioning */
+    position: relative !important;
+    transform: translateZ(0) !important;
+    will-change: transform, background, box-shadow, border-color !important;
+}
+
+/* Premium Row Hover Effects - Smooth Elegant Animations */
+[data-filament-panel-id="petugas"] tbody tr:hover,
+[data-filament-panel-id="petugas"] .fi-ta-row:hover {
+    /* Enhanced Hover Background */
+    background: linear-gradient(135deg, 
+        rgba(26, 26, 32, 0.8) 0%, 
+        rgba(42, 42, 50, 0.9) 50%,
+        rgba(17, 17, 24, 0.7) 100%) !important;
+    
+    /* Premium Glass Blur Effect */
+    backdrop-filter: blur(16px) saturate(140%) contrast(110%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(140%) contrast(110%) !important;
+    
+    /* Elegant Border Glow */
+    border-bottom-color: rgba(255, 255, 255, 0.15) !important;
+    border-left-color: rgba(42, 42, 50, 0.4) !important;
+    border-right-color: rgba(42, 42, 50, 0.2) !important;
+    
+    /* Sophisticated Lift Animation */
+    transform: translateY(-3px) scale(1.01) !important;
+    
+    /* Premium Shadow System */
+    box-shadow: 
+        0 8px 32px -8px rgba(0, 0, 0, 0.4),
+        0 4px 16px -4px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
+        inset -2px 0 0 0 rgba(42, 42, 50, 0.6) !important;
+    
+    /* Enhanced Typography */
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    
+    /* Interactive Cursor */
+    cursor: pointer !important;
+    
+    /* Enhanced Z-Index for Stacking */
+    z-index: 10 !important;
+}
+
+/* Table Cells - Elegant Styling with Smooth Animations */
+[data-filament-panel-id="petugas"] td,
+[data-filament-panel-id="petugas"] th,
+[data-filament-panel-id="petugas"] .fi-ta-cell {
+    /* Clean Background */
+    background: transparent !important;
+    
+    /* Sophisticated Border System */
+    border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-left: 1px solid transparent !important;
+    
+    /* Enhanced Padding and Spacing */
+    padding: 1.25rem 1rem !important;
+    
+    /* Premium Typography */
+    color: inherit !important;
+    font-weight: 500 !important;
+    line-height: 1.6 !important;
+    
+    /* Smooth Cell Interactions */
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+    
+    /* Positioning for Animations */
+    position: relative !important;
+    will-change: color, border-color, background !important;
+}
+
+[data-filament-panel-id="petugas"] td:last-child,
+[data-filament-panel-id="petugas"] th:last-child,
+[data-filament-panel-id="petugas"] .fi-ta-cell:last-child {
+    border-right: none !important;
+}
+
+/* Enhanced Text Readability */
+[data-filament-panel-id="petugas"] .fi-ta-text,
+[data-filament-panel-id="petugas"] .fi-ta-cell-content,
+[data-filament-panel-id="petugas"] td,
+[data-filament-panel-id="petugas"] th {
+    color: var(--card-text-primary) !important;
+    font-weight: 500 !important;
+}
+
+[data-filament-panel-id="petugas"] tbody tr:hover td,
+[data-filament-panel-id="petugas"] .fi-ta-row:hover .fi-ta-text,
+[data-filament-panel-id="petugas"] .fi-ta-row:hover .fi-ta-cell-content {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+}
+
+/* ================================================= */
+/* NUCLEAR CSS OVERRIDE FOR FILAMENT V3.3 TABLES */
+/* ================================================= */
+
+/* Force table styling with maximum specificity */
+html body [data-filament-panel-id="petugas"] .fi-main .fi-section .overflow-x-auto,
+html body [data-filament-panel-id="petugas"] .fi-main .fi-section .fi-ta,
+html body [data-filament-panel-id="petugas"] .fi-main .overflow-x-auto table,
+html body [data-filament-panel-id="petugas"] .fi-main table {
+    background: linear-gradient(135deg, 
+        rgba(10, 10, 11, 0.9) 0%, 
+        rgba(17, 17, 24, 0.95) 100%) !important;
+    backdrop-filter: blur(8px) saturate(120%) !important;
+    -webkit-backdrop-filter: blur(8px) saturate(120%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-radius: 0.75rem !important;
+    box-shadow: 
+        0 4px 16px -4px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Force table row styling */
+html body [data-filament-panel-id="petugas"] .fi-main table tbody tr {
+    background: rgba(10, 10, 11, 0.3) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important;
+    color: var(--card-text-primary) !important;
+    transition: all 0.2s ease !important;
+}
+
+/* Force table row hover styling */
+html body [data-filament-panel-id="petugas"] .fi-main table tbody tr:hover {
+    background: rgba(26, 26, 32, 0.6) !important;
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+    color: #ffffff !important;
+    cursor: pointer !important;
+}
+
+/* Force table cell styling */
+html body [data-filament-panel-id="petugas"] .fi-main table td,
+html body [data-filament-panel-id="petugas"] .fi-main table th {
+    background: transparent !important;
+    color: var(--card-text-primary) !important;
+    font-weight: 500 !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.03) !important;
+    padding: 1rem 0.75rem !important;
+}
+
+/* Force header styling */
+html body [data-filament-panel-id="petugas"] .fi-main table thead th {
+    background: linear-gradient(135deg, 
+        rgba(26, 26, 32, 0.6) 0%, 
+        rgba(42, 42, 50, 0.7) 100%) !important;
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    color: var(--card-text-primary) !important;
+    font-weight: 600 !important;
+}
+
+/* Force hover text color */
+html body [data-filament-panel-id="petugas"] .fi-main table tbody tr:hover td {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+}
+
+/* Action Buttons Glass Enhancement */
+[data-filament-panel-id="petugas"] .elegant-dark-action-btn,
+[data-filament-panel-id="petugas"] .elegant-dark-action-group {
+    background: linear-gradient(135deg, 
+        rgba(26, 26, 32, 0.8) 0%, 
+        rgba(17, 17, 24, 0.9) 100%) !important;
+    backdrop-filter: blur(12px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 0.75rem !important;
+    color: #ffffff !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-filament-panel-id="petugas"] .elegant-dark-action-btn:hover,
+[data-filament-panel-id="petugas"] .elegant-dark-action-group:hover {
+    background: linear-gradient(135deg, 
+        rgba(42, 42, 50, 0.9) 0%, 
+        rgba(26, 26, 32, 1) 100%) !important;
+    backdrop-filter: blur(16px) saturate(200%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(200%) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    transform: translateY(-2px) scale(1.05) !important;
+    box-shadow: 
+        0 8px 24px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+}
+
+/* Badge Enhancements with Glass Effect */
+[data-filament-panel-id="petugas"] .elegant-dark-badge {
+    backdrop-filter: blur(8px) saturate(120%) !important;
+    -webkit-backdrop-filter: blur(8px) saturate(120%) !important;
+    border-radius: 0.5rem !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    transition: all 0.2s ease !important;
+}
+
+[data-filament-panel-id="petugas"] .elegant-dark-badge:hover {
+    backdrop-filter: blur(12px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
+    transform: scale(1.05) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Enhanced Text Contrast Classes */
+[data-filament-panel-id="petugas"] .elegant-dark-text-primary {
+    color: #fafafa !important;
+    font-weight: 600 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-filament-panel-id="petugas"] .elegant-dark-text-secondary {
+    color: #e4e4e7 !important;
+    font-weight: 500 !important;
+}
+
+[data-filament-panel-id="petugas"] .elegant-dark-text-muted {
+    color: #a1a1aa !important;
+    font-weight: 400 !important;
+}
+
+/* Table Pagination Glass Enhancement */
+[data-filament-panel-id="petugas"] .fi-pagination {
+    background: linear-gradient(135deg, 
+        rgba(10, 10, 11, 0.8) 0%, 
+        rgba(17, 17, 24, 0.9) 100%) !important;
+    backdrop-filter: blur(16px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(150%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 1rem !important;
+    margin-top: 1.5rem !important;
+    padding: 1rem !important;
+}
+
+/* Table Empty State Glass Enhancement */
+[data-filament-panel-id="petugas"] .fi-ta-empty-state {
+    background: linear-gradient(135deg, 
+        rgba(10, 10, 11, 0.6) 0%, 
+        rgba(17, 17, 24, 0.8) 100%) !important;
+    backdrop-filter: blur(20px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
+    border-radius: 1rem !important;
+    border: 1px dashed rgba(255, 255, 255, 0.2) !important;
+    padding: 3rem !important;
+    color: var(--card-text-muted) !important;
+}
+
+/* ================================================= */
+/* ELEGANT BLACK TABS - GLASS MORPHISM ENHANCEMENT */
+/* ================================================= */
+
+/* Tabs Container Glass Effect */
+[data-filament-panel-id="petugas"] .fi-tabs {
+    background: linear-gradient(135deg, 
+        rgba(10, 10, 11, 0.8) 0%, 
+        rgba(17, 17, 24, 0.9) 100%) !important;
+    backdrop-filter: blur(16px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(150%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 1rem !important;
+    padding: 0.5rem !important;
+    margin-bottom: 1.5rem !important;
+    box-shadow: 
+        0 4px 16px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Individual Tab Styling */
+[data-filament-panel-id="petugas"] .elegant-dark-tab {
+    background: transparent !important;
+    color: #a1a1aa !important;
+    border: 1px solid transparent !important;
+    border-radius: 0.75rem !important;
+    margin: 0.25rem !important;
+    padding: 0.75rem 1.25rem !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    font-weight: 500 !important;
+    font-size: 0.875rem !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+/* Tab Hover Effects */
+[data-filament-panel-id="petugas"] .elegant-dark-tab:hover {
+    background: linear-gradient(135deg, 
+        rgba(26, 26, 32, 0.2) 0%, 
+        rgba(17, 17, 24, 0.3) 100%) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    color: #e4e4e7 !important;
+    transform: translateY(-1px) scale(1.02) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Active Tab Styling */
+[data-filament-panel-id="petugas"] .elegant-dark-tab[aria-selected="true"],
+[data-filament-panel-id="petugas"] .elegant-dark-tab.fi-active {
+    background: linear-gradient(135deg, 
+        rgba(42, 42, 50, 0.8) 0%, 
+        rgba(26, 26, 32, 0.9) 100%) !important;
+    backdrop-filter: blur(12px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 
+        0 6px 20px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Tab Badge Styling */
+[data-filament-panel-id="petugas"] .fi-badge {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: inherit !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    padding: 0.25rem 0.5rem !important;
+    margin-left: 0.5rem !important;
+}
+
+/* ================================================================ */
+/* JUMLAH PASIEN HARIANS - PREMIUM ANIMATION EFFECTS */
+/* ================================================================ */
+
+/* Elegant Loading Animation for Table Data */
+@keyframes elegantTableFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+    60% {
+        opacity: 0.8;
+        transform: translateY(-2px) scale(1.005);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Sophisticated Row Stagger Animation */
+@keyframes staggeredRowAppear {
+    0% {
+        opacity: 0;
+        transform: translateX(-30px) rotateY(-5deg);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0) rotateY(0deg);
+    }
+}
+
+/* Premium Hover Ripple Effect */
+@keyframes elegantRipple {
+    0% {
+        transform: scale(0);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+/* Enhanced Glow Pulse Animation */
+@keyframes subtleGlowPulse {
+    0%, 100% {
+        box-shadow: 
+            0 8px 32px -8px rgba(0, 0, 0, 0.6),
+            0 4px 16px -4px rgba(0, 0, 0, 0.4),
+            inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+    }
+    50% {
+        box-shadow: 
+            0 12px 40px -8px rgba(0, 0, 0, 0.7),
+            0 6px 20px -4px rgba(0, 0, 0, 0.5),
+            inset 0 1px 0 0 rgba(255, 255, 255, 0.12),
+            0 0 0 1px rgba(42, 42, 50, 0.2);
+    }
+}
+
+/* Apply Elegant Animations to Jumlah Pasien Table */
+[data-filament-panel-id="petugas"] .fi-ta-table {
+    animation: elegantTableFadeIn 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* Staggered Row Animation */
+[data-filament-panel-id="petugas"] .fi-ta-row {
+    animation: staggeredRowAppear 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+[data-filament-panel-id="petugas"] .fi-ta-row:nth-child(1) { animation-delay: 0.1s; }
+[data-filament-panel-id="petugas"] .fi-ta-row:nth-child(2) { animation-delay: 0.15s; }
+[data-filament-panel-id="petugas"] .fi-ta-row:nth-child(3) { animation-delay: 0.2s; }
+[data-filament-panel-id="petugas"] .fi-ta-row:nth-child(4) { animation-delay: 0.25s; }
+[data-filament-panel-id="petugas"] .fi-ta-row:nth-child(5) { animation-delay: 0.3s; }
+[data-filament-panel-id="petugas"] .fi-ta-row:nth-child(n+6) { animation-delay: 0.35s; }
+
+/* Enhanced Row Hover with Ripple Effect */
+[data-filament-panel-id="petugas"] .fi-ta-row:hover::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    background: radial-gradient(circle, rgba(42, 42, 50, 0.3) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    animation: elegantRipple 0.6s ease-out;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Premium Table Container Breathing Effect */
+[data-filament-panel-id="petugas"] .fi-section:hover {
+    animation: subtleGlowPulse 2s ease-in-out infinite;
+}
+
+/* Sophisticated Cell Focus Animation */
+[data-filament-panel-id="petugas"] .fi-ta-row:hover .fi-ta-cell {
+    background: linear-gradient(90deg, 
+        transparent 0%,
+        rgba(42, 42, 50, 0.05) 50%,
+        transparent 100%) !important;
+    border-right-color: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+}
+
+/* Enhanced Typography Animation on Hover */
+[data-filament-panel-id="petugas"] .fi-ta-row:hover .fi-ta-cell {
+    transform: translateZ(0) !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* ================================================= */
+/* ENHANCED TABLE SEARCH AND FILTERS - GLASS EFFECT */
+/* ================================================= */
+
+/* Search Input Glass Enhancement */
+[data-filament-panel-id="petugas"] .fi-ta-search,
+[data-filament-panel-id="petugas"] .fi-input {
+    background: linear-gradient(135deg, 
+        rgba(26, 26, 32, 0.8) 0%, 
+        rgba(42, 42, 50, 0.9) 100%) !important;
+    backdrop-filter: blur(12px) saturate(120%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(120%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 0.75rem !important;
+    color: #fafafa !important;
+    padding: 0.75rem 1rem !important;
+    transition: all 0.3s ease !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-ta-search:focus,
+[data-filament-panel-id="petugas"] .fi-input:focus {
+    background: linear-gradient(135deg, 
+        rgba(42, 42, 50, 0.9) 0%, 
+        rgba(64, 64, 80, 0.8) 100%) !important;
+    backdrop-filter: blur(16px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(150%) !important;
+    border-color: rgba(42, 42, 50, 0.5) !important;
+    box-shadow: 
+        0 0 0 3px rgba(42, 42, 50, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Filter Buttons Glass Enhancement */
+[data-filament-panel-id="petugas"] .fi-ta-filters,
+[data-filament-panel-id="petugas"] .fi-btn-outline {
+    background: linear-gradient(135deg, 
+        rgba(26, 26, 32, 0.3) 0%, 
+        rgba(17, 17, 24, 0.4) 100%) !important;
+    backdrop-filter: blur(8px) saturate(120%) !important;
+    -webkit-backdrop-filter: blur(8px) saturate(120%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 0.75rem !important;
+    color: #e4e4e7 !important;
+    transition: all 0.3s ease !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-ta-filters:hover,
+[data-filament-panel-id="petugas"] .fi-btn-outline:hover {
+    background: linear-gradient(135deg, 
+        rgba(42, 42, 50, 0.4) 0%, 
+        rgba(26, 26, 32, 0.5) 100%) !important;
+    backdrop-filter: blur(12px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+    transform: translateY(-1px) !important;
+}
+
+/* ================================================= */
+/* HEADER ACTIONS GLASS ENHANCEMENT */
+/* ================================================= */
+
+/* Header Action Buttons */
+[data-filament-panel-id="petugas"] .elegant-dark-action-btn {
+    background: linear-gradient(135deg, 
+        rgba(26, 26, 32, 0.8) 0%, 
+        rgba(17, 17, 24, 0.9) 100%) !important;
+    backdrop-filter: blur(12px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(150%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 0.875rem !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    padding: 0.875rem 1.5rem !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-filament-panel-id="petugas"] .elegant-dark-action-btn:hover {
+    background: linear-gradient(135deg, 
+        rgba(42, 42, 50, 0.9) 0%, 
+        rgba(26, 26, 32, 1) 100%) !important;
+    backdrop-filter: blur(16px) saturate(200%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(200%) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    transform: translateY(-2px) scale(1.02) !important;
+    box-shadow: 
+        0 8px 24px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+}
+
+/* ================================================= */
+/* RESPONSIVE GLASS TABLE ENHANCEMENTS */
+/* ================================================= */
+
+@media (max-width: 768px) {
+    [data-filament-panel-id="petugas"] .fi-ta-table {
+        border-radius: 1rem !important;
+        margin: 0.5rem !important;
+    }
+    
+    [data-filament-panel-id="petugas"] .fi-ta-row:hover {
+        transform: translateY(-1px) scale(1.01) !important;
+    }
+    
+    [data-filament-panel-id="petugas"] .fi-ta-cell {
+        padding: 1rem 0.75rem !important;
+    }
+    
+    [data-filament-panel-id="petugas"] .elegant-dark-tab {
+        padding: 0.5rem 1rem !important;
+        margin: 0.125rem !important;
+        font-size: 0.8125rem !important;
+    }
+}
+
+/* ================================================= */
+/* NUCLEAR CSS OVERRIDE - MAXIMUM SPECIFICITY FOR ALL VIEWS */
+/* ================================================= */
+
+/* EVERY POSSIBLE CARD/CONTAINER SELECTOR - ULTRA HIGH SPECIFICITY */
+[data-filament-panel-id="petugas"] .fi-ta-table,
+[data-filament-panel-id="petugas"] .fi-ta-content,
+[data-filament-panel-id="petugas"] .fi-ta-ctn,
+[data-filament-panel-id="petugas"] .fi-section,
+[data-filament-panel-id="petugas"] .fi-section-content,
+[data-filament-panel-id="petugas"] .fi-main,
+[data-filament-panel-id="petugas"] .fi-page,
+[data-filament-panel-id="petugas"] .fi-form,
+[data-filament-panel-id="petugas"] div.fi-ta-table,
+[data-filament-panel-id="petugas"] div.fi-section,
+[data-filament-panel-id="petugas"] div.fi-main,
+[data-filament-panel-id="petugas"] section.fi-section,
+html [data-filament-panel-id="petugas"] .fi-ta-table,
+html [data-filament-panel-id="petugas"] .fi-section,
+body [data-filament-panel-id="petugas"] .fi-ta-table,
+body [data-filament-panel-id="petugas"] .fi-section {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border: 1px solid #333340 !important;
+    border-radius: 1rem !important;
+    box-shadow: 
+        0 4px 12px -2px rgba(0, 0, 0, 0.8),
+        0 2px 6px -2px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.08) !important;
+    color: #fafafa !important;
+}
+
+/* CUSTOM DASHBOARD CARDS - ULTRA HIGH SPECIFICITY */
+[data-filament-panel-id="petugas"] .bg-white,
+[data-filament-panel-id="petugas"] .dark\\:bg-gray-800,
+[data-filament-panel-id="petugas"] div.bg-white,
+[data-filament-panel-id="petugas"] div.dark\\:bg-gray-800,
+html [data-filament-panel-id="petugas"] .bg-white,
+html [data-filament-panel-id="petugas"] .dark\\:bg-gray-800,
+body [data-filament-panel-id="petugas"] .bg-white,
+body [data-filament-panel-id="petugas"] .dark\\:bg-gray-800 {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border: 1px solid #333340 !important;
+    border-radius: 1rem !important;
+    box-shadow: 
+        0 4px 12px -2px rgba(0, 0, 0, 0.8),
+        0 2px 6px -2px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.08) !important;
+    color: #fafafa !important;
+}
+
+/* FORCE All text to be white/high contrast - MAXIMUM SPECIFICITY */
+[data-filament-panel-id="petugas"] .fi-section *,
+[data-filament-panel-id="petugas"] .fi-card *,
+[data-filament-panel-id="petugas"] section *,
+[data-filament-panel-id="petugas"] .fi-ta-table *,
+[data-filament-panel-id="petugas"] .fi-ta-cell *,
+[data-filament-panel-id="petugas"] .fi-main *,
+[data-filament-panel-id="petugas"] .fi-form *,
+html [data-filament-panel-id="petugas"] .fi-section *,
+html [data-filament-panel-id="petugas"] .fi-ta-table *,
+body [data-filament-panel-id="petugas"] .fi-section *,
+body [data-filament-panel-id="petugas"] .fi-ta-table * {
+    color: #fafafa !important;
+}
+
+/* Specific overrides for muted text - MAXIMUM SPECIFICITY */
+[data-filament-panel-id="petugas"] .text-gray-500,
+[data-filament-panel-id="petugas"] .dark\\:text-gray-400,
+html [data-filament-panel-id="petugas"] .text-gray-500,
+html [data-filament-panel-id="petugas"] .dark\\:text-gray-400,
+body [data-filament-panel-id="petugas"] .text-gray-500,
+body [data-filament-panel-id="petugas"] .dark\\:text-gray-400 {
+    color: #a1a1aa !important;
+}
+
+/* TABLE SPECIFIC OVERRIDES - NUCLEAR APPROACH */
+[data-filament-panel-id="petugas"] .fi-ta-row,
+[data-filament-panel-id="petugas"] .fi-ta-cell,
+[data-filament-panel-id="petugas"] .fi-ta-header,
+[data-filament-panel-id="petugas"] .fi-ta-header-cell,
+html [data-filament-panel-id="petugas"] .fi-ta-row,
+html [data-filament-panel-id="petugas"] .fi-ta-cell,
+body [data-filament-panel-id="petugas"] .fi-ta-row,
+body [data-filament-panel-id="petugas"] .fi-ta-cell {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border-color: #333340 !important;
+    color: #fafafa !important;
+}
+
+/* HOVER EFFECTS - MAXIMUM SPECIFICITY */
+[data-filament-panel-id="petugas"] .fi-ta-row:hover,
+[data-filament-panel-id="petugas"] .fi-section:hover,
+[data-filament-panel-id="petugas"] .bg-white:hover,
+html [data-filament-panel-id="petugas"] .fi-ta-row:hover,
+html [data-filament-panel-id="petugas"] .fi-section:hover,
+body [data-filament-panel-id="petugas"] .fi-ta-row:hover,
+body [data-filament-panel-id="petugas"] .fi-section:hover {
+    background: linear-gradient(135deg, #111118 0%, #1a1a20 100%) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* ================================================= */
+/* ULTIMATE NUCLEAR CSS - HIGHEST POSSIBLE SPECIFICITY */
+/* ================================================= */
+
+/* Use CSS attribute selectors with multiple tags for maximum specificity */
+html body div[data-filament-panel-id="petugas"] .fi-ta-table,
+html body div[data-filament-panel-id="petugas"] .fi-section,
+html body div[data-filament-panel-id="petugas"] .fi-main,
+html body div[data-filament-panel-id="petugas"] .bg-white,
+html body div[data-filament-panel-id="petugas"] .dark\\:bg-gray-800,
+html body section[data-filament-panel-id="petugas"] .fi-section,
+html body main[data-filament-panel-id="petugas"] .fi-main {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border: 1px solid #333340 !important;
+    border-radius: 1rem !important;
+    box-shadow: 
+        0 4px 12px -2px rgba(0, 0, 0, 0.8),
+        0 2px 6px -2px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.08) !important;
+    color: #fafafa !important;
+}
+
+/* Force text with ultimate specificity */
+html body div[data-filament-panel-id="petugas"] .fi-ta-table *,
+html body div[data-filament-panel-id="petugas"] .fi-section *,
+html body div[data-filament-panel-id="petugas"] .fi-main *,
+html body div[data-filament-panel-id="petugas"] .bg-white * {
+    color: #fafafa !important;
+}
+
+/* Ultimate table row styling */
+html body div[data-filament-panel-id="petugas"] .fi-ta-row,
+html body div[data-filament-panel-id="petugas"] .fi-ta-cell,
+html body div[data-filament-panel-id="petugas"] .fi-ta-header {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border-color: #333340 !important;
+    color: #fafafa !important;
+}
+
+/* ================================================= */
+/* HIDE FILAMENT PAGE HEADER - USE ONLY CUSTOM TOPBAR */
+/* ================================================= */
+
+/* Hide ALL possible Filament topbar elements */
+[data-filament-panel-id="petugas"] .fi-header,
+[data-filament-panel-id="petugas"] .fi-page-header,
+[data-filament-panel-id="petugas"] .fi-topbar,
+[data-filament-panel-id="petugas"] .fi-page-header-heading,
+[data-filament-panel-id="petugas"] .fi-page-header-actions,
+[data-filament-panel-id="petugas"] .fi-global-search,
+[data-filament-panel-id="petugas"] .fi-avatar,
+[data-filament-panel-id="petugas"] header,
+html [data-filament-panel-id="petugas"] .fi-header,
+html [data-filament-panel-id="petugas"] .fi-page-header,
+html [data-filament-panel-id="petugas"] .fi-topbar,
+body [data-filament-panel-id="petugas"] .fi-header,
+body [data-filament-panel-id="petugas"] .fi-page-header,
+body [data-filament-panel-id="petugas"] .fi-topbar {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+}
+
+/* Adjust main content to account for custom topbar only */
+[data-filament-panel-id="petugas"] .fi-main,
+[data-filament-panel-id="petugas"] .fi-page {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}
+
+/* Ensure custom topbar takes priority */
+.world-class-topbar {
+    z-index: 9999 !important;
+    display: block !important;
+    visibility: visible !important;
+}
+
+/* ================================================= */
+/* HEALTHCARE SPECIFIC ENHANCEMENTS */
+/* ================================================= */
+
+/* Healthcare form sections */
+[data-filament-panel-id="petugas"] .fi-section-heading {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #fafafa;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+[data-filament-panel-id="petugas"] .fi-section-description {
+    color: #a1a1aa;
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+/* Healthcare input fields */
+[data-filament-panel-id="petugas"] .fi-input,
+[data-filament-panel-id="petugas"] .fi-select,
+[data-filament-panel-id="petugas"] .fi-textarea {
+    background: var(--card-charcoal) !important;
+    border: 1px solid var(--card-border) !important;
+    border-radius: 0.75rem !important;
+    color: var(--card-text-primary) !important;
+    transition: all 0.2s ease !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-input:focus,
+[data-filament-panel-id="petugas"] .fi-select:focus,
+[data-filament-panel-id="petugas"] .fi-textarea:focus {
+    border-color: var(--panel-primary) !important;
+    box-shadow: 0 0 0 3px rgba(42, 42, 50, 0.1) !important;
+}
+
+/* Healthcare button styling */
 [data-filament-panel-id="petugas"] .fi-btn-primary {
-    background: linear-gradient(135deg, var(--panel-primary) 0%, var(--panel-primary-dark) 100%);
-    border: none;
-    color: white;
-    font-weight: 600;
-    transition: all 0.2s ease;
+    background: linear-gradient(135deg, var(--panel-primary) 0%, var(--panel-primary-dark) 100%) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease !important;
+    border-radius: 0.75rem !important;
 }
 
 [data-filament-panel-id="petugas"] .fi-btn-primary:hover {
-    background: linear-gradient(135deg, var(--panel-primary-dark) 0%, #b45309 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(135deg, var(--panel-primary-dark) 0%, #1a1a20 100%) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
 }
 
-/* Table Styling - Enhanced (Exact Match with Bendahara) */
-[data-filament-panel-id="petugas"] .fi-ta-header-cell {
-    background: rgba(251, 189, 35, 0.05);
-    font-weight: 600;
-    color: var(--panel-primary-dark);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-size: 0.75rem;
+/* ================================================================ */
+/* ELEGANT BLACK SIDEBAR - WORLD-CLASS GLASSMORPHIC DESIGN */
+/* ================================================================ */
+
+/* Main Sidebar Container */
+[data-filament-panel-id="petugas"] .fi-sidebar {
+    background: linear-gradient(180deg, 
+        rgba(10, 10, 11, 0.95) 0%, 
+        rgba(17, 17, 24, 0.9) 50%,
+        rgba(10, 10, 11, 0.95) 100%) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 
+        4px 0 20px rgba(0, 0, 0, 0.3),
+        2px 0 8px rgba(0, 0, 0, 0.2),
+        inset -1px 0 0 rgba(255, 255, 255, 0.03) !important;
 }
 
-[data-filament-panel-id="petugas"] .fi-ta-row:hover {
-    background: rgba(251, 189, 35, 0.05);
+/* Sidebar Header */
+[data-filament-panel-id="petugas"] .fi-sidebar-header {
+    background: linear-gradient(135deg, 
+        rgba(10, 10, 11, 0.8) 0%, 
+        rgba(17, 17, 24, 0.6) 100%) !important;
+    backdrop-filter: blur(16px) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    padding: 1.5rem 1rem !important;
+    margin-bottom: 1rem !important;
 }
 
-[data-filament-panel-id="petugas"] .fi-ta-cell {
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+[data-filament-panel-id="petugas"] .fi-sidebar-header .fi-logo {
+    color: #fafafa !important;
+    font-weight: 700 !important;
+    font-size: 1.125rem !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
 }
 
-/* Form Styling - Enhanced (Exact Match with Bendahara) */
-[data-filament-panel-id="petugas"] .fi-input {
-    border: 1px solid rgba(209, 213, 219, 1);
-    border-radius: 0.5rem;
-    transition: border-color 0.2s ease;
-    background: rgba(255, 255, 255, 0.9);
-}
-
-[data-filament-panel-id="petugas"] .fi-input:focus {
-    border-color: var(--panel-primary);
-    box-shadow: 0 0 0 3px rgba(251, 189, 35, 0.1);
-}
-
-/* Section Styling (Exact Match with Bendahara) */
-[data-filament-panel-id="petugas"] .fi-section {
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(229, 231, 235, 0.3);
-    border-radius: 0.75rem;
-    backdrop-filter: blur(10px);
-}
-
-/* Chart Container Styling (Exact Match with Bendahara) */
-[data-filament-panel-id="petugas"] .chart-container {
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 0.75rem;
-    padding: 1.5rem;
-    border: 1px solid rgba(229, 231, 235, 0.2);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-/* Widget Grid Styling (Exact Match with Bendahara) */
-[data-filament-panel-id="petugas"] .fi-wi-grid {
-    gap: 1.5rem;
-}
-
-/* Icon Styling (Exact Match with Bendahara) */
-[data-filament-panel-id="petugas"] .fi-icon {
-    color: var(--panel-primary);
-    transition: color 0.2s ease;
-}
-
-[data-filament-panel-id="petugas"] .fi-icon:hover {
-    color: var(--panel-primary-dark);
-}
-
-/* Navigation Groups Styling (Exact Match with Bendahara) */
+/* Navigation Groups */
 [data-filament-panel-id="petugas"] .fi-sidebar-group {
-    margin-bottom: 0.5rem;
+    margin-bottom: 1.5rem !important;
 }
 
 [data-filament-panel-id="petugas"] .fi-sidebar-group-label {
-    color: var(--panel-primary);
-    font-weight: 600;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 0.5rem 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border-radius: 0.5rem;
+    color: #71717a !important;
+    font-weight: 600 !important;
+    font-size: 0.6875rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    margin: 0 1.5rem 0.75rem 1.5rem !important;
+    padding: 0.5rem 0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+    position: relative !important;
 }
 
-[data-filament-panel-id="petugas"] .fi-sidebar-group-label:hover {
-    background: rgba(251, 189, 35, 0.1);
+[data-filament-panel-id="petugas"] .fi-sidebar-group-label::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    width: 2rem;
+    height: 1px;
+    background: linear-gradient(90deg, #404050 0%, transparent 100%);
 }
 
-[data-filament-panel-id="petugas"] .fi-sidebar-group-items {
-    transition: all 0.3s ease;
-    overflow: hidden;
+/* Navigation Items - Elegant Glassmorphic Design */
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item {
+    background: transparent !important;
+    color: #e4e4e7 !important;
+    margin: 0.25rem 1rem !important;
+    padding: 0.875rem 1.25rem !important;
+    border-radius: 0.875rem !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    border: 1px solid transparent !important;
+    position: relative !important;
+    overflow: hidden !important;
 }
 
-[data-filament-panel-id="petugas"] .fi-sidebar-group.fi-collapsed .fi-sidebar-group-items {
-    max-height: 0;
+/* Glassmorphic Background Effect */
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.02) 0%,
+        transparent 50%,
+        rgba(255, 255, 255, 0.02) 100%);
+    border-radius: inherit;
     opacity: 0;
-    transform: translateY(-10px);
+    transition: opacity 0.3s ease;
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover::before {
+    opacity: 1;
+}
+
+/* Hover State - Premium Glass Effect */
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover {
+    background: linear-gradient(135deg, 
+        rgba(42, 42, 50, 0.12) 0%, 
+        rgba(26, 26, 32, 0.08) 100%) !important;
+    border-color: rgba(42, 42, 50, 0.2) !important;
+    color: #fafafa !important;
+    transform: translateX(6px) scale(1.02) !important;
+    box-shadow: 
+        0 4px 16px rgba(0, 0, 0, 0.2),
+        0 2px 8px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Active State - Sophisticated Highlight */
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active {
+    background: linear-gradient(135deg, 
+        rgba(42, 42, 50, 0.25) 0%, 
+        rgba(26, 26, 32, 0.15) 100%) !important;
+    border-color: rgba(42, 42, 50, 0.3) !important;
+    color: #ffffff !important;
+    transform: translateX(8px) !important;
+    box-shadow: 
+        0 6px 20px rgba(0, 0, 0, 0.25),
+        0 3px 10px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        inset 3px 0 0 #404050 !important;
+}
+
+/* Navigation Icons */
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item svg {
+    color: inherit !important;
+    transition: all 0.3s ease !important;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3)) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover svg {
+    color: #ffffff !important;
+    transform: scale(1.1) !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active svg {
+    color: #ffffff !important;
+    transform: scale(1.05) !important;
+}
+
+/* Navigation Text */
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item-label {
+    font-weight: 500 !important;
+    font-size: 0.875rem !important;
+    letter-spacing: -0.005em !important;
+    transition: font-weight 0.2s ease !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover .fi-sidebar-nav-item-label {
+    font-weight: 600 !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active .fi-sidebar-nav-item-label {
+    font-weight: 700 !important;
+}
+
+/* ================================================================ */
+/* SIDEBAR MICRO-INTERACTIONS & RESPONSIVE ENHANCEMENTS */
+/* ================================================================ */
+
+/* Sidebar Collapse Button (if exists) */
+[data-filament-panel-id="petugas"] .fi-sidebar-collapse-btn {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 0.5rem !important;
+    color: #a1a1aa !important;
+    transition: all 0.3s ease !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-collapse-btn:hover {
+    background: rgba(42, 42, 50, 0.1) !important;
+    border-color: rgba(42, 42, 50, 0.2) !important;
+    color: #fafafa !important;
+    transform: scale(1.05) !important;
+}
+
+/* Navigation Item Focus States */
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item:focus-visible {
+    outline: 2px solid rgba(42, 42, 50, 0.6) !important;
+    outline-offset: 2px !important;
+    background: linear-gradient(135deg, 
+        rgba(42, 42, 50, 0.1) 0%, 
+        rgba(26, 26, 32, 0.05) 100%) !important;
+}
+
+/* Sidebar Scrollbar Styling */
+[data-filament-panel-id="petugas"] .fi-sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 3px;
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, 
+        rgba(42, 42, 50, 0.4) 0%, 
+        rgba(26, 26, 32, 0.6) 100%);
+    border-radius: 3px;
+    transition: all 0.2s ease;
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, 
+        rgba(42, 42, 50, 0.6) 0%, 
+        rgba(26, 26, 32, 0.8) 100%);
+}
+
+/* Page container styling */
+[data-filament-panel-id="petugas"] .fi-page,
+[data-filament-panel-id="petugas"] .fi-page-content {
+    background: linear-gradient(135deg, #060608 0%, #0d0d0f 100%) !important;
+}
+
+/* ================================================================ */
+/* SIMPLIFIED MINIMALIST COLLAPSIBLE BUTTONS */
+/* ================================================================ */
+
+/* Simplified Minimalist Collapsible Button Styles */
+[data-filament-panel-id="petugas"] .fi-sidebar-group-collapse-button {
+    /* Remove default button styles for minimal look */
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 4px !important;
+    
+    /* Smaller, more minimal size */
+    width: 24px !important;
+    height: 24px !important;
+    
+    /* Smooth transitions */
+    transition: all 0.2s ease-in-out !important;
+    
+    /* Center the icon */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    
+    /* Subtle hover effect */
+    opacity: 0.6;
+    border-radius: 4px !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-group-collapse-button:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.1) !important;
+    transform: scale(1.1);
+}
+
+/* Icon styling for minimal look */
+[data-filament-panel-id="petugas"] .fi-sidebar-group-collapse-button svg {
+    width: 14px !important;
+    height: 14px !important;
+    color: rgba(255, 255, 255, 0.7) !important;
+    stroke-width: 2 !important;
+}
+
+/* Rotation animation for collapsed state */
+[data-filament-panel-id="petugas"] .fi-sidebar-group-collapse-button.-rotate-180 {
+    transform: rotate(180deg);
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-group-collapse-button.-rotate-180:hover {
+    transform: rotate(180deg) scale(1.1);
+}
+
+/* Group button styling for better spacing */
+[data-filament-panel-id="petugas"] .fi-sidebar-group-button {
+    padding: 8px 12px !important;
+    margin: 0 4px !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease-in-out !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-group-button:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Make the label more prominent */
+[data-filament-panel-id="petugas"] .fi-sidebar-group-label {
+    font-weight: 500 !important;
+    letter-spacing: 0.025em !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Icon styling for groups */
+[data-filament-panel-id="petugas"] .fi-sidebar-group-icon {
+    color: rgba(255, 255, 255, 0.6) !important;
+    width: 20px !important;
+    height: 20px !important;
+}
+
+/* Remove any extra borders or shadows */
+[data-filament-panel-id="petugas"] .fi-sidebar-group {
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* Smooth collapse animation */
+[data-filament-panel-id="petugas"] .fi-sidebar-group-items {
+    transition: all 0.25s ease-in-out !important;
+}
+
+/* Active state styling */
+[data-filament-panel-id="petugas"] .fi-sidebar-group.fi-active .fi-sidebar-group-label {
+    color: #60A5FA !important; /* Light blue for active state */
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-group.fi-active .fi-sidebar-group-icon {
+    color: #60A5FA !important;
+}
+
+/* Focus states for accessibility */
+[data-filament-panel-id="petugas"] .fi-sidebar-group-collapse-button:focus {
+    outline: 2px solid rgba(96, 165, 250, 0.5) !important;
+    outline-offset: 2px !important;
+}
+
+/* ================================================================ */
+/* COLLAPSED SIDEBAR STATES - ELEGANT BLACK THEME */
+/* ================================================================ */
+
+/* Collapsed Sidebar Main Container */
+[data-filament-panel-id="petugas"] .fi-sidebar.fi-sidebar-collapsed {
+    background: linear-gradient(180deg, 
+        rgba(10, 10, 11, 0.98) 0%, 
+        rgba(17, 17, 24, 0.96) 100%) !important;
+    backdrop-filter: blur(32px) saturate(200%) !important;
+    -webkit-backdrop-filter: blur(32px) saturate(200%) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 
+        6px 0 32px rgba(0, 0, 0, 0.4),
+        3px 0 16px rgba(0, 0, 0, 0.3),
+        inset -1px 0 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Sidebar Group Collapsed States */
+[data-filament-panel-id="petugas"] .fi-sidebar-group.fi-collapsed .fi-sidebar-group-items {
+    max-height: 0 !important;
+    opacity: 0 !important;
+    transform: translateY(-8px) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    overflow: hidden !important;
 }
 
 [data-filament-panel-id="petugas"] .fi-sidebar-group:not(.fi-collapsed) .fi-sidebar-group-items {
-    max-height: 1000px;
-    opacity: 1;
-    transform: translateY(0);
+    max-height: 1000px !important;
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-/* Collapsible icon styling (Exact Match with Bendahara) */
+/* Collapse Icon Styling */
+[data-filament-panel-id="petugas"] .fi-sidebar-group-collapse-btn {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 0.375rem !important;
+    color: #71717a !important;
+    transition: all 0.3s ease !important;
+    width: 1.5rem !important;
+    height: 1.5rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-group-collapse-btn:hover {
+    background: rgba(42, 42, 50, 0.1) !important;
+    border-color: rgba(42, 42, 50, 0.2) !important;
+    color: #a1a1aa !important;
+    transform: scale(1.1) !important;
+}
+
+/* Group Label with Collapse Icon */
+[data-filament-panel-id="petugas"] .fi-sidebar-group-label {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+[data-filament-panel-id="petugas"] .fi-sidebar-group-label:hover {
+    color: #a1a1aa !important;
+    background: rgba(255, 255, 255, 0.02) !important;
+    border-radius: 0.5rem !important;
+}
+
+/* Collapsed Group Label Indicator */
 [data-filament-panel-id="petugas"] .fi-sidebar-group-label::after {
     content: '';
     width: 0;
     height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 6px solid var(--panel-primary);
+    border-left: 3px solid transparent;
+    border-right: 3px solid transparent;
+    border-top: 4px solid #404050;
     transition: transform 0.2s ease;
+    opacity: 0.7;
 }
 
 [data-filament-panel-id="petugas"] .fi-sidebar-group.fi-collapsed .fi-sidebar-group-label::after {
     transform: rotate(-90deg);
+    border-top-color: #333340;
 }
 
 [data-filament-panel-id="petugas"] .fi-sidebar-group:not(.fi-collapsed) .fi-sidebar-group-label::after {
     transform: rotate(0deg);
+    border-top-color: #404050;
 }
 
-/* Sidebar Navigation Styling - Match Bendahara Style */
-[data-filament-panel-id="petugas"] .fi-sidebar-nav-item {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 0.5rem;
-    margin: 0.125rem 0.5rem;
-    position: relative;
+/* Sidebar Collapse Toggle Button - Main Sidebar */
+[data-filament-panel-id="petugas"] .fi-sidebar-collapse-toggle {
+    background: linear-gradient(135deg, 
+        rgba(42, 42, 50, 0.1) 0%, 
+        rgba(26, 26, 32, 0.05) 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 0.5rem !important;
+    color: #a1a1aa !important;
+    transition: all 0.3s ease !important;
+    backdrop-filter: blur(8px) !important;
 }
 
-[data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover {
-    background: rgba(245, 158, 11, 0.1);
-    transform: translateX(3px);
-    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+[data-filament-panel-id="petugas"] .fi-sidebar-collapse-toggle:hover {
+    background: linear-gradient(135deg, 
+        rgba(42, 42, 50, 0.2) 0%, 
+        rgba(26, 26, 32, 0.1) 100%) !important;
+    border-color: rgba(42, 42, 50, 0.2) !important;
+    color: #fafafa !important;
+    transform: scale(1.05) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
 }
 
-[data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active {
-    background: linear-gradient(135deg, var(--panel-primary) 0%, var(--panel-primary-dark) 100%);
-    color: white;
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
-    transform: translateX(2px);
+/* ================================================================ */
+/* SIDEBAR RESPONSIVE BEHAVIOR */
+/* ================================================================ */
+
+/* Mobile Sidebar Overlay Enhancement */
+@media (max-width: 768px) {
+    [data-filament-panel-id="petugas"] .fi-sidebar {
+        backdrop-filter: blur(32px) saturate(200%) !important;
+        -webkit-backdrop-filter: blur(32px) saturate(200%) !important;
+        background: linear-gradient(180deg, 
+            rgba(10, 10, 11, 0.99) 0%, 
+            rgba(17, 17, 24, 0.98) 50%,
+            rgba(10, 10, 11, 0.99) 100%) !important;
+        box-shadow: 
+            8px 0 32px rgba(0, 0, 0, 0.5),
+            4px 0 16px rgba(0, 0, 0, 0.3),
+            inset -1px 0 0 rgba(255, 255, 255, 0.06) !important;
+    }
+    
+    [data-filament-panel-id="petugas"] .fi-sidebar-nav-item {
+        padding: 1rem !important;
+        margin: 0.25rem 0.75rem !important;
+    }
+    
+    [data-filament-panel-id="petugas"] .fi-sidebar-group-label {
+        margin: 0 1rem 0.75rem 1rem !important;
+        padding: 0.5rem 0 0.25rem 0 !important;
+        font-size: 0.6875rem !important;
+    }
 }
 
-[data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active::before {
-    content: '';
-    position: absolute;
-    left: -8px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 3px;
-    height: 60%;
-    background: linear-gradient(180deg, var(--panel-primary), var(--panel-primary-dark));
-    border-radius: 0 2px 2px 0;
+/* ================================================= */
+/* RESPONSIVE DESIGN */
+/* ================================================= */
+
+@media (max-width: 640px) {
+    [data-filament-panel-id="petugas"] .fi-wi-stats-overview-stat {
+        padding: 1rem;
+        margin-bottom: 1rem;
+        transform: none !important;
+    }
+    
+    [data-filament-panel-id="petugas"] .fi-wi-stats-overview-stat:hover {
+        transform: none !important;
+    }
 }
 
-[data-filament-panel-id="petugas"] .fi-sidebar-nav-item .fi-sidebar-nav-item-icon {
-    transition: all 0.2s ease;
-}
-
-[data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover .fi-sidebar-nav-item-icon {
-    color: var(--panel-primary);
-    transform: scale(1.05);
-}
-
-[data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active .fi-sidebar-nav-item-icon {
-    color: white;
-    transform: scale(1.1);
-}
-
-[data-filament-panel-id="petugas"] .fi-sidebar-nav-item .fi-sidebar-nav-item-label {
-    transition: all 0.2s ease;
-    font-weight: 500;
-}
-
-[data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover .fi-sidebar-nav-item-label {
-    color: var(--panel-primary);
-    font-weight: 600;
-}
-
-[data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active .fi-sidebar-nav-item-label {
-    color: white;
-    font-weight: 600;
-}
-
-/* Responsive Design (Exact Match with Bendahara) */
 @media (max-width: 768px) {
     [data-filament-panel-id="petugas"] .fi-wi-stats-overview-stat {
         margin-bottom: 1rem;
@@ -558,225 +1763,162 @@
     [data-filament-panel-id="petugas"] .fi-card {
         margin-bottom: 1rem;
     }
-    
-    [data-filament-panel-id="petugas"] .chart-container {
-        padding: 1rem;
-    }
-    
-    [data-filament-panel-id="petugas"] .fi-wi-grid {
-        gap: 1rem;
-    }
 }
 
-/* Dark Mode Support (Exact Match with Bendahara) */
-[data-filament-panel-id="petugas"] .dark .fi-card {
-    background: rgba(31, 41, 55, 0.95);
-    border-color: rgba(75, 85, 99, 0.3);
+/* ================================================================ */
+/* ADDITIONAL PREMIUM INTERACTION EFFECTS */
+/* ================================================================ */
+
+/* Sophisticated Focus States for Table Elements */
+[data-filament-panel-id="petugas"] .fi-ta-row:focus-within {
+    outline: 2px solid rgba(42, 42, 50, 0.5) !important;
+    outline-offset: -2px !important;
+    background: linear-gradient(135deg, 
+        rgba(42, 42, 50, 0.7) 0%, 
+        rgba(17, 17, 24, 0.6) 100%) !important;
+    border-color: rgba(42, 42, 50, 0.3) !important;
 }
 
-[data-filament-panel-id="petugas"] .dark .fi-input {
-    background: rgba(31, 41, 55, 0.9);
-    border-color: rgba(75, 85, 99, 0.5);
-    color: rgba(229, 231, 235, 1);
+/* Enhanced Active Row State */
+[data-filament-panel-id="petugas"] .fi-ta-row:active {
+    transform: translateY(0px) scale(0.995) !important;
+    transition: transform 0.1s ease-out !important;
 }
 
-[data-filament-panel-id="petugas"] .dark .fi-section {
-    background: rgba(31, 41, 55, 0.95);
-    border-color: rgba(75, 85, 99, 0.3);
+/* Premium Table Action Buttons */
+[data-filament-panel-id="petugas"] .fi-ta-actions .fi-btn {
+    background: linear-gradient(135deg, 
+        rgba(42, 42, 50, 0.1) 0%, 
+        rgba(26, 26, 32, 0.05) 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 0.75rem !important;
+    backdrop-filter: blur(8px) !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
 }
 
-[data-filament-panel-id="petugas"] .dark .chart-container {
-    background: rgba(31, 41, 55, 0.95);
-    border-color: rgba(75, 85, 99, 0.3);
+[data-filament-panel-id="petugas"] .fi-ta-actions .fi-btn:hover {
+    background: linear-gradient(135deg, 
+        rgba(42, 42, 50, 0.2) 0%, 
+        rgba(26, 26, 32, 0.1) 100%) !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    transform: translateY(-1px) scale(1.05) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
 }
 
-/* Modal and Action Styling - Enhanced for Financial Validation Center (Exact Match with Bendahara) */
-[data-filament-panel-id="petugas"] .fi-modal {
-    backdrop-filter: blur(8px);
+/* Elegant Pagination Enhancement */
+[data-filament-panel-id="petugas"] .fi-pagination .fi-pagination-item {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 0.5rem !important;
+    backdrop-filter: blur(8px) !important;
+    transition: all 0.3s ease !important;
+    color: #e4e4e7 !important;
 }
 
-[data-filament-panel-id="petugas"] .fi-modal-content {
-    border-radius: 0.875rem;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+[data-filament-panel-id="petugas"] .fi-pagination .fi-pagination-item:hover {
+    background: rgba(42, 42, 50, 0.1) !important;
+    border-color: rgba(42, 42, 50, 0.2) !important;
+    transform: translateY(-1px) !important;
+    color: #ffffff !important;
 }
 
-/* Action Group Styling - Fix for Header Actions (Exact Match with Bendahara) */
-[data-filament-panel-id="petugas"] .fi-ac-grouped-action {
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(229, 231, 235, 0.5);
-    border-radius: 0.5rem;
-    padding: 0.5rem 1rem;
-    transition: all 0.2s ease;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
+[data-filament-panel-id="petugas"] .fi-pagination .fi-pagination-item.fi-active {
+    background: linear-gradient(135deg, 
+        rgba(42, 42, 50, 0.3) 0%, 
+        rgba(26, 26, 32, 0.2) 100%) !important;
+    border-color: rgba(42, 42, 50, 0.4) !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
 }
 
-[data-filament-panel-id="petugas"] .fi-ac-grouped-action:hover {
-    background: rgba(251, 189, 35, 0.1);
-    border-color: var(--panel-primary);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-/* Action Button Variants (Exact Match with Bendahara) */
-[data-filament-panel-id="petugas"] .fi-btn-success {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    border: none;
-    color: white;
-}
-
-[data-filament-panel-id="petugas"] .fi-btn-success:hover {
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
-    transform: translateY(-1px);
-}
-
-[data-filament-panel-id="petugas"] .fi-btn-danger {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    border: none;
-    color: white;
-}
-
-[data-filament-panel-id="petugas"] .fi-btn-danger:hover {
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-    transform: translateY(-1px);
-}
-
-[data-filament-panel-id="petugas"] .fi-btn-info {
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    border: none;
-    color: white;
-}
-
-[data-filament-panel-id="petugas"] .fi-btn-info:hover {
-    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-    transform: translateY(-1px);
-}
-
-[data-filament-panel-id="petugas"] .fi-btn-gray {
-    background: rgba(107, 114, 128, 0.1);
-    border: 1px solid rgba(107, 114, 128, 0.2);
-    color: rgb(107, 114, 128);
-}
-
-[data-filament-panel-id="petugas"] .fi-btn-gray:hover {
-    background: rgba(107, 114, 128, 0.15);
-    border-color: rgb(107, 114, 128);
-}
-
-/* Tab Styling - For Financial Validation Center (Exact Match with Bendahara) */
-[data-filament-panel-id="petugas"] .fi-tabs {
-    border-bottom: 2px solid rgba(229, 231, 235, 0.5);
-    margin-bottom: 1.5rem;
-}
-
-[data-filament-panel-id="petugas"] .fi-tabs-item {
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.5rem 0.5rem 0 0;
-    transition: all 0.2s ease;
-    border-bottom: 2px solid transparent;
-    font-weight: 500;
-}
-
-[data-filament-panel-id="petugas"] .fi-tabs-item:hover {
-    background: rgba(251, 189, 35, 0.1);
-}
-
-[data-filament-panel-id="petugas"] .fi-tabs-item.fi-active {
-    background: rgba(251, 189, 35, 0.15);
-    border-bottom-color: var(--panel-primary);
-    color: var(--panel-primary-dark);
-    font-weight: 600;
-}
-
-/* Filter Styling - Enhanced (Exact Match with Bendahara) */
-[data-filament-panel-id="petugas"] .fi-ta-filters {
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(229, 231, 235, 0.3);
-    border-radius: 0.75rem;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    backdrop-filter: blur(10px);
-}
-
-[data-filament-panel-id="petugas"] .fi-ta-filter {
-    margin-bottom: 0.75rem;
-}
-
-/* Summary Styling - For Financial Validation (Exact Match with Bendahara) */
-[data-filament-panel-id="petugas"] .fi-ta-summary {
-    background: rgba(251, 189, 35, 0.05);
-    border: 1px solid rgba(251, 189, 35, 0.1);
-    border-radius: 0.5rem;
-    padding: 1rem;
-    font-weight: 600;
-    color: var(--panel-primary-dark);
-}
-
-/* Loading State Styling (Exact Match with Bendahara) */
-[data-filament-panel-id="petugas"] .fi-loading {
+/* Premium Loading State for Tables */
+[data-filament-panel-id="petugas"] .fi-ta-loading {
     background: linear-gradient(90deg, 
-        rgba(251, 189, 35, 0.1) 0%, 
-        rgba(251, 189, 35, 0.2) 50%, 
-        rgba(251, 189, 35, 0.1) 100%);
-    background-size: 200% 100%;
-    animation: petugas-loading 1.5s ease-in-out infinite;
+        rgba(42, 42, 50, 0.1) 0%, 
+        rgba(42, 42, 50, 0.2) 50%, 
+        rgba(42, 42, 50, 0.1) 100%) !important;
+    background-size: 200% 100% !important;
+    animation: elegantLoading 2s ease-in-out infinite !important;
+    border-radius: 0.5rem !important;
 }
 
-@keyframes petugas-loading {
+@keyframes elegantLoading {
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
 }
 
-/* Notification Styling (Exact Match with Bendahara) */
+/* ================================================= */
+/* ACCESSIBILITY & REDUCED MOTION */
+/* ================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    [data-filament-panel-id="petugas"] .fi-wi-stats-overview-stat,
+    [data-filament-panel-id="petugas"] .fi-card,
+    [data-filament-panel-id="petugas"] .fi-section,
+    [data-filament-panel-id="petugas"] .fi-btn-primary,
+    [data-filament-panel-id="petugas"] .fi-ta-table,
+    [data-filament-panel-id="petugas"] .fi-ta-row {
+        animation: none !important;
+        transition: none !important;
+        transform: none !important;
+    }
+    
+    [data-filament-panel-id="petugas"] .fi-wi-stats-overview-stat:hover,
+    [data-filament-panel-id="petugas"] .fi-card:hover,
+    [data-filament-panel-id="petugas"] .fi-section:hover,
+    [data-filament-panel-id="petugas"] .fi-ta-row:hover {
+        transform: none !important;
+        animation: none !important;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    [data-filament-panel-id="petugas"] .fi-card,
+    [data-filament-panel-id="petugas"] .fi-section,
+    [data-filament-panel-id="petugas"] .fi-wi-stats-overview-stat {
+        border-width: 2px !important;
+    }
+}
+
+/* ================================================= */
+/* ELEGANT HEALTHCARE LOADING AND NOTIFICATIONS */
+/* ================================================= */
+
+/* Loading state styling */
+[data-filament-panel-id="petugas"] .fi-loading {
+    background: linear-gradient(90deg, 
+        rgba(42, 42, 50, 0.1) 0%, 
+        rgba(42, 42, 50, 0.2) 50%, 
+        rgba(42, 42, 50, 0.1) 100%);
+    background-size: 200% 100%;
+    animation: healthcare-loading 1.5s ease-in-out infinite;
+}
+
+@keyframes healthcare-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Notification styling */
 [data-filament-panel-id="petugas"] .fi-no {
-    border-radius: 0.75rem;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    border-radius: 0.75rem !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important;
 }
 
 [data-filament-panel-id="petugas"] .fi-no-success {
-    background: rgba(16, 185, 129, 0.1);
-    border-color: rgba(16, 185, 129, 0.2);
+    background: rgba(16, 185, 129, 0.1) !important;
+    border-color: rgba(16, 185, 129, 0.2) !important;
 }
 
 [data-filament-panel-id="petugas"] .fi-no-warning {
-    background: rgba(245, 158, 11, 0.1);
-    border-color: rgba(245, 158, 11, 0.2);
+    background: rgba(245, 158, 11, 0.1) !important;
+    border-color: rgba(245, 158, 11, 0.2) !important;
 }
 
 [data-filament-panel-id="petugas"] .fi-no-danger {
-    background: rgba(239, 68, 68, 0.1);
-    border-color: rgba(239, 68, 68, 0.2);
-}
-
-/* Enhanced Dark Mode for New Components (Exact Match with Bendahara) */
-[data-filament-panel-id="petugas"] .dark .fi-ac-grouped-action {
-    background: rgba(31, 41, 55, 0.95);
-    border-color: rgba(75, 85, 99, 0.5);
-    color: rgba(229, 231, 235, 1);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-ac-grouped-action:hover {
-    background: rgba(245, 158, 11, 0.2);
-    border-color: var(--panel-primary);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-ta-filters {
-    background: rgba(31, 41, 55, 0.95);
-    border-color: rgba(75, 85, 99, 0.3);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-tabs-item.fi-active {
-    background: rgba(245, 158, 11, 0.2);
-    color: var(--panel-primary-light);
-}
-
-[data-filament-panel-id="petugas"] .dark .fi-ta-summary {
-    background: rgba(245, 158, 11, 0.1);
-    border-color: rgba(245, 158, 11, 0.2);
-    color: var(--panel-primary-light);
+    background: rgba(239, 68, 68, 0.1) !important;
+    border-color: rgba(239, 68, 68, 0.2) !important;
 }

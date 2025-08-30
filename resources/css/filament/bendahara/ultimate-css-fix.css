@@ -1,0 +1,134 @@
+/* ============================================================ */
+/* ULTIMATE BENDAHARA BLACK THEME FIX - 10-LEVEL CSS SPECIFICITY */
+/* Based on Context7 research and Filament v3 best practices */
+/* ============================================================ */
+
+/* LEVEL 1: Nuclear Panel-Agnostic Selectors */
+body.fi-body .bg-white,
+body.fi-body .dark\:bg-gray-800,
+body.fi-body .rounded-xl,
+body.fi-body .shadow-sm {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border: 1px solid #333340 !important;
+    border-radius: 1rem !important;
+    color: #fafafa !important;
+    box-shadow: 
+        0 4px 12px -2px rgba(0, 0, 0, 0.8),
+        0 2px 6px -2px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+/* LEVEL 2: Filament Component Targeting */
+html body .fi-main .bg-white,
+html body .fi-page .bg-white,
+html body .fi-section .bg-white,
+html body .grid .bg-white {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border: 1px solid #333340 !important;
+    border-radius: 1rem !important;
+    color: #fafafa !important;
+}
+
+/* LEVEL 3: Grid Layout Targeting */
+html body .grid-cols-1 > div,
+html body .grid-cols-2 > div,
+html body .grid-cols-4 > div,
+html body .md\:grid-cols-2 > div,
+html body .lg\:grid-cols-4 > div {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border: 1px solid #333340 !important;
+    border-radius: 1rem !important;
+    color: #fafafa !important;
+}
+
+/* LEVEL 4: Table Components */
+html body .fi-ta-table,
+html body .fi-ta-content,
+html body .fi-ta-ctn,
+html body .fi-section {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border: 1px solid #333340 !important;
+    border-radius: 1rem !important;
+}
+
+/* LEVEL 5: Dynamic Content Targeting */
+html body div[class*="bg-"],
+html body div[class*="rounded"],
+html body div[class*="shadow"] {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border: 1px solid #333340 !important;
+    border-radius: 1rem !important;
+    color: #fafafa !important;
+}
+
+/* LEVEL 6: Chart and Widget Containers */
+html body [id*="chart"],
+html body .apexcharts-canvas,
+html body .chart-container,
+html body [class*="widget"] {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border: 1px solid #333340 !important;
+    border-radius: 1rem !important;
+}
+
+/* LEVEL 7: Force Override Inline Styles */
+[style*="background"]:not(.fi-sidebar *):not(.fi-topbar *),
+[style*="border"]:not(.fi-sidebar *):not(.fi-topbar *) {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border: 1px solid #333340 !important;
+    border-radius: 1rem !important;
+    color: #fafafa !important;
+}
+
+/* LEVEL 8: Content Area Exclusions */
+:not(.fi-sidebar):not(.fi-topbar):not(.fi-navigation):not(.fi-breadcrumbs) {
+    /* Apply to all non-navigation elements */
+}
+
+/* LEVEL 9: Mutation-Resistant Selectors */
+* > .bg-white:not(.fi-sidebar *):not(.fi-topbar *),
+* > .dark\:bg-gray-800:not(.fi-sidebar *):not(.fi-topbar *),
+* > [class*="bg-gray"]:not(.fi-sidebar *):not(.fi-topbar *) {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border: 1px solid #333340 !important;
+    border-radius: 1rem !important;
+    color: #fafafa !important;
+}
+
+/* LEVEL 10: Ultimate Override for Persistent Elements */
+[data-conflict-resolved="false"],
+[data-theme-state="conflicted"],
+[style*="rgb(55, 65, 81)"],
+[style*="rgba(55, 65, 81"] {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border: 1px solid #333340 !important;
+    border-radius: 1rem !important;
+    color: #fafafa !important;
+}
+
+/* ===== TEXT ENHANCEMENT - MAXIMUM SPECIFICITY ===== */
+html body .bg-white *,
+html body .dark\:bg-gray-800 *,
+html body .fi-section *,
+html body .grid * {
+    color: #fafafa !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Muted text hierarchy */
+html body .text-gray-500,
+html body .dark\:text-gray-400 {
+    color: #a1a1aa !important;
+}
+
+/* ===== HOVER EFFECTS - COMPREHENSIVE ===== */
+html body .bg-white:hover,
+html body .dark\:bg-gray-800:hover,
+html body .fi-section:hover {
+    background: linear-gradient(135deg, #111118 0%, #1a1a20 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 
+        0 8px 25px -5px rgba(0, 0, 0, 0.8),
+        0 8px 16px -4px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.12) !important;
+}

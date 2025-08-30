@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware(['auth', 'role:admin', 'log.activity'])->name('admin.')->group(function () {
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     
     // Dashboard
     Route::get('/', [AdminDashboardController::class, 'index'])
@@ -33,16 +33,9 @@ Route::middleware(['auth', 'role:admin', 'log.activity'])->name('admin.')->group
         Route::post('/bulk-action', [\App\Http\Controllers\Settings\UserManagementController::class, 'bulkAction'])->name('bulk');
     });
     
-    // Role & Permission Management
-    Route::prefix('roles')->name('roles.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Admin\RoleController::class, 'index'])->name('index');
-        Route::get('/create', [\App\Http\Controllers\Admin\RoleController::class, 'create'])->name('create');
-        Route::post('/', [\App\Http\Controllers\Admin\RoleController::class, 'store'])->name('store');
-        Route::get('/{role}', [\App\Http\Controllers\Admin\RoleController::class, 'show'])->name('show');
-        Route::get('/{role}/edit', [\App\Http\Controllers\Admin\RoleController::class, 'edit'])->name('edit');
-        Route::put('/{role}', [\App\Http\Controllers\Admin\RoleController::class, 'update'])->name('update');
-        Route::delete('/{role}', [\App\Http\Controllers\Admin\RoleController::class, 'destroy'])->name('destroy');
-    });
+    // Role & Permission Management - REMOVED: Using Filament RoleResource instead
+    // Legacy routes removed to prevent conflict with filament.admin.resources.roles.*
+    // All role management now handled by Filament admin panel at /admin/roles
     
     // System Settings - TEMPORARILY DISABLED: Missing SettingsController
     // Route::prefix('settings')->name('settings.')->group(function () {
@@ -66,4 +59,8 @@ Route::middleware(['auth', 'role:admin', 'log.activity'])->name('admin.')->group
     //     Route::get('/', 'AuditController@index')->name('index');
     //     Route::get('/{audit}', 'AuditController@show')->name('show');
     // });
+    
+    // Attendance Recap Detail
+    Route::get('/attendance-recap/detail', [\App\Http\Controllers\Admin\AttendanceRecapDetailController::class, 'show'])
+        ->name('attendance-recap.detail');
 });

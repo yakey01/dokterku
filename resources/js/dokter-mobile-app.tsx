@@ -5,6 +5,7 @@ import RefactoredDashboard from './components/dokter/RefactoredDashboard';
 import HolisticMedicalDashboard from './components/dokter/HolisticMedicalDashboard';
 import HolisticMedicalDashboardOptimized from './components/dokter/HolisticMedicalDashboardOptimized';
 import OptimizedOriginalDashboard from './components/dokter/OptimizedOriginalDashboard';
+import SimpleDashboard from './components/dokter/SimpleDashboard';
 import ErrorBoundary from './components/ErrorBoundary';
 import getUnifiedAuth from './utils/UnifiedAuth';
 import { performanceMonitor } from './utils/PerformanceMonitor';
@@ -49,29 +50,36 @@ if (typeof window !== 'undefined') {
     }
     
     function initializeApp() {
+        console.log('🚀 initializeApp() called');
         try {
             const appContainer = document.getElementById('dokter-app');
+            console.log('📦 App container found:', !!appContainer);
             if (!appContainer) {
-                console.error('Dokter app container not found');
+                console.error('❌ Dokter app container not found');
                 return;
             }
             
             // Check if root already exists to prevent React Error #306
             if (globalRoot) {
-                console.warn('React root already exists, reusing existing root');
+                console.warn('⚠️ React root already exists, reusing existing root');
                 return;
             }
+            
+            console.log('✅ Proceeding with React root creation...');
             
             // Check for performance comparison mode (dev only)
             const isComparisonMode = window.location.search.includes('compare=true') || 
                                     localStorage.getItem('dashboard-comparison') === 'true';
 
             // Create React root and render (only once)
+            console.log('⚛️ Creating React root...');
             const root = createRoot(appContainer);
             globalRoot = root;
+            console.log('✅ React root created successfully');
             
             // Start performance monitoring
             performanceMonitor.start('app-initialization');
+            console.log('📊 Performance monitoring started');
             
             if (isComparisonMode) {
                 // Import and use comparison component
@@ -90,12 +98,15 @@ if (typeof window !== 'undefined') {
                 const useOriginal = window.location.search.includes('original=true') || 
                                   localStorage.getItem('dashboard-mode') === 'original';
                 
-                // 🚀 NEW: Check for optimized version (default to optimized for better performance)
+                // 🔧 TEMPORARY FIX: Default to original for stability 
                 const useOptimized = window.location.search.includes('optimized=true') || 
-                                    localStorage.getItem('dashboard-mode') === 'optimized' ||
-                                    (!useOriginal && !window.location.search.includes('legacy=true')); // Default to optimized
+                                    localStorage.getItem('dashboard-mode') === 'optimized';
+                                    // Disabled auto-default to optimized to prevent blank page
+                
+                console.log('🎯 Dashboard mode selection:', { useOriginal, useOptimized, isComparisonMode });
                 
                 if (useOriginal) {
+                    console.log('🔄 Rendering OriginalDokterDashboard...');
                     root.render(
                         <ErrorBoundary>
                             <OriginalDokterDashboard />
@@ -104,7 +115,7 @@ if (typeof window !== 'undefined') {
                     performanceMonitor.end('app-initialization');
                     console.log('✅ DOKTERKU Mobile App initialized with ORIGINAL Dashboard (Jaspel, Presensi, Profil)');
                 } else if (useOptimized) {
-                    // Use OPTIMIZED Dashboard with ORIGINAL UI (bottom navigation)
+                    console.log('🚀 Rendering OptimizedOriginalDashboard...');
                     root.render(
                         <ErrorBoundary>
                             <OptimizedOriginalDashboard />
@@ -113,28 +124,45 @@ if (typeof window !== 'undefined') {
                     performanceMonitor.end('app-initialization');
                     console.log('🚀 DOKTERKU Mobile App initialized with OPTIMIZED Dashboard + Original UI (Bottom Navigation)');
                 } else {
-                    // Use legacy HolisticMedicalDashboard (fallback)
+                    // 🔧 SAFE FALLBACK: Use SimpleDashboard for guaranteed working state
+                    console.log('🔧 Rendering SimpleDashboard (safe fallback)...');
                     root.render(
                         <ErrorBoundary>
-                            <HolisticMedicalDashboard userData={undefined} />
+                            <SimpleDashboard />
                         </ErrorBoundary>
                     );
                     performanceMonitor.end('app-initialization');
-                    console.log('✅ DOKTERKU Mobile App initialized with HolisticMedicalDashboard (Legacy Version)');
+                    console.log('✅ DOKTERKU Mobile App initialized with SimpleDashboard (Safe Working Version)');
                 }
             }
             
         } catch (error) {
             console.error('❌ Failed to initialize DOKTERKU Mobile App:', error);
+            console.error('❌ Error details:', {
+                name: error.name,
+                message: error.message,
+                stack: error.stack
+            });
             
-            // Fallback to basic HTML if React fails
+            // Enhanced fallback to basic HTML if React fails
             const appContainer = document.getElementById('dokter-app');
             if (appContainer) {
                 appContainer.innerHTML = `
-                    <div style="padding: 20px; text-align: center;">
-                        <h2>DOKTERKU Mobile App</h2>
-                        <p>Initialization failed. Please refresh the page.</p>
-                        <button onclick="location.reload()">Refresh Page</button>
+                    <div style="padding: 20px; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; min-height: 100vh;">
+                        <h2>🏥 DOKTERKU Mobile App</h2>
+                        <p>❌ React initialization failed</p>
+                        <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 8px; margin: 20px 0; text-align: left;">
+                            <strong>Error:</strong> ${error.message}<br>
+                            <strong>Component:</strong> ${error.name}
+                        </div>
+                        <button onclick="location.reload()" style="background: #059669; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer;">
+                            🔄 Refresh Page
+                        </button>
+                        <div style="margin-top: 20px;">
+                            <a href="/dokter/mobile-app-simple" style="background: #3b82f6; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; display: inline-block;">
+                                📱 Try Simple Version
+                            </a>
+                        </div>
                     </div>
                 `;
             }

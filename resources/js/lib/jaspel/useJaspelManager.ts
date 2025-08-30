@@ -66,7 +66,7 @@ export const useJaspelManager = (options: UseJaspelManagerOptions): UseJaspelMan
     rejected: 0,
     count: { total: 0, approved: 0, pending: 0, rejected: 0 }
   });
-  const [dashboardData, setDashboardData] = useState<DashboardData | undefined>();
+  const [dashboardData, setDashboardData] = useState<DashboardData | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdateTime, setLastUpdateTime] = useState<string>('Never');
@@ -352,7 +352,7 @@ export const useJaspelManager = (options: UseJaspelManagerOptions): UseJaspelMan
     setSortBy,
 
     // Advanced features
-    dashboardData,
+    dashboardData: dashboardData ?? null,
     realtimeConnected: realtime.connected,
     notifications: realtime.notifications,
     lastUpdateTime,

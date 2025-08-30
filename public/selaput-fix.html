@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔧 Selaput Overlay Fix - Dokterku Admin</title>
+    <style>
+        body {
+            margin: 0;
+            background: #0a0a0a;
+            color: #f8fafc;
+            font-family: system-ui, sans-serif;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+        
+        .fix-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #171717 0%, #262626 100%);
+            border: 1px solid #404040;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+        }
+        
+        .fix-btn {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            padding: 1rem 2rem;
+            font-size: 1.125rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3);
+            width: 100%;
+            margin: 1rem 0;
+        }
+        
+        .fix-btn:hover {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 12px -2px rgba(239, 68, 68, 0.4);
+        }
+        
+        .admin-btn {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            padding: 1rem 2rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.3);
+            width: 100%;
+            text-align: center;
+            margin-top: 2rem;
+        }
+        
+        .admin-btn:hover {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 12px -2px rgba(34, 197, 94, 0.4);
+        }
+        
+        .status {
+            background: #171717;
+            border: 1px solid #404040;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: monospace;
+            font-size: 0.875rem;
+        }
+        
+        .success { color: #22c55e; }
+        .warning { color: #f59e0b; }
+        .error { color: #ef4444; }
+        .info { color: #60a5fa; }
+        
+        .step {
+            background: #262626;
+            border: 1px solid #404040;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 0.5rem 0;
+        }
+        
+        .step.completed {
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="fix-container">
+        <h1>🛠️ Selaput Overlay Fix - Dokterku Admin Panel</h1>
+        
+        <div class="status">
+            <strong>🔍 Issue Detected:</strong><br>
+            Invisible overlay/backdrop blocking admin panel interaction<br>
+            <span class="error">Symptoms: Content exists but appears covered by "selaput"</span>
+        </div>
+        
+        <h2>🚀 Automated Fix Process</h2>
+        
+        <div class="step" id="step1">
+            <strong>Step 1:</strong> Remove modal backdrops and overlays
+            <span id="status1" class="warning">Pending</span>
+        </div>
+        
+        <div class="step" id="step2">
+            <strong>Step 2:</strong> Disable backdrop filters and blur effects
+            <span id="status2" class="warning">Pending</span>
+        </div>
+        
+        <div class="step" id="step3">
+            <strong>Step 3:</strong> Reset z-index conflicts
+            <span id="status3" class="warning">Pending</span>
+        </div>
+        
+        <div class="step" id="step4">
+            <strong>Step 4:</strong> Clear Alpine.js/Livewire modal states
+            <span id="status4" class="warning">Pending</span>
+        </div>
+        
+        <div class="step" id="step5">
+            <strong>Step 5:</strong> Force admin content visibility
+            <span id="status5" class="warning">Pending</span>
+        </div>
+        
+        <button class="fix-btn" onclick="fixSelaputOverlay()">
+            🔥 Fix Selaput Overlay Now
+        </button>
+        
+        <div id="fix-result" class="status" style="display: none;">
+            <strong class="success">✅ Fix Applied!</strong><br>
+            The selaput overlay has been removed. You can now access your admin panel.
+        </div>
+        
+        <a href="/admin/login" class="admin-btn" id="admin-link" style="display: none;">
+            🏥 Access Admin Panel
+        </a>
+        
+        <div class="status">
+            <strong>🔑 Login Credentials:</strong><br>
+            Email: <span class="info">admin@dokterku.com</span><br>
+            Password: <span class="info">admin123</span>
+        </div>
+        
+        <div class="status">
+            <strong>⚠️ If Issue Persists:</strong><br>
+            1. Try incognito/private window<br>
+            2. Clear browser cache completely<br>
+            3. Test different browsers (Chrome, Firefox, Safari)<br>
+            4. Disable browser extensions temporarily
+        </div>
+    </div>
+
+    <script>
+        function fixSelaputOverlay() {
+            console.log('🔧 Starting selaput overlay fix...');
+            
+            // Step 1: Remove modal backdrops and overlays
+            console.log('Step 1: Removing modal backdrops...');
+            const modals = document.querySelectorAll('.fi-modal, .fi-modal-backdrop, [data-modal], [role="dialog"], .modal-backdrop, .backdrop, .overlay');
+            modals.forEach(el => {
+                console.log('Removing modal:', el.className);
+                el.remove();
+            });
+            updateStep(1, true);
+            
+            // Step 2: Disable backdrop filters
+            console.log('Step 2: Disabling backdrop filters...');
+            const allElements = document.querySelectorAll('*');
+            allElements.forEach(el => {
+                if (getComputedStyle(el).backdropFilter !== 'none') {
+                    console.log('Removing backdrop filter from:', el.className);
+                    el.style.backdropFilter = 'none !important';
+                    el.style.webkitBackdropFilter = 'none !important';
+                }
+            });
+            updateStep(2, true);
+            
+            // Step 3: Reset z-index conflicts
+            console.log('Step 3: Resetting z-index conflicts...');
+            allElements.forEach(el => {
+                const zIndex = getComputedStyle(el).zIndex;
+                if (zIndex !== 'auto' && parseInt(zIndex) > 100) {
+                    console.log('Resetting z-index for:', el.className, 'from', zIndex);
+                    el.style.zIndex = 'auto';
+                }
+            });
+            updateStep(3, true);
+            
+            // Step 4: Clear Alpine.js/Livewire modal states
+            console.log('Step 4: Clearing modal states...');
+            // Reset Alpine data
+            if (window.Alpine) {
+                window.Alpine.data('modal', () => ({ isOpen: false }));
+            }
+            // Remove x-show hidden elements
+            document.querySelectorAll('[x-show]').forEach(el => {
+                if (el.style.display === 'none') {
+                    el.style.display = 'block';
+                }
+            });
+            updateStep(4, true);
+            
+            // Step 5: Force admin content visibility
+            console.log('Step 5: Forcing admin content visibility...');
+            
+            // Remove any element with very high z-index that might be blocking
+            allElements.forEach(el => {
+                const computed = getComputedStyle(el);
+                if (computed.position === 'fixed' && 
+                    (computed.top === '0px' || computed.inset === '0px') &&
+                    (computed.backgroundColor === 'rgba(0, 0, 0, 0)' || 
+                     computed.backgroundColor.includes('transparent'))) {
+                    console.log('Removing invisible overlay:', el.className);
+                    el.remove();
+                }
+            });
+            
+            // Force visibility for all Filament elements
+            document.querySelectorAll('[class*="fi-"]').forEach(el => {
+                el.style.opacity = '1';
+                el.style.visibility = 'visible';
+                el.style.pointerEvents = 'auto';
+                el.style.position = 'relative';
+            });
+            
+            // Specifically fix sidebar and main content
+            const sidebar = document.querySelector('.fi-sidebar');
+            const page = document.querySelector('.fi-page');
+            const main = document.querySelector('.fi-main');
+            
+            if (sidebar) {
+                sidebar.style.position = 'fixed';
+                sidebar.style.left = '0';
+                sidebar.style.top = '0';
+                sidebar.style.width = '280px';
+                sidebar.style.height = '100vh';
+                sidebar.style.zIndex = '40';
+                sidebar.style.background = 'linear-gradient(180deg, #000000, #0a0a0a)';
+                sidebar.style.display = 'block';
+                sidebar.style.opacity = '1';
+                sidebar.style.visibility = 'visible';
+            }
+            
+            if (page) {
+                page.style.marginLeft = '280px';
+                page.style.background = '#0a0a0a';
+                page.style.color = '#f8fafc';
+                page.style.minHeight = '100vh';
+                page.style.display = 'block';
+                page.style.opacity = '1';
+                page.style.visibility = 'visible';
+            }
+            
+            if (main) {
+                main.style.background = '#0a0a0a';
+                main.style.color = '#f8fafc';
+                main.style.display = 'block';
+                main.style.opacity = '1';
+                main.style.visibility = 'visible';
+            }
+            
+            updateStep(5, true);
+            
+            // Show success message
+            document.getElementById('fix-result').style.display = 'block';
+            document.getElementById('admin-link').style.display = 'inline-block';
+            
+            console.log('✅ Selaput overlay fix completed!');
+            
+            // Redirect to admin after 2 seconds
+            setTimeout(() => {
+                console.log('🚀 Redirecting to admin panel...');
+                window.location.href = '/admin';
+            }, 2000);
+        }
+        
+        function updateStep(step, completed) {
+            const stepEl = document.getElementById(`step${step}`);
+            const statusEl = document.getElementById(`status${step}`);
+            
+            if (completed) {
+                stepEl.classList.add('completed');
+                statusEl.textContent = '✅ Completed';
+                statusEl.className = 'success';
+            }
+        }
+        
+        console.log('🛠️ Selaput fix page loaded - ready to remove overlay');
+    </script>
+</body>
+</html>

@@ -31,7 +31,7 @@ class WorkLocationResource extends Resource
     
     protected static ?string $pluralModelLabel = 'Lokasi Kerja';
     
-    protected static ?string $navigationGroup = '📍 PRESENSI';
+    protected static ?string $navigationGroup = 'Attendance';
     
     protected static ?int $navigationSort = 41;
 
@@ -97,31 +97,122 @@ class WorkLocationResource extends Resource
                 Forms\Components\Section::make('📍 Koordinat GPS & Geofencing')
                     ->description('Pilih lokasi pada peta OSM dengan GPS detection')
                     ->schema([
-                        ViewField::make('osm_map')
-                            ->view('filament.forms.components.simple-leaflet-map')
+                        Forms\Components\Placeholder::make('osm_map')
                             ->label('📍 Pilih Lokasi pada Peta OSM')
-                            ->columnSpanFull()
-                            ->dehydrated(false), // Don't save this field to database
+                            ->content(function () {
+                                return new \Illuminate\Support\HtmlString('
+                                    <div class="livewire-safe-map-container">
+                                        <div id="leaflet-map-container" style="height: 400px; width: 100%; border: 1px solid #d1d5db; border-radius: 8px; margin-bottom: 16px;"></div>
+                                        
+                                        <div style="margin-bottom: 16px;">
+                                            <button type="button" id="get-location-btn" style="background: #10b981; color: white; padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                                <span>🌍</span>
+                                                <span>Get My Location</span>
+                                            </button>
+                                        </div>
+                                        
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 12px; background: #f8fafc; border-radius: 8px;">
+                                            <div>
+                                                <label style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 4px;">Latitude</label>
+                                                <span id="lat-display" style="font-family: ui-monospace, monospace; font-size: 14px; color: #111827;">-6.208800</span>
+                                            </div>
+                                            <div>
+                                                <label style="display: block; font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 4px;">Longitude</label>
+                                                <span id="lng-display" style="font-family: ui-monospace, monospace; font-size: 14px; color: #111827;">106.845600</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+                                        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+                                        <script>
+                                        (function() {
+                                            let map = null;
+                                            let marker = null;
+                                            
+                                            function initMap() {
+                                                if (typeof L === "undefined") {
+                                                    setTimeout(initMap, 100);
+                                                    return;
+                                                }
+                                                
+                                                const mapContainer = document.getElementById("leaflet-map-container");
+                                                if (!mapContainer || map) return;
+                                                
+                                                map = L.map(mapContainer).setView([-6.2088, 106.8456], 15);
+                                                
+                                                L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                                                    attribution: "© OpenStreetMap contributors"
+                                                }).addTo(map);
+                                                
+                                                marker = L.marker([-6.2088, 106.8456], {draggable: true}).addTo(map);
+                                                
+                                                function updateCoords(lat, lng) {
+                                                    document.getElementById("lat-display").textContent = lat.toFixed(6);
+                                                    document.getElementById("lng-display").textContent = lng.toFixed(6);
+                                                    
+                                                    const latField = document.querySelector("input[name=\'latitude\']");
+                                                    const lngField = document.querySelector("input[name=\'longitude\']");
+                                                    
+                                                    if (latField) {
+                                                        latField.value = lat.toFixed(6);
+                                                        latField.dispatchEvent(new Event("input", {bubbles: true}));
+                                                    }
+                                                    if (lngField) {
+                                                        lngField.value = lng.toFixed(6);
+                                                        lngField.dispatchEvent(new Event("input", {bubbles: true}));
+                                                    }
+                                                }
+                                                
+                                                marker.on("dragend", function(e) {
+                                                    const pos = e.target.getLatLng();
+                                                    updateCoords(pos.lat, pos.lng);
+                                                });
+                                                
+                                                map.on("click", function(e) {
+                                                    marker.setLatLng(e.latlng);
+                                                    updateCoords(e.latlng.lat, e.latlng.lng);
+                                                });
+                                                
+                                                document.getElementById("get-location-btn").onclick = function() {
+                                                    if (navigator.geolocation) {
+                                                        navigator.geolocation.getCurrentPosition(function(position) {
+                                                            const lat = position.coords.latitude;
+                                                            const lng = position.coords.longitude;
+                                                            map.setView([lat, lng], 16);
+                                                            marker.setLatLng([lat, lng]);
+                                                            updateCoords(lat, lng);
+                                                        }, function(error) {
+                                                            alert("GPS Error: " + error.message);
+                                                        });
+                                                    }
+                                                };
+                                                
+                                                // Auto-detect location on load
+                                                setTimeout(function() {
+                                                    if (navigator.geolocation) {
+                                                        navigator.geolocation.getCurrentPosition(function(position) {
+                                                            const lat = position.coords.latitude;
+                                                            const lng = position.coords.longitude;
+                                                            map.setView([lat, lng], 16);
+                                                            marker.setLatLng([lat, lng]);
+                                                            updateCoords(lat, lng);
+                                                        });
+                                                    }
+                                                }, 1000);
+                                            }
+                                            
+                                            if (document.readyState === "loading") {
+                                                document.addEventListener("DOMContentLoaded", initMap);
+                                            } else {
+                                                initMap();
+                                            }
+                                        })();
+                                        </script>
+                                    </div>
+                                ');
+                            })
+                            ->columnSpanFull(),
 
-                        // Tombol Get Location yang prominent
-                        Forms\Components\Actions::make([
-                            Forms\Components\Actions\Action::make('getLocation')
-                                ->label('🌍 Get My Location')
-                                ->icon('heroicon-o-map-pin')
-                                ->color('success')
-                                ->size('lg')
-                                ->extraAttributes([
-                                    'class' => 'w-full',
-                                    'id' => 'get-location-btn',
-                                    'onclick' => 'if(typeof autoDetectLocation !== "undefined") { autoDetectLocation(); } else { console.error("GPS function not yet loaded. Please try again in a moment."); }'
-                                ])
-                                ->action(function () {
-                                    // This will be handled by JavaScript
-                                })
-                                ->tooltip('Deteksi lokasi GPS Anda secara otomatis')
-                        ])
-                        ->fullWidth()
-                        ->columnSpanFull(),
 
                         Forms\Components\Grid::make(3)
                             ->schema([

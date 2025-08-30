@@ -1,0 +1,920 @@
+/* PETUGAS ELEGANT BLACK THEME - PANEL VISUAL FIXES */
+
+/* ================================================================ */
+/* HIDE ALL FILAMENT TOPBARS - USE ONLY CUSTOM ELEGANT TOPBAR */
+/* ================================================================ */
+
+/* NUCLEAR OPTION - HIDE ALL POSSIBLE TOPBAR ELEMENTS */
+[data-panel-id="petugas"] .fi-topbar,
+[data-panel-id="petugas"] .fi-header,  
+[data-panel-id="petugas"] .fi-page-header,
+[data-panel-id="petugas"] .fi-page-header-heading,
+[data-panel-id="petugas"] .fi-page-header-actions,
+[data-panel-id="petugas"] .fi-global-search,
+[data-panel-id="petugas"] header,
+[data-filament-panel-id="petugas"] .fi-topbar,
+[data-filament-panel-id="petugas"] .fi-header,
+[data-filament-panel-id="petugas"] .fi-page-header,
+[data-filament-panel-id="petugas"] .fi-page-header-heading,
+[data-filament-panel-id="petugas"] .fi-page-header-actions,
+[data-filament-panel-id="petugas"] .fi-global-search,
+[data-filament-panel-id="petugas"] header,
+html [data-panel-id="petugas"] .fi-topbar,
+html [data-panel-id="petugas"] .fi-header,
+html [data-panel-id="petugas"] .fi-page-header,
+body [data-panel-id="petugas"] .fi-topbar,
+body [data-panel-id="petugas"] .fi-header,
+body [data-panel-id="petugas"] .fi-page-header,
+.fi-layout [data-panel-id="petugas"] .fi-topbar,
+.fi-layout [data-panel-id="petugas"] .fi-header,
+.fi-layout [data-panel-id="petugas"] .fi-page-header {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+    position: absolute !important;
+    top: -9999px !important;
+    left: -9999px !important;
+}
+
+/* Hide any duplicate topbar that might be created */
+.elegant-healthcare-topbar,
+.professional-saas-topbar {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+/* Ensure ONLY our world-class topbar is visible */
+.world-class-topbar {
+    display: block !important;
+    visibility: visible !important;
+    z-index: 9999 !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+}
+
+/* ================================================================ */
+/* NUCLEAR SIDEBAR COLOR FIX - FORCE ALL ELEMENTS TO BLACK THEME */
+/* ================================================================ */
+
+/* FORCE ALL SIDEBAR BACKGROUNDS TO BLACK - MAXIMUM SPECIFICITY */
+[data-panel-id="petugas"] .fi-sidebar,
+[data-panel-id="petugas"] .fi-sidebar *,
+[data-filament-panel-id="petugas"] .fi-sidebar,
+[data-filament-panel-id="petugas"] .fi-sidebar *,
+html [data-panel-id="petugas"] .fi-sidebar,
+html [data-panel-id="petugas"] .fi-sidebar *,
+body [data-panel-id="petugas"] .fi-sidebar,
+body [data-panel-id="petugas"] .fi-sidebar *,
+.fi-layout [data-panel-id="petugas"] .fi-sidebar,
+.fi-layout [data-panel-id="petugas"] .fi-sidebar * {
+    background-color: rgba(10, 10, 11, 0.95) !important;
+    background-image: linear-gradient(180deg, 
+        rgba(10, 10, 11, 0.98) 0%, 
+        rgba(17, 17, 24, 0.95) 50%,
+        rgba(10, 10, 11, 0.98) 100%) !important;
+}
+
+/* FORCE ALL SIDEBAR TEXT TO WHITE - MAXIMUM SPECIFICITY */
+[data-panel-id="petugas"] .fi-sidebar,
+[data-panel-id="petugas"] .fi-sidebar *,
+[data-filament-panel-id="petugas"] .fi-sidebar,
+[data-filament-panel-id="petugas"] .fi-sidebar *,
+html [data-panel-id="petugas"] .fi-sidebar *,
+body [data-panel-id="petugas"] .fi-sidebar *,
+.fi-layout [data-panel-id="petugas"] .fi-sidebar * {
+    color: #fafafa !important;
+}
+
+/* FORCE SPECIFIC SIDEBAR ELEMENTS */
+[data-panel-id="petugas"] .fi-sidebar-header,
+[data-panel-id="petugas"] .fi-sidebar-nav,
+[data-panel-id="petugas"] .fi-sidebar-nav-item,
+[data-panel-id="petugas"] .fi-sidebar-group,
+[data-panel-id="petugas"] .fi-sidebar-group-label,
+[data-panel-id="petugas"] .fi-sidebar-group-items,
+[data-panel-id="petugas"] .fi-sidebar-collapse-btn,
+[data-panel-id="petugas"] .fi-sidebar-collapse-toggle,
+[data-filament-panel-id="petugas"] .fi-sidebar-header,
+[data-filament-panel-id="petugas"] .fi-sidebar-nav,
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item,
+[data-filament-panel-id="petugas"] .fi-sidebar-group,
+[data-filament-panel-id="petugas"] .fi-sidebar-group-label,
+[data-filament-panel-id="petugas"] .fi-sidebar-group-items,
+[data-filament-panel-id="petugas"] .fi-sidebar-collapse-btn,
+[data-filament-panel-id="petugas"] .fi-sidebar-collapse-toggle {
+    background: linear-gradient(135deg, 
+        rgba(10, 10, 11, 0.95) 0%, 
+        rgba(17, 17, 24, 0.8) 100%) !important;
+    color: #fafafa !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ================================================================ */
+/* WORLD-CLASS ELEGANT BLACK SIDEBAR - GLASSMORPHIC ENHANCEMENT */
+/* ================================================================ */
+
+/* Enhanced Sidebar Container */
+[data-panel-id="petugas"] .fi-sidebar,
+[data-filament-panel-id="petugas"] .fi-sidebar {
+    background: linear-gradient(180deg, 
+        rgba(10, 10, 11, 0.98) 0%, 
+        rgba(17, 17, 24, 0.95) 50%,
+        rgba(10, 10, 11, 0.98) 100%) !important;
+    backdrop-filter: blur(24px) saturate(200%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(200%) !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 
+        4px 0 24px rgba(0, 0, 0, 0.4),
+        2px 0 12px rgba(0, 0, 0, 0.2),
+        inset -1px 0 0 rgba(255, 255, 255, 0.04) !important;
+}
+
+/* Enhanced Navigation Items */
+[data-panel-id="petugas"] .fi-sidebar-nav-item,
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item {
+    background: transparent !important;
+    color: #e4e4e7 !important;
+    margin: 0.25rem 1rem !important;
+    padding: 1rem 1.25rem !important;
+    border-radius: 1rem !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    border: 1px solid transparent !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+/* Premium Glassmorphic Hover Effect */
+[data-panel-id="petugas"] .fi-sidebar-nav-item:hover,
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover {
+    background: linear-gradient(135deg, 
+        rgba(100, 116, 139, 0.15) 0%, 
+        rgba(71, 85, 105, 0.1) 100%) !important;
+    border-color: rgba(100, 116, 139, 0.25) !important;
+    color: #fafafa !important;
+    transform: translateX(8px) scale(1.03) !important;
+    box-shadow: 
+        0 6px 24px rgba(0, 0, 0, 0.3),
+        0 3px 12px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Sophisticated Active State */
+[data-panel-id="petugas"] .fi-sidebar-nav-item.fi-active,
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active {
+    background: linear-gradient(135deg, 
+        rgba(100, 116, 139, 0.3) 0%, 
+        rgba(71, 85, 105, 0.2) 100%) !important;
+    border-color: rgba(100, 116, 139, 0.4) !important;
+    color: #ffffff !important;
+    transform: translateX(12px) scale(1.02) !important;
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.35),
+        0 4px 16px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        inset 4px 0 0 #64748b !important;
+}
+
+/* Enhanced Group Labels */
+[data-panel-id="petugas"] .fi-sidebar-group-label,
+[data-filament-panel-id="petugas"] .fi-sidebar-group-label {
+    color: #71717a !important;
+    font-weight: 700 !important;
+    font-size: 0.6875rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.1em !important;
+    margin: 0 1.5rem 1rem 1.5rem !important;
+    padding: 0.75rem 0 0.5rem 0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    position: relative !important;
+}
+
+/* Group Label Accent Line */
+[data-panel-id="petugas"] .fi-sidebar-group-label::before,
+[data-filament-panel-id="petugas"] .fi-sidebar-group-label::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    width: 3rem;
+    height: 2px;
+    background: linear-gradient(90deg, 
+        #64748b 0%, 
+        rgba(100, 116, 139, 0.3) 70%, 
+        transparent 100%);
+    border-radius: 1px;
+}
+
+/* Fix main content area background - elegant black theme */
+[data-panel-id="petugas"] .fi-main {
+    background: linear-gradient(135deg, #060608 0%, #0d0d0f 100%) !important;
+}
+
+/* Fix page header - elegant black theme */
+[data-panel-id="petugas"] .fi-page-header {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border: 1px solid #333340 !important;
+    border-radius: 1rem !important;
+    margin-bottom: 1.5rem !important;
+    box-shadow: 
+        0 4px 12px -2px rgba(0, 0, 0, 0.8),
+        0 2px 6px -2px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+
+/* Fix empty states and loading issues - elegant black theme */
+[data-panel-id="petugas"] .fi-ta-empty-state {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border: 1px solid #333340 !important;
+    border-radius: 1rem !important;
+    padding: 2rem !important;
+    text-align: center !important;
+    color: #fafafa !important;
+    box-shadow: 
+        0 4px 12px -2px rgba(0, 0, 0, 0.8),
+        0 2px 6px -2px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ================================================================ */
+/* NUCLEAR CSS - ELEGANT BLACK TABLE THEME - MAXIMUM SPECIFICITY */
+/* ================================================================ */
+
+/* Table Container - Enhanced Black Glass Effect */
+html body [data-filament-panel-id="petugas"] .fi-ta-table,
+html body [data-filament-panel-id="petugas"] .fi-section,
+html body [data-filament-panel-id="petugas"] .overflow-x-auto {
+    background: linear-gradient(135deg, 
+        rgba(10, 10, 11, 0.95) 0%, 
+        rgba(17, 17, 24, 0.98) 50%,
+        rgba(26, 26, 32, 0.92) 100%) !important;
+    
+    backdrop-filter: blur(20px) saturate(150%) contrast(120%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(150%) contrast(120%) !important;
+    
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 1rem !important;
+    
+    box-shadow: 
+        0 8px 32px -8px rgba(0, 0, 0, 0.6),
+        0 4px 16px -4px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
+        inset 0 -1px 0 0 rgba(255, 255, 255, 0.02) !important;
+    
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+    transform: translateZ(0) !important;
+    color: #fafafa !important;
+}
+
+/* Table Container Hover */
+html body [data-filament-panel-id="petugas"] .fi-ta-table:hover,
+html body [data-filament-panel-id="petugas"] .fi-section:hover {
+    backdrop-filter: blur(24px) saturate(160%) contrast(125%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(160%) contrast(125%) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    transform: translateY(-2px) scale(1.005) !important;
+    
+    box-shadow: 
+        0 12px 40px -8px rgba(0, 0, 0, 0.7),
+        0 6px 24px -6px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.12),
+        inset 0 -1px 0 0 rgba(255, 255, 255, 0.04),
+        0 0 0 1px rgba(100, 116, 139, 0.1) !important;
+        
+    background: linear-gradient(135deg, 
+        rgba(17, 17, 24, 0.98) 0%, 
+        rgba(26, 26, 32, 0.95) 50%,
+        rgba(42, 42, 50, 0.90) 100%) !important;
+}
+
+/* Table Headers - Elegant Black */
+html body [data-filament-panel-id="petugas"] thead th,
+html body [data-filament-panel-id="petugas"] .fi-ta-header {
+    background: linear-gradient(135deg, 
+        rgba(26, 26, 32, 0.8) 0%, 
+        rgba(42, 42, 50, 0.9) 50%,
+        rgba(51, 51, 64, 0.85) 100%) !important;
+    
+    backdrop-filter: blur(16px) saturate(140%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(140%) !important;
+    
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+    
+    color: #fafafa !important;
+    font-weight: 700 !important;
+    font-size: 0.875rem !important;
+    letter-spacing: 0.025em !important;
+    text-transform: uppercase !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+    
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+}
+
+/* Table Rows - Elegant Glass */
+html body [data-filament-panel-id="petugas"] tbody tr,
+html body [data-filament-panel-id="petugas"] .fi-ta-row {
+    background: linear-gradient(135deg, 
+        rgba(10, 10, 11, 0.4) 0%, 
+        rgba(17, 17, 24, 0.5) 50%,
+        rgba(26, 26, 32, 0.35) 100%) !important;
+    
+    backdrop-filter: blur(8px) saturate(120%) !important;
+    -webkit-backdrop-filter: blur(8px) saturate(120%) !important;
+    
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    border-left: 1px solid transparent !important;
+    border-right: 1px solid transparent !important;
+    
+    color: #fafafa !important;
+    font-weight: 500 !important;
+    
+    transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+    transform: translateZ(0) !important;
+}
+
+/* Row Hover Effects - Premium Animation */
+html body [data-filament-panel-id="petugas"] tbody tr:hover,
+html body [data-filament-panel-id="petugas"] .fi-ta-row:hover {
+    background: linear-gradient(135deg, 
+        rgba(26, 26, 32, 0.8) 0%, 
+        rgba(42, 42, 50, 0.9) 50%,
+        rgba(51, 65, 85, 0.7) 100%) !important;
+    
+    backdrop-filter: blur(16px) saturate(140%) contrast(110%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(140%) contrast(110%) !important;
+    
+    border-bottom-color: rgba(255, 255, 255, 0.15) !important;
+    border-left-color: rgba(100, 116, 139, 0.4) !important;
+    border-right-color: rgba(100, 116, 139, 0.2) !important;
+    
+    transform: translateY(-3px) scale(1.01) !important;
+    
+    box-shadow: 
+        0 8px 32px -8px rgba(0, 0, 0, 0.4),
+        0 4px 16px -4px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
+        inset -2px 0 0 0 rgba(100, 116, 139, 0.6) !important;
+    
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    z-index: 10 !important;
+}
+
+/* Table Cells */
+html body [data-filament-panel-id="petugas"] td,
+html body [data-filament-panel-id="petugas"] th {
+    background: transparent !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+    padding: 1.25rem 1rem !important;
+    color: inherit !important;
+    font-weight: 500 !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+}
+
+html body [data-filament-panel-id="petugas"] td:last-child,
+html body [data-filament-panel-id="petugas"] th:last-child {
+    border-right: none !important;
+}
+
+/* Cell Hover Enhancement */
+html body [data-filament-panel-id="petugas"] tbody tr:hover td {
+    background: linear-gradient(90deg, 
+        transparent 0%,
+        rgba(100, 116, 139, 0.05) 50%,
+        transparent 100%) !important;
+    border-right-color: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Force All Text to High Contrast */
+html body [data-filament-panel-id="petugas"] .fi-ta-table *,
+html body [data-filament-panel-id="petugas"] .fi-section *,
+html body [data-filament-panel-id="petugas"] .fi-ta-row *,
+html body [data-filament-panel-id="petugas"] .fi-ta-cell * {
+    color: #fafafa !important;
+}
+
+/* Loading Animation */
+@keyframes elegantTableFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+    60% {
+        opacity: 0.8;
+        transform: translateY(-2px) scale(1.005);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes staggeredRowAppear {
+    0% {
+        opacity: 0;
+        transform: translateX(-30px) rotateY(-5deg);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0) rotateY(0deg);
+    }
+}
+
+/* Apply Animations */
+html body [data-filament-panel-id="petugas"] .fi-ta-table {
+    animation: elegantTableFadeIn 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
+}
+
+html body [data-filament-panel-id="petugas"] .fi-ta-row {
+    animation: staggeredRowAppear 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
+}
+
+html body [data-filament-panel-id="petugas"] .fi-ta-row:nth-child(1) { animation-delay: 0.1s !important; }
+html body [data-filament-panel-id="petugas"] .fi-ta-row:nth-child(2) { animation-delay: 0.15s !important; }
+html body [data-filament-panel-id="petugas"] .fi-ta-row:nth-child(3) { animation-delay: 0.2s !important; }
+html body [data-filament-panel-id="petugas"] .fi-ta-row:nth-child(4) { animation-delay: 0.25s !important; }
+html body [data-filament-panel-id="petugas"] .fi-ta-row:nth-child(5) { animation-delay: 0.3s !important; }
+html body [data-filament-panel-id="petugas"] .fi-ta-row:nth-child(n+6) { animation-delay: 0.35s !important; }
+
+/* Fix table styling - elegant black theme */
+[data-panel-id="petugas"] .fi-ta-table {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border: 1px solid #333340 !important;
+    border-radius: 1rem !important;
+    overflow: hidden !important;
+    box-shadow: 
+        0 4px 12px -2px rgba(0, 0, 0, 0.8),
+        0 2px 6px -2px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Fix form styling - elegant black theme */
+[data-panel-id="petugas"] .fi-fo-section {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border: 1px solid #333340 !important;
+    border-radius: 1rem !important;
+    padding: 1.5rem !important;
+    margin-bottom: 1rem !important;
+    color: #fafafa !important;
+    box-shadow: 
+        0 4px 12px -2px rgba(0, 0, 0, 0.8),
+        0 2px 6px -2px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Fix buttons - elegant slate theme */
+[data-panel-id="petugas"] .fi-btn-primary {
+    background: linear-gradient(135deg, #475569 0%, #334155 100%) !important;
+    border: none !important;
+    color: #ffffff !important;
+    border-radius: 0.75rem !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease !important;
+}
+
+[data-panel-id="petugas"] .fi-btn-primary:hover {
+    background: linear-gradient(135deg, #334155 0%, #1e293b 100%) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Fix card components - elegant black theme */
+[data-panel-id="petugas"] .fi-section {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border: 1px solid #333340 !important;
+    border-radius: 1rem !important;
+    box-shadow: 
+        0 4px 12px -2px rgba(0, 0, 0, 0.8),
+        0 2px 6px -2px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.08) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+[data-panel-id="petugas"] .fi-section:hover {
+    background: linear-gradient(135deg, #111118 0%, #1a1a20 100%) !important;
+    border-color: #404050 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 
+        0 8px 25px -5px rgba(0, 0, 0, 0.6),
+        0 8px 10px -6px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Fix widget backgrounds - elegant black theme */
+[data-panel-id="petugas"] .fi-wi {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border: 1px solid #333340 !important;
+    border-radius: 1rem !important;
+    box-shadow: 
+        0 4px 12px -2px rgba(0, 0, 0, 0.8),
+        0 2px 6px -2px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.08) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Fix stats cards - elegant black theme */
+[data-panel-id="petugas"] .fi-sta-overview-stat {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border: 1px solid #333340 !important;
+    border-radius: 1rem !important;
+    padding: 2rem 1.5rem !important;
+    box-shadow: 
+        0 4px 12px -2px rgba(0, 0, 0, 0.8),
+        0 2px 6px -2px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.08) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Fix dropdown menus - elegant black theme */
+[data-panel-id="petugas"] .fi-dropdown {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border: 1px solid #333340 !important;
+    border-radius: 1rem !important;
+    box-shadow: 
+        0 10px 25px -5px rgba(0, 0, 0, 0.4),
+        0 8px 10px -6px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Ensure text is readable - elegant black theme */
+[data-panel-id="petugas"] .fi-main * {
+    color: #fafafa !important;
+}
+
+/* Override any light mode text in main content */
+[data-panel-id="petugas"] .fi-main h1,
+[data-panel-id="petugas"] .fi-main h2,
+[data-panel-id="petugas"] .fi-main h3,
+[data-panel-id="petugas"] .fi-main h4,
+[data-panel-id="petugas"] .fi-main h5,
+[data-panel-id="petugas"] .fi-main h6 {
+    color: #fafafa !important;
+    font-weight: 700 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-panel-id="petugas"] .fi-main p,
+[data-panel-id="petugas"] .fi-main span,
+[data-panel-id="petugas"] .fi-main div {
+    color: #fafafa !important;
+}
+
+/* Fix muted text - elegant theme */
+[data-panel-id="petugas"] .fi-main .text-gray-500,
+[data-panel-id="petugas"] .fi-main .dark\\:text-gray-400 {
+    color: #a1a1aa !important;
+}
+
+/* Fix icons in main content */
+[data-panel-id="petugas"] .fi-main svg {
+    color: #a1a1aa !important;
+}
+
+/* Enhanced Icon Styling */
+[data-panel-id="petugas"] .fi-sidebar svg,
+[data-filament-panel-id="petugas"] .fi-sidebar svg {
+    color: inherit !important;
+    transition: all 0.3s ease !important;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3)) !important;
+}
+
+[data-panel-id="petugas"] .fi-sidebar-nav-item:hover svg,
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover svg {
+    color: #ffffff !important;
+    transform: scale(1.1) rotate(2deg) !important;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4)) !important;
+}
+
+[data-panel-id="petugas"] .fi-sidebar-nav-item.fi-active svg,
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item.fi-active svg {
+    color: #ffffff !important;
+    transform: scale(1.05) !important;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4)) !important;
+}
+
+/* Sidebar Header Enhancement */
+[data-panel-id="petugas"] .fi-sidebar-header,
+[data-filament-panel-id="petugas"] .fi-sidebar-header {
+    background: linear-gradient(135deg, 
+        rgba(10, 10, 11, 0.9) 0%, 
+        rgba(17, 17, 24, 0.8) 100%) !important;
+    backdrop-filter: blur(20px) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    padding: 2rem 1.5rem !important;
+    margin-bottom: 1.5rem !important;
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+
+/* Hide Sidebar Logo/Brand - Clean Minimalist Look */
+[data-panel-id="petugas"] .fi-sidebar-header .fi-logo,
+[data-filament-panel-id="petugas"] .fi-sidebar-header .fi-logo,
+[data-panel-id="petugas"] .fi-sidebar-header .fi-brand,
+[data-filament-panel-id="petugas"] .fi-sidebar-header .fi-brand,
+[data-panel-id="petugas"] .fi-logo,
+[data-filament-panel-id="petugas"] .fi-logo {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+/* Clean Sidebar Header - No Logo */
+[data-panel-id="petugas"] .fi-sidebar-header,
+[data-filament-panel-id="petugas"] .fi-sidebar-header {
+    background: linear-gradient(135deg, 
+        rgba(10, 10, 11, 0.9) 0%, 
+        rgba(17, 17, 24, 0.8) 100%) !important;
+    backdrop-filter: blur(20px) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    padding: 1rem !important;
+    margin-bottom: 1rem !important;
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+    min-height: 2rem !important;
+}
+
+/* ================================================================ */
+/* NAVIGATION BADGES AND COUNTS - ELEGANT STYLING */
+/* ================================================================ */
+
+/* Navigation badges (notification counts, etc.) */
+[data-panel-id="petugas"] .fi-sidebar-nav-item .fi-badge,
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item .fi-badge {
+    background: rgba(100, 116, 139, 0.15) !important;
+    color: #64748b !important;
+    border: 1px solid rgba(100, 116, 139, 0.2) !important;
+    font-weight: 600 !important;
+    font-size: 0.6875rem !important;
+    padding: 0.25rem 0.5rem !important;
+    border-radius: 0.375rem !important;
+    backdrop-filter: blur(4px) !important;
+}
+
+[data-panel-id="petugas"] .fi-sidebar-nav-item:hover .fi-badge,
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item:hover .fi-badge {
+    background: rgba(100, 116, 139, 0.2) !important;
+    color: #ffffff !important;
+    transform: scale(1.05) !important;
+}
+
+/* Sidebar Footer (if exists) */
+[data-panel-id="petugas"] .fi-sidebar-footer,
+[data-filament-panel-id="petugas"] .fi-sidebar-footer {
+    background: linear-gradient(135deg, 
+        rgba(10, 10, 11, 0.8) 0%, 
+        rgba(17, 17, 24, 0.6) 100%) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+    padding: 1rem !important;
+}
+
+/* ================================================================ */
+/* SIDEBAR GLASSMORPHIC OVERLAY EFFECTS */
+/* ================================================================ */
+
+/* Add subtle overlay patterns */
+[data-panel-id="petugas"] .fi-sidebar::before,
+[data-filament-panel-id="petugas"] .fi-sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(180deg, 
+        transparent 0%,
+        rgba(255, 255, 255, 0.1) 30%,
+        rgba(255, 255, 255, 0.05) 70%,
+        transparent 100%);
+    pointer-events: none;
+}
+
+/* Enhanced ripple effect for nav items */
+[data-panel-id="petugas"] .fi-sidebar-nav-item::after,
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
+        rgba(255, 255, 255, 0.1) 0%, 
+        transparent 50%);
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+[data-panel-id="petugas"] .fi-sidebar-nav-item:active::after,
+[data-filament-panel-id="petugas"] .fi-sidebar-nav-item:active::after {
+    opacity: 1;
+}
+
+/* ================================================================ */
+/* DEEP FIX - ALL POSSIBLE NON-BLACK SIDEBAR ELEMENTS */
+/* ================================================================ */
+
+/* Force collapse buttons to black theme */
+[data-panel-id="petugas"] button[aria-expanded],
+[data-panel-id="petugas"] .fi-sidebar button,
+[data-panel-id="petugas"] .sidebar-toggle,
+[data-panel-id="petugas"] [role="button"],
+[data-filament-panel-id="petugas"] button[aria-expanded],
+[data-filament-panel-id="petugas"] .fi-sidebar button,
+[data-filament-panel-id="petugas"] .sidebar-toggle,
+[data-filament-panel-id="petugas"] [role="button"] {
+    background: linear-gradient(135deg, 
+        rgba(26, 26, 32, 0.8) 0%, 
+        rgba(42, 42, 50, 0.6) 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: #a1a1aa !important;
+    border-radius: 0.5rem !important;
+    backdrop-filter: blur(8px) !important;
+}
+
+[data-panel-id="petugas"] button[aria-expanded]:hover,
+[data-panel-id="petugas"] .fi-sidebar button:hover,
+[data-filament-panel-id="petugas"] button[aria-expanded]:hover,
+[data-filament-panel-id="petugas"] .fi-sidebar button:hover {
+    background: linear-gradient(135deg, 
+        rgba(100, 116, 139, 0.15) 0%, 
+        rgba(71, 85, 105, 0.1) 100%) !important;
+    border-color: rgba(100, 116, 139, 0.2) !important;
+    color: #fafafa !important;
+}
+
+/* Force tooltips to black theme */
+[data-panel-id="petugas"] .tippy-box,
+[data-panel-id="petugas"] [data-tippy-root],
+[data-filament-panel-id="petugas"] .tippy-box,
+[data-filament-panel-id="petugas"] [data-tippy-root] {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #fafafa !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Force dropdown menus to black theme */
+[data-panel-id="petugas"] .fi-dropdown,
+[data-panel-id="petugas"] .fi-dropdown-list,
+[data-panel-id="petugas"] .dropdown-menu,
+[data-filament-panel-id="petugas"] .fi-dropdown,
+[data-filament-panel-id="petugas"] .fi-dropdown-list,
+[data-filament-panel-id="petugas"] .dropdown-menu {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: #fafafa !important;
+    backdrop-filter: blur(12px) !important;
+}
+
+/* Force any white/light backgrounds in sidebar to black */
+[data-panel-id="petugas"] .fi-sidebar .bg-white,
+[data-panel-id="petugas"] .fi-sidebar .bg-gray-50,
+[data-panel-id="petugas"] .fi-sidebar .bg-gray-100,
+[data-panel-id="petugas"] .fi-sidebar .bg-blue-50,
+[data-panel-id="petugas"] .fi-sidebar .bg-slate-50,
+[data-filament-panel-id="petugas"] .fi-sidebar .bg-white,
+[data-filament-panel-id="petugas"] .fi-sidebar .bg-gray-50,
+[data-filament-panel-id="petugas"] .fi-sidebar .bg-gray-100,
+[data-filament-panel-id="petugas"] .fi-sidebar .bg-blue-50,
+[data-filament-panel-id="petugas"] .fi-sidebar .bg-slate-50 {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    color: #fafafa !important;
+}
+
+/* Force any dark text in sidebar to white */
+[data-panel-id="petugas"] .fi-sidebar .text-gray-900,
+[data-panel-id="petugas"] .fi-sidebar .text-gray-800,
+[data-panel-id="petugas"] .fi-sidebar .text-gray-700,
+[data-panel-id="petugas"] .fi-sidebar .text-black,
+[data-panel-id="petugas"] .fi-sidebar .text-blue-900,
+[data-filament-panel-id="petugas"] .fi-sidebar .text-gray-900,
+[data-filament-panel-id="petugas"] .fi-sidebar .text-gray-800,
+[data-filament-panel-id="petugas"] .fi-sidebar .text-gray-700,
+[data-filament-panel-id="petugas"] .fi-sidebar .text-black,
+[data-filament-panel-id="petugas"] .fi-sidebar .text-blue-900 {
+    color: #fafafa !important;
+}
+
+/* ================================================================ */
+/* WORLD-CLASS ELEGANT BLACK SIDEBAR - GLASSMORPHIC ENHANCEMENT */
+/* ================================================================ */
+[data-panel-id="petugas"] .fi-input,
+[data-panel-id="petugas"] .fi-select,
+[data-panel-id="petugas"] .fi-textarea {
+    background: #1a1a20 !important;
+    border: 1px solid #333340 !important;
+    border-radius: 0.75rem !important;
+    color: #fafafa !important;
+    transition: all 0.2s ease !important;
+}
+
+[data-panel-id="petugas"] .fi-input:focus,
+[data-panel-id="petugas"] .fi-select:focus,
+[data-panel-id="petugas"] .fi-textarea:focus {
+    border-color: #475569 !important;
+    box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.1) !important;
+    background: #2a2a32 !important;
+}
+
+/* Fix labels and help text */
+[data-panel-id="petugas"] .fi-fo-field-wrp label,
+[data-panel-id="petugas"] .fi-fo-field-wrp .fi-fo-label {
+    color: #fafafa !important;
+    font-weight: 600 !important;
+}
+
+[data-panel-id="petugas"] .fi-fo-field-wrp .fi-fo-help-text {
+    color: #a1a1aa !important;
+}
+
+/* Fix validation errors */
+[data-panel-id="petugas"] .fi-fo-field-wrp .fi-fo-field-error {
+    color: #f87171 !important;
+    font-weight: 500 !important;
+}
+
+/* Fix checkboxes and radio buttons */
+[data-panel-id="petugas"] .fi-checkbox,
+[data-panel-id="petugas"] .fi-radio {
+    background: #1a1a20 !important;
+    border: 1px solid #333340 !important;
+}
+
+[data-panel-id="petugas"] .fi-checkbox:checked,
+[data-panel-id="petugas"] .fi-radio:checked {
+    background: #475569 !important;
+    border-color: #475569 !important;
+}
+
+/* Fix table headers and cells */
+[data-panel-id="petugas"] .fi-ta-header-cell {
+    background: linear-gradient(135deg, #1a1a20 0%, #2a2a32 100%) !important;
+    color: #fafafa !important;
+    font-weight: 700 !important;
+    border-color: #333340 !important;
+}
+
+[data-panel-id="petugas"] .fi-ta-cell {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    color: #fafafa !important;
+    border-color: #333340 !important;
+}
+
+[data-panel-id="petugas"] .fi-ta-row:hover .fi-ta-cell {
+    background: linear-gradient(135deg, #111118 0%, #1a1a20 100%) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Fix modal and dialog styling */
+[data-panel-id="petugas"] .fi-modal-content {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border: 1px solid #333340 !important;
+    border-radius: 1rem !important;
+    color: #fafafa !important;
+    box-shadow: 
+        0 10px 25px -5px rgba(0, 0, 0, 0.4),
+        0 8px 10px -6px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Fix notification styling */
+[data-panel-id="petugas"] .fi-no {
+    border-radius: 0.75rem !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-panel-id="petugas"] .fi-no-success {
+    background: rgba(16, 185, 129, 0.1) !important;
+    border-color: rgba(16, 185, 129, 0.2) !important;
+    color: #22d65f !important;
+}
+
+[data-panel-id="petugas"] .fi-no-warning {
+    background: rgba(245, 158, 11, 0.1) !important;
+    border-color: rgba(245, 158, 11, 0.2) !important;
+    color: #fbbf24 !important;
+}
+
+[data-panel-id="petugas"] .fi-no-danger {
+    background: rgba(239, 68, 68, 0.1) !important;
+    border-color: rgba(239, 68, 68, 0.2) !important;
+    color: #f87171 !important;
+}

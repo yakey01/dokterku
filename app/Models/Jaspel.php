@@ -102,7 +102,21 @@ class Jaspel extends Model
     }
 
     /**
-     * Get only validated JASPEL for a user and period
+     * WORKFLOW COMPLIANCE: Scope for JASPEL input by petugas role only
+     * This enforces bendahara validation workflow - only validate data from petugas input
+     */
+    public function scopeInputByPetugasOnly($query)
+    {
+        return $query->whereIn('jaspel.input_by', function($subQuery) {
+            $subQuery->select('users.id')
+                     ->from('users')
+                     ->join('roles', 'users.role_id', '=', 'roles.id')
+                     ->where('roles.name', 'petugas');
+        });
+    }
+
+    /**
+     * Get only validated JASPEL for a user and period - WORKFLOW COMPLIANCE: PETUGAS INPUT ONLY
      */
     public function scopeValidatedForUser($query, $userId, $month = null, $year = null)
     {
@@ -112,7 +126,9 @@ class Jaspel extends Model
         return $query->where('user_id', $userId)
                     ->whereMonth('tanggal', $month)
                     ->whereYear('tanggal', $year)
-                    ->where('status_validasi', 'disetujui');
+                    ->where('status_validasi', 'disetujui')
+                    // CRITICAL: Only show data input by petugas for proper workflow compliance
+                    ->inputByPetugasOnly();
     }
 
     /**
@@ -130,6 +146,29 @@ class Jaspel extends Model
     public function isSafeForGaming(): bool
     {
         return $this->isValidated();
+    }
+
+    /**
+     * WORKFLOW COMPLIANCE: Check if this JASPEL was input by petugas role
+     * This enforces proper workflow where petugas inputs data for bendahara validation
+     */
+    public function isInputByPetugas(): bool
+    {
+        if (!$this->input_by) {
+            return false;
+        }
+        
+        $inputUser = User::with('role')->find($this->input_by);
+        return $inputUser && $inputUser->role && $inputUser->role->name === 'petugas';
+    }
+
+    /**
+     * WORKFLOW COMPLIANCE: Check if this JASPEL should be visible to bendahara
+     * Only show data that follows proper workflow (petugas input → bendahara validation)
+     */
+    public function isValidForBendaharaValidation(): bool
+    {
+        return $this->isInputByPetugas();
     }
 
     /**

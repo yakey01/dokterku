@@ -33,15 +33,20 @@ class AdminPasswordReset extends Notification
         $count = config('auth.passwords.'.config('auth.defaults.passwords').'.expire');
 
         return (new MailMessage)
-            ->subject('🔐 Reset Password Admin - ' . config('app.name'))
-            ->greeting('Halo Admin!')
-            ->line('Anda menerima email ini karena kami menerima permintaan reset password untuk akun admin Anda.')
-            ->action('Reset Password', $url)
-            ->line("Link reset password ini akan kedaluarsa dalam {$count} menit.")
-            ->line('Jika Anda tidak meminta reset password, abaikan email ini.')
-            ->line('Demi keamanan, jangan bagikan link ini kepada siapapun.')
-            ->salutation('Salam,')
-            ->salutation('Tim ' . config('app.name'))
+            ->subject('🔐 Admin Password Reset Request - ' . config('app.name'))
+            ->greeting('Halo Administrator!')
+            ->line('Anda menerima email ini karena terdapat permintaan reset password untuk akun administrator Anda di sistem ' . config('app.name') . '.')
+            ->line('Untuk keamanan, permintaan ini memerlukan verifikasi melalui email.')
+            ->action('Reset Password Admin', $url)
+            ->line("Link reset password ini akan kedaluarsa dalam {$count} menit untuk keamanan akun.")
+            ->line('**Penting:** Jika Anda tidak meminta reset password, segera abaikan email ini dan hubungi tim IT untuk memverifikasi keamanan akun.')
+            ->line('Setelah berhasil reset password, Anda dapat login kembali ke panel admin.')
+            ->line('Untuk keamanan maksimal:')
+            ->line('• Jangan bagikan link ini kepada siapapun')
+            ->line('• Gunakan password yang kuat dan unik')
+            ->line('• Logout dari semua device setelah reset password')
+            ->salutation('Hormat kami,')
+            ->salutation('Tim Keamanan ' . config('app.name'))
             ->with([
                 'actionColor' => 'primary',
                 'displayableActionUrl' => $url,

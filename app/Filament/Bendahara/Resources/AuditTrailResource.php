@@ -155,6 +155,11 @@ class AuditTrailResource extends Resource
         return true; // Override access control for bendahara
     }
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return true;
+    }
+
     public static function getPages(): array
     {
         return [

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Force Cache Refresh - Elegant Black Tables</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%);
+            color: #ffffff;
+            margin: 0;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background: linear-gradient(135deg, rgba(17,17,24,0.9) 0%, rgba(26,26,32,0.8) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 1.5rem;
+            padding: 3rem;
+            max-width: 600px;
+            text-align: center;
+            box-shadow: 0 16px 64px rgba(0,0,0,0.4);
+        }
+        .btn {
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
+            border: none;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 0.5rem;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+        .status {
+            margin: 1rem 0;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+        }
+        .success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); color: #22d65f; }
+        .info { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); color: #60a5fa; }
+        h1 { margin-bottom: 1rem; }
+        .step { text-align: left; margin: 1rem 0; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 0.5rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Cache Refresh Tool</h1>
+        <p>Gunakan tool ini untuk memastikan styling tabel hitam elegan ter-load dengan benar.</p>
+        
+        <div class="step">
+            <strong>🎯 Langkah-langkah:</strong><br>
+            1. Klik "Clear Cache & Refresh" di bawah<br>
+            2. Setelah cache clear, klik "Go to Jumlah Pasien"<br>
+            3. Halaman akan otomatis refresh dengan styling terbaru
+        </div>
+        
+        <button class="btn" onclick="clearCacheAndRefresh()">🧹 Clear Cache & Refresh</button>
+        <button class="btn" onclick="goToJumlahPasien()">📊 Go to Jumlah Pasien</button>
+        <button class="btn" onclick="hardRefresh()">💥 Hard Refresh Current Page</button>
+        
+        <div id="status"></div>
+        
+        <div class="info status">
+            <strong>💡 Info:</strong> Tool ini akan clear browser cache dan memaksa reload CSS styling yang baru.
+        </div>
+    </div>
+
+    <script>
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.innerHTML = `<div class="${type} status">${message}</div>`;
+        }
+
+        function clearCacheAndRefresh() {
+            showStatus('🧹 Clearing cache...', 'info');
+            
+            // Clear localStorage
+            localStorage.clear();
+            
+            // Clear sessionStorage  
+            sessionStorage.clear();
+            
+            // Force reload with cache bypass
+            setTimeout(() => {
+                showStatus('✅ Cache cleared! Reloading...', 'success');
+                setTimeout(() => {
+                    window.location.reload(true);
+                }, 1000);
+            }, 500);
+        }
+
+        function goToJumlahPasien() {
+            showStatus('🚀 Navigating to Jumlah Pasien Harian...', 'info');
+            
+            // Force clear cache first
+            if ('caches' in window) {
+                caches.keys().then(function(names) {
+                    for (let name of names) {
+                        caches.delete(name);
+                    }
+                });
+            }
+            
+            // Navigate with cache busting
+            const url = 'http://127.0.0.1:8000/petugas/jumlah-pasien-harians';
+            const cacheBuster = '?v=' + Date.now();
+            window.location.href = url + cacheBuster;
+        }
+
+        function hardRefresh() {
+            showStatus('💥 Performing hard refresh...', 'info');
+            
+            // Clear all caches
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            if ('caches' in window) {
+                caches.keys().then(function(names) {
+                    for (let name of names) {
+                        caches.delete(name);
+                    }
+                });
+            }
+            
+            // Force hard refresh
+            setTimeout(() => {
+                window.location.reload(true);
+            }, 500);
+        }
+
+        // Auto-clear cache on page load
+        window.addEventListener('load', function() {
+            console.log('🎨 Elegant Black Tables CSS Tool Loaded');
+            console.log('🧹 Auto-clearing cache for fresh styling...');
+            
+            if ('caches' in window) {
+                caches.keys().then(function(names) {
+                    for (let name of names) {
+                        caches.delete(name);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

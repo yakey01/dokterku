@@ -69,13 +69,18 @@ class ValidatedJaspelController extends Controller
             // Transform data for gaming UI format
             $jaspelItems = $validatedData['jaspel_items'];
             
-            // Separate jaga and tindakan for gaming UI tabs
+            // Separate jaga and tindakan for gaming UI tabs - FIXED to match actual database values
             $jagaQuests = array_filter($jaspelItems, function($item) {
-                return in_array($item['jenis_jaspel'], ['jaga_umum', 'jaga_pagi', 'jaga_siang', 'jaga_malam']);
+                // Match actual database values: dokter_jaga_pagi, dokter_jaga_siang, dokter_jaga_malam
+                return strpos($item['jenis_jaspel'], 'jaga') !== false || 
+                       in_array($item['jenis_jaspel'], ['jaga_umum', 'jaga_pagi', 'jaga_siang', 'jaga_malam', 'dokter_jaga_pagi', 'dokter_jaga_siang', 'dokter_jaga_malam']);
             });
 
             $achievementTindakan = array_filter($jaspelItems, function($item) {
-                return in_array($item['jenis_jaspel'], ['paramedis', 'dokter_umum', 'dokter_spesialis']);
+                // Include dokter types and other medical procedure types
+                return in_array($item['jenis_jaspel'], ['paramedis', 'dokter_umum', 'dokter_spesialis']) ||
+                       strpos($item['jenis_jaspel'], 'dokter') !== false ||
+                       strpos($item['jenis_jaspel'], 'tindakan') !== false;
             });
 
             // Calculate gaming statistics from validated data only

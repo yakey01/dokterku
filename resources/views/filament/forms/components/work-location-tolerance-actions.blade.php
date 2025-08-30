@@ -7,7 +7,31 @@
         <div class="quick-actions-buttons flex gap-3">
             <button 
                 type="button" 
-                onclick="resetWorkLocationToleranceSettings()" 
+                onclick="(function() {
+                    if (confirm('Apakah Anda yakin ingin mengatur ulang semua pengaturan toleransi ke nilai default?')) {
+                        const inputs = {
+                            late_tolerance_minutes: 15,
+                            early_departure_tolerance_minutes: 15,
+                            break_time_minutes: 60,
+                            overtime_threshold_minutes: 480
+                        };
+                        Object.entries(inputs).forEach(([name, value]) => {
+                            const input = document.querySelector(`input[name='${name}']`);
+                            if (input) {
+                                input.value = value;
+                                input.dispatchEvent(new Event('input', { bubbles: true }));
+                            }
+                        });
+                        window.dispatchEvent(new CustomEvent('notify', {
+                            detail: {
+                                title: '✅ Reset Berhasil!',
+                                body: 'Pengaturan toleransi telah direset ke nilai default',
+                                type: 'success',
+                                duration: 3000
+                            }
+                        }));
+                    }
+                })()" 
                 class="reset-btn px-6 py-3 bg-slate-500 hover:bg-slate-600 text-white font-semibold rounded-lg shadow-md transition-all duration-200 flex items-center gap-2"
             >
                 <span>🔄</span>
@@ -22,43 +46,4 @@
             </button>
         </div>
     </div>
-    
-    <script>
-        function resetWorkLocationToleranceSettings() {
-            if (confirm("Apakah Anda yakin ingin mengatur ulang semua pengaturan toleransi ke nilai default?")) {
-                // Reset all tolerance fields to default values
-                const lateInput = document.querySelector("input[name='late_tolerance_minutes']");
-                const earlyInput = document.querySelector("input[name='early_departure_tolerance_minutes']");
-                const breakInput = document.querySelector("input[name='break_time_minutes']");
-                const overtimeInput = document.querySelector("input[name='overtime_threshold_minutes']");
-                
-                if (lateInput) {
-                    lateInput.value = 15;
-                    lateInput.dispatchEvent(new Event("input", { bubbles: true }));
-                }
-                if (earlyInput) {
-                    earlyInput.value = 15;
-                    earlyInput.dispatchEvent(new Event("input", { bubbles: true }));
-                }
-                if (breakInput) {
-                    breakInput.value = 60;
-                    breakInput.dispatchEvent(new Event("input", { bubbles: true }));
-                }
-                if (overtimeInput) {
-                    overtimeInput.value = 480;
-                    overtimeInput.dispatchEvent(new Event("input", { bubbles: true }));
-                }
-                
-                // Show success notification using Filament notification system
-                window.dispatchEvent(new CustomEvent('notify', {
-                    detail: {
-                        title: '✅ Reset Berhasil!',
-                        body: 'Pengaturan toleransi telah direset ke nilai default',
-                        type: 'success',
-                        duration: 3000
-                    }
-                }));
-            }
-        }
-    </script>
 </div>

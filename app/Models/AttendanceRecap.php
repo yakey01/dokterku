@@ -314,4 +314,151 @@ class AttendanceRecap extends Model
         
         return sprintf('%d jam %d menit', $hours, $minutes);
     }
+    
+    /**
+     * Override to handle virtual model resolution
+     * This method is called by Filament when resolving models for actions
+     */
+    public static function resolveRecordRouteBinding($value, $field = null)
+    {
+        // Extract context from various possible sources
+        $context = static::extractActionContext();
+        
+        $data = static::getRecapData(
+            $context['month'], 
+            $context['year'], 
+            $context['staffType']
+        );
+        
+        $record = $data->firstWhere('staff_id', $value);
+        
+        if ($record) {
+            $model = new static();
+            $model->fill($record);
+            $model->exists = true;
+            $model->id = $record['staff_id'];
+            $model->setAttribute('staff_id', $record['staff_id']);
+            return $model;
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Extract context from multiple sources for action resolution
+     */
+    private static function extractActionContext(): array
+    {
+        // Try multiple sources for context
+        $month = null;
+        $year = null;
+        $staffType = null;
+        
+        // Source 1: Direct request parameters
+        $month = request('month') ?? request('tableFilters.month.value');
+        $year = request('year') ?? request('tableFilters.year.value');
+        $staffType = request('staff_type') ?? request('tableFilters.staff_type.value');
+        
+        // Source 2: Session storage
+        if (!$month || !$year) {
+            $month = session('attendance_recap_month', now()->month);
+            $year = session('attendance_recap_year', now()->year);
+            $staffType = session('attendance_recap_staff_type');
+        }
+        
+        // Source 3: Parse from referer URL
+        if (!$month || !$year) {
+            $referer = request()->server('HTTP_REFERER', '');
+            if (preg_match('/tableFilters.*month.*value.*?([0-9]+)/', $referer, $matches)) {
+                $month = (int) $matches[1];
+            }
+            if (preg_match('/tableFilters.*year.*value.*?([0-9]{4})/', $referer, $matches)) {
+                $year = (int) $matches[1];
+            }
+        }
+        
+        return [
+            'month' => $month ?: now()->month,
+            'year' => $year ?: now()->year,
+            'staffType' => $staffType
+        ];
+    }
+    
+    /**
+     * Get the primary key for the model
+     */
+    public function getKeyName()
+    {
+        return 'id';
+    }
+    
+    /**
+     * Get the value of the model's primary key
+     */
+    public function getKey()
+    {
+        return $this->getAttribute($this->getKeyName());
+    }
+    
+    /**
+     * Get the route key for the model
+     */
+    public function getRouteKeyName()
+    {
+        return $this->getKeyName();
+    }
+    
+    /**
+     * Retrieve the model for a bound value
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        return static::resolveRecordRouteBinding($value, $field);
+    }
+    
+    /**
+     * Set the primary key for the model
+     */
+    public function setId($id)
+    {
+        $this->attributes['id'] = $id;
+        return $this;
+    }
+    
+    /**
+     * Static method to create a properly configured virtual model
+     * This helps ensure consistent model creation for Filament
+     */
+    public static function createVirtualModel(array $data): self
+    {
+        $model = new static();
+        $model->fill($data);
+        $model->exists = true;
+        $model->id = $data['staff_id'];
+        $model->setAttribute('id', $data['staff_id']);
+        $model->setAttribute('staff_id', $data['staff_id']);
+        
+        // Set the connection to null since this is a virtual model
+        $model->setConnection(null);
+        
+        return $model;
+    }
+    
+    /**
+     * Enhanced method to get a single record by staff_id
+     */
+    public static function findByStaffId(int $staffId, $month = null, $year = null, $staffType = null): ?self
+    {
+        $month = $month ?? now()->month;
+        $year = $year ?? now()->year;
+        
+        $data = static::getRecapData($month, $year, $staffType);
+        $record = $data->firstWhere('staff_id', $staffId);
+        
+        if ($record) {
+            return static::createVirtualModel($record);
+        }
+        
+        return null;
+    }
 }

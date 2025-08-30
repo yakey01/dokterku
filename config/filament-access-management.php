@@ -33,6 +33,7 @@ return [
         'navigation' => [
             /**
              * Using db based filament navigation if true.
+             * Disabled to prevent conflicts with custom resources.
              */
             'enabled' => false,
             /**
@@ -55,12 +56,12 @@ return [
             'menu' => 'heroicon-o-bars-3-bottom-left',
         ],
         'pages' => [
-            Pages\Menu::class,
+            // Pages\Menu::class, // Disabled - not using package pages
         ],
         'resources' => [
-            Resources\UserResource::class,
-            Resources\RoleResource::class,
-            Resources\PermissionResource::class,
+            // Resources\UserResource::class, // Disabled - using custom UserResource
+            // Resources\RoleResource::class, // Disabled - using custom RoleResource
+            // Resources\PermissionResource::class, // Disabled - using custom resources
         ]
     ],
     'roles' => [

@@ -12,6 +12,7 @@ use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Widgets;
 use Filament\Navigation\NavigationGroup;
+use Filament\Navigation\MenuItem;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -45,7 +46,7 @@ class PetugasPanelProvider extends PanelProvider
             ->renderHook(
                 'panels::head.start',
                 fn (): string => '
-                    <!-- ELEGANT BLACK THEME - PROVEN BENDAHARA APPROACH -->
+                    <!-- ELEGANT BLACK THEME WITH LIGHT/DARK MODE SUPPORT -->
                     <style id="petugas-elegant-black-immediate">
                         /* ULTIMATE BLACK CARDS - COMPREHENSIVE TARGETING */
                         [data-filament-panel-id="petugas"] .fi-wi,
@@ -85,6 +86,20 @@ class PetugasPanelProvider extends PanelProvider
                             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
                         }
                         
+                        /* COMPREHENSIVE WHITE ELEMENT ELIMINATION */
+                        [data-filament-panel-id="petugas"] .bg-white,
+                        [data-filament-panel-id="petugas"] .bg-gray-50,
+                        [data-filament-panel-id="petugas"] .bg-gray-100,
+                        [data-filament-panel-id="petugas"] [style*="background: white"],
+                        [data-filament-panel-id="petugas"] [style*="background: #ffffff"],
+                        [data-filament-panel-id="petugas"] [style*="background-color: white"],
+                        [data-filament-panel-id="petugas"] [style*="background-color: #ffffff"] {
+                            background: linear-gradient(135deg, rgba(10, 10, 11, 0.8) 0%, rgba(17, 17, 24, 0.9) 100%) !important;
+                            backdrop-filter: blur(16px) saturate(150%) !important;
+                            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+                            color: #ffffff !important;
+                        }
+                        
                         /* ELIMINATE NAVY BLUE (#475569) COMPLETELY */
                         [data-filament-panel-id="petugas"] {
                             --primary: 10 10 11 !important; /* Deep Black RGB */
@@ -99,14 +114,17 @@ class PetugasPanelProvider extends PanelProvider
                             --primary-800: #60606e !important;
                             --primary-900: #6b6b78 !important;
                             --primary-950: #767682 !important;
+                            color-scheme: dark !important;
                         }
+                        
                     </style>
+                    
                 '
             )
             ->renderHook(
                 'panels::head.end',
                 fn (): string => '
-                    <!-- ELEGANT BLACK GLASSMORPHISM - PROVEN APPROACH -->
+                    <!-- ELEGANT BLACK GLASSMORPHISM - DETAILED BENDAHARA APPROACH -->
                     <style id="petugas-elegant-complete">
                         /* COMPLETE MAIN BACKGROUND ELEGANT BLACK */
                         [data-filament-panel-id="petugas"],
@@ -120,11 +138,24 @@ class PetugasPanelProvider extends PanelProvider
                             color: #ffffff !important;
                         }
                         
-                        /* ELEGANT GLASS TABLES WITH GLASSMORPHISM */
-                        [data-filament-panel-id="petugas"] .fi-ta-table,
+                        /* COMPREHENSIVE WHITE ELIMINATION - EXACT BENDAHARA APPROACH */
+                        [data-filament-panel-id="petugas"] .bg-white,
+                        [data-filament-panel-id="petugas"] .bg-gray-50,
+                        [data-filament-panel-id="petugas"] .bg-gray-100,
+                        [data-filament-panel-id="petugas"] .dark\\:bg-gray-800,
                         [data-filament-panel-id="petugas"] .fi-section,
-                        [data-filament-panel-id="petugas"] .overflow-x-auto {
-                            background: rgba(10, 10, 11, 0.8) !important;
+                        [data-filament-panel-id="petugas"] .fi-form,
+                        [data-filament-panel-id="petugas"] .fi-ta-table,
+                        [data-filament-panel-id="petugas"] .overflow-x-auto,
+                        [data-filament-panel-id="petugas"] .fi-wi,
+                        [data-filament-panel-id="petugas"] .fi-panel-card,
+                        [data-filament-panel-id="petugas"] .fi-modal,
+                        [data-filament-panel-id="petugas"] .fi-dropdown-panel,
+                        [data-filament-panel-id="petugas"] [style*="background: white"],
+                        [data-filament-panel-id="petugas"] [style*="background-color: white"],
+                        [data-filament-panel-id="petugas"] [style*="background: #ffffff"],
+                        [data-filament-panel-id="petugas"] [style*="background-color: #ffffff"] {
+                            background: linear-gradient(135deg, rgba(10, 10, 11, 0.8) 0%, rgba(17, 17, 24, 0.9) 100%) !important;
                             backdrop-filter: blur(16px) saturate(150%) !important;
                             -webkit-backdrop-filter: blur(16px) saturate(150%) !important;
                             border: 1px solid rgba(255, 255, 255, 0.12) !important;
@@ -134,45 +165,22 @@ class PetugasPanelProvider extends PanelProvider
                             color: #ffffff !important;
                         }
                         
-                        /* ELEGANT HOVER EFFECTS FOR TABLES */
+                        /* ALL WHITE TEXT TO WHITE */
+                        [data-filament-panel-id="petugas"] .bg-white *,
+                        [data-filament-panel-id="petugas"] .fi-section *,
+                        [data-filament-panel-id="petugas"] .fi-wi * {
+                            color: #ffffff !important;
+                            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+                        }
+                        
+                        /* ELEGANT HOVER EFFECTS */
                         [data-filament-panel-id="petugas"] .fi-ta-table:hover,
-                        [data-filament-panel-id="petugas"] .fi-section:hover {
+                        [data-filament-panel-id="petugas"] .fi-section:hover,
+                        [data-filament-panel-id="petugas"] .fi-wi:hover {
                             backdrop-filter: blur(20px) saturate(180%) !important;
                             border-color: rgba(255, 255, 255, 0.16) !important;
                             transform: translateY(-2px) !important;
                             box-shadow: 0 12px 48px -12px rgba(0, 0, 0, 0.7), inset 0 1px 0 0 rgba(255, 255, 255, 0.1) !important;
-                        }
-                        
-                        /* TABLE ROW STYLING */
-                        [data-filament-panel-id="petugas"] .fi-ta-row:hover,
-                        [data-filament-panel-id="petugas"] tbody tr:hover {
-                            background: linear-gradient(135deg, rgba(17, 17, 24, 0.8) 0%, rgba(26, 26, 32, 0.9) 100%) !important;
-                            backdrop-filter: blur(8px) !important;
-                            transform: translateY(-1px) !important;
-                            border-left: 3px solid rgba(255, 255, 255, 0.2) !important;
-                            color: #ffffff !important;
-                            font-weight: 500 !important;
-                        }
-                        
-                        [data-filament-panel-id="petugas"] .fi-ta-row,
-                        [data-filament-panel-id="petugas"] tbody tr {
-                            background: rgba(10, 10, 11, 0.4) !important;
-                            backdrop-filter: blur(4px) !important;
-                            border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
-                            color: #ffffff !important;
-                            transition: all 0.3s ease !important;
-                        }
-                        
-                        /* TABLE HEADER STYLING */
-                        [data-filament-panel-id="petugas"] thead th {
-                            background: linear-gradient(135deg, rgba(17, 17, 24, 0.9) 0%, rgba(26, 26, 32, 0.95) 100%) !important;
-                            backdrop-filter: blur(12px) !important;
-                            border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
-                            color: #ffffff !important;
-                            font-weight: 600 !important;
-                            text-transform: uppercase !important;
-                            letter-spacing: 0.5px !important;
-                            padding: 1rem 1.5rem !important;
                         }
                         
                         /* SIDEBAR ELEGANT BLACK */
@@ -199,22 +207,83 @@ class PetugasPanelProvider extends PanelProvider
                             border-left: 3px solid rgba(255, 255, 255, 0.3) !important;
                         }
                         
-                        /* FORM ELEMENTS ELEGANT BLACK */
-                        [data-filament-panel-id="petugas"] .bg-white,
-                        [data-filament-panel-id="petugas"] .fi-form {
-                            background: rgba(10, 10, 11, 0.6) !important;
-                            backdrop-filter: blur(12px) saturate(120%) !important;
-                            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+                        /* ULTIMATE WHITE KILLER - FORCE ALL ELEMENTS BLACK */
+                        [data-filament-panel-id="petugas"] * {
+                            background-color: transparent !important;
+                        }
+                        
+                        [data-filament-panel-id="petugas"] *[class*="bg-white"],
+                        [data-filament-panel-id="petugas"] *[class*="bg-gray"],
+                        [data-filament-panel-id="petugas"] div,
+                        [data-filament-panel-id="petugas"] section,
+                        [data-filament-panel-id="petugas"] article {
+                            background: rgba(10, 10, 11, 0.8) !important;
+                            backdrop-filter: blur(16px) saturate(150%) !important;
+                            border: 1px solid rgba(255, 255, 255, 0.12) !important;
                             border-radius: 1rem !important;
-                            box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.06) !important;
                             color: #ffffff !important;
+                        }
+                        
+                        /* FORCE DARK BACKGROUND ON EVERYTHING */
+                        [data-filament-panel-id="petugas"] .fi-page,
+                        [data-filament-panel-id="petugas"] .fi-main,
+                        [data-filament-panel-id="petugas"] .fi-body {
+                            background: #0a0a0b !important;
+                        }
+                        
+                        /* TOPBAR FORCE BLACK - CRITICAL FIX */
+                        [data-filament-panel-id="petugas"] .fi-topbar,
+                        [data-filament-panel-id="petugas"] .fi-header,
+                        [data-filament-panel-id="petugas"] nav,
+                        [data-filament-panel-id="petugas"] header {
+                            background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+                            backdrop-filter: blur(16px) saturate(150%) !important;
+                            border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+                            color: #ffffff !important;
+                        }
+                        
+                        /* TOPBAR CONTENT BLACK */
+                        [data-filament-panel-id="petugas"] .fi-topbar *,
+                        [data-filament-panel-id="petugas"] .fi-header *,
+                        [data-filament-panel-id="petugas"] nav *,
+                        [data-filament-panel-id="petugas"] header * {
+                            color: #ffffff !important;
+                            background: transparent !important;
+                        }
+                        
+                        /* NAVIGATION ITEMS IN TOPBAR */
+                        [data-filament-panel-id="petugas"] .fi-topbar .fi-tabs,
+                        [data-filament-panel-id="petugas"] .fi-topbar .fi-tabs-tab,
+                        [data-filament-panel-id="petugas"] .fi-topbar button,
+                        [data-filament-panel-id="petugas"] .fi-topbar a {
+                            background: rgba(255, 255, 255, 0.05) !important;
+                            color: #ffffff !important;
+                            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+                            border-radius: 0.5rem !important;
+                        }
+                        
+                        /* DEBUG: VERIFY CSS IS LOADING */
+                        body::before {
+                            content: "🔍 PETUGAS CSS LOADED ✅";
+                            position: fixed;
+                            top: 10px;
+                            left: 10px;
+                            background: #22c55e;
+                            color: white;
+                            padding: 5px 10px;
+                            border-radius: 5px;
+                            font-size: 12px;
+                            z-index: 9999;
+                            animation: fadeOut 3s forwards;
+                        }
+                        
+                        @keyframes fadeOut {
+                            0% { opacity: 1; }
+                            70% { opacity: 1; }
+                            100% { opacity: 0; }
                         }
                     </style>
                 '
-            )
-            ->renderHook(
-                'panels::topbar.end',
-                fn (): string => '<x-topbar-welcome :user="auth()->user()" />'
             )
             ->renderHook(
                 'panels::body.start',

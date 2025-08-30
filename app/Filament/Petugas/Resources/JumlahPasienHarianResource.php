@@ -54,8 +54,26 @@ class JumlahPasienHarianResource extends Resource
     
     public static function canEdit($record): bool
     {
-        // Allow editing own records
-        return auth()->check() && $record->input_by === auth()->id();
+        // Allow editing with better error handling
+        if (!auth()->check()) {
+            \Log::warning('canEdit failed: User not authenticated', [
+                'record_id' => $record?->id,
+                'session_id' => session()->getId()
+            ]);
+            return false;
+        }
+        
+        $canEdit = $record->input_by === auth()->id();
+        if (!$canEdit) {
+            \Log::info('canEdit denied: User cannot edit record', [
+                'record_id' => $record->id,
+                'record_input_by' => $record->input_by,
+                'auth_user_id' => auth()->id(),
+                'auth_user_name' => auth()->user()?->name
+            ]);
+        }
+        
+        return $canEdit;
     }
     
     public static function canDelete($record): bool
@@ -101,45 +119,29 @@ class JumlahPasienHarianResource extends Resource
                                     ->columnSpan(1),
                             ]),
 
-                        Forms\Components\Grid::make(2)
-                            ->schema([
-                                Forms\Components\Select::make('shift')
-                                    ->label('Shift')
-                                    ->options(JumlahPasienHarian::getShiftOptions())
-                                    ->required()
-                                    ->default('Pagi')
-                                    ->reactive()
-                                    ->helperText('Formula jaspel akan dipilih otomatis berdasarkan shift')
-                                    ->columnSpan(1),
+                        Forms\Components\Select::make('shift_template_id')
+                            ->label('Template Shift')
+                            ->relationship('shiftTemplate', 'nama_shift')
+                            ->getOptionLabelFromRecordUsing(fn ($record) => 
+                                "{$record->nama_shift} ({$record->jam_masuk_format} - {$record->jam_pulang_format})"
+                            )
+                            ->searchable()
+                            ->preload()
+                            ->required()
+                            ->reactive()
+                            ->helperText('Pilih template shift dari admin - sama seperti sistem admin')
+                            ->afterStateUpdated(function ($state, Forms\Set $set, $get) {
+                                // Auto-sync shift name when template is selected
+                                if ($state) {
+                                    $shiftTemplate = \App\Models\ShiftTemplate::find($state);
+                                    if ($shiftTemplate) {
+                                        $set('shift', $shiftTemplate->nama_shift);
+                                    }
+                                }
+                            }),
 
-                                Forms\Components\Select::make('jadwal_jaga_id')
-                                    ->label('Jadwal Jaga (Opsional)')
-                                    ->relationship(
-                                        'jadwalJaga',
-                                        'id',
-                                        fn (Builder $query, $get) => 
-                                            $query->where('tanggal_jaga', $get('tanggal'))
-                                                ->where('pegawai_id', $get('dokter_id'))
-                                                ->with(['shiftTemplate', 'pegawai'])
-                                    )
-                                    ->getOptionLabelFromRecordUsing(fn ($record) => 
-                                        $record ? "{$record->shiftTemplate->nama_shift} - {$record->jam_shift}" : ''
-                                    )
-                                    ->searchable()
-                                    ->nullable()
-                                    ->reactive()
-                                    ->helperText('Pilih jadwal jaga spesifik untuk konteks yang lebih akurat')
-                                    ->columnSpan(1)
-                                    ->afterStateUpdated(function ($state, Forms\Set $set, $get) {
-                                        // Auto-sync shift when jadwal jaga is selected
-                                        if ($state) {
-                                            $jadwalJaga = \App\Models\JadwalJaga::find($state);
-                                            if ($jadwalJaga && $jadwalJaga->shiftTemplate) {
-                                                $set('shift', $jadwalJaga->shiftTemplate->nama_shift);
-                                            }
-                                        }
-                                    }),
-                            ]),
+                        Forms\Components\Hidden::make('shift'),
+                            // Shift name will be auto-filled from selected template
 
                         Forms\Components\Select::make('dokter_id')
                             ->label('Dokter Pelaksana')
@@ -234,6 +236,8 @@ class JumlahPasienHarianResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->recordClasses(fn ($record) => 'elegant-black-table-row hover:elegant-black-table-row-hover')
+            ->striped()
             ->columns([
                 Tables\Columns\TextColumn::make('tanggal')
                     ->label('Tanggal')
@@ -308,6 +312,22 @@ class JumlahPasienHarianResource extends Resource
                     ->sortable()
                     ->alignCenter(),
 
+                Tables\Columns\TextColumn::make('jaspel_rupiah')
+                    ->label('Nominal Jaspel')
+                    ->money('IDR')
+                    ->sortable()
+                    ->alignEnd()
+                    ->badge()
+                    ->color(fn ($record) => 
+                        ($record->jaspel_rupiah ?? 0) > 0 ? 'success' : 'gray'
+                    )
+                    ->formatStateUsing(fn ($state) => 
+                        $state ? 'Rp ' . number_format($state, 0, ',', '.') : 'Rp 0'
+                    )
+                    ->description(fn ($record) => 
+                        $record->jaspel_rupiah > 0 ? '💰 Jaspel Terhitung' : '⏳ Belum Dihitung'
+                    ),
+
                 Tables\Columns\TextColumn::make('status_validasi')
                     ->label('Status')
                     ->badge()
@@ -327,7 +347,17 @@ class JumlahPasienHarianResource extends Resource
                 Tables\Columns\TextColumn::make('inputBy.name')
                     ->label('Input Oleh')
                     ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->sortable()
+                    ->badge()
+                    ->color(fn ($record) => 
+                        $record->input_by === auth()->id() ? 'success' : 'gray'
+                    )
+                    ->icon(fn ($record) => 
+                        $record->input_by === auth()->id() ? 'heroicon-m-user-circle' : 'heroicon-m-users'
+                    )
+                    ->description(fn ($record) => 
+                        $record->input_by === auth()->id() ? '✅ Data Anda' : '👥 Data Rekan'
+                    ),
 
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Dibuat')
@@ -337,6 +367,20 @@ class JumlahPasienHarianResource extends Resource
             ])
             ->defaultSort('tanggal', 'desc')
             ->filters([
+                SelectFilter::make('data_scope')
+                    ->label('Tampilkan Data')
+                    ->options([
+                        'all' => '👥 Semua Data (History Lengkap)',
+                        'mine' => '✅ Data Saya Saja',
+                    ])
+                    ->default('all')
+                    ->query(function (Builder $query, array $data): Builder {
+                        if (isset($data['value']) && $data['value'] === 'mine') {
+                            return $query->where('input_by', auth()->id());
+                        }
+                        return $query; // Show all data by default
+                    }),
+
                 SelectFilter::make('poli')
                     ->label('Filter Poli')
                     ->options([
@@ -417,7 +461,6 @@ class JumlahPasienHarianResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->where('input_by', auth()->id())
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);

@@ -1,0 +1,48 @@
+/* EMERGENCY BLACK THEME FORCE - Direct CSS Injection */
+/* This file ensures black theme applies even if other CSS conflicts */
+
+/* Nuclear option - override everything */
+[data-filament-panel-id="bendahara"] section,
+[data-filament-panel-id="bendahara"] .fi-section,
+[data-filament-panel-id="bendahara"] .fi-card,
+[data-filament-panel-id="bendahara"] div[class*="fi-"],
+[data-filament-panel-id="bendahara"] .grid > div > div {
+    background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
+    border: 1px solid #333340 !important;
+    border-radius: 1rem !important;
+    box-shadow: 
+        0 1px 3px 0 rgba(0, 0, 0, 0.4),
+        0 1px 2px -1px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Force white text */
+[data-filament-panel-id="bendahara"] section *,
+[data-filament-panel-id="bendahara"] .fi-section *,
+[data-filament-panel-id="bendahara"] .fi-card * {
+    color: #fafafa !important;
+}
+
+/* Muted text */
+[data-filament-panel-id="bendahara"] .text-gray-500,
+[data-filament-panel-id="bendahara"] .text-gray-600 {
+    color: #a1a1aa !important;
+}
+
+/* Financial numbers - high impact */
+[data-filament-panel-id="bendahara"] .text-2xl {
+    color: #fafafa !important;
+    font-weight: 700 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Hover effects */
+[data-filament-panel-id="bendahara"] section:hover,
+[data-filament-panel-id="bendahara"] .fi-section:hover,
+[data-filament-panel-id="bendahara"] .fi-card:hover {
+    background: linear-gradient(135deg, #111118 0%, #1a1a20 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 
+        0 8px 25px -5px rgba(0, 0, 0, 0.6),
+        0 8px 10px -6px rgba(0, 0, 0, 0.4) !important;
+}

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛡️ Validation Center Enhanced</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #0a0a0b 0%, #111118 50%, #1a1a20 100%);
+            color: #fafafa;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            text-align: center;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+        
+        .success-banner {
+            background: linear-gradient(135deg, #22d65f 0%, #16a34a 100%);
+            padding: 25px;
+            border-radius: 16px;
+            margin: 25px 0;
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            box-shadow: 0 8px 24px rgba(34, 214, 95, 0.3);
+            border: 1px solid rgba(34, 214, 95, 0.4);
+        }
+        
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin: 30px 0;
+        }
+        
+        .before-card, .after-card {
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 16px;
+            padding: 24px;
+            border: 2px solid;
+        }
+        
+        .before-card {
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+        
+        .after-card {
+            border-color: rgba(34, 214, 95, 0.3);
+        }
+        
+        .demo-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            padding: 20px;
+            margin: 16px 0;
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .demo-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: inherit;
+        }
+        
+        .demo-card:hover {
+            transform: translateY(-4px) scale(1.01);
+            border-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+        }
+        
+        .demo-card:hover::before {
+            opacity: 1;
+        }
+        
+        .feature-list {
+            background: rgba(59, 130, 246, 0.1);
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            border-radius: 16px;
+            padding: 24px;
+            margin: 30px 0;
+        }
+        
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .checklist li {
+            padding: 8px 0;
+            position: relative;
+            padding-left: 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .checklist li:before {
+            content: "✅";
+            position: absolute;
+            left: 0;
+            font-size: 1.2rem;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 24px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 8px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+        
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛡️ Validation Center Enhanced</h1>
+        
+        <div class="success-banner">
+            🎯 Card boundaries & readability significantly improved with clear borders!
+        </div>
+        
+        <div class="comparison-grid">
+            <div class="before-card">
+                <h3 style="color: #ef4444; margin-bottom: 16px;">❌ Before (Poor Readability)</h3>
+                <ul style="color: rgba(255,255,255,0.8); line-height: 1.6;">
+                    <li>Batas tepi cards tidak jelas</li>
+                    <li>Low contrast background</li>
+                    <li>Activity items sulit dibedakan</li>
+                    <li>No visual hierarchy</li>
+                    <li>Buttons blend with background</li>
+                </ul>
+            </div>
+            
+            <div class="after-card">
+                <h3 style="color: #22d65f; margin-bottom: 16px;">✅ After (Enhanced)</h3>
+                <ul style="color: rgba(255,255,255,0.8); line-height: 1.6;">
+                    <li>Clear 2px borders untuk semua cards</li>
+                    <li>Enhanced glassmorphic backgrounds</li>
+                    <li>Distinct visual separation</li>
+                    <li>Improved text contrast</li>
+                    <li>Interactive hover effects</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="feature-list">
+            <h2 style="color: #3b82f6; margin-bottom: 16px;">🎨 Visual Enhancements Applied</h2>
+            <ul class="checklist">
+                <li><strong>Clear Borders:</strong> 2px solid borders dengan rgba(255, 255, 255, 0.15)</li>
+                <li><strong>Enhanced Backgrounds:</strong> Glassmorphic dengan backdrop-blur(16px)</li>
+                <li><strong>Better Shadows:</strong> Multi-layer shadows untuk depth perception</li>
+                <li><strong>Improved Text:</strong> Enhanced contrast dengan text-shadow</li>
+                <li><strong>Interactive Effects:</strong> Magnetic hover dengan scale dan translateY</li>
+                <li><strong>Border Animation:</strong> Shimmer effects pada card hover</li>
+                <li><strong>Button Enhancement:</strong> Clear borders dan hover states</li>
+                <li><strong>Status Badges:</strong> Better contrast dan defined borders</li>
+            </ul>
+        </div>
+        
+        <h2 style="color: #fbbf24; text-align: center; margin: 40px 0 20px;">📋 Card Components Enhanced</h2>
+        
+        <!-- Demo Cards -->
+        <div class="demo-card">
+            <h3 style="color: #3b82f6; margin-bottom: 12px;">🎯 Main Cards (Header, Action Bar, Data Table)</h3>
+            <p style="margin-bottom: 12px;">Enhanced dengan 2px borders, glassmorphic backgrounds, dan hover animations</p>
+            <ul style="color: rgba(255,255,255,0.8);">
+                <li>• Clear visual separation</li>
+                <li>• Enhanced depth dengan shadow layering</li>
+                <li>• Smooth transitions dengan cubic-bezier easing</li>
+            </ul>
+        </div>
+        
+        <div class="demo-card">
+            <h3 style="color: #22d65f; margin-bottom: 12px;">📊 Activity Cards</h3>
+            <p style="margin-bottom: 12px;">Recent activity items dengan improved borders dan hover effects</p>
+            <ul style="color: rgba(255,255,255,0.8);">
+                <li>• 1.5px borders untuk subtle separation</li>
+                <li>• Backdrop blur untuk glassmorphic effect</li>
+                <li>• Smooth slide animation pada hover</li>
+            </ul>
+        </div>
+        
+        <div class="demo-card">
+            <h3 style="color: #fbbf24; margin-bottom: 12px;">⚠️ Priority Items</h3>
+            <p style="margin-bottom: 12px;">High-value pending items dengan enhanced amber styling</p>
+            <ul style="color: rgba(255,255,255,0.8);">
+                <li>• Amber accent borders untuk priority indication</li>
+                <li>• Scale animation untuk attention grabbing</li>
+                <li>• Enhanced shadow dengan amber glow</li>
+            </ul>
+        </div>
+        
+        <div class="demo-card">
+            <h3 style="color: #a855f7; margin-bottom: 12px;">🔘 Tab Buttons</h3>
+            <p style="margin-bottom: 12px;">Status filter tabs dengan clear visual states</p>
+            <ul style="color: rgba(255,255,255,0.8);">
+                <li>• Enhanced backdrop blur</li>
+                <li>• Clear right borders untuk separation</li>
+                <li>• Smooth hover transitions</li>
+            </ul>
+        </div>
+        
+        <div style="text-align: center; margin-top: 40px;">
+            <a href="http://127.0.0.1:8000/bendahara/validation-center-ui" class="btn btn-primary">
+                🎯 Test Enhanced Validation Center
+            </a>
+            <a href="http://127.0.0.1:8000/login" class="btn">
+                🔐 Login First
+            </a>
+        </div>
+        
+        <div style="background: rgba(34, 214, 95, 0.1); border: 2px solid rgba(34, 214, 95, 0.3); border-radius: 16px; padding: 24px; margin: 30px 0; text-align: center;">
+            <h2 style="color: #22d65f; margin-bottom: 16px;">✅ Readability Enhanced!</h2>
+            <p style="font-size: 1.1rem; color: rgba(255,255,255,0.9);">
+                <strong>Semua cards sekarang memiliki batas tepi yang jelas</strong> dengan enhanced borders, 
+                glassmorphic backgrounds, dan improved text contrast untuk better readability.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

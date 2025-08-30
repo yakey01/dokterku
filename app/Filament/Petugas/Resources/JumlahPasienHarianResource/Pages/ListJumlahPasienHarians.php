@@ -9,6 +9,7 @@ use Filament\Resources\Pages\ListRecords;
 class ListJumlahPasienHarians extends ListRecords
 {
     protected static string $resource = JumlahPasienHarianResource::class;
+    protected static string $view = 'filament.petugas.pages.jumlah-pasien-full-layout';
 
     protected function getHeaderActions(): array
     {
@@ -30,7 +31,8 @@ class ListJumlahPasienHarians extends ListRecords
     protected function getHeaderWidgets(): array
     {
         return [
-            // Add any widgets here if needed
+            // Temporarily disabled until widget is properly registered
+            // \App\Filament\Petugas\Widgets\JumlahPasienHistoryStatsWidget::class,
         ];
     }
     
@@ -41,7 +43,8 @@ class ListJumlahPasienHarians extends ListRecords
     
     public function getSubheading(): ?string
     {
-        return 'Input dan kelola data pasien untuk perhitungan jaspel';
+        // Removed detailed subheading - info now in horizontal metrics cards
+        return null;
     }
     
     protected function getFooterWidgets(): array

@@ -6,10 +6,11 @@
 import React, { useEffect } from 'react';
 
 interface WebSocketMessage {
-  type: 'attendance_update' | 'jaspel_update' | 'leaderboard_update' | 'user_notification';
+  type: 'attendance_update' | 'jaspel_update' | 'leaderboard_update' | 'user_notification' | 'attendance.updated';
   data: any;
   timestamp: number;
   userId?: string;
+  action?: 'checkin' | 'checkout' | 'update';
 }
 
 interface WebSocketSubscription {
@@ -28,7 +29,7 @@ class WebSocketManager {
   private heartbeatInterval: NodeJS.Timeout | null = null;
   private lastHeartbeat = 0;
 
-  constructor(private url: string = '/ws/dashboard') {
+  constructor(private url: string = '/ws/general') {
     this.connect();
   }
 
@@ -304,7 +305,7 @@ export const useAttendanceUpdates = (callback: (data: any) => void) => {
   return useWebSocket(
     'attendance-updates',
     callback,
-    (message) => message.type === 'attendance_update',
+    (message) => message.type === 'attendance_update' || message.type === 'attendance.updated',
     [callback]
   );
 };
@@ -323,6 +324,20 @@ export const useLeaderboardUpdates = (callback: (data: any) => void) => {
     'leaderboard-updates',
     callback,
     (message) => message.type === 'leaderboard_update',
+    [callback]
+  );
+};
+
+// NEW: Specific hook for attendance history real-time updates
+export const useAttendanceHistoryUpdates = (callback: (data: any) => void) => {
+  return useWebSocket(
+    'attendance-history-updates',
+    callback,
+    (message) => {
+      // Listen for attendance.updated events specifically for history tab
+      return message.type === 'attendance.updated' && 
+             (message.action === 'checkin' || message.action === 'checkout');
+    },
     [callback]
   );
 };

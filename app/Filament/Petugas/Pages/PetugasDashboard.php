@@ -7,19 +7,19 @@ use App\Models\PengeluaranHarian;
 use App\Models\JumlahPasienHarian;
 use App\Models\Tindakan;
 use App\Models\User;
-use Filament\Pages\Dashboard;
+use Filament\Pages\Dashboard as BaseDashboard;
 use Illuminate\Support\Facades\DB;
 
-class PetugasDashboard extends Dashboard
+class PetugasDashboard extends BaseDashboard
 {
     protected static ?string $navigationIcon = 'heroicon-o-chart-bar-square';
     
-    protected static string $view = 'filament.petugas.pages.petugas-dashboard';
+    protected static string $view = 'filament.petugas.pages.elegant-glassmorphic-dashboard';
     
     public function getWidgets(): array
     {
         return [
-            // Widgets are rendered directly in the view using @livewire
+            \App\Filament\Petugas\Widgets\PetugasHeaderWidget::class,
         ];
     }
     
@@ -29,7 +29,20 @@ class PetugasDashboard extends Dashboard
     
     protected static ?int $navigationSort = 1;
     
-    protected static ?string $navigationGroup = 'Dashboard';
+    protected static ?string $navigationGroup = null;
+    
+    protected static ?string $slug = 'dashboard';
+    
+    // Ensure navigation visibility - single dashboard only
+    public static function shouldRegisterNavigation(): bool
+    {
+        return true;
+    }
+    
+    public static function canView(): bool
+    {
+        return true;
+    }
     
     public function getOperationalSummary(): array
     {

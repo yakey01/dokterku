@@ -355,7 +355,7 @@ class FinancialAlertService
         $alerts = [];
         
         // Check for large pending transactions
-        $criticalPendingAmount = DB::table('pendapatan_harian')
+        $criticalPendingAmount = DB::table('pendapatan_harians')
             ->where('status_validasi', 'pending')
             ->where('nominal', '>=', $thresholds['critical_amount_threshold'])
             ->where('created_at', '>=', now()->subDays(3))

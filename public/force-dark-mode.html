@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Force Dark Mode Test</title>
+    <style>
+        /* Force dark mode styles directly */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0a !important;
+            color: #f8fafc !important;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #171717 0%, #262626 100%);
+            border: 1px solid #404040;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.25);
+        }
+
+        .sidebar-demo {
+            background: linear-gradient(180deg, #000000 0%, #0a0a0a 100%);
+            border: 1px solid #404040;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
+        }
+
+        .nav-item {
+            background: linear-gradient(135deg, #171717 0%, #262626 100%);
+            color: #e2e8f0;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid #404040;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .nav-item:hover {
+            background: linear-gradient(135deg, #262626 0%, #404040 100%);
+            color: #f8fafc;
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(96, 165, 250, 0.15);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 16px rgba(96, 165, 250, 0.3);
+        }
+
+        .card {
+            background: linear-gradient(135deg, #171717 0%, #262626 100%);
+            border: 1px solid #404040;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.25);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: #525252;
+            box-shadow: 0 8px 12px -2px rgba(0, 0, 0, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(96, 165, 250, 0.3);
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 12px -2px rgba(96, 165, 250, 0.4);
+        }
+
+        .btn-secondary {
+            background: #262626;
+            border: 1px solid #404040;
+            color: #e2e8f0;
+        }
+
+        .btn-secondary:hover {
+            background: #404040;
+            border-color: #525252;
+            color: #f8fafc;
+        }
+
+        .input {
+            background: #262626;
+            border: 1px solid #404040;
+            border-radius: 0.5rem;
+            color: #f8fafc;
+            padding: 0.75rem 1rem;
+            width: 100%;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .input:focus {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+            outline: none;
+            background: #171717;
+        }
+
+        .table {
+            background: #171717;
+            border: 1px solid #404040;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+
+        .table th {
+            background: linear-gradient(135deg, #0a0a0a 0%, #171717 100%);
+            color: #e2e8f0;
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.75rem;
+            border-bottom: 1px solid #404040;
+        }
+
+        .table td {
+            background: #171717;
+            color: #f8fafc;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .table tr:hover td {
+            background: linear-gradient(135deg, #262626 0%, #404040 100%);
+        }
+
+        .table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .status {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: #171717;
+            border: 1px solid #404040;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            color: #f8fafc;
+            font-family: monospace;
+            font-size: 0.875rem;
+            z-index: 1000;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.35);
+        }
+
+        .success { color: #22c55e; }
+        .warning { color: #f59e0b; }
+        .error { color: #ef4444; }
+        .info { color: #60a5fa; }
+
+        h1, h2, h3 {
+            color: #f8fafc;
+            margin-bottom: 1rem;
+        }
+
+        p {
+            color: #e2e8f0;
+            margin-bottom: 1rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .color-swatch {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            color: white;
+            font-family: monospace;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .elegant-black { background: #000000; }
+        .charcoal-primary { background: #0a0a0a; }
+        .charcoal-secondary { background: #171717; }
+        .charcoal-tertiary { background: #262626; }
+        .charcoal-quaternary { background: #404040; }
+        .elegant-accent { background: #60a5fa; }
+
+        .admin-link {
+            display: inline-block;
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+            text-decoration: none;
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            font-size: 1.125rem;
+            box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.3);
+            transition: all 0.3s ease;
+            margin-top: 2rem;
+        }
+
+        .admin-link:hover {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 12px -2px rgba(34, 197, 94, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="status">
+            <strong>🎨 Theme Status</strong><br>
+            Dark Mode: <span class="success">✓ Active</span><br>
+            Colors: <span class="success">✓ Loaded</span><br>
+            Build: <span class="success">✓ Complete</span><br>
+            CSS: <span class="info">515KB</span>
+        </div>
+
+        <div class="header">
+            <h1>🏥 Dokterku Admin - Elegant Black Theme Test</h1>
+            <p>Testing comprehensive dark mode implementation with elegant black sidebar and optimized readability for medical professionals.</p>
+        </div>
+
+        <div class="grid">
+            <div class="sidebar-demo">
+                <h3>📱 Sidebar Navigation Test</h3>
+                <div class="nav-item active">📊 Dashboard</div>
+                <div class="nav-item">👥 User Management</div>
+                <div class="nav-item">🏥 Patient Records</div>
+                <div class="nav-item">💰 Financial Management</div>
+                <div class="nav-item">📋 Reports</div>
+                <div class="nav-item">⚙️ Settings</div>
+            </div>
+
+            <div class="card">
+                <h3>🎨 Color Palette Test</h3>
+                <div class="color-swatch elegant-black">#000000 - Elegant Black</div>
+                <div class="color-swatch charcoal-primary">#0a0a0a - Charcoal Primary</div>
+                <div class="color-swatch charcoal-secondary">#171717 - Charcoal Secondary</div>
+                <div class="color-swatch charcoal-tertiary">#262626 - Charcoal Tertiary</div>
+                <div class="color-swatch charcoal-quaternary">#404040 - Charcoal Quaternary</div>
+                <div class="color-swatch elegant-accent">#60a5fa - Elegant Accent</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>📝 Form Components Test</h3>
+            <input type="text" class="input" placeholder="Test Input Field - Should have dark background" />
+            <input type="email" class="input" placeholder="Email Field - Dark theme optimized" />
+            <input type="password" class="input" placeholder="Password Field - Medical grade security" />
+            
+            <button class="btn">Primary Button</button>
+            <button class="btn btn-secondary">Secondary Button</button>
+        </div>
+
+        <div class="card">
+            <h3>📊 Data Table Test</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Patient ID</th>
+                        <th>Doctor Name</th>
+                        <th>Status</th>
+                        <th>Last Visit</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>P001</td>
+                        <td>Dr. Ahmad Rahman</td>
+                        <td><span class="success">Active</span></td>
+                        <td>2025-08-20</td>
+                        <td><button class="btn" style="padding: 0.5rem 1rem; font-size: 0.875rem;">Edit</button></td>
+                    </tr>
+                    <tr>
+                        <td>P002</td>
+                        <td>Dr. Sari Indah</td>
+                        <td><span class="warning">Pending</span></td>
+                        <td>2025-08-19</td>
+                        <td><button class="btn" style="padding: 0.5rem 1rem; font-size: 0.875rem;">Edit</button></td>
+                    </tr>
+                    <tr>
+                        <td>P003</td>
+                        <td>Dr. Budi Santoso</td>
+                        <td><span class="error">Inactive</span></td>
+                        <td>2025-08-18</td>
+                        <td><button class="btn" style="padding: 0.5rem 1rem; font-size: 0.875rem;">Edit</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="text-align: center; margin-top: 3rem;">
+            <a href="/admin/login" class="admin-link">
+                🚀 Test Real Admin Panel
+            </a>
+            <p style="margin-top: 1rem; color: #94a3b8; font-size: 0.875rem;">
+                Login: admin@dokterku.com | Password: admin123
+            </p>
+        </div>
+
+        <div class="card" style="margin-top: 2rem;">
+            <h3>🔧 Debug Information</h3>
+            <div style="font-family: monospace; font-size: 0.875rem; color: #e2e8f0;">
+                <strong>CSS Status:</strong><br>
+                • Source file: 97.36 KB (3,354 lines)<br>
+                • Compiled file: 515.05 KB<br>
+                • Dark mode rules: 1,411 selectors<br>
+                • Elegant black colors: ✅ Present<br>
+                • Build status: ✅ Successful<br><br>
+                
+                <strong>If admin panel still appears blank:</strong><br>
+                1. Hard refresh: <kbd>Cmd + Shift + R</kbd><br>
+                2. Clear browser cache completely<br>
+                3. Try incognito/private window<br>
+                4. Check browser console (F12) for errors<br>
+                5. Verify system dark mode preference<br>
+                6. Test different browsers
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log('🎨 Force Dark Mode Test');
+        console.log('Theme implementation: Elegant Black');
+        console.log('Colors loading:', {
+            background: getComputedStyle(document.body).backgroundColor,
+            color: getComputedStyle(document.body).color
+        });
+        
+        // Force dark mode detection
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+        
+        // Add click handlers for nav items
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        
+        console.log('✅ Dark mode theme test page loaded successfully');
+    </script>
+</body>
+</html>

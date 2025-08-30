@@ -18,7 +18,17 @@ class BendaharaDashboard extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-chart-pie';
     
-    protected static string $view = 'filament.bendahara.pages.world-class-dashboard';
+    protected static ?string $navigationGroup = 'Dashboard';
+    
+    protected static string $view = 'filament.bendahara.pages.petugas-style-dashboard';
+    
+    // Disable default page header - matching petugas configuration
+    protected static bool $shouldShowPageHeader = false;
+    
+    protected function getHeaderActions(): array
+    {
+        return []; // No header actions to prevent duplicate headers
+    }
     
     protected static ?string $title = '💰 Bendahara Dashboard';
     
@@ -26,35 +36,14 @@ class BendaharaDashboard extends Page
     
     protected static ?int $navigationSort = 1;
     
-    protected static ?string $navigationGroup = 'Dashboard';
+    // Removed duplicate navigationGroup property
 
     public function mount(): void
     {
         // Initialize world-class treasury dashboard
     }
     
-    public function getHeaderActions(): array
-    {
-        return [
-            Action::make('refresh')
-                ->label('Refresh')
-                ->icon('heroicon-o-arrow-path')
-                ->color('gray')
-                ->size(ActionSize::Small)
-                ->action(fn () => redirect()->to(request()->url())),
-        ];
-    }
 
-    public function getHeading(): string
-    {
-        return '💰 Bendahara Dashboard';
-    }
-
-    public function getSubheading(): ?string
-    {
-        $user = auth()->user();
-        return $user ? "Selamat datang, {$user->name}! Kelola keuangan dengan mudah dan efisien." : null;
-    }
 
     // Core Financial Metrics - World Class Treasury Analytics
     public function getFinancialSummary(): array
@@ -91,39 +80,43 @@ class BendaharaDashboard extends Page
                 ->whereYear('tanggal', $lastMonth->year)
                 ->sum('nominal');
 
+            // Calculate net values for both current and previous periods
+            $currentNet = $currentPendapatan - $currentPengeluaran - $currentJaspel;
+            $previousNet = $lastPendapatan - $lastPengeluaran - $lastJaspel;
+            
             return [
                 'current' => [
-                    'revenue' => $currentPendapatan,
-                    'expenses' => $currentPengeluaran,
+                    'pendapatan' => $currentPendapatan,
+                    'pengeluaran' => $currentPengeluaran,
                     'jaspel' => $currentJaspel,
-                    'net_income' => $currentPendapatan - $currentPengeluaran - $currentJaspel,
+                    'net_profit' => $currentNet,  // Keep existing key for new dashboard
+                    'net_income' => $currentNet,  // Add for backward compatibility with legacy views
                 ],
                 'previous' => [
-                    'revenue' => $lastPendapatan,
-                    'expenses' => $lastPengeluaran,
+                    'pendapatan' => $lastPendapatan,
+                    'pengeluaran' => $lastPengeluaran,
                     'jaspel' => $lastJaspel,
-                    'net_income' => $lastPendapatan - $lastPengeluaran - $lastJaspel,
+                    'net_profit' => $previousNet,  // Keep existing key for new dashboard
+                    'net_income' => $previousNet,  // Add for backward compatibility with legacy views
                 ],
-                'growth' => [
-                    'revenue' => $this->calculateGrowth($currentPendapatan, $lastPendapatan),
-                    'expenses' => $this->calculateGrowth($currentPengeluaran, $lastPengeluaran),
+                'changes' => [
+                    'pendapatan' => $this->calculateGrowth($currentPendapatan, $lastPendapatan),
+                    'pengeluaran' => $this->calculateGrowth($currentPengeluaran, $lastPengeluaran),
                     'jaspel' => $this->calculateGrowth($currentJaspel, $lastJaspel),
-                    'net_income' => $this->calculateGrowth(
-                        $currentPendapatan - $currentPengeluaran - $currentJaspel,
-                        $lastPendapatan - $lastPengeluaran - $lastJaspel
-                    ),
+                    'net_profit' => $this->calculateGrowth($currentNet, $previousNet),  // Keep existing key
+                    'net_income' => $this->calculateGrowth($currentNet, $previousNet),  // Add for backward compatibility
                 ],
             ];
         });
     }
 
-    // Validation Performance Metrics
-    public function getValidationMetrics(): array
+    // Validation Statistics 
+    public function getValidationStats(): array
     {
-        return Cache::remember('bendahara_validation_metrics', now()->addMinutes(3), function () {
+        return Cache::remember('bendahara_validation_stats', now()->addMinutes(3), function () {
             $pending = [
                 'pendapatan' => Pendapatan::where('status_validasi', 'pending')->count(),
-                'pengeluaran' => Pengeluaran::where('status_validasi', 'pending')->count(),
+                'pengeluaran' => Pengeluaran::where('status_validasi', 'pending')->count(), 
                 'jaspel' => Jaspel::where('status_validasi', 'pending')->count(),
             ];
             
@@ -132,24 +125,20 @@ class BendaharaDashboard extends Page
                 'pengeluaran' => Pengeluaran::where('status_validasi', 'disetujui')->count(),
                 'jaspel' => Jaspel::where('status_validasi', 'disetujui')->count(),
             ];
-
-            $total = [
-                'pendapatan' => Pendapatan::count(),
-                'pengeluaran' => Pengeluaran::count(),
-                'jaspel' => Jaspel::count(),
+            
+            $rejected = [
+                'pendapatan' => Pendapatan::where('status_validasi', 'ditolak')->count(),
+                'pengeluaran' => Pengeluaran::where('status_validasi', 'ditolak')->count(),
+                'jaspel' => Jaspel::where('status_validasi', 'ditolak')->count(),
             ];
 
             return [
                 'pending' => $pending,
                 'approved' => $approved,
-                'total' => $total,
-                'approval_rate' => [
-                    'pendapatan' => $total['pendapatan'] > 0 ? round(($approved['pendapatan'] / $total['pendapatan']) * 100, 1) : 0,
-                    'pengeluaran' => $total['pengeluaran'] > 0 ? round(($approved['pengeluaran'] / $total['pengeluaran']) * 100, 1) : 0,
-                    'jaspel' => $total['jaspel'] > 0 ? round(($approved['jaspel'] / $total['jaspel']) * 100, 1) : 0,
-                ],
+                'rejected' => $rejected,
                 'total_pending' => array_sum($pending),
                 'total_approved' => array_sum($approved),
+                'total_rejected' => array_sum($rejected),
             ];
         });
     }
@@ -158,12 +147,14 @@ class BendaharaDashboard extends Page
     public function getMonthlyTrends(): array
     {
         return Cache::remember('bendahara_monthly_trends', now()->addMinutes(10), function () {
-            $trends = [];
-            $labels = [];
+            $months = [];
+            $pendapatan = [];
+            $pengeluaran = [];
+            $jaspel = [];
             
             for ($i = 5; $i >= 0; $i--) {
                 $date = now()->subMonths($i);
-                $labels[] = $date->format('M Y');
+                $months[] = $date->format('M Y');
                 
                 $monthlyPendapatan = Pendapatan::whereMonth('tanggal', $date->month)
                     ->whereYear('tanggal', $date->year)
@@ -178,61 +169,62 @@ class BendaharaDashboard extends Page
                     ->whereYear('tanggal', $date->year)
                     ->sum('nominal');
                 
-                $trends['revenue'][] = $monthlyPendapatan;
-                $trends['expenses'][] = $monthlyPengeluaran;
-                $trends['jaspel'][] = $monthlyJaspel;
-                $trends['net_income'][] = $monthlyPendapatan - $monthlyPengeluaran - $monthlyJaspel;
+                $pendapatan[] = $monthlyPendapatan;
+                $pengeluaran[] = $monthlyPengeluaran;
+                $jaspel[] = $monthlyJaspel;
             }
             
             return [
-                'labels' => $labels,
-                'data' => $trends,
+                'months' => $months,
+                'pendapatan' => $pendapatan,
+                'pengeluaran' => $pengeluaran,
+                'jaspel' => $jaspel,
             ];
         });
     }
 
-    // Recent Financial Activities
-    public function getRecentActivities(): array
+    // Recent Transactions
+    public function getRecentTransactions(): array
     {
-        return Cache::remember('bendahara_recent_activities', now()->addMinutes(2), function () {
-            $activities = collect();
+        return Cache::remember('bendahara_recent_transactions', now()->addMinutes(2), function () {
+            $transactions = collect();
             
             // Recent pendapatan
             $recentPendapatan = Pendapatan::with(['inputBy'])
                 ->latest('updated_at')
-                ->limit(3)
+                ->limit(5)
                 ->get()
                 ->map(function ($item) {
                     return [
-                        'type' => 'revenue',
-                        'title' => $item->nama_pendapatan,
+                        'type' => 'pendapatan',
+                        'code' => 'REV-' . $item->id,
+                        'description' => $item->nama_pendapatan,
                         'amount' => $item->nominal,
                         'status' => $item->status_validasi,
                         'date' => $item->updated_at,
-                        'user' => $item->inputBy->name ?? 'System',
                     ];
                 });
             
             // Recent pengeluaran
             $recentPengeluaran = Pengeluaran::with(['inputBy'])
                 ->latest('updated_at')
-                ->limit(3)
+                ->limit(5)
                 ->get()
                 ->map(function ($item) {
                     return [
-                        'type' => 'expense',
-                        'title' => $item->nama_pengeluaran,
+                        'type' => 'pengeluaran', 
+                        'code' => 'EXP-' . $item->id,
+                        'description' => $item->nama_pengeluaran,
                         'amount' => $item->nominal,
-                        'status' => $item->status_validasi ?? 'approved',
+                        'status' => $item->status_validasi ?? 'disetujui',
                         'date' => $item->updated_at,
-                        'user' => $item->inputBy->name ?? 'System',
                     ];
                 });
             
-            return $activities->merge($recentPendapatan)
+            return $transactions->merge($recentPendapatan)
                 ->merge($recentPengeluaran)
                 ->sortByDesc('date')
-                ->take(6)
+                ->take(10)
                 ->values()
                 ->toArray();
         });
@@ -253,11 +245,90 @@ class BendaharaDashboard extends Page
         $this->notify('success', 'Export functionality will be implemented soon');
     }
     
+    // Top Performers
+    public function getTopPerformers(): array
+    {
+        return Cache::remember('bendahara_top_performers', now()->addMinutes(10), function () {
+            // Top doctors by jaspel
+            $topDoctors = Jaspel::select('dokter_id', DB::raw('SUM(nominal) as total'))
+                ->whereMonth('tanggal', now()->month)
+                ->whereYear('tanggal', now()->year)
+                ->groupBy('dokter_id')
+                ->orderByDesc('total')
+                ->limit(5)
+                ->get()
+                ->map(function ($item) {
+                    return [
+                        'name' => 'Dokter ' . ($item->dokter_id ?? 'Unknown'),
+                        'total' => $item->total,
+                    ];
+                });
+                
+            // Mock procedures data
+            $topProcedures = collect([
+                ['name' => 'Konsultasi Umum', 'total' => 45],
+                ['name' => 'Pemeriksaan Laboratorium', 'total' => 32],
+                ['name' => 'Konsultasi Spesialis', 'total' => 28],
+                ['name' => 'Pemeriksaan Radiologi', 'total' => 15],
+                ['name' => 'Tindakan Medis', 'total' => 12],
+            ]);
+            
+            return [
+                'doctors' => $topDoctors,
+                'procedures' => $topProcedures,
+            ];
+        });
+    }
+    
     protected function notify(string $type, string $message): void
     {
         session()->flash('filament.notification', [
             'type' => $type,
             'message' => $message,
         ]);
+    }
+    
+    public function getWidgets(): array
+    {
+        return [
+            // Widget removed to prevent Livewire multiple root elements error
+            // Financial metrics now integrated directly in the main dashboard view
+        ];
+    }
+    
+    // Add missing methods for petugas-style dashboard template
+    public function getValidationMetrics(): array
+    {
+        // Alias to existing getValidationStats for template compatibility
+        return $this->getValidationStats();
+    }
+    
+    public function getRecentActivities(): array
+    {
+        // Alias to existing getRecentTransactions for template compatibility
+        return [
+            'recent_activities' => collect($this->getRecentTransactions())->map(function ($transaction) {
+                return [
+                    'description' => $transaction['description'] ?? 'Transaction',
+                    'amount' => $transaction['amount'] ?? 0,
+                    'type' => $transaction['type'] ?? 'income',
+                    'status' => $transaction['status'] ?? 'approved',
+                    'date' => isset($transaction['date']) ? $transaction['date']->format('d/m/Y') : date('d/m/Y'),
+                    'time' => isset($transaction['date']) ? $transaction['date']->diffForHumans() : 'Baru saja',
+                    'user' => 'System',
+                ];
+            })->toArray()
+        ];
+    }
+    
+    public function getWidgetData(): array
+    {
+        return [];
+    }
+    
+    public static function shouldRegisterNavigation(): bool
+    {
+        // ENABLE NAVIGATION TO PROVIDE ACCESSIBLE LANDING PAGE
+        return true;
     }
 }

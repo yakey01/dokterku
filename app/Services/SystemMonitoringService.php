@@ -149,22 +149,32 @@ class SystemMonitoringService
             );
         }
 
-        // Database size (MySQL)
+        // Database size (adapt to current connection)
         try {
-            $dbName = config('database.connections.mysql.database');
-            $sizeResult = DB::select("
-                SELECT 
-                    ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS size_mb 
-                FROM information_schema.tables 
-                WHERE table_schema = ?
-            ", [$dbName]);
+            $defaultConnection = config('database.default');
+            $dbSize = 0;
             
-            $dbSize = $sizeResult[0]->size_mb ?? 0;
+            if ($defaultConnection === 'mysql') {
+                $dbName = config('database.connections.mysql.database');
+                $sizeResult = DB::select("
+                    SELECT 
+                        ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS size_mb 
+                    FROM information_schema.tables 
+                    WHERE table_schema = ?
+                ", [$dbName]);
+                $dbSize = $sizeResult[0]->size_mb ?? 0;
+            } elseif ($defaultConnection === 'sqlite') {
+                // For SQLite, get file size
+                $dbPath = config('database.connections.sqlite.database');
+                if (file_exists($dbPath)) {
+                    $dbSize = round(filesize($dbPath) / 1024 / 1024, 2);
+                }
+            }
             
             SystemMetric::recordDatabaseMetric(
                 'database_size',
                 $dbSize,
-                ['database' => $dbName, 'unit' => 'MB'],
+                ['database' => $defaultConnection, 'unit' => 'MB'],
                 1000 // Alert if database > 1GB
             );
         } catch (\Exception $e) {

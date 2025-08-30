@@ -1243,12 +1243,33 @@ const CreativeAttendanceDashboard = () => {
 
     // Start smart polling
     startSmartPolling();
+    
+    // 🔄 REAL-TIME SYNC: Listen for JadwalJaga status changes
+    const handleJadwalStatusChange = (event) => {
+      console.log('🔔 JadwalJaga status changed, refreshing history...', event.detail);
+      loadAttendanceHistory(filterPeriod); // Force refresh with fresh data
+    };
+    
+    const handleAttendanceUpdate = (event) => {
+      console.log('🔔 Attendance updated, refreshing history...', event.detail);
+      loadAttendanceHistory(filterPeriod);
+    };
+    
+    // Add event listeners for cross-component sync
+    window.addEventListener('jadwal-status-changed', handleJadwalStatusChange);
+    window.addEventListener('attendance-updated', handleAttendanceUpdate);
+    window.addEventListener('attendance-synced', handleAttendanceUpdate);
 
     return () => {
       // Enhanced cleanup to prevent DOM manipulation errors
       if (pollingIntervalRef.current) {
         window.clearInterval(pollingIntervalRef.current);
       }
+      
+      // Clean up event listeners
+      window.removeEventListener('jadwal-status-changed', handleJadwalStatusChange);
+      window.removeEventListener('attendance-updated', handleAttendanceUpdate);
+      window.removeEventListener('attendance-synced', handleAttendanceUpdate);
       
       // Clean up any remaining loading alerts using GlobalDOMSafety
       try {
@@ -2279,14 +2300,17 @@ const CreativeAttendanceDashboard = () => {
         endDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
       }
       
-      // Fetch attendance history from API with proper web session auth
-      const response = await fetch(`/api/v2/dashboards/dokter/presensi?start=${startDate.toISOString().split('T')[0]}&end=${endDate.toISOString().split('T')[0]}`, {
+      // 🔄 UPDATED: Use existing API with cache busting for real-time data
+      const cacheBuster = Date.now(); // Force fresh data
+      const response = await fetch(`/api/v2/dashboards/dokter/presensi?start=${startDate.toISOString().split('T')[0]}&end=${endDate.toISOString().split('T')[0]}&refresh=${cacheBuster}`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': csrfToken,
-          'X-Requested-With': 'XMLHttpRequest'
+          'X-Requested-With': 'XMLHttpRequest',
+          'Cache-Control': 'no-cache', // Force fresh data
+          'Pragma': 'no-cache'
         },
         credentials: 'same-origin'
       });
@@ -2297,9 +2321,10 @@ const CreativeAttendanceDashboard = () => {
       
       const data = await response.json();
       
-      // Debug: Log API response  
-      console.log('🚨 FRONTEND API CALLED:', `/api/v2/dashboards/dokter/presensi?start=${startDate.toISOString().split('T')[0]}&end=${endDate.toISOString().split('T')[0]}`);
-      console.log('🔍 FRONTEND API Response:', data);
+      // 📊 Debug: Log API response with cache busting  
+      console.log('🔄 UPDATED API CALLED:', `/api/v2/dashboards/dokter/presensi?start=${startDate.toISOString().split('T')[0]}&end=${endDate.toISOString().split('T')[0]}&refresh=${cacheBuster}`);
+      console.log('✅ API Response:', data);
+      console.log('🎯 Using JadwalJaga as source of truth in backend');
       
       // 🔍 CRITICAL DEBUG: Check first record in detail
       if (data?.data?.history && data.data.history.length > 0) {
@@ -2320,8 +2345,17 @@ const CreativeAttendanceDashboard = () => {
       // Transform API data to component format
       const history = data?.data?.history || [];
       
-      // CRITICAL FIX: Also include today_records in history if they exist
-      const todayRecords = data?.data?.today_records || [];
+      // Check for August 21st specifically for debugging
+      const aug21Record = history.find(r => 
+        r.date === '2025-08-21' || r.tanggal === '21/08/2025'
+      );
+      
+      if (aug21Record) {
+        console.log('🎯 AUGUST 21ST FOUND IN API DATA:', aug21Record);
+      } else {
+        console.log('❌ August 21st not found in API data');
+        console.log('📅 Available dates:', history.map(r => r.tanggal || r.date).join(', '));
+      }
       const allRecords = [...history];
       
       // Add today's records if they're not already in history
@@ -2347,23 +2381,20 @@ const CreativeAttendanceDashboard = () => {
       console.log('Today records found:', todayRecords.length);
       console.log('Total records to process:', allRecords.length);
       
-      const formattedHistory = allRecords.map((record: any, recordIndex: number) => {
-        // ENHANCED: Add comprehensive record validation
+      const formattedHistory = history.map((record: any, recordIndex: number) => {
+        // ENHANCED: Add comprehensive record validation for unified format
         try {
           if (!record || typeof record !== 'object') {
-            console.warn(`⚠️ Invalid attendance record at index ${recordIndex}:`, record);
+            console.warn(`⚠️ Invalid unified record at index ${recordIndex}:`, record);
             return null;
           }
-        // Format date - ENHANCED: Better date handling for today's records
-        let dateValue = record.date || record.tanggal;
         
-        // Handle case where date might be missing - use today's date if this is a today_record
-        if (!dateValue) {
-          dateValue = new Date().toISOString().split('T')[0];
-        }
+        // 🎯 UNIFIED FORMAT: Use tanggal_full (Y-m-d) and tanggal (d/m/Y)
+        const dateValue = record.tanggal_full || record.date;
+        const displayDate = record.tanggal || formatShortDate(new Date(dateValue));
         
         const date = new Date(dateValue);
-        const formattedDate = formatShortDate(date);
+        const formattedDate = displayDate;
         
         // Debug: Log date processing for today's records
         if (dateValue === todayDate) {
@@ -2518,6 +2549,7 @@ const CreativeAttendanceDashboard = () => {
             }
           })()
         };
+        
         } catch (error) {
           console.error(`❌ Error processing attendance record at index ${recordIndex}:`, error, record);
           // Return null for invalid records - they'll be filtered out

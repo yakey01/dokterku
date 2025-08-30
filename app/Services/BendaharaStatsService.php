@@ -125,8 +125,9 @@ class BendaharaStatsService
                     ')
                     ->first();
                 
-                // JASPEL stats
-                $jaspelPending = Jaspel::whereDate('created_at', $date)
+                // JASPEL stats - WORKFLOW COMPLIANCE: Only count petugas-input data
+                $jaspelPending = Jaspel::inputByPetugasOnly()
+                    ->whereDate('created_at', $date)
                     ->where('status_pembayaran', '!=', 'paid')
                     ->sum('total_jaspel');
                 
@@ -285,8 +286,9 @@ class BendaharaStatsService
                 ')
                 ->first();
             
-            // JASPEL stats
-            $jaspelPending = Jaspel::whereBetween('created_at', [$month, $endOfMonth])
+            // JASPEL stats - WORKFLOW COMPLIANCE: Only count petugas-input data  
+            $jaspelPending = Jaspel::inputByPetugasOnly()
+                ->whereBetween('created_at', [$month, $endOfMonth])
                 ->where('status_pembayaran', '!=', 'paid')
                 ->sum('total_jaspel');
             
@@ -377,7 +379,7 @@ class BendaharaStatsService
             }
             
             // Get all data in bulk queries
-            $pendapatanStats = DB::table('pendapatan_harian')
+            $pendapatanStats = DB::table('pendapatan_harians')
                 ->selectRaw('
                     tanggal_input as date, 
                     SUM(nominal) as pendapatan_sum,

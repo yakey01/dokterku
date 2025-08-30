@@ -14,6 +14,32 @@ use Illuminate\Contracts\Support\Htmlable;
 class ViewAttendanceRecap extends ViewRecord
 {
     protected static string $resource = AttendanceRecapResource::class;
+    
+    protected function resolveRecord($key): AttendanceRecap
+    {
+        // Get filter values from session or use defaults
+        $month = request('month', session('tableFilters.month.value', now()->month));
+        $year = request('year', session('tableFilters.year.value', now()->year));
+        $staffType = request('staff_type', session('tableFilters.staff_type.value'));
+        
+        // Get all recap data
+        $data = AttendanceRecap::getRecapData($month, $year, $staffType);
+        
+        // Find the specific record by staff_id
+        $recordData = $data->firstWhere('staff_id', $key);
+        
+        if (!$recordData) {
+            abort(404, 'Record not found');
+        }
+        
+        // Create virtual model instance
+        $model = new AttendanceRecap();
+        $model->fill($recordData);
+        $model->exists = true;
+        $model->id = $recordData['staff_id'];
+        
+        return $model;
+    }
 
     protected function getHeaderActions(): array
     {

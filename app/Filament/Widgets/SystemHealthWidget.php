@@ -7,6 +7,7 @@ use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 
 class SystemHealthWidget extends BaseWidget
 {
@@ -22,6 +23,11 @@ class SystemHealthWidget extends BaseWidget
     protected function getStats(): array
     {
         try {
+            // Check if system_metrics table exists
+            if (!Schema::hasTable('system_metrics')) {
+                return $this->getFallbackStats('Table system_metrics not found');
+            }
+            
             $healthSummary = SystemMetric::getHealthSummary();
             
             // Get current system metrics
@@ -51,15 +57,8 @@ class SystemHealthWidget extends BaseWidget
             $overallStatus = $healthSummary['overall_status'] ?? 'healthy';
             $criticalCount = $healthSummary['critical'] ?? 0;
         } catch (\Exception $e) {
-            // Fallback values in case of error
-            $memoryUsage = 0;
-            $memoryStatus = 'unknown';
-            $dbConnectionTime = 0;
-            $dbStatus = 'unknown';
-            $responseTime = 0;
-            $responseStatus = 'unknown';
-            $overallStatus = 'unknown';
-            $criticalCount = 0;
+            \Log::error('SystemHealthWidget error: ' . $e->getMessage());
+            return $this->getFallbackStats('Error loading metrics: ' . $e->getMessage());
         }
         
         return [
@@ -82,6 +81,31 @@ class SystemHealthWidget extends BaseWidget
                 ->description($this->getResponseDescription($responseTime))
                 ->descriptionIcon('heroicon-m-rocket-launch')
                 ->color($this->getStatusColor($responseStatus)),
+        ];
+    }
+    
+    private function getFallbackStats($reason = 'No data available'): array
+    {
+        return [
+            Stat::make('System Health', 'Unknown')
+                ->description($reason)
+                ->descriptionIcon('heroicon-m-question-mark-circle')
+                ->color('gray'),
+                
+            Stat::make('Memory Usage', 'N/A')
+                ->description('Metrics unavailable')
+                ->descriptionIcon('heroicon-m-cpu-chip')
+                ->color('gray'),
+                
+            Stat::make('Database', 'N/A')
+                ->description('Metrics unavailable')
+                ->descriptionIcon('heroicon-m-circle-stack')
+                ->color('gray'),
+                
+            Stat::make('Response Time', 'N/A')
+                ->description('Metrics unavailable')
+                ->descriptionIcon('heroicon-m-rocket-launch')
+                ->color('gray'),
         ];
     }
     

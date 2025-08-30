@@ -1,0 +1,531 @@
+<x-filament-panels::page>
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif; padding: 0; margin: 0;">
+        @php
+            $financial = $this->getFinancialSummary();
+            $monthlyTrends = $this->getMonthlyTrends();
+        @endphp
+        
+        <!-- Glassmorphic Cards Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-bottom: 32px;">
+            
+            <!-- Revenue Card -->
+            <div class="glass-card card-revenue" data-card="revenue">
+                <div style="display: flex; align-items: center; justify-content: space-between; height: 100%;">
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, rgba(34, 214, 95, 0.2) 0%, rgba(34, 214, 95, 0.1) 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); border: 1px solid rgba(34, 214, 95, 0.3);">
+                                <svg style="width: 24px; height: 24px; color: #22d65f;" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 2v20m5-10l-5-5-5 5"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p style="font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.7); margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">REVENUE</p>
+                                <p style="font-size: 11px; color: rgba(255,255,255,0.5); margin: 0;">This month</p>
+                            </div>
+                        </div>
+                        <div style="margin-left: 60px;">
+                            <div style="font-size: 28px; font-weight: 700; color: #22d65f; margin: 4px 0; font-variant-numeric: tabular-nums; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">
+                                Rp {{ number_format($financial['current']['pendapatan'], 0, ',', '.') }}
+                            </div>
+                            @if($financial['changes']['pendapatan'] != 0)
+                                <div style="display: flex; align-items: center; gap: 4px; color: {{ $financial['changes']['pendapatan'] > 0 ? '#22d65f' : '#f87171' }}; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 8px; backdrop-filter: blur(4px);">
+                                    <svg style="width: 12px; height: 12px;" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="{{ $financial['changes']['pendapatan'] > 0 ? 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6' : 'M13 17h8m0 0V9m0 8l-8-8-4 4-6-6' }}"/>
+                                    </svg>
+                                    <span style="font-size: 11px; font-weight: 600;">{{ $financial['changes']['pendapatan'] > 0 ? '+' : '' }}{{ $financial['changes']['pendapatan'] }}%</span>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expenses Card -->
+            <div class="glass-card card-expenses" data-card="expenses">
+                <div style="display: flex; align-items: center; justify-content: space-between; height: 100%;">
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, rgba(248, 113, 113, 0.2) 0%, rgba(248, 113, 113, 0.1) 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); border: 1px solid rgba(248, 113, 113, 0.3);">
+                                <svg style="width: 24px; height: 24px; color: #f87171;" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 22v-20m-5 10l5 5 5-5"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p style="font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.7); margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">EXPENSES</p>
+                                <p style="font-size: 11px; color: rgba(255,255,255,0.5); margin: 0;">This month</p>
+                            </div>
+                        </div>
+                        <div style="margin-left: 60px;">
+                            <div style="font-size: 28px; font-weight: 700; color: #f87171; margin: 4px 0; font-variant-numeric: tabular-nums; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">
+                                Rp {{ number_format($financial['current']['pengeluaran'], 0, ',', '.') }}
+                            </div>
+                            @if($financial['changes']['pengeluaran'] != 0)
+                                <div style="display: flex; align-items: center; gap: 4px; color: {{ $financial['changes']['pengeluaran'] > 0 ? '#f87171' : '#22d65f' }}; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 8px; backdrop-filter: blur(4px);">
+                                    <svg style="width: 12px; height: 12px;" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="{{ $financial['changes']['pengeluaran'] > 0 ? 'M13 17h8m0 0V9m0 8l-8-8-4 4-6-6' : 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6' }}"/>
+                                    </svg>
+                                    <span style="font-size: 11px; font-weight: 600;">{{ $financial['changes']['pengeluaran'] > 0 ? '+' : '' }}{{ $financial['changes']['pengeluaran'] }}%</span>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Net Profit Card (Enhanced) -->
+            <div class="glass-card card-net-profit" data-card="net-profit">
+                <div style="display: flex; align-items: center; justify-content: space-between; height: 100%;">
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, {{ ($financial['current']['net_profit'] ?? 0) >= 0 ? 'rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.1)' : 'rgba(239, 68, 68, 0.2) 0%, rgba(239, 68, 68, 0.1)' }} 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); border: 1px solid {{ ($financial['current']['net_profit'] ?? 0) >= 0 ? 'rgba(59, 130, 246, 0.3)' : 'rgba(239, 68, 68, 0.3)' }};">
+                                <svg style="width: 24px; height: 24px; color: {{ ($financial['current']['net_profit'] ?? 0) >= 0 ? '#3b82f6' : '#ef4444' }};" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="{{ ($financial['current']['net_profit'] ?? 0) >= 0 ? 'M3 13h18M3 13l6-6m-6 6l6 6M21 13l-6-6m6 6l-6 6' : 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' }}"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p style="font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.7); margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">NET PROFIT</p>
+                                <p style="font-size: 11px; color: rgba(255,255,255,0.5); margin: 0;">{{ ($financial['current']['net_profit'] ?? 0) >= 0 ? 'Positive' : 'Negative' }}</p>
+                            </div>
+                        </div>
+                        <div style="margin-left: 60px;">
+                            <div style="font-size: 28px; font-weight: 700; color: {{ ($financial['current']['net_profit'] ?? 0) >= 0 ? '#3b82f6' : '#ef4444' }}; margin: 4px 0; font-variant-numeric: tabular-nums; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">
+                                Rp {{ number_format($financial['current']['net_profit'] ?? 0, 0, ',', '.') }}
+                            </div>
+                            @if(($financial['changes']['net_profit'] ?? 0) != 0)
+                                <div style="display: flex; align-items: center; gap: 4px; color: {{ ($financial['changes']['net_profit'] ?? 0) > 0 ? '#3b82f6' : '#ef4444' }}; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 8px; backdrop-filter: blur(4px);">
+                                    <svg style="width: 12px; height: 12px;" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="{{ ($financial['changes']['net_profit'] ?? 0) > 0 ? 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6' : 'M13 17h8m0 0V9m0 8l-8-8-4 4-6-6' }}"/>
+                                    </svg>
+                                    <span style="font-size: 11px; font-weight: 600;">{{ ($financial['changes']['net_profit'] ?? 0) > 0 ? '+' : '' }}{{ $financial['changes']['net_profit'] ?? 0 }}%</span>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Validation Queue Card -->
+            <div class="glass-card card-validation" data-card="validation">
+                @php
+                    $validationStats = $this->getValidationStats();
+                @endphp
+                <div style="display: flex; align-items: center; justify-content: space-between; height: 100%;">
+                    <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                            <div style="width: 48px; height: 48px; background: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(168, 85, 247, 0.1) 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); border: 1px solid rgba(168, 85, 247, 0.3);">
+                                <svg style="width: 24px; height: 24px; color: #a855f7;" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p style="font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.7); margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">VALIDATION</p>
+                                <p style="font-size: 11px; color: rgba(255,255,255,0.5); margin: 0;">Today</p>
+                            </div>
+                        </div>
+                        <div style="margin-left: 60px;">
+                            <div style="font-size: 28px; font-weight: 700; color: #a855f7; margin: 4px 0; font-variant-numeric: tabular-nums; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">
+                                {{ $validationStats['total_approved'] }}
+                            </div>
+                            @if($validationStats['total_pending'] > 0)
+                                <div style="display: flex; align-items: center; gap: 4px; color: #fbbf24; background: rgba(251, 191, 36, 0.1); padding: 4px 8px; border-radius: 8px; backdrop-filter: blur(4px); border: 1px solid rgba(251, 191, 36, 0.2);">
+                                    <svg style="width: 12px; height: 12px;" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 6v6h.01M12 18h.01"/>
+                                    </svg>
+                                    <span style="font-size: 11px; font-weight: 600;">{{ $validationStats['total_pending'] }} pending</span>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Single Minimalist Chart Section -->
+        <div class="glass-card chart-container" style="min-height: 360px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; padding: 4px 0;">
+                <div>
+                    <h3 style="font-size: 20px; font-weight: 600; color: rgba(255,255,255,0.9); margin: 0; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">Financial Overview</h3>
+                    <p style="font-size: 14px; color: rgba(255,255,255,0.6); margin: 4px 0 0 0;">6-month trends</p>
+                </div>
+                <div style="display: flex; gap: 16px; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 12px; height: 12px; background: #22d65f; border-radius: 50%; box-shadow: 0 0 8px rgba(34, 214, 95, 0.4);"></div>
+                        <span style="font-size: 12px; color: rgba(255,255,255,0.7); font-weight: 500;">Revenue</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 12px; height: 12px; background: #f87171; border-radius: 50%; box-shadow: 0 0 8px rgba(248, 113, 113, 0.4);"></div>
+                        <span style="font-size: 12px; color: rgba(255,255,255,0.7); font-weight: 500;">Expenses</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 12px; height: 12px; background: #3b82f6; border-radius: 50%; box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);"></div>
+                        <span style="font-size: 12px; color: rgba(255,255,255,0.7); font-weight: 500;">Net Profit</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Chart Canvas -->
+            <div style="position: relative; height: 280px; display: flex; align-items: center; justify-content: center;">
+                <canvas id="minimalistFinancialChart" style="max-width: 100%; max-height: 100%; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Glassmorphic CSS Styles -->
+    <style>
+        /* ===== GLASSMORPHIC CARD SYSTEM ===== */
+        .glass-card {
+            /* Glassmorphic Background */
+            background: rgba(255, 255, 255, 0.08) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            
+            /* Border & Shadow */
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            border-radius: 20px !important;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                0 2px 8px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+            
+            /* Padding & Layout */
+            padding: 24px !important;
+            position: relative !important;
+            overflow: hidden !important;
+            
+            /* Transition for hover effects */
+            transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+            transform-style: preserve-3d !important;
+            
+            /* Premium Color Overlay */
+            background-image: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.1) 0%, 
+                rgba(255, 255, 255, 0.05) 50%, 
+                rgba(0, 0, 0, 0.02) 100%) !important;
+        }
+        
+        /* ===== MAGNETIC HOVER EFFECTS ===== */
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.15) 0%, 
+                rgba(255, 255, 255, 0.05) 50%, 
+                rgba(255, 255, 255, 0.02) 100%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            border-radius: inherit;
+            pointer-events: none;
+        }
+        
+        .glass-card:hover::before {
+            opacity: 1;
+        }
+        
+        .glass-card:hover {
+            transform: translateY(-8px) scale(1.02) !important;
+            box-shadow: 
+                0 20px 50px rgba(0, 0, 0, 0.4),
+                0 8px 20px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.2) !important;
+        }
+        
+        /* ===== ANIMATED BORDERS ===== */
+        .glass-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: inherit;
+            padding: 2px;
+            background: linear-gradient(45deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.1), 
+                transparent, 
+                rgba(255, 255, 255, 0.1), 
+                transparent);
+            background-size: 200% 200%;
+            opacity: 0;
+            animation: borderShine 3s ease-in-out infinite;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: destination-out;
+            pointer-events: none;
+        }
+        
+        .glass-card:hover::after {
+            opacity: 1;
+        }
+        
+        /* ===== CARD SPECIFIC ACCENTS ===== */
+        .card-revenue:hover {
+            background-image: linear-gradient(135deg, 
+                rgba(34, 214, 95, 0.08) 0%, 
+                rgba(255, 255, 255, 0.05) 50%, 
+                rgba(0, 0, 0, 0.02) 100%) !important;
+        }
+        
+        .card-expenses:hover {
+            background-image: linear-gradient(135deg, 
+                rgba(248, 113, 113, 0.08) 0%, 
+                rgba(255, 255, 255, 0.05) 50%, 
+                rgba(0, 0, 0, 0.02) 100%) !important;
+        }
+        
+        .card-net-profit:hover {
+            background-image: linear-gradient(135deg, 
+                rgba(59, 130, 246, 0.08) 0%, 
+                rgba(255, 255, 255, 0.05) 50%, 
+                rgba(0, 0, 0, 0.02) 100%) !important;
+        }
+        
+        .card-validation:hover {
+            background-image: linear-gradient(135deg, 
+                rgba(168, 85, 247, 0.08) 0%, 
+                rgba(255, 255, 255, 0.05) 50%, 
+                rgba(0, 0, 0, 0.02) 100%) !important;
+        }
+        
+        /* ===== CHART CONTAINER SPECIAL STYLING ===== */
+        .chart-container {
+            background: rgba(255, 255, 255, 0.06) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        }
+        
+        .chart-container:hover {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: rgba(255, 255, 255, 0.25) !important;
+        }
+        
+        /* ===== RESPONSIVE DESIGN ===== */
+        @media (max-width: 768px) {
+            .glass-card {
+                padding: 20px !important;
+                border-radius: 16px !important;
+            }
+            
+            .chart-container {
+                min-height: 300px !important;
+            }
+        }
+        
+        /* ===== ANIMATIONS ===== */
+        @keyframes borderShine {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        @keyframes glassShimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        /* ===== ACCESSIBILITY ===== */
+        .glass-card:focus-visible {
+            outline: 2px solid rgba(59, 130, 246, 0.8);
+            outline-offset: 4px;
+        }
+        
+        @media (prefers-reduced-motion: reduce) {
+            .glass-card,
+            .glass-card::before,
+            .glass-card::after {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+    </style>
+
+    <!-- Chart.js Implementation -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📊 Minimalist Chart: Initializing...');
+            
+            setTimeout(initMinimalistChart, 500);
+        });
+        
+        function initMinimalistChart() {
+            const canvas = document.getElementById('minimalistFinancialChart');
+            if (!canvas) {
+                console.log('❌ Chart canvas not found');
+                return;
+            }
+            
+            // Destroy existing chart if exists
+            if (window.minimalistChart) {
+                window.minimalistChart.destroy();
+            }
+            
+            const ctx = canvas.getContext('2d');
+            
+            // Data from Laravel backend
+            let monthlyData;
+            try {
+                monthlyData = {!! json_encode($monthlyTrends ?? [
+                    'months' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    'pendapatan' => [800000, 950000, 1200000, 1100000, 1300000, 1000000],
+                    'pengeluaran' => [300000, 350000, 400000, 380000, 450000, 300000],
+                    'jaspel' => [0, 0, 0, 0, 0, 0]
+                ]) !!};
+            } catch (e) {
+                console.error('📊 Error parsing data:', e);
+                monthlyData = {
+                    months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    pendapatan: [800000, 950000, 1200000, 1100000, 1300000, 1000000],
+                    pengeluaran: [300000, 350000, 400000, 380000, 450000, 300000],
+                    jaspel: [0, 0, 0, 0, 0, 0]
+                };
+            }
+            
+            // Calculate net profit for each month
+            const netProfit = monthlyData.pendapatan.map((rev, index) => 
+                rev - (monthlyData.pengeluaran[index] || 0) - (monthlyData.jaspel[index] || 0)
+            );
+            
+            window.minimalistChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: monthlyData.months,
+                    datasets: [
+                        {
+                            label: 'Revenue',
+                            data: monthlyData.pendapatan,
+                            borderColor: '#22d65f',
+                            backgroundColor: 'rgba(34, 214, 95, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#22d65f',
+                            pointBorderColor: 'rgba(255, 255, 255, 0.8)',
+                            pointBorderWidth: 2,
+                            pointRadius: 6,
+                            pointHoverRadius: 8,
+                            pointHoverBackgroundColor: '#22d65f',
+                            pointHoverBorderColor: '#ffffff',
+                            pointHoverBorderWidth: 3
+                        },
+                        {
+                            label: 'Expenses',
+                            data: monthlyData.pengeluaran,
+                            borderColor: '#f87171',
+                            backgroundColor: 'rgba(248, 113, 113, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#f87171',
+                            pointBorderColor: 'rgba(255, 255, 255, 0.8)',
+                            pointBorderWidth: 2,
+                            pointRadius: 6,
+                            pointHoverRadius: 8,
+                            pointHoverBackgroundColor: '#f87171',
+                            pointHoverBorderColor: '#ffffff',
+                            pointHoverBorderWidth: 3
+                        },
+                        {
+                            label: 'Net Profit',
+                            data: netProfit,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderWidth: 4,
+                            fill: false,
+                            tension: 0.4,
+                            pointBackgroundColor: '#3b82f6',
+                            pointBorderColor: 'rgba(255, 255, 255, 0.9)',
+                            pointBorderWidth: 3,
+                            pointRadius: 7,
+                            pointHoverRadius: 10,
+                            pointHoverBackgroundColor: '#3b82f6',
+                            pointHoverBorderColor: '#ffffff',
+                            pointHoverBorderWidth: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            borderColor: 'rgba(255, 255, 255, 0.2)',
+                            borderWidth: 1,
+                            cornerRadius: 12,
+                            padding: 12,
+                            displayColors: true,
+                            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
+                            callbacks: {
+                                title: function(context) {
+                                    return monthlyData.months[context[0].dataIndex];
+                                },
+                                label: function(context) {
+                                    const value = context.parsed.y;
+                                    const formattedValue = new Intl.NumberFormat('id-ID', {
+                                        style: 'currency',
+                                        currency: 'IDR',
+                                        minimumFractionDigits: 0,
+                                        maximumFractionDigits: 0
+                                    }).format(value);
+                                    return context.dataset.label + ': ' + formattedValue;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: true,
+                                color: 'rgba(255, 255, 255, 0.08)',
+                                lineWidth: 1
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)',
+                                font: {
+                                    size: 12,
+                                    weight: '500'
+                                }
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.08)',
+                                lineWidth: 1
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)',
+                                font: {
+                                    size: 12,
+                                    weight: '500'
+                                },
+                                callback: function(value) {
+                                    return 'Rp ' + (value / 1000000).toFixed(1) + 'M';
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 2000,
+                        easing: 'easeInOutCubic'
+                    }
+                }
+            });
+            
+            console.log('✅ Minimalist chart initialized successfully');
+        }
+    </script>
+</x-filament-panels::page>

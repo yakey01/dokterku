@@ -18,4 +18,7 @@ return [
     
     // Medical Procedure Services
     App\Providers\MedicalProcedureServiceProvider::class,
+    
+    // Bendahara Component Services
+    App\Providers\BendaharaComponentServiceProvider::class,
 ];
