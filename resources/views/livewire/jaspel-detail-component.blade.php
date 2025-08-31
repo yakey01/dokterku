@@ -441,7 +441,7 @@
                             color: #22d65f;
                             margin-bottom: 0.25rem;
                             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-                        ">Rp {{ number_format($procedureData['total_jaspel'] ?? 0, 0, ',', '.') }}</div>
+                        " data-total-jaspel>Rp {{ number_format($procedureData['total_jaspel'] ?? 0, 0, ',', '.') }}</div>
                         <div style="
                             font-size: 0.75rem;
                             color: #6b7280;
@@ -557,7 +557,7 @@
     
     <!-- ENHANCED JAVASCRIPT -->
     <script>
-        // WORLD-CLASS ANIMATIONS
+        // STABLE PAGE RENDERING (No Infinite Loops)
         document.addEventListener('DOMContentLoaded', function() {
             // Progressive animation system
             const animateElements = () => {

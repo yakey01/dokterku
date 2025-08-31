@@ -13,8 +13,6 @@ class JaspelDetailComponent extends Component
     public ?User $user = null;
     public array $procedureData = [];
     public bool $dataLoaded = false;
-    
-    protected $listeners = ['refreshData' => 'loadProcedureData'];
 
     public function mount(int $userId): void
     {
@@ -44,59 +42,49 @@ class JaspelDetailComponent extends Component
     public function loadProcedureData(): void
     {
         try {
-            // TEMPORARY DEBUG: Use static data to test rendering
+            $procedureCalculator = app(ProcedureJaspelCalculationService::class);
+            $data = $procedureCalculator->calculateJaspelFromProcedures($this->userId, []);
+            
+            // Ensure all required keys exist
             $this->procedureData = [
-                'total_jaspel' => 1177000,
-                'total_procedures' => 5,
-                'tindakan_jaspel' => 64000,
-                'pasien_jaspel' => 1113000,
+                'total_jaspel' => $data['total_jaspel'] ?? 0,
+                'total_procedures' => $data['total_procedures'] ?? 0,
+                'tindakan_jaspel' => $data['tindakan_jaspel'] ?? 0,
+                'pasien_jaspel' => $data['pasien_jaspel'] ?? 0,
                 'breakdown' => [
-                    'tindakan_procedures' => [
-                        [
-                            'jenis_tindakan' => 'Jahit Luka (1-4 jahitan)',
-                            'tanggal' => '2025-08-19',
-                            'jaspel' => 12000,
-                            'tarif' => 30000
-                        ],
-                        [
-                            'jenis_tindakan' => 'Surat Keterangan Sehat', 
-                            'tanggal' => '2025-08-17',
-                            'jaspel' => 52000,
-                            'tarif' => 130000
-                        ]
-                    ],
-                    'pasien_harian_days' => [
-                        [
-                            'tanggal' => '2025-08-21',
-                            'jumlah_pasien' => 70,
-                            'jaspel_rupiah' => 364000
-                        ],
-                        [
-                            'tanggal' => '2025-08-15',
-                            'jumlah_pasien' => 80,
-                            'jaspel_rupiah' => 399000
-                        ],
-                        [
-                            'tanggal' => '2025-08-23',
-                            'jumlah_pasien' => 60,
-                            'jaspel_rupiah' => 350000
-                        ]
-                    ]
+                    'tindakan_procedures' => $data['breakdown']['tindakan_procedures'] ?? [],
+                    'pasien_harian_days' => $data['breakdown']['pasien_harian_days'] ?? []
                 ]
             ];
             
             $this->dataLoaded = true;
             
-            \Log::info('JaspelDetailComponent: Static data loaded for debugging', [
+            \Log::info('JaspelDetailComponent: Real data loaded successfully', [
                 'user_id' => $this->userId,
                 'total_jaspel' => $this->procedureData['total_jaspel'],
-                'data_loaded' => $this->dataLoaded
+                'total_procedures' => $this->procedureData['total_procedures'],
+                'tindakan_count' => count($this->procedureData['breakdown']['tindakan_procedures']),
+                'pasien_days_count' => count($this->procedureData['breakdown']['pasien_harian_days'])
             ]);
             
         } catch (\Exception $e) {
-            \Log::error('JaspelDetailComponent: Failed to load data', [
+            \Log::error('JaspelDetailComponent: Service failed, using fallback data', [
+                'user_id' => $this->userId,
                 'error' => $e->getMessage()
             ]);
+            
+            // Safe fallback with basic structure
+            $this->procedureData = [
+                'total_jaspel' => 0,
+                'total_procedures' => 0,
+                'tindakan_jaspel' => 0,
+                'pasien_jaspel' => 0,
+                'breakdown' => [
+                    'tindakan_procedures' => [],
+                    'pasien_harian_days' => []
+                ]
+            ];
+            $this->dataLoaded = false;
         }
     }
 

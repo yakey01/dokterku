@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dual Layout Debug</title>
+    <style>
+        body { 
+            background: #1f2937; 
+            color: white; 
+            font-family: system-ui, -apple-system, sans-serif; 
+            margin: 0;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .debug-section { 
+            margin: 20px 0; 
+            padding: 20px; 
+            background: rgba(255,255,255,0.05); 
+            border-radius: 8px; 
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .control-panel { 
+            display: flex; 
+            gap: 10px; 
+            margin-bottom: 20px; 
+            align-items: center;
+        }
+        button {
+            padding: 10px 15px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.1);
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        button:hover { background: rgba(255,255,255,0.2); }
+        button.active {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: rgba(59, 130, 246, 0.3);
+            color: #3b82f6;
+        }
+        .activity-item {
+            padding: 15px;
+            margin: 10px 0;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        .activity-item:hover {
+            background: rgba(255,255,255,0.08);
+            transform: translateY(-2px);
+        }
+        .log { 
+            background: #000; 
+            padding: 15px; 
+            border-radius: 6px; 
+            font-family: monospace; 
+            font-size: 12px; 
+            white-space: pre-wrap; 
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .success { color: #22d65f; }
+        .error { color: #ef4444; }
+        .info { color: #3b82f6; }
+        .warning { color: #f59e0b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Dual Layout Debug Tool</h1>
+        
+        <!-- Control Panel -->
+        <div class="debug-section">
+            <h2>Layout Controls</h2>
+            <div class="control-panel">
+                <button id="single-btn" onclick="switchActivityLayout('single')">
+                    📄 Single Column
+                </button>
+                <button id="double-btn" onclick="switchActivityLayout('double')">
+                    📋 Double Column
+                </button>
+                <button onclick="testFunctionality()">🧪 Run Test</button>
+                <button onclick="clearLog()">🗑️ Clear Log</button>
+            </div>
+        </div>
+
+        <!-- Debug Log -->
+        <div class="debug-section">
+            <h2>Debug Log</h2>
+            <div id="debug-log" class="log">Debug log will appear here...\n</div>
+        </div>
+
+        <!-- Single Layout -->
+        <div class="debug-section">
+            <h2>Single Layout Container</h2>
+            <div id="activities-single-layout" class="space-y-3">
+                <div class="activity-item">
+                    <strong>💰 Pendapatan Jaspel</strong><br>
+                    <small>23 Agu 2024 | Rp 150.000</small>
+                </div>
+                <div class="activity-item">
+                    <strong>📊 Validasi Pasien</strong><br>
+                    <small>22 Agu 2024 | Status: Selesai</small>
+                </div>
+                <div class="activity-item">
+                    <strong>💳 Transfer Bank</strong><br>
+                    <small>21 Agu 2024 | Rp 2.500.000</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Double Layout -->
+        <div class="debug-section">
+            <h2>Double Layout Container</h2>
+            <div id="activities-double-layout" style="display: none;">
+                <div class="activity-item">
+                    <strong>💰 Pendapatan Jaspel</strong><br>
+                    <small>23 Agu 2024 | Rp 150.000</small>
+                </div>
+                <div class="activity-item">
+                    <strong>📊 Validasi Pasien</strong><br>
+                    <small>22 Agu 2024 | Status: Selesai</small>
+                </div>
+                <div class="activity-item">
+                    <strong>💳 Transfer Bank</strong><br>
+                    <small>21 Agu 2024 | Rp 2.500.000</small>
+                </div>
+                <div class="activity-item">
+                    <strong>🏥 Kunjungan Pasien</strong><br>
+                    <small>20 Agu 2024 | 45 orang</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Element Inspector -->
+        <div class="debug-section">
+            <h2>Element Inspector</h2>
+            <button onclick="inspectElements()">🔍 Inspect Elements</button>
+            <div id="inspector-output" class="log"></div>
+        </div>
+    </div>
+
+    <script>
+        let logCount = 0;
+        
+        function log(message, type = 'info') {
+            const debugLog = document.getElementById('debug-log');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'info';
+            
+            logCount++;
+            debugLog.innerHTML += `<span class="${className}">[${timestamp}] ${logCount}: ${message}</span>\n`;
+            debugLog.scrollTop = debugLog.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('debug-log').innerHTML = '';
+            logCount = 0;
+            log('Debug log cleared', 'info');
+        }
+
+        // EXACT COPY OF THE ORIGINAL FUNCTION
+        function switchActivityLayout(layout) {
+            log(`switchActivityLayout('${layout}') called`, 'info');
+            
+            const singleLayout = document.getElementById('activities-single-layout');
+            const doubleLayout = document.getElementById('activities-double-layout');
+            const singleBtn = document.getElementById('single-btn');
+            const doubleBtn = document.getElementById('double-btn');
+            
+            // Log element existence
+            log(`Elements found: single=${!!singleLayout}, double=${!!doubleLayout}, singleBtn=${!!singleBtn}, doubleBtn=${!!doubleBtn}`, 'info');
+            
+            if (!singleLayout || !doubleLayout || !singleBtn || !doubleBtn) {
+                log('ERROR: One or more required elements not found!', 'error');
+                return;
+            }
+            
+            if (layout === 'single') {
+                log('Switching to SINGLE layout...', 'info');
+                
+                // Show single column list
+                singleLayout.style.display = 'block';
+                doubleLayout.style.display = 'none';
+                
+                log(`Single layout display: ${singleLayout.style.display}`, 'success');
+                log(`Double layout display: ${doubleLayout.style.display}`, 'success');
+                
+                // Update button states
+                singleBtn.classList.add('active');
+                doubleBtn.classList.remove('active');
+                
+                singleBtn.style.background = 'rgba(59, 130, 246, 0.2)';
+                singleBtn.style.borderColor = 'rgba(59, 130, 246, 0.3)';
+                singleBtn.style.color = '#3b82f6';
+                
+                doubleBtn.style.background = 'rgba(255, 255, 255, 0.05)';
+                doubleBtn.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                doubleBtn.style.color = '#9ca3af';
+                
+            } else if (layout === 'double') {
+                log('Switching to DOUBLE layout...', 'info');
+                
+                // Show two column list
+                singleLayout.style.display = 'none';
+                doubleLayout.style.display = 'grid';
+                doubleLayout.style.gridTemplateColumns = '1fr 1fr';
+                doubleLayout.style.gap = '1rem';
+                
+                log(`Single layout display: ${singleLayout.style.display}`, 'success');
+                log(`Double layout display: ${doubleLayout.style.display}`, 'success');
+                log(`Grid columns: ${doubleLayout.style.gridTemplateColumns}`, 'success');
+                log(`Grid gap: ${doubleLayout.style.gap}`, 'success');
+                
+                // Update button states
+                doubleBtn.classList.add('active');
+                singleBtn.classList.remove('active');
+                
+                doubleBtn.style.background = 'rgba(59, 130, 246, 0.2)';
+                doubleBtn.style.borderColor = 'rgba(59, 130, 246, 0.3)';
+                doubleBtn.style.color = '#3b82f6';
+                
+                singleBtn.style.background = 'rgba(255, 255, 255, 0.05)';
+                singleBtn.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                singleBtn.style.color = '#9ca3af';
+            }
+            
+            // Store preference in localStorage
+            try {
+                localStorage.setItem('bendahara_activities_layout', layout);
+                log(`Layout '${layout}' saved to localStorage`, 'success');
+            } catch (e) {
+                log(`LocalStorage error: ${e.message}`, 'error');
+            }
+            
+            log(`Layout switch to '${layout}' completed`, 'success');
+        }
+
+        function testFunctionality() {
+            log('=== RUNNING COMPREHENSIVE TEST ===', 'info');
+            
+            // Test 1: Element existence
+            log('TEST 1: Checking element existence...', 'info');
+            const elements = {
+                'activities-single-layout': document.getElementById('activities-single-layout'),
+                'activities-double-layout': document.getElementById('activities-double-layout'),
+                'single-btn': document.getElementById('single-btn'),
+                'double-btn': document.getElementById('double-btn')
+            };
+            
+            let allElementsExist = true;
+            for (const [name, element] of Object.entries(elements)) {
+                if (element) {
+                    log(`✓ ${name} found`, 'success');
+                } else {
+                    log(`✗ ${name} NOT found`, 'error');
+                    allElementsExist = false;
+                }
+            }
+            
+            if (!allElementsExist) {
+                log('TEST FAILED: Missing required elements', 'error');
+                return;
+            }
+            
+            // Test 2: Switch to single
+            log('TEST 2: Switching to single layout...', 'info');
+            switchActivityLayout('single');
+            
+            setTimeout(() => {
+                const singleVisible = window.getComputedStyle(elements['activities-single-layout']).display !== 'none';
+                const doubleHidden = window.getComputedStyle(elements['activities-double-layout']).display === 'none';
+                
+                if (singleVisible && doubleHidden) {
+                    log('✓ Single layout test PASSED', 'success');
+                } else {
+                    log('✗ Single layout test FAILED', 'error');
+                }
+                
+                // Test 3: Switch to double
+                log('TEST 3: Switching to double layout...', 'info');
+                switchActivityLayout('double');
+                
+                setTimeout(() => {
+                    const singleHidden = window.getComputedStyle(elements['activities-single-layout']).display === 'none';
+                    const doubleVisible = window.getComputedStyle(elements['activities-double-layout']).display === 'grid';
+                    
+                    if (singleHidden && doubleVisible) {
+                        log('✓ Double layout test PASSED', 'success');
+                    } else {
+                        log('✗ Double layout test FAILED', 'error');
+                        log(`Single display: ${window.getComputedStyle(elements['activities-single-layout']).display}`, 'warning');
+                        log(`Double display: ${window.getComputedStyle(elements['activities-double-layout']).display}`, 'warning');
+                    }
+                    
+                    log('=== TEST COMPLETED ===', 'info');
+                }, 100);
+            }, 100);
+        }
+        
+        function inspectElements() {
+            const inspector = document.getElementById('inspector-output');
+            inspector.innerHTML = '';
+            
+            const elements = [
+                'activities-single-layout',
+                'activities-double-layout',
+                'single-btn',
+                'double-btn'
+            ];
+            
+            elements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    const computed = window.getComputedStyle(element);
+                    inspector.innerHTML += `<div class="success">${id}:</div>`;
+                    inspector.innerHTML += `  Display: ${computed.display}\n`;
+                    inspector.innerHTML += `  Grid Template Columns: ${computed.gridTemplateColumns}\n`;
+                    inspector.innerHTML += `  Gap: ${computed.gap}\n`;
+                    inspector.innerHTML += `  Visible: ${element.offsetWidth > 0 && element.offsetHeight > 0}\n\n`;
+                } else {
+                    inspector.innerHTML += `<div class="error">${id}: NOT FOUND</div>\n`;
+                }
+            });
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            log('DOM Content Loaded', 'info');
+            
+            // Try to get saved layout
+            let savedLayout;
+            try {
+                savedLayout = localStorage.getItem('bendahara_activities_layout') || 'single';
+                log(`Saved layout from localStorage: '${savedLayout}'`, 'info');
+            } catch (e) {
+                log(`LocalStorage error: ${e.message}`, 'error');
+                savedLayout = 'single';
+            }
+            
+            // Initialize with saved layout
+            switchActivityLayout(savedLayout);
+            
+            log('Initialization completed', 'success');
+        });
+        
+        // Log any JavaScript errors
+        window.addEventListener('error', function(e) {
+            log(`JavaScript Error: ${e.message} at ${e.filename}:${e.lineno}`, 'error');
+        });
+    </script>
+</body>
+</html>

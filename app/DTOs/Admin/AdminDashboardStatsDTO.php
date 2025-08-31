@@ -44,13 +44,16 @@ class AdminDashboardStatsDTO
      */
     public static function fromArray(array $data): self
     {
+        // Helper function to ensure array conversion
+        $ensureArray = fn($value) => $value instanceof \Illuminate\Support\Collection ? $value->toArray() : (array) $value;
+        
         return new self(
-            userStats: $data['user_stats'] ?? [],
-            financialStats: $data['financial_stats'] ?? [],
-            medicalStats: $data['medical_stats'] ?? [],
-            systemStats: $data['system_stats'] ?? [],
-            recentActivities: $data['recent_activities'] ?? [],
-            performanceMetrics: $data['performance_metrics'] ?? [],
+            userStats: $ensureArray($data['user_stats'] ?? []),
+            financialStats: $ensureArray($data['financial_stats'] ?? []),
+            medicalStats: $ensureArray($data['medical_stats'] ?? []),
+            systemStats: $ensureArray($data['system_stats'] ?? []),
+            recentActivities: $ensureArray($data['recent_activities'] ?? []),
+            performanceMetrics: $ensureArray($data['performance_metrics'] ?? []),
             lastUpdated: $data['last_updated'] ?? now()->toISOString()
         );
     }

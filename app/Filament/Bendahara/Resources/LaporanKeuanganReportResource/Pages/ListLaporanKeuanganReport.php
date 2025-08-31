@@ -115,6 +115,9 @@ class ListLaporanKeuanganReport extends ListRecords
             $filters['cache_bust'] = time();
         }
         
+        // Store filters in session for detail page consistency
+        session(['laporan_jaspel_filters' => $filters]);
+        
         // Get all validated jaspel data without role filtering
         $data = $jaspelService->getValidatedJaspelByRole('semua', $filters);
         
@@ -136,6 +139,16 @@ class ListLaporanKeuanganReport extends ListRecords
             $user->setAttribute('total_jaspel', $item->total_jaspel);
             $user->setAttribute('last_validation', $item->last_validation);
             $user->setAttribute('period', $item->period ?? 'Current');
+            
+            // DEBUG: Log data mapping for dr Rindang
+            if (str_contains($item->name, 'Rindang')) {
+                \Log::debug('ListPage: dr Rindang data mapping', [
+                    'user_id' => $user->id,
+                    'name' => $item->name,
+                    'total_jaspel_from_service' => $item->total_jaspel,
+                    'total_tindakan' => $item->total_tindakan
+                ]);
+            }
             
             return $user;
         });

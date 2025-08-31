@@ -18,7 +18,7 @@ class BendaharaDashboard extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-chart-pie';
     
-    protected static ?string $navigationGroup = 'Dashboard';
+    // REMOVED navigationGroup - Dashboard is now standalone top-level item (no collapsible)
     
     protected static string $view = 'filament.bendahara.pages.petugas-style-dashboard';
     

@@ -301,6 +301,73 @@ public function canAccessPanel(Panel $panel): bool
 3. **Audit trail requirements** - Track input_by and validation_by
 4. **Decimal precision** - Use decimal(15,2) for monetary values
 
+## Bendahara Panel - Jaspel Detail Auto-Render Solution
+
+### Issue: Jaspel Detail Pages Requiring Manual Refresh
+**Problem**: Pages at `/bendahara/laporan-jaspel/{id}` required manual refresh to display content properly.
+
+**Root Cause**: Livewire component async loading delays and JavaScript infinite loops.
+
+**Solution**: Direct template rendering with immediate data loading
+
+#### Implementation:
+```php
+// ViewJaspelDetail.php
+protected static string $view = 'filament.bendahara.pages.jaspel-detail';
+protected static bool $shouldShowPageHeader = false;  // Prevent duplicate headers
+
+public function getTitle(): string | Htmlable {
+    return ''; // Empty to prevent Filament header rendering
+}
+
+protected function getHeaderActions(): array {
+    return []; // Empty to prevent duplicate actions
+}
+```
+
+```blade
+<!-- jaspel-detail.blade.php -->
+<x-filament-panels::page>
+    <div> <!-- SINGLE ROOT ELEMENT -->
+        @php
+            // IMMEDIATE data loading - no async delays
+            $procedureCalculator = app(\App\Services\ProcedureJaspelCalculationService::class);
+            $procedureData = $procedureCalculator->calculateJaspelFromProcedures($this->userId ?? 0, []);
+        @endphp
+        
+        <!-- Content renders immediately -->
+        <div class="main-container">
+            <!-- Minimalist doctor card with inline stats -->
+            <!-- Breakdown cards for tindakan and pasien data -->
+        </div>
+    </div>
+</x-filament-panels::page>
+```
+
+#### Benefits:
+- ✅ **Immediate rendering** on first page load
+- ✅ **No refresh required** for content display
+- ✅ **Safari compatible** with proper navigation structure
+- ✅ **Error resilient** with fallback data handling
+
+### Safari Redirect Loop Resolution
+**Problem**: "Too many redirects" preventing Safari access to bendahara panel.
+
+**Root Cause**: Panel with no accessible pages + middleware conflicts.
+
+**Solution**: 
+1. **Enable navigation** for all resources: `shouldRegisterNavigation() = true`
+2. **Remove conflicting middleware**: Disabled `BendaharaMiddleware` causing infinite loops
+3. **Specific homeUrl**: Point to accessible page `/bendahara/bendahara-dashboard`
+
+#### Validation Features Restored:
+- **Validation Center** - Transaction validation workflows
+- **Daily Financial Validation** - Daily transaction approval
+- **Validasi Jaspel** - Service fee validation  
+- **Laporan Jaspel** - Financial reporting with detail views
+- **Audit Trail** - System audit and control
+- **Validasi Jumlah Pasien** - Patient count validation
+
 ## Common Issues & Solutions
 
 ### Geolocation Issues (2024 Updated)

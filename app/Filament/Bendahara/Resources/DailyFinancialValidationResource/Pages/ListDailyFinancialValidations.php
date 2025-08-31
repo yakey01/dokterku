@@ -9,6 +9,8 @@ use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Resources\Components\Tab;
 use Illuminate\Database\Eloquent\Builder;
+use App\Services\ValidationWorkflowService;
+use Filament\Notifications\Notification;
 
 class ListDailyFinancialValidations extends ListRecords
 {
@@ -17,6 +19,59 @@ class ListDailyFinancialValidations extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
+            Actions\Action::make('bulk_sync')
+                ->label('🔄 Sync All to Main Tables')
+                ->icon('heroicon-o-arrow-path-rounded-square')
+                ->color('success')
+                ->requiresConfirmation()
+                ->modalHeading('🔄 Sync All Approved Data to Main Tables')
+                ->modalDescription('This will sync all approved PendapatanHarian AND PengeluaranHarian records to their respective main tables for dashboard display.')
+                ->modalSubmitActionLabel('Sync All Now')
+                ->action(function () {
+                    $validationService = app(ValidationWorkflowService::class);
+                    
+                    // Sync both pendapatan and pengeluaran
+                    $pendapatanResults = $validationService->bulkSyncPendapatanHarian();
+                    $pengeluaranResults = $validationService->bulkSyncPengeluaranHarian();
+                    
+                    $totalSynced = $pendapatanResults['successful_syncs'] + $pengeluaranResults['successful_syncs'];
+                    $totalFound = $pendapatanResults['total_found'] + $pengeluaranResults['total_found'];
+                    
+                    if ($totalSynced > 0) {
+                        $message = "Synced {$totalSynced} records to main tables:\n";
+                        $message .= "• Pendapatan: {$pendapatanResults['successful_syncs']} records\n";
+                        $message .= "• Pengeluaran: {$pengeluaranResults['successful_syncs']} records\n";
+                        $message .= "Dashboard will now show updated totals.";
+                        
+                        Notification::make()
+                            ->title('✅ Complete Sync Successful')
+                            ->body($message)
+                            ->success()
+                            ->persistent()
+                            ->send();
+                    } elseif ($totalFound === 0) {
+                        Notification::make()
+                            ->title('ℹ️ No Records to Sync')
+                            ->body('All approved daily transactions have already been synced to main tables.')
+                            ->info()
+                            ->send();
+                    } else {
+                        $message = "Found {$totalFound} records:\n";
+                        $message .= "• Pendapatan: {$pendapatanResults['successful_syncs']}/{$pendapatanResults['total_found']} synced\n";
+                        $message .= "• Pengeluaran: {$pengeluaranResults['successful_syncs']}/{$pengeluaranResults['total_found']} synced";
+                        
+                        Notification::make()
+                            ->title('⚠️ Partial Sync Results')
+                            ->body($message)
+                            ->warning()
+                            ->send();
+                    }
+                    
+                    // Clear dashboard cache so updated values show immediately
+                    \Illuminate\Support\Facades\Cache::forget('bendahara_financial_summary');
+                    \Illuminate\Support\Facades\Cache::forget('bendahara_validation_stats');
+                }),
+                
             Actions\Action::make('refresh')
                 ->label('Refresh')
                 ->icon('heroicon-o-arrow-path')

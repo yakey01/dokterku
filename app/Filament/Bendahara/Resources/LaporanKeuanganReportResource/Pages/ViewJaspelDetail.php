@@ -21,7 +21,7 @@ class ViewJaspelDetail extends Page
 
     protected static ?string $title = '📊 Detail Rincian Jaspel';
 
-    protected static string $view = 'filament.bendahara.pages.jaspel-detail-livewire-wrapper';
+    protected static string $view = 'filament.bendahara.pages.jaspel-detail';
     
     public int $userId;
     public ?\App\Models\User $user = null;

@@ -1348,4 +1348,271 @@ class ValidationWorkflowService
         
         return $alerts;
     }
+
+    /**
+     * Sync validated PendapatanHarian records to main Pendapatan table
+     * This ensures bendahara dashboard shows complete financial data
+     */
+    public function syncPendapatanHarianToMainTable(PendapatanHarian $pendapatanHarian): bool
+    {
+        try {
+            // Only sync if status is approved and not already synced
+            if ($pendapatanHarian->status_validasi !== 'approved' && $pendapatanHarian->status_validasi !== 'disetujui') {
+                Log::info('PendapatanHarian sync skipped - not approved', [
+                    'id' => $pendapatanHarian->id,
+                    'status' => $pendapatanHarian->status_validasi
+                ]);
+                return false;
+            }
+
+            // Check if already synced (avoid duplicates)
+            $existingSync = \App\Models\Pendapatan::where('keterangan', 'LIKE', '%[SYNC-PH-' . $pendapatanHarian->id . ']%')->exists();
+            if ($existingSync) {
+                Log::info('PendapatanHarian already synced', ['id' => $pendapatanHarian->id]);
+                return true;
+            }
+
+            // Prepare data for main Pendapatan table
+            $pendapatanData = [
+                'kode_pendapatan' => 'PH-' . $pendapatanHarian->id . '-' . date('Ymd'),
+                'nama_pendapatan' => $pendapatanHarian->pendapatan?->nama_pendapatan ?? 'Pendapatan Harian',
+                'sumber_pendapatan' => 'Petugas Input (Harian)',
+                'tanggal' => $pendapatanHarian->tanggal_input,
+                'nominal' => $pendapatanHarian->nominal,
+                'kategori' => 'Harian',
+                'keterangan' => ($pendapatanHarian->deskripsi ?? '') . ' [SYNC-PH-' . $pendapatanHarian->id . '] - Shift: ' . ($pendapatanHarian->shift ?? 'N/A'),
+                'input_by' => $pendapatanHarian->user_id,
+                'status_validasi' => 'disetujui', // Already validated by bendahara
+                'validasi_by' => $pendapatanHarian->validasi_by ?? Auth::id(),
+                'validasi_at' => $pendapatanHarian->validasi_at ?? now(),
+                'catatan_validasi' => 'Auto-synced from validated daily input [PH-' . $pendapatanHarian->id . ']',
+                'created_at' => $pendapatanHarian->created_at,
+                'updated_at' => now(),
+            ];
+
+            // Create record in main Pendapatan table
+            $pendapatan = \App\Models\Pendapatan::create($pendapatanData);
+
+            // Log successful sync
+            Log::info('PendapatanHarian synced successfully', [
+                'pendapatan_harian_id' => $pendapatanHarian->id,
+                'pendapatan_id' => $pendapatan->id,
+                'nominal' => $pendapatanHarian->nominal,
+                'date' => $pendapatanHarian->tanggal_input
+            ]);
+
+            // Update PendapatanHarian with sync info
+            $pendapatanHarian->update([
+                'catatan_validasi' => ($pendapatanHarian->catatan_validasi ?? '') . ' [SYNCED-' . $pendapatan->id . ']'
+            ]);
+
+            return true;
+
+        } catch (Exception $e) {
+            Log::error('Failed to sync PendapatanHarian to main table', [
+                'pendapatan_harian_id' => $pendapatanHarian->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return false;
+        }
+    }
+
+    /**
+     * Sync validated PengeluaranHarian records to main Pengeluaran table
+     * This ensures bendahara dashboard shows complete expense data
+     */
+    public function syncPengeluaranHarianToMainTable(PengeluaranHarian $pengeluaranHarian): bool
+    {
+        try {
+            // Only sync if status is approved and not already synced
+            if ($pengeluaranHarian->status_validasi !== 'approved' && $pengeluaranHarian->status_validasi !== 'disetujui') {
+                Log::info('PengeluaranHarian sync skipped - not approved', [
+                    'id' => $pengeluaranHarian->id,
+                    'status' => $pengeluaranHarian->status_validasi
+                ]);
+                return false;
+            }
+
+            // Check if already synced (avoid duplicates)
+            $existingSync = \App\Models\Pengeluaran::where('keterangan', 'LIKE', '%[SYNC-EH-' . $pengeluaranHarian->id . ']%')->exists();
+            if ($existingSync) {
+                Log::info('PengeluaranHarian already synced', ['id' => $pengeluaranHarian->id]);
+                return true;
+            }
+
+            // Prepare data for main Pengeluaran table
+            $pengeluaranData = [
+                'kode_pengeluaran' => 'EH-' . $pengeluaranHarian->id . '-' . date('Ymd'),
+                'nama_pengeluaran' => $pengeluaranHarian->pengeluaran?->nama_pengeluaran ?? 'Pengeluaran Harian',
+                'tanggal' => $pengeluaranHarian->tanggal_input,
+                'nominal' => $pengeluaranHarian->nominal,
+                'kategori' => 'Harian',
+                'keterangan' => ($pengeluaranHarian->deskripsi ?? '') . ' [SYNC-EH-' . $pengeluaranHarian->id . '] - Shift: ' . ($pengeluaranHarian->shift ?? 'N/A'),
+                'input_by' => $pengeluaranHarian->user_id,
+                'status_validasi' => 'disetujui', // Already validated by bendahara
+                'validasi_by' => $pengeluaranHarian->validasi_by ?? Auth::id(),
+                'validasi_at' => $pengeluaranHarian->validasi_at ?? now(),
+                'catatan_validasi' => 'Auto-synced from validated daily expense [EH-' . $pengeluaranHarian->id . ']',
+                'created_at' => $pengeluaranHarian->created_at,
+                'updated_at' => now(),
+            ];
+
+            // Create record in main Pengeluaran table
+            $pengeluaran = \App\Models\Pengeluaran::create($pengeluaranData);
+
+            // Log successful sync
+            Log::info('PengeluaranHarian synced successfully', [
+                'pengeluaran_harian_id' => $pengeluaranHarian->id,
+                'pengeluaran_id' => $pengeluaran->id,
+                'nominal' => $pengeluaranHarian->nominal,
+                'date' => $pengeluaranHarian->tanggal_input
+            ]);
+
+            // Update PengeluaranHarian with sync info
+            $pengeluaranHarian->update([
+                'catatan_validasi' => ($pengeluaranHarian->catatan_validasi ?? '') . ' [SYNCED-' . $pengeluaran->id . ']'
+            ]);
+
+            return true;
+
+        } catch (Exception $e) {
+            Log::error('Failed to sync PengeluaranHarian to main table', [
+                'pengeluaran_harian_id' => $pengeluaranHarian->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return false;
+        }
+    }
+
+    /**
+     * Bulk sync all approved PengeluaranHarian records that haven't been synced yet
+     */
+    public function bulkSyncPengeluaranHarian(): array
+    {
+        try {
+            // Get all approved PengeluaranHarian records that haven't been synced
+            $unsynced = PengeluaranHarian::where(function($query) {
+                $query->where('status_validasi', 'approved')
+                      ->orWhere('status_validasi', 'disetujui');
+            })
+            ->where(function($query) {
+                $query->whereNull('catatan_validasi')
+                      ->orWhere('catatan_validasi', 'NOT LIKE', '%[SYNCED-%');
+            })
+            ->get();
+
+            $results = [
+                'total_found' => $unsynced->count(),
+                'successful_syncs' => 0,
+                'failed_syncs' => 0,
+                'already_synced' => 0,
+                'details' => []
+            ];
+
+            foreach ($unsynced as $pengeluaranHarian) {
+                $syncResult = $this->syncPengeluaranHarianToMainTable($pengeluaranHarian);
+                
+                if ($syncResult) {
+                    $results['successful_syncs']++;
+                    $results['details'][] = [
+                        'id' => $pengeluaranHarian->id,
+                        'nominal' => $pengeluaranHarian->nominal,
+                        'status' => 'synced'
+                    ];
+                } else {
+                    $results['failed_syncs']++;
+                    $results['details'][] = [
+                        'id' => $pengeluaranHarian->id,
+                        'nominal' => $pengeluaranHarian->nominal,
+                        'status' => 'failed'
+                    ];
+                }
+            }
+
+            Log::info('Bulk PengeluaranHarian sync completed', $results);
+
+            return $results;
+
+        } catch (Exception $e) {
+            Log::error('Bulk PengeluaranHarian sync failed', [
+                'error' => $e->getMessage()
+            ]);
+
+            return [
+                'total_found' => 0,
+                'successful_syncs' => 0,
+                'failed_syncs' => 0,
+                'already_synced' => 0,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Bulk sync all approved PendapatanHarian records that haven't been synced yet
+     */
+    public function bulkSyncPendapatanHarian(): array
+    {
+        try {
+            // Get all approved PendapatanHarian records that haven't been synced
+            $unsynced = PendapatanHarian::where(function($query) {
+                $query->where('status_validasi', 'approved')
+                      ->orWhere('status_validasi', 'disetujui');
+            })
+            ->where(function($query) {
+                $query->whereNull('catatan_validasi')
+                      ->orWhere('catatan_validasi', 'NOT LIKE', '%[SYNCED-%');
+            })
+            ->get();
+
+            $results = [
+                'total_found' => $unsynced->count(),
+                'successful_syncs' => 0,
+                'failed_syncs' => 0,
+                'already_synced' => 0,
+                'details' => []
+            ];
+
+            foreach ($unsynced as $pendapatanHarian) {
+                $syncResult = $this->syncPendapatanHarianToMainTable($pendapatanHarian);
+                
+                if ($syncResult) {
+                    $results['successful_syncs']++;
+                    $results['details'][] = [
+                        'id' => $pendapatanHarian->id,
+                        'nominal' => $pendapatanHarian->nominal,
+                        'status' => 'synced'
+                    ];
+                } else {
+                    $results['failed_syncs']++;
+                    $results['details'][] = [
+                        'id' => $pendapatanHarian->id,
+                        'nominal' => $pendapatanHarian->nominal,
+                        'status' => 'failed'
+                    ];
+                }
+            }
+
+            Log::info('Bulk sync completed', $results);
+
+            return $results;
+
+        } catch (Exception $e) {
+            Log::error('Bulk sync failed', [
+                'error' => $e->getMessage()
+            ]);
+
+            return [
+                'total_found' => 0,
+                'successful_syncs' => 0,
+                'failed_syncs' => 0,
+                'already_synced' => 0,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
 }

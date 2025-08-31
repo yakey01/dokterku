@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use App\Services\ValidationWorkflowService;
 
 class DailyFinancialValidationResource extends Resource
 {
@@ -506,8 +507,27 @@ class DailyFinancialValidationResource extends Resource
                 'catatan_validasi' => $comment ?? ($status === 'approved' ? 'Quick approved' : 'Quick processed'),
             ]);
 
+            // UNIFIED SYNC TO MAIN TABLES: Handle both PendapatanHarian and PengeluaranHarian
+            $syncMessage = '';
+            if ($status === 'approved') {
+                $validationService = app(ValidationWorkflowService::class);
+                
+                if ($record instanceof PendapatanHarian) {
+                    $syncResult = $validationService->syncPendapatanHarianToMainTable($record);
+                    $syncMessage = $syncResult 
+                        ? ' & synced to main pendapatan table' 
+                        : ' (sync to pendapatan table failed - check logs)';
+                        
+                } elseif ($record instanceof PengeluaranHarian) {
+                    $syncResult = $validationService->syncPengeluaranHarianToMainTable($record);
+                    $syncMessage = $syncResult 
+                        ? ' & synced to main pengeluaran table' 
+                        : ' (sync to pengeluaran table failed - check logs)';
+                }
+            }
+
             $message = match($status) {
-                'approved' => 'Transaksi harian berhasil disetujui',
+                'approved' => 'Transaksi harian berhasil disetujui' . $syncMessage,
                 'rejected' => 'Transaksi harian berhasil ditolak',
                 'revision' => 'Permintaan revisi berhasil dikirim',
                 default => 'Transaksi harian berhasil diproses'
@@ -533,6 +553,8 @@ class DailyFinancialValidationResource extends Resource
         try {
             $count = $records->count();
             
+            $syncedCount = 0;
+            
             foreach ($records as $record) {
                 $record->update([
                     'status_validasi' => $status,
@@ -540,10 +562,29 @@ class DailyFinancialValidationResource extends Resource
                     'validasi_at' => now(),
                     'catatan_validasi' => $comment ?? "Bulk {$status} by " . Auth::user()->name,
                 ]);
+                
+                // UNIFIED BULK SYNC TO MAIN TABLES: Handle both PendapatanHarian and PengeluaranHarian
+                if ($status === 'approved') {
+                    $validationService = app(ValidationWorkflowService::class);
+                    
+                    if ($record instanceof PendapatanHarian) {
+                        $syncResult = $validationService->syncPendapatanHarianToMainTable($record);
+                        if ($syncResult) {
+                            $syncedCount++;
+                        }
+                    } elseif ($record instanceof PengeluaranHarian) {
+                        $syncResult = $validationService->syncPengeluaranHarianToMainTable($record);
+                        if ($syncResult) {
+                            $syncedCount++;
+                        }
+                    }
+                }
             }
 
             $message = match($status) {
-                'approved' => "Berhasil menyetujui {$count} transaksi harian",
+                'approved' => $syncedCount > 0 
+                    ? "Berhasil menyetujui {$count} transaksi harian & sync {$syncedCount} ke tabel utama"
+                    : "Berhasil menyetujui {$count} transaksi harian",
                 'rejected' => "Berhasil menolak {$count} transaksi harian",
                 default => "Berhasil memproses {$count} transaksi harian"
             };

@@ -482,6 +482,12 @@ class User extends Authenticatable implements FilamentUser
     // Cache jaspel total for this user
     public function getTotalJaspelAttribute(): float
     {
+        // FIXED: If a manual total_jaspel value is set (like from ProcedureJaspelCalculationService),
+        // use that instead of querying the jaspel table (which contains old/incomplete data)
+        if (array_key_exists('total_jaspel', $this->attributes)) {
+            return (float) $this->attributes['total_jaspel'];
+        }
+        
         return $this->cacheAttribute('total_jaspel', function() {
             return $this->jaspel()->sum('nominal') ?? 0;
         });

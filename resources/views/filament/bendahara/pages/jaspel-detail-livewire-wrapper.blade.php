@@ -1,4 +1,4 @@
-<x-filament-panels::page>
-    <!-- MINIMAL WRAPPER - DELEGATES TO LIVEWIRE COMPONENT -->
+{{-- FIXED: Direct render without Filament page wrapper to prevent conflicts --}}
+<div class="filament-page">
     <livewire:jaspel-detail-component :userId="$this->userId" />
-</x-filament-panels::page>
+</div>

@@ -42,7 +42,7 @@ class AdminDashboardService
                 'financial_stats' => $this->getFinancialStats(),
                 'medical_stats' => $this->getMedicalStats(),
                 'system_stats' => $this->getSystemStats(),
-                'recent_activities' => $this->getRecentActivities(),
+                'recent_activities' => $this->getRecentActivities()->toArray(),
                 'performance_metrics' => $this->getPerformanceMetrics()
             ];
         });
@@ -197,7 +197,11 @@ class AdminDashboardService
                         'description' => "Procedure " . ($tindakan->jenisTindakan->nama ?? 'Unknown') . " for " . ($tindakan->pasien->nama ?? 'Unknown Patient'),
                         'timestamp' => $tindakan->created_at,
                         'icon' => 'medical-cross',
-                        'color' => 'info'
+                        'color' => 'info',
+                        // Additional data for rich display
+                        'procedure_name' => $tindakan->jenisTindakan->nama ?? 'Tindakan Medis',
+                        'patient_name' => $tindakan->pasien->nama ?? 'Pasien',
+                        'procedure_cost' => $tindakan->jenisTindakan->tarif ?? 150000
                     ];
                 });
 

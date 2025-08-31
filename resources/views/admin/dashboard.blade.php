@@ -205,11 +205,20 @@
                         </svg>
                     </div>
                     <div class="flex-1">
-                        <p class="text-white font-medium">{{ $procedure->jenisTindakan->nama ?? 'Tindakan Medis' }}</p>
-                        <p class="text-sm text-gray-400">{{ $procedure->pasien->nama ?? 'Pasien' }} - {{ $procedure->created_at->format('H:i') }}</p>
+                        <p class="text-white font-medium">
+                            {{ $procedure['procedure_name'] ?? 'Tindakan Medis' }}
+                        </p>
+                        <p class="text-sm text-gray-400">
+                            {{ $procedure['patient_name'] ?? 'Pasien' }} - 
+                            @if(isset($procedure['timestamp']))
+                                {{ \Carbon\Carbon::parse($procedure['timestamp'])->format('H:i') }}
+                            @else
+                                --:--
+                            @endif
+                        </p>
                     </div>
                     <div class="text-right">
-                        <p class="text-emerald-400 font-bold">Rp {{ number_format($procedure->jenisTindakan->tarif ?? 150000, 0, ',', '.') }}</p>
+                        <p class="text-emerald-400 font-bold">Rp {{ number_format($procedure['procedure_cost'] ?? 150000, 0, ',', '.') }}</p>
                     </div>
                 </div>
                 @empty

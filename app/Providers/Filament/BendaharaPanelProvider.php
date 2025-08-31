@@ -280,7 +280,7 @@ class BendaharaPanelProvider extends PanelProvider
             ->resources([
                 \App\Filament\Bendahara\Resources\ValidationCenterResource::class,
                 \App\Filament\Bendahara\Resources\DailyFinancialValidationResource::class,
-                \App\Filament\Bendahara\Resources\ValidasiJaspelResource::class,
+                // \App\Filament\Bendahara\Resources\ValidasiJaspelResource::class, // REMOVED: Replaced by ValidationCenterResource
                 \App\Filament\Bendahara\Resources\LaporanKeuanganReportResource::class,
                 \App\Filament\Bendahara\Resources\AuditTrailResource::class,
                 \App\Filament\Bendahara\Resources\ValidasiJumlahPasienResource::class,
@@ -293,8 +293,7 @@ class BendaharaPanelProvider extends PanelProvider
                 // \App\Filament\Bendahara\Widgets\LanguageSwitcherWidget::class,
             ])
             ->navigationGroups([
-                NavigationGroup::make('Dashboard')
-                    ->collapsed(false),
+                // REMOVED DASHBOARD GROUP - Dashboard is now standalone navigation item
                 NavigationGroup::make('Validasi Transaksi')
                     ->collapsed(false),
                 NavigationGroup::make('Laporan')

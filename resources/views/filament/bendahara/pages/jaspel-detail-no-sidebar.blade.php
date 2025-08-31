@@ -297,6 +297,88 @@
                 padding-bottom: 4rem;
             }
             
+            /* WORLD-CLASS BACK BUTTON ENHANCEMENTS */
+            .world-class-back-btn {
+                font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1, 'pnum' 1, 'tnum' 0, 'onum' 1, 'lnum' 0, 'dlig' 0;
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+                text-rendering: optimizeLegibility;
+            }
+            
+            .world-class-back-btn:hover .back-icon-container {
+                transform: translateX(-3px);
+            }
+            
+            .world-class-back-btn:hover .back-arrow {
+                transform: scale(1.1);
+            }
+            
+            .world-class-back-btn:active {
+                transform: translateY(-1px) scale(0.98) !important;
+            }
+            
+            /* RIPPLE EFFECT */
+            @keyframes ripple {
+                0% {
+                    transform: scale(0);
+                    opacity: 0.5;
+                }
+                100% {
+                    transform: scale(2);
+                    opacity: 0;
+                }
+            }
+            
+            .ripple-effect {
+                position: absolute;
+                border-radius: 50%;
+                background: radial-gradient(circle, rgba(96, 165, 250, 0.3) 0%, transparent 70%);
+                pointer-events: none;
+                animation: ripple 0.6s ease-out forwards;
+            }
+            
+            /* BREADCRUMB ENHANCEMENT FOR BACK NAVIGATION */
+            .breadcrumb-nav a.back-highlight {
+                background: rgba(96, 165, 250, 0.15);
+                border: 1px solid rgba(96, 165, 250, 0.3);
+                transform: scale(1.05);
+            }
+            
+            /* KEYBOARD NAVIGATION STYLES */
+            .world-class-back-btn:focus {
+                outline: 2px solid rgba(96, 165, 250, 0.5);
+                outline-offset: 2px;
+                transform: translateY(-2px) scale(1.02);
+            }
+            
+            /* BACK BUTTON PULSE ANIMATION FOR ATTENTION */
+            @keyframes backButtonPulse {
+                0%, 100% { 
+                    box-shadow: 0 4px 12px rgba(96, 165, 250, 0.15); 
+                }
+                50% { 
+                    box-shadow: 0 4px 20px rgba(96, 165, 250, 0.25), 0 0 0 2px rgba(96, 165, 250, 0.1); 
+                }
+            }
+            
+            .world-class-back-btn.pulse {
+                animation: backButtonPulse 2s ease-in-out infinite;
+            }
+            
+            /* MOBILE OPTIMIZATIONS */
+            @media (max-width: 768px) {
+                .world-class-back-btn {
+                    padding: 0.625rem 1rem;
+                    gap: 0.5rem;
+                    font-size: 0.8125rem;
+                }
+                
+                .world-class-back-btn .back-icon-container svg {
+                    width: 14px;
+                    height: 14px;
+                }
+            }
+            
             /* ANIMATION CLASSES */
             .fade-in {
                 opacity: 0;
@@ -355,16 +437,96 @@
                     </h1>
                 </div>
                 
-                <!-- Right Section: Action Buttons -->
+                <!-- Right Section: Action Buttons with Premium Back Button -->
                 <div class="nav-actions" style="display: flex; align-items: center; gap: 0.75rem;">
+                    <!-- WORLD-CLASS BACK BUTTON -->
                     <a href="/bendahara/laporan-jaspel" 
-                       style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 0.5rem; color: #ffffff; text-decoration: none; font-size: 0.875rem; font-weight: 500; transition: all 0.2s ease;"
-                       onmouseover="this.style.background='rgba(255, 255, 255, 0.12)'; this.style.transform='translateY(-1px)';"
-                       onmouseout="this.style.background='rgba(255, 255, 255, 0.08)'; this.style.transform='translateY(0)';">
-                        <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
-                        </svg>
-                        Kembali ke Laporan
+                       id="worldClassBackButton"
+                       class="world-class-back-btn"
+                       style="
+                           display: inline-flex; 
+                           align-items: center; 
+                           gap: 0.75rem; 
+                           padding: 0.75rem 1.25rem; 
+                           background: linear-gradient(135deg, rgba(96, 165, 250, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%); 
+                           border: 1px solid rgba(96, 165, 250, 0.3); 
+                           border-radius: 0.75rem; 
+                           color: #60a5fa; 
+                           text-decoration: none; 
+                           font-size: 0.875rem; 
+                           font-weight: 600; 
+                           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                           position: relative;
+                           overflow: hidden;
+                           backdrop-filter: blur(8px);
+                           box-shadow: 0 4px 12px rgba(96, 165, 250, 0.15);
+                       "
+                       onmouseover="
+                           this.style.background='linear-gradient(135deg, rgba(96, 165, 250, 0.25) 0%, rgba(139, 92, 246, 0.25) 100%)'; 
+                           this.style.transform='translateY(-2px) scale(1.02)'; 
+                           this.style.borderColor='rgba(96, 165, 250, 0.5)';
+                           this.style.boxShadow='0 8px 20px rgba(96, 165, 250, 0.25)';
+                           this.style.color='#93c5fd';
+                       "
+                       onmouseout="
+                           this.style.background='linear-gradient(135deg, rgba(96, 165, 250, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%)'; 
+                           this.style.transform='translateY(0) scale(1)'; 
+                           this.style.borderColor='rgba(96, 165, 250, 0.3)';
+                           this.style.boxShadow='0 4px 12px rgba(96, 165, 250, 0.15)';
+                           this.style.color='#60a5fa';
+                       "
+                       onclick="handlePremiumBackNavigation(event);"
+                       data-destination="/bendahara/laporan-jaspel"
+                       data-label="Laporan Jaspel"
+                       title="Kembali ke Laporan Jaspel - ALT+← atau ESC">
+                        
+                        <!-- Animated Back Arrow with Chevron -->
+                        <div style="
+                            display: flex; 
+                            align-items: center; 
+                            position: relative;
+                            transition: all 0.3s ease;
+                        " class="back-icon-container">
+                            <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24" 
+                                 style="transition: all 0.3s ease;" class="back-arrow">
+                                <path d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+                            </svg>
+                        </div>
+                        
+                        <!-- Enhanced Text with Status Indicator -->
+                        <div style="display: flex; flex-direction: column; gap: 0.125rem;">
+                            <span style="font-weight: 600; line-height: 1;">Kembali ke</span>
+                            <span style="font-size: 0.75rem; opacity: 0.8; line-height: 1;">Laporan Jaspel</span>
+                        </div>
+                        
+                        <!-- Keyboard Shortcut Indicator -->
+                        <div style="
+                            display: flex; 
+                            align-items: center; 
+                            gap: 0.25rem; 
+                            font-size: 0.625rem; 
+                            opacity: 0.6; 
+                            background: rgba(0, 0, 0, 0.2); 
+                            padding: 0.25rem 0.5rem; 
+                            border-radius: 0.375rem;
+                            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+                        ">
+                            <span>ALT</span>
+                            <span>+</span>
+                            <span>←</span>
+                        </div>
+                        
+                        <!-- Ripple Effect Overlay -->
+                        <div class="ripple-overlay" style="
+                            position: absolute;
+                            top: 0;
+                            left: 0;
+                            right: 0;
+                            bottom: 0;
+                            pointer-events: none;
+                            border-radius: inherit;
+                            overflow: hidden;
+                        "></div>
                     </a>
                     
                     <button wire:click="exportDetailedBreakdown" 
@@ -603,18 +765,131 @@
             </div>
         </div>
         
-        <!-- ENHANCED JAVASCRIPT -->
+        <!-- WORLD-CLASS BACK BUTTON JAVASCRIPT -->
         <script>
-            // Simple notification functions remain for other uses
-            function exportDetail() {
-                showNotification('📥 Export functionality handled by Livewire', '#10b981');
+            // PREMIUM BACK BUTTON FUNCTIONALITY
+            function handlePremiumBackNavigation(event) {
+                event.preventDefault();
+                
+                const backButton = event.currentTarget;
+                const destination = backButton.getAttribute('data-destination');
+                const label = backButton.getAttribute('data-label');
+                
+                // Create ripple effect
+                createRippleEffect(event, backButton);
+                
+                // Show navigation feedback
+                showNavigationFeedback(`🔄 Navigating to ${label}...`, '#60a5fa');
+                
+                // Add exit animation
+                backButton.style.transform = 'scale(0.95)';
+                backButton.style.opacity = '0.8';
+                
+                // Store navigation state for better UX
+                if (typeof(Storage) !== "undefined") {
+                    localStorage.setItem('dokterku_back_navigation', JSON.stringify({
+                        from: window.location.pathname,
+                        to: destination,
+                        timestamp: Date.now(),
+                        label: label
+                    }));
+                }
+                
+                // Smooth navigation with delay for animation
+                setTimeout(() => {
+                    window.location.href = destination;
+                }, 200);
             }
             
-            function refreshCalculation() {
-                showNotification('🔄 Refresh functionality handled by Livewire', '#f59e0b');
+            // CREATE RIPPLE EFFECT
+            function createRippleEffect(event, element) {
+                const rect = element.getBoundingClientRect();
+                const overlay = element.querySelector('.ripple-overlay');
+                
+                const ripple = document.createElement('div');
+                ripple.className = 'ripple-effect';
+                
+                const x = event.clientX - rect.left;
+                const y = event.clientY - rect.top;
+                
+                ripple.style.left = (x - 10) + 'px';
+                ripple.style.top = (y - 10) + 'px';
+                ripple.style.width = '20px';
+                ripple.style.height = '20px';
+                
+                overlay.appendChild(ripple);
+                
+                setTimeout(() => {
+                    if (overlay.contains(ripple)) {
+                        overlay.removeChild(ripple);
+                    }
+                }, 600);
             }
             
-            function showNotification(message, color) {
+            // KEYBOARD SHORTCUTS FOR NAVIGATION
+            function initializeKeyboardShortcuts() {
+                document.addEventListener('keydown', function(event) {
+                    // ALT + Left Arrow = Back navigation
+                    if (event.altKey && event.key === 'ArrowLeft') {
+                        event.preventDefault();
+                        const backButton = document.getElementById('worldClassBackButton');
+                        if (backButton) {
+                            backButton.click();
+                        }
+                    }
+                    
+                    // ESC = Back navigation (alternative)
+                    if (event.key === 'Escape') {
+                        event.preventDefault();
+                        const backButton = document.getElementById('worldClassBackButton');
+                        if (backButton) {
+                            // Add visual feedback for ESC key
+                            backButton.classList.add('pulse');
+                            setTimeout(() => {
+                                backButton.classList.remove('pulse');
+                                backButton.click();
+                            }, 1000);
+                        }
+                    }
+                    
+                    // Show keyboard hint on Alt key
+                    if (event.key === 'Alt') {
+                        const backButton = document.getElementById('worldClassBackButton');
+                        if (backButton) {
+                            backButton.style.boxShadow = '0 8px 20px rgba(96, 165, 250, 0.35), 0 0 0 2px rgba(96, 165, 250, 0.2)';
+                        }
+                    }
+                });
+                
+                document.addEventListener('keyup', function(event) {
+                    if (event.key === 'Alt') {
+                        const backButton = document.getElementById('worldClassBackButton');
+                        if (backButton) {
+                            backButton.style.boxShadow = '0 4px 12px rgba(96, 165, 250, 0.15)';
+                        }
+                    }
+                });
+            }
+            
+            // ENHANCED BREADCRUMB INTERACTION
+            function enhanceBreadcrumbNavigation() {
+                const breadcrumbLinks = document.querySelectorAll('.breadcrumb-nav a');
+                breadcrumbLinks.forEach(link => {
+                    link.addEventListener('mouseenter', function() {
+                        // Highlight the potential back destination
+                        if (this.href === document.getElementById('worldClassBackButton')?.getAttribute('data-destination')) {
+                            this.classList.add('back-highlight');
+                        }
+                    });
+                    
+                    link.addEventListener('mouseleave', function() {
+                        this.classList.remove('back-highlight');
+                    });
+                });
+            }
+            
+            // SHOW NAVIGATION FEEDBACK
+            function showNavigationFeedback(message, color) {
                 const notification = document.createElement('div');
                 notification.style.cssText = `
                     position: fixed;
@@ -622,14 +897,16 @@
                     right: 2rem;
                     background: linear-gradient(135deg, ${color} 0%, ${color}dd 100%);
                     color: white;
-                    padding: 1rem 1.5rem;
+                    padding: 0.875rem 1.25rem;
                     border-radius: 0.75rem;
                     box-shadow: 0 8px 24px ${color}40;
                     z-index: 9999;
                     transform: translateX(100%);
-                    transition: transform 0.3s ease;
-                    font-weight: 500;
-                    backdrop-filter: blur(8px);
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    font-weight: 600;
+                    backdrop-filter: blur(12px);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    font-size: 0.875rem;
                 `;
                 notification.innerHTML = message;
                 document.body.appendChild(notification);
@@ -640,8 +917,25 @@
                 
                 setTimeout(() => {
                     notification.style.transform = 'translateX(100%)';
-                    setTimeout(() => document.body.removeChild(notification), 300);
-                }, 3000);
+                    setTimeout(() => {
+                        if (document.body.contains(notification)) {
+                            document.body.removeChild(notification);
+                        }
+                    }, 300);
+                }, 2000);
+            }
+            
+            // LEGACY NOTIFICATION FUNCTION (for other buttons)
+            function showNotification(message, color) {
+                showNavigationFeedback(message, color);
+            }
+            
+            function exportDetail() {
+                showNotification('📥 Export functionality handled by Livewire', '#10b981');
+            }
+            
+            function refreshCalculation() {
+                showNotification('🔄 Refresh functionality handled by Livewire', '#f59e0b');
             }
 
             // LOADING PERFORMANCE OPTIMIZATION
@@ -727,6 +1021,21 @@
                 
                 // Initialize animations
                 setTimeout(animateElements, 100);
+                
+                // Initialize world-class back button features
+                setTimeout(() => {
+                    initializeKeyboardShortcuts();
+                    enhanceBreadcrumbNavigation();
+                    
+                    // Show welcome hint for keyboard shortcuts
+                    const backButton = document.getElementById('worldClassBackButton');
+                    if (backButton && !localStorage.getItem('dokterku_keyboard_hint_shown')) {
+                        setTimeout(() => {
+                            showNavigationFeedback('💡 Tip: Use ALT+← or ESC to navigate back quickly!', '#8b5cf6');
+                            localStorage.setItem('dokterku_keyboard_hint_shown', 'true');
+                        }, 2000);
+                    }
+                }, 300);
                 
                 // Multiple sidebar elimination attempts
                 setTimeout(eliminateSidebar, 100);
