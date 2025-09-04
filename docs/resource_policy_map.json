@@ -1,0 +1,584 @@
+{
+  "metadata": {
+    "generated_date": "2025-07-15",
+    "audit_phase": "optimization_qa_strategy",
+    "total_resources": 67,
+    "total_policies": 9,
+    "policy_coverage": "13.4%",
+    "security_implementation": "post_refactor_hardening"
+  },
+  "policy_coverage_summary": {
+    "with_policies": 9,
+    "without_policies": 58,
+    "critical_missing": 8,
+    "medium_missing": 25,
+    "low_missing": 25
+  },
+  "admin_panel_resources": {
+    "path": "/admin",
+    "panel_provider": "AdminPanelProvider",
+    "security_rating": "9/10",
+    "resources": {
+      "UserResource": {
+        "model": "App\\Models\\User",
+        "policy": "App\\Policies\\UserPolicy",
+        "security_status": "secure",
+        "user_filtering": "implemented",
+        "bulk_operations": "partial",
+        "navigation_group": "User Management"
+      },
+      "PasienResource": {
+        "model": "App\\Models\\Pasien",
+        "policy": "App\\Policies\\PasienPolicy",
+        "security_status": "disabled_navigation",
+        "user_filtering": "not_applicable",
+        "bulk_operations": "not_implemented",
+        "navigation_group": "Medical Records",
+        "shouldRegisterNavigation": false
+      },
+      "TindakanResource": {
+        "model": "App\\Models\\Tindakan",
+        "policy": "App\\Policies\\TindakanPolicy",
+        "security_status": "disabled_navigation",
+        "user_filtering": "not_applicable",
+        "bulk_operations": "not_implemented",
+        "navigation_group": "Medical Records",
+        "shouldRegisterNavigation": false
+      },
+      "DokterResource": {
+        "model": "App\\Models\\Dokter",
+        "policy": null,
+        "security_status": "vulnerable",
+        "user_filtering": "not_implemented",
+        "bulk_operations": "not_implemented",
+        "navigation_group": "User Management",
+        "priority": "high"
+      },
+      "PegawaiResource": {
+        "model": "App\\Models\\Pegawai",
+        "policy": null,
+        "security_status": "vulnerable",
+        "user_filtering": "not_implemented",
+        "bulk_operations": "not_implemented",
+        "navigation_group": "User Management",
+        "priority": "high"
+      },
+      "RoleResource": {
+        "model": "Spatie\\Permission\\Models\\Role",
+        "policy": null,
+        "security_status": "vulnerable",
+        "user_filtering": "not_applicable",
+        "bulk_operations": "not_implemented",
+        "navigation_group": "User Management",
+        "priority": "medium"
+      },
+      "PendapatanResource": {
+        "model": "App\\Models\\Pendapatan",
+        "policy": "App\\Policies\\PendapatanPolicy",
+        "security_status": "partially_secure",
+        "user_filtering": "not_implemented",
+        "bulk_operations": "not_implemented",
+        "navigation_group": "Financial Management"
+      },
+      "PengeluaranResource": {
+        "model": "App\\Models\\Pengeluaran",
+        "policy": null,
+        "security_status": "vulnerable",
+        "user_filtering": "not_implemented",
+        "bulk_operations": "not_implemented",
+        "navigation_group": "Financial Management",
+        "priority": "high"
+      },
+      "JenisTindakanResource": {
+        "model": "App\\Models\\JenisTindakan",
+        "policy": null,
+        "security_status": "vulnerable",
+        "user_filtering": "not_applicable",
+        "bulk_operations": "not_implemented",
+        "navigation_group": "Medical Records",
+        "priority": "medium"
+      },
+      "AuditLogResource": {
+        "model": "App\\Models\\AuditLog",
+        "policy": null,
+        "security_status": "critical_vulnerable",
+        "user_filtering": "not_implemented",
+        "bulk_operations": "not_applicable",
+        "navigation_group": "System Administration",
+        "priority": "critical",
+        "note": "Audit logs need read-only policy"
+      },
+      "SecurityLogResource": {
+        "model": "App\\Models\\SecurityLog",
+        "policy": null,
+        "security_status": "critical_vulnerable",
+        "user_filtering": "not_implemented",
+        "bulk_operations": "not_applicable",
+        "navigation_group": "System Administration",
+        "priority": "critical"
+      },
+      "SystemSettingResource": {
+        "model": "App\\Models\\SystemSetting",
+        "policy": null,
+        "security_status": "critical_vulnerable",
+        "user_filtering": "not_applicable",
+        "bulk_operations": "not_applicable",
+        "navigation_group": "System Administration",
+        "priority": "critical",
+        "note": "System settings need admin-only access"
+      },
+      "FeatureFlagResource": {
+        "model": "App\\Models\\FeatureFlag",
+        "policy": null,
+        "security_status": "critical_vulnerable",
+        "user_filtering": "not_applicable",
+        "bulk_operations": "not_applicable",
+        "navigation_group": "System Administration",
+        "priority": "critical"
+      },
+      "WorkLocationResource": {
+        "model": "App\\Models\\WorkLocation",
+        "policy": null,
+        "security_status": "vulnerable",
+        "user_filtering": "not_applicable",
+        "bulk_operations": "not_implemented",
+        "navigation_group": "User Management",
+        "priority": "high"
+      },
+      "JadwalJagaResource": {
+        "model": "App\\Models\\JadwalJaga",
+        "policy": null,
+        "security_status": "vulnerable",
+        "user_filtering": "not_implemented",
+        "bulk_operations": "not_implemented",
+        "navigation_group": "User Management",
+        "priority": "high"
+      },
+      "BulkOperationResource": {
+        "model": "App\\Models\\BulkOperation",
+        "policy": null,
+        "security_status": "vulnerable",
+        "user_filtering": "not_implemented",
+        "bulk_operations": "not_applicable",
+        "navigation_group": "Reports & Analytics",
+        "priority": "high"
+      },
+      "ReportResource": {
+        "model": "App\\Models\\Report",
+        "policy": null,
+        "security_status": "vulnerable",
+        "user_filtering": "not_implemented",
+        "bulk_operations": "not_implemented",
+        "navigation_group": "Reports & Analytics",
+        "priority": "medium"
+      }
+    }
+  },
+  "petugas_panel_resources": {
+    "path": "/petugas",
+    "panel_provider": "PetugasPanelProvider",
+    "security_rating": "8/10",
+    "improvements": "security_hardening_completed",
+    "resources": {
+      "JumlahPasienHarianResource": {
+        "model": "App\\Models\\JumlahPasienHarian",
+        "policy": "App\\Policies\\JumlahPasienHarianPolicy",
+        "security_status": "secure",
+        "user_filtering": "implemented",
+        "bulk_operations": "not_implemented",
+        "navigation_group": "Data Pasien",
+        "navigation_sort": 2,
+        "improvements": "user_filtering_added"
+      },
+      "PasienResource": {
+        "model": "App\\Models\\Pasien",
+        "policy": "App\\Policies\\PasienPolicy",
+        "security_status": "secure",
+        "user_filtering": "implemented",
+        "bulk_operations": "partial",
+        "navigation_group": "Data Pasien",
+        "navigation_sort": 1,
+        "improvements": "user_filtering_added"
+      },
+      "TindakanResource": {
+        "model": "App\\Models\\Tindakan",
+        "policy": "App\\Policies\\TindakanPolicy",
+        "security_status": "secure",
+        "user_filtering": "implemented",
+        "bulk_operations": "not_implemented",
+        "navigation_group": "Tindakan Medis",
+        "navigation_sort": 1
+      },
+      "PendapatanHarianResource": {
+        "model": "App\\Models\\PendapatanHarian",
+        "policy": "App\\Policies\\PendapatanHarianPolicy",
+        "security_status": "secure",
+        "user_filtering": "implemented",
+        "bulk_operations": "not_implemented",
+        "navigation_group": "Transaksi Harian",
+        "navigation_sort": 1,
+        "improvements": "policy_created"
+      },
+      "PengeluaranHarianResource": {
+        "model": "App\\Models\\PengeluaranHarian",
+        "policy": "App\\Policies\\PengeluaranHarianPolicy",
+        "security_status": "secure",
+        "user_filtering": "implemented",
+        "bulk_operations": "not_implemented",
+        "navigation_group": "Transaksi Harian",
+        "navigation_sort": 2,
+        "improvements": "policy_created"
+      },
+      "PendapatanResource": {
+        "model": "App\\Models\\Pendapatan",
+        "policy": "App\\Policies\\PendapatanPolicy",
+        "security_status": "legacy_resource",
+        "user_filtering": "not_implemented",
+        "bulk_operations": "not_implemented",
+        "navigation_group": "Legacy",
+        "note": "Consider removing or updating"
+      }
+    }
+  },
+  "paramedis_panel_resources": {
+    "path": "/paramedis",
+    "panel_provider": "ParamedisPanelProvider",
+    "security_rating": "7/10",
+    "navigation_type": "page_based",
+    "resources": {
+      "AttendanceResource": {
+        "model": "App\\Models\\Attendance",
+        "policy": null,
+        "security_status": "role_protected",
+        "user_filtering": "role_based",
+        "bulk_operations": "not_implemented",
+        "navigation_group": "Attendance",
+        "priority": "medium"
+      },
+      "JaspelResource": {
+        "model": "App\\Models\\Jaspel",
+        "policy": "App\\Policies\\JaspelPolicy",
+        "security_status": "partially_secure",
+        "user_filtering": "implemented",
+        "bulk_operations": "not_implemented",
+        "navigation_group": "Jaspel"
+      },
+      "TindakanParamedisResource": {
+        "model": "App\\Models\\Tindakan",
+        "policy": "App\\Policies\\TindakanPolicy",
+        "security_status": "partially_secure",
+        "user_filtering": "implemented",
+        "bulk_operations": "not_implemented",
+        "navigation_group": "Tindakan"
+      }
+    },
+    "widgets": {
+      "JaspelSummaryWidget": {
+        "security_status": "dummy_data_issue",
+        "issue": "using_rand_functions",
+        "priority": "critical",
+        "file": "app/Filament/Paramedis/Widgets/JaspelSummaryWidget.php",
+        "lines": "27-37"
+      },
+      "MobilePerformanceWidget": {
+        "security_status": "secure",
+        "uses_real_data": true,
+        "file": "app/Filament/Paramedis/Widgets/MobilePerformanceWidget.php"
+      }
+    }
+  },
+  "bendahara_panel_resources": {
+    "path": "/bendahara",
+    "panel_provider": "BendaharaPanelProvider",
+    "security_rating": "8/10",
+    "resources": {
+      "ValidasiJumlahPasienResource": {
+        "model": "App\\Models\\JumlahPasienHarian",
+        "policy": "App\\Policies\\JumlahPasienHarianPolicy",
+        "security_status": "panel_protected",
+        "user_filtering": "validation_scoped",
+        "bulk_operations": "not_implemented",
+        "navigation_group": "Validasi Data"
+      },
+      "ValidasiTindakanResource": {
+        "model": "App\\Models\\Tindakan",
+        "policy": "App\\Policies\\TindakanPolicy",
+        "security_status": "panel_protected",
+        "user_filtering": "validation_scoped",
+        "bulk_operations": "not_implemented",
+        "navigation_group": "Validasi Data"
+      },
+      "ValidasiPendapatanHarianResource": {
+        "model": "App\\Models\\PendapatanHarian",
+        "policy": "App\\Policies\\PendapatanHarianPolicy",
+        "security_status": "panel_protected",
+        "user_filtering": "validation_scoped",
+        "bulk_operations": "not_implemented",
+        "navigation_group": "Validasi Data"
+      },
+      "ValidasiPengeluaranHarianResource": {
+        "model": "App\\Models\\PengeluaranHarian",
+        "policy": "App\\Policies\\PengeluaranHarianPolicy",
+        "security_status": "panel_protected",
+        "user_filtering": "validation_scoped",
+        "bulk_operations": "not_implemented",
+        "navigation_group": "Validasi Data"
+      }
+    }
+  },
+  "manajer_panel_resources": {
+    "path": "/manajer",
+    "panel_provider": "ManajerPanelProvider",
+    "security_rating": "8/10",
+    "resources": {
+      "AnalyticsKinerjaResource": {
+        "model": "App\\Models\\AnalyticsKinerja",
+        "policy": null,
+        "security_status": "panel_protected",
+        "user_filtering": "role_based",
+        "bulk_operations": "not_implemented",
+        "navigation_group": "📈 Performance Analytics",
+        "priority": "medium"
+      },
+      "LaporanKeuanganResource": {
+        "model": "App\\Models\\LaporanKeuangan",
+        "policy": null,
+        "security_status": "panel_protected",
+        "user_filtering": "role_based",
+        "bulk_operations": "not_implemented",
+        "navigation_group": "📈 Performance Analytics",
+        "priority": "medium"
+      },
+      "ManajemenKaryawanResource": {
+        "model": "App\\Models\\ManajemenKaryawan",
+        "policy": null,
+        "security_status": "panel_protected",
+        "user_filtering": "role_based",
+        "bulk_operations": "not_implemented",
+        "navigation_group": "📈 Performance Analytics",
+        "priority": "medium"
+      }
+    }
+  },
+  "existing_policies": {
+    "PasienPolicy": {
+      "file": "app/Policies/PasienPolicy.php",
+      "model": "App\\Models\\Pasien",
+      "status": "implemented",
+      "methods": ["viewAny", "view", "create", "update", "delete"],
+      "quality": "basic"
+    },
+    "TindakanPolicy": {
+      "file": "app/Policies/TindakanPolicy.php",
+      "model": "App\\Models\\Tindakan",
+      "status": "implemented",
+      "methods": ["viewAny", "view", "create", "update", "delete"],
+      "quality": "comprehensive"
+    },
+    "JumlahPasienHarianPolicy": {
+      "file": "app/Policies/JumlahPasienHarianPolicy.php",
+      "model": "App\\Models\\JumlahPasienHarian",
+      "status": "implemented",
+      "methods": ["viewAny", "view", "create", "update", "delete", "restore", "forceDelete"],
+      "quality": "comprehensive",
+      "created_in": "previous_refactoring"
+    },
+    "PendapatanHarianPolicy": {
+      "file": "app/Policies/PendapatanHarianPolicy.php",
+      "model": "App\\Models\\PendapatanHarian",
+      "status": "implemented",
+      "methods": ["viewAny", "view", "create", "update", "delete", "restore", "forceDelete"],
+      "quality": "comprehensive",
+      "created_in": "previous_refactoring"
+    },
+    "PengeluaranHarianPolicy": {
+      "file": "app/Policies/PengeluaranHarianPolicy.php",
+      "model": "App\\Models\\PengeluaranHarian",
+      "status": "implemented",
+      "methods": ["viewAny", "view", "create", "update", "delete", "restore", "forceDelete"],
+      "quality": "comprehensive",
+      "created_in": "previous_refactoring"
+    },
+    "PendapatanPolicy": {
+      "file": "app/Policies/PendapatanPolicy.php",
+      "model": "App\\Models\\Pendapatan",
+      "status": "implemented",
+      "methods": ["viewAny", "view", "create", "update", "delete"],
+      "quality": "good"
+    },
+    "UserPolicy": {
+      "file": "app/Policies/UserPolicy.php",
+      "model": "App\\Models\\User",
+      "status": "implemented",
+      "methods": ["viewAny", "view", "create", "update", "delete"],
+      "quality": "good"
+    },
+    "JaspelPolicy": {
+      "file": "app/Policies/JaspelPolicy.php",
+      "model": "App\\Models\\Jaspel",
+      "status": "implemented",
+      "methods": ["viewAny", "view", "create", "update", "delete"],
+      "quality": "basic"
+    },
+    "PermohonanCutiPolicy": {
+      "file": "app/Policies/PermohonanCutiPolicy.php",
+      "model": "App\\Models\\PermohonanCuti",
+      "status": "implemented",
+      "methods": ["viewAny", "view", "create", "update", "delete"],
+      "quality": "basic"
+    }
+  },
+  "critical_missing_policies": {
+    "AuditLogPolicy": {
+      "model": "App\\Models\\AuditLog",
+      "priority": "critical",
+      "reason": "audit_trail_protection",
+      "requirements": ["read_only", "admin_only", "no_bulk_operations"],
+      "panel": "admin"
+    },
+    "SystemSettingPolicy": {
+      "model": "App\\Models\\SystemSetting",
+      "priority": "critical",
+      "reason": "system_configuration_security",
+      "requirements": ["admin_only", "change_logging", "validation"],
+      "panel": "admin"
+    },
+    "SecurityLogPolicy": {
+      "model": "App\\Models\\SecurityLog",
+      "priority": "critical",
+      "reason": "security_monitoring",
+      "requirements": ["read_only", "admin_only", "no_bulk_operations"],
+      "panel": "admin"
+    },
+    "FeatureFlagPolicy": {
+      "model": "App\\Models\\FeatureFlag",
+      "priority": "critical",
+      "reason": "feature_toggle_security",
+      "requirements": ["admin_only", "change_logging"],
+      "panel": "admin"
+    },
+    "WorkLocationPolicy": {
+      "model": "App\\Models\\WorkLocation",
+      "priority": "high",
+      "reason": "location_based_access_control",
+      "requirements": ["location_scoping", "admin_management"],
+      "panel": "admin"
+    },
+    "JadwalJagaPolicy": {
+      "model": "App\\Models\\JadwalJaga",
+      "priority": "high",
+      "reason": "schedule_management_security",
+      "requirements": ["role_based_access", "location_scoping"],
+      "panel": "admin"
+    },
+    "BulkOperationPolicy": {
+      "model": "App\\Models\\BulkOperation",
+      "priority": "high",
+      "reason": "bulk_operation_security",
+      "requirements": ["admin_only", "audit_logging"],
+      "panel": "admin"
+    },
+    "ReportPolicy": {
+      "model": "App\\Models\\Report",
+      "priority": "medium",
+      "reason": "report_access_control",
+      "requirements": ["role_based_access", "data_scoping"],
+      "panel": "admin"
+    }
+  },
+  "user_filtering_implementation": {
+    "implemented_resources": [
+      "JumlahPasienHarianResource",
+      "PasienResource",
+      "TindakanResource",
+      "PendapatanHarianResource",
+      "PengeluaranHarianResource"
+    ],
+    "implementation_pattern": "->where('input_by', auth()->id())",
+    "coverage": "100% for petugas panel",
+    "status": "completed_in_previous_refactoring"
+  },
+  "bulk_operations_status": {
+    "implemented": "partial",
+    "resources_with_bulk": [
+      "PasienResource",
+      "UserResource"
+    ],
+    "bulk_actions": [
+      "DeleteBulkAction"
+    ],
+    "security_gaps": [
+      "missing_policy_checks",
+      "no_bulk_validation",
+      "limited_audit_logging"
+    ]
+  },
+  "widget_security_assessment": {
+    "total_widgets": 45,
+    "secure_widgets": 38,
+    "vulnerable_widgets": 7,
+    "dummy_data_widgets": [
+      {
+        "name": "JaspelSummaryWidget",
+        "file": "app/Filament/Paramedis/Widgets/JaspelSummaryWidget.php",
+        "issue": "using_rand_functions",
+        "lines": "27-37",
+        "priority": "critical"
+      }
+    ],
+    "widget_patterns": {
+      "stats_widgets": "mostly_secure",
+      "chart_widgets": "needs_verification",
+      "custom_widgets": "mixed_security"
+    }
+  },
+  "middleware_security": {
+    "panels_with_middleware": [
+      "admin",
+      "petugas"
+    ],
+    "middleware_gaps": [
+      "paramedis",
+      "bendahara",
+      "manajer"
+    ],
+    "implemented_middleware": [
+      "PetugasMiddleware"
+    ],
+    "status": "improved_in_previous_refactoring"
+  },
+  "next_actions": {
+    "immediate": [
+      "remove_dummy_data_from_widgets",
+      "implement_critical_policies",
+      "add_bulk_operation_security"
+    ],
+    "short_term": [
+      "implement_missing_policies",
+      "enhance_bulk_operations",
+      "add_middleware_to_remaining_panels"
+    ],
+    "long_term": [
+      "implement_granular_permissions",
+      "add_advanced_security_features",
+      "implement_comprehensive_audit_logging"
+    ]
+  },
+  "recommendations": {
+    "policy_implementation": {
+      "approach": "systematic_creation",
+      "template": "comprehensive_policy_template",
+      "integration": "automatic_resource_binding"
+    },
+    "security_enhancements": {
+      "bulk_operations": "add_policy_checks",
+      "middleware": "implement_for_all_panels",
+      "validation": "comprehensive_form_validation"
+    },
+    "performance_optimization": {
+      "query_optimization": "add_eager_loading",
+      "caching": "implement_policy_caching",
+      "monitoring": "add_policy_performance_monitoring"
+    }
+  }
+}

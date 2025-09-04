@@ -1,0 +1,124 @@
+# 🔑 NEW SSH KEY SETUP COMPLETE
+
+## ✅ SSH Key Generated Successfully!
+
+**New SSH Key Fingerprint**: `SHA256:TUUZgzCDHJIl1OuAfSdRArRtXiC0ubkZkX3y1QHzsRY`
+
+## 📋 UPDATED PUBLIC KEY:
+```
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCkShtVHq4pR6w3mB6JXaV5iUnEVSuZTrVLIH3aMeAymgr/t5/9ZO2kYYvBPvl+Ge7EUUEWV2zFdVHnDMtdyqHv0gG8IQ7DHDEZWpEYAWaP0NpiI9Oun7uxY/gYzL5x4M2ZkGiz6svirpgCN3tQgHnmEYJlqYeR1Z82npCAg2mSc3dtcY5HoMGY/IPgjtdghbJaGm3uHte1l4ZpzqB21EJaJI00WvXiMxK9kxOnBcMwczntYRN8Vxl7dh6ylo65C44dkEYWKdXQi+MuIn/vqrItq56eMOamvdrwhEsIOONBu+/7khtDBO4NJt1SE81eMvUOxLHnNtqL5tYE2+ztHhDZZXxydYWGISxOqSCgTsvlFN5QtUPHH/rTh9Q0ztZlNaVwmz2lOcckabyypsOMGYnH5rWRewutXWNqAX46iRRts+WjJMtu1Bn5F84KIRJGMfdip2YpItJbz5SU8oWVVMzpxk58HGX5KlSxI0scFnmr4Gcw1k01D13qoFh1/IJFai/uHtMDKt+bnqNamW+gKqW5Ld/wfJ3ixAfGEV2LJ+HFL8Nqi8YhPSDzGBnQ57nAWis0NlnmxB5nYAYrQdSpi0KjG0fzcZ9ZZXZeTbNBSHHK6jKpudIaSYaBuRutNsz7imZvSJ5HpUoLA+ZlgH2j3EiEBELnLeBxoJzdh1ei9QE40w== deploy@dokterkuklinik.com
+```
+
+## 🔐 PRIVATE KEY FOR GITHUB SECRETS:
+```
+-----BEGIN OPENSSH PRIVATE KEY-----
+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
+-----END OPENSSH PRIVATE KEY-----
+```
+
+## 🚀 GITHUB SECRETS TO ADD:
+
+### 1. SSH_PRIVATE_KEY
+```
+Name: SSH_PRIVATE_KEY
+Value: [Copy the entire private key above, including -----BEGIN and -----END lines]
+```
+
+### 2. REMOTE_USER
+```
+Name: REMOTE_USER
+Value: [Your Hostinger SSH username - biasanya u454362045]
+```
+
+### 3. DB_USERNAME
+```
+Name: DB_USERNAME
+Value: u454362045_u45436245_kli
+```
+
+### 4. DB_PASSWORD
+```
+Name: DB_PASSWORD
+Value: KlinikApp2025!
+```
+
+### 5. DB_DATABASE
+```
+Name: DB_DATABASE
+Value: u454362045_u45436245_kli
+```
+
+## 📋 CURRENT STATUS:
+- [x] `HOST` = `dokterkuklinik.com` (Already added)
+- [ ] `SSH_PRIVATE_KEY` = [Add private key above]
+- [ ] `REMOTE_USER` = [Add SSH username]
+- [ ] `DB_USERNAME` = `u454362045_u45436245_kli`
+- [ ] `DB_PASSWORD` = `KlinikApp2025!`
+- [ ] `DB_DATABASE` = `u454362045_u45436245_kli`
+
+## 🎯 NEXT STEPS:
+
+1. **Add public key to Hostinger**:
+```bash
+# SSH to Hostinger and run:
+mkdir -p ~/.ssh
+echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCkShtVHq4pR6w3mB6JXaV5iUnEVSuZTrVLIH3aMeAymgr/t5/9ZO2kYYvBPvl+Ge7EUUEWV2zFdVHnDMtdyqHv0gG8IQ7DHDEZWpEYAWaP0NpiI9Oun7uxY/gYzL5x4M2ZkGiz6svirpgCN3tQgHnmEYJlqYeR1Z82npCAg2mSc3dtcY5HoMGY/IPgjtdghbJaGm3uHte1l4ZpzqB21EJaJI00WvXiMxK9kxOnBcMwczntYRN8Vxl7dh6ylo65C44dkEYWKdXQi+MuIn/vqrItq56eMOamvdrwhEsIOONBu+/7khtDBO4NJt1SE81eMvUOxLHnNtqL5tYE2+ztHhDZZXxydYWGISxOqSCgTsvlFN5QtUPHH/rTh9Q0ztZlNaVwmz2lOcckabyypsOMGYnH5rWRewutXWNqAX46iRRts+WjJMtu1Bn5F84KIRJGMfdip2YpItJbz5SU8oWVVMzpxk58HGX5KlSxI0scFnmr4Gcw1k01D13qoFh1/IJFai/uHtMDKt+bnqNamW+gKqW5Ld/wfJ3ixAfGEV2LJ+HFL8Nqi8YhPSDzGBnQ57nAWis0NlnmxB5nYAYrQdSpi0KjG0fzcZ9ZZXZeTbNBSHHK6jKpudIaSYaBuRutNsz7imZvSJ5HpUoLA+ZlgH2j3EiEBELnLeBxoJzdh1ei9QE40w== deploy@dokterkuklinik.com" >> ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+chmod 700 ~/.ssh
+```
+
+2. **Add 5 GitHub secrets** using the values above
+
+3. **Deploy**:
+```bash
+git push origin main
+```
+
+## ✅ READY FOR DEPLOYMENT!
+Setelah menambahkan semua secrets, setiap `git push` akan otomatis deploy ke Hostinger! 🚀

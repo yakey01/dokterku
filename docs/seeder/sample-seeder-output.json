@@ -1,0 +1,264 @@
+{
+  "seeder_execution_summary": {
+    "timestamp": "2024-01-01T00:00:00Z",
+    "total_execution_time": "2.5 seconds",
+    "successful_seeders": 4,
+    "failed_seeders": 0,
+    "total_records_created": 127
+  },
+  "seeder_details": [
+    {
+      "seeder": "Database\\Seeders\\Master\\RoleSeeder",
+      "status": "success",
+      "execution_time": "14ms",
+      "records_created": 7,
+      "data_summary": {
+        "roles": [
+          {
+            "name": "admin",
+            "display_name": "Administrator",
+            "permissions_count": 7
+          },
+          {
+            "name": "manajer",
+            "display_name": "Manajer",
+            "permissions_count": 5
+          },
+          {
+            "name": "bendahara",
+            "display_name": "Bendahara",
+            "permissions_count": 5
+          },
+          {
+            "name": "petugas",
+            "display_name": "Petugas",
+            "permissions_count": 3
+          },
+          {
+            "name": "paramedis",
+            "display_name": "Paramedis",
+            "permissions_count": 3
+          },
+          {
+            "name": "dokter",
+            "display_name": "Dokter",
+            "permissions_count": 4
+          },
+          {
+            "name": "non_paramedis",
+            "display_name": "Non Paramedis",
+            "permissions_count": 2
+          }
+        ]
+      }
+    },
+    {
+      "seeder": "Database\\Seeders\\Master\\ShiftSeeder",
+      "status": "success",
+      "execution_time": "1ms",
+      "records_created": 3,
+      "data_summary": {
+        "shifts": [
+          {
+            "name": "Pagi",
+            "start_time": "08:00",
+            "end_time": "14:00"
+          },
+          {
+            "name": "Siang",
+            "start_time": "14:00",
+            "end_time": "20:00"
+          },
+          {
+            "name": "Malam",
+            "start_time": "20:00",
+            "end_time": "08:00"
+          }
+        ]
+      }
+    },
+    {
+      "seeder": "Database\\Seeders\\Master\\JenisTindakanSeeder",
+      "status": "success",
+      "execution_time": "3ms",
+      "records_created": 10,
+      "data_summary": {
+        "jenis_tindakan": [
+          {
+            "kode": "KONS001",
+            "nama": "Konsultasi Dokter Umum",
+            "tarif": 50000,
+            "kategori": "konsultasi"
+          },
+          {
+            "kode": "KONS002",
+            "nama": "Konsultasi Dokter Spesialis",
+            "tarif": 150000,
+            "kategori": "konsultasi"
+          },
+          {
+            "kode": "PERI001",
+            "nama": "Pemeriksaan Tekanan Darah",
+            "tarif": 25000,
+            "kategori": "pemeriksaan"
+          },
+          {
+            "kode": "PERI002",
+            "nama": "Pemeriksaan Gula Darah",
+            "tarif": 35000,
+            "kategori": "pemeriksaan"
+          },
+          {
+            "kode": "TIND001",
+            "nama": "Suntik Intramuskular",
+            "tarif": 30000,
+            "kategori": "tindakan"
+          },
+          {
+            "kode": "TIND002",
+            "nama": "Perawatan Luka",
+            "tarif": 40000,
+            "kategori": "tindakan"
+          },
+          {
+            "kode": "OBAT001",
+            "nama": "Obat Paracetamol",
+            "tarif": 15000,
+            "kategori": "obat"
+          },
+          {
+            "kode": "OBAT002",
+            "nama": "Obat Antibiotik",
+            "tarif": 45000,
+            "kategori": "obat"
+          },
+          {
+            "kode": "LAIN001",
+            "nama": "Surat Keterangan Sehat",
+            "tarif": 25000,
+            "kategori": "lainnya"
+          },
+          {
+            "kode": "LAIN002",
+            "nama": "Surat Keterangan Sakit",
+            "tarif": 20000,
+            "kategori": "lainnya"
+          }
+        ]
+      }
+    },
+    {
+      "seeder": "Database\\Seeders\\UserSeeder",
+      "status": "success",
+      "execution_time": "1.88s",
+      "records_created": 10,
+      "data_summary": {
+        "users": [
+          {
+            "name": "Administrator",
+            "email": "admin@dokterku.com",
+            "role": "admin",
+            "nip": "ADM001"
+          },
+          {
+            "name": "Dr. Manajer Klinik",
+            "email": "manajer@dokterku.com",
+            "role": "manajer",
+            "nip": "MNG001"
+          },
+          {
+            "name": "Bendahara Klinik",
+            "email": "bendahara@dokterku.com",
+            "role": "bendahara",
+            "nip": "BND001"
+          },
+          {
+            "name": "Petugas Administrasi",
+            "email": "petugas@dokterku.com",
+            "role": "petugas",
+            "nip": "PTG001"
+          },
+          {
+            "name": "Dr. Dokter Umum",
+            "email": "dokter@dokterku.com",
+            "role": "dokter",
+            "nip": "DOK001"
+          },
+          {
+            "name": "Dr. Spesialis Penyakit Dalam",
+            "email": "spesialis@dokterku.com",
+            "role": "dokter",
+            "nip": "DOK002"
+          },
+          {
+            "name": "Perawat Suster",
+            "email": "perawat@dokterku.com",
+            "role": "paramedis",
+            "nip": "PMD001"
+          },
+          {
+            "name": "Bidan Praktik",
+            "email": "bidan@dokterku.com",
+            "role": "paramedis",
+            "nip": "PMD002"
+          },
+          {
+            "name": "Asisten Klinik",
+            "email": "asisten@dokterku.com",
+            "role": "non_paramedis",
+            "nip": "NPM001"
+          },
+          {
+            "name": "Apoteker",
+            "email": "apoteker@dokterku.com",
+            "role": "non_paramedis",
+            "nip": "NPM002"
+          }
+        ],
+        "default_passwords": {
+          "admin": "admin123",
+          "manajer": "manajer123",
+          "bendahara": "bendahara123",
+          "petugas": "petugas123",
+          "dokter": "dokter123",
+          "spesialis": "spesialis123",
+          "perawat": "perawat123",
+          "bidan": "bidan123",
+          "asisten": "asisten123",
+          "apoteker": "apoteker123"
+        }
+      }
+    }
+  ],
+  "database_statistics": {
+    "total_tables": 11,
+    "total_records": 127,
+    "database_size": "1.2MB",
+    "tables_breakdown": {
+      "roles": 7,
+      "users": 10,
+      "shifts": 3,
+      "jenis_tindakan": 10,
+      "pasien": 0,
+      "tindakan": 0,
+      "jaspel": 0,
+      "uang_duduk": 0,
+      "pendapatan": 0,
+      "pengeluaran": 0,
+      "cache": 0
+    }
+  },
+  "next_steps": [
+    "Run 'php artisan serve' to start the development server",
+    "Use 'composer dev' to start all development services",
+    "Test login with any of the seeded user accounts",
+    "Begin creating patient records and medical procedures",
+    "Configure external services (Telegram, email) if needed"
+  ],
+  "notes": {
+    "environment": "development",
+    "database_type": "SQLite",
+    "seed_data_purpose": "Initial system setup with master data",
+    "security_notice": "Default passwords should be changed in production"
+  }
+}

@@ -1,0 +1,70 @@
+name: "Klinik Keuangan Backend System"
+description: "Sistem backend untuk manajemen keuangan klinik dengan arsitektur clean code"
+version: "1.0.0"
+framework: "Laravel 11"
+
+architecture:
+  pattern: "Clean Architecture"
+  layers:
+    - "Controllers (API Layer)"
+    - "Services (Business Logic Layer)"
+    - "Repositories (Data Access Layer)"
+    - "Models (Entity Layer)"
+    - "Events & Listeners (Domain Events)"
+    - "Jobs (Background Processing)"
+
+core_features:
+  - "Role-based Authentication & Authorization"
+  - "Financial Transaction Management"
+  - "Medical Procedure Tracking"
+  - "Jaspel (Service Fee) Calculation"
+  - "Validation Workflow System"
+  - "Real-time Notifications"
+  - "Reporting & Analytics"
+
+domain_models:
+  - "User Management"
+  - "Patient Records"
+  - "Medical Procedures"
+  - "Financial Transactions"
+  - "Service Fees (Jaspel)"
+  - "Allowances (Uang Duduk)"
+  - "Validation Workflow"
+
+business_rules:
+  - "All financial transactions require validation"
+  - "Jaspel automatically calculated from medical procedures"
+  - "Role-based permissions for data access"
+  - "Audit trail for all financial operations"
+  - "Soft delete for critical data"
+
+technical_requirements:
+  - "PHP 8.2+"
+  - "Laravel 11"
+  - "SQLite for development"
+  - "Pest for testing"
+  - "Queue system for background jobs"
+  - "Event-driven architecture"
+
+api_design:
+  - "RESTful API endpoints"
+  - "JSON API responses"
+  - "Proper HTTP status codes"
+  - "Input validation"
+  - "Error handling"
+  - "Rate limiting"
+
+security_features:
+  - "Input validation and sanitization"
+  - "CSRF protection"
+  - "SQL injection prevention"
+  - "Role-based access control"
+  - "Audit logging"
+  - "Secure password hashing"
+
+deployment_considerations:
+  - "Environment-based configuration"
+  - "Database migrations"
+  - "Queue worker management"
+  - "Logging and monitoring"
+  - "Backup strategies"

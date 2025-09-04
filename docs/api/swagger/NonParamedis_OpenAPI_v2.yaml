@@ -1,0 +1,1237 @@
+openapi: 3.0.0
+info:
+  title: Dokterku API v2 - NonParamedis Module
+  description: |
+    Comprehensive API documentation for NonParamedis (Non-Medical Administrative Staff) 
+    attendance management system within the Dokterku Medical Clinic Management platform.
+    
+    ## Features
+    - GPS-based attendance tracking
+    - Real-time dashboard analytics
+    - Comprehensive reporting
+    - Role-based access control
+    - Mobile-first design
+    
+    ## Authentication
+    All endpoints require Bearer token authentication using Laravel Sanctum.
+    
+    ## Rate Limiting
+    - Attendance actions: 5 requests/minute
+    - General endpoints: 60 requests/minute
+  version: 2.0.0
+  contact:
+    name: Dokterku Development Team
+    email: dev@dokterku.com
+  license:
+    name: Proprietary
+    url: https://dokterku.com/license
+
+servers:
+  - url: https://dokterku.com/api/v2
+    description: Production Server
+  - url: https://staging.dokterku.com/api/v2
+    description: Staging Server
+  - url: http://localhost:8000/api/v2
+    description: Development Server
+
+security:
+  - sanctum: []
+
+tags:
+  - name: Authentication
+    description: Authentication and authorization endpoints
+  - name: Dashboard
+    description: Dashboard overview and quick stats
+  - name: Attendance
+    description: Check-in/check-out and attendance management
+  - name: Schedule
+    description: Work schedule and calendar management
+  - name: Reports
+    description: Analytics and reporting endpoints
+  - name: Profile
+    description: User profile and settings management
+
+paths:
+  # Dashboard Endpoints
+  /dashboards/nonparamedis/:
+    get:
+      tags:
+        - Dashboard
+      summary: Get NonParamedis Dashboard Overview
+      description: |
+        Retrieve comprehensive dashboard data including:
+        - User information and role
+        - Current month statistics
+        - Today's attendance status
+        - Quick action items
+        - Work performance metrics
+      operationId: getNonParamedisDashboard
+      responses:
+        '200':
+          description: Dashboard data retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /dashboards/nonparamedis/test:
+    get:
+      tags:
+        - Dashboard
+      summary: Test API Connectivity
+      description: Test endpoint to verify authentication and API connectivity
+      operationId: testNonParamedisAPI
+      responses:
+        '200':
+          description: API test successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # Attendance Endpoints
+  /dashboards/nonparamedis/attendance/status:
+    get:
+      tags:
+        - Attendance
+      summary: Get Current Attendance Status
+      description: Get today's attendance status, location info, and action availability
+      operationId: getAttendanceStatus
+      responses:
+        '200':
+          description: Attendance status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttendanceStatusResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /dashboards/nonparamedis/attendance/checkin:
+    post:
+      tags:
+        - Attendance
+      summary: Check In Attendance
+      description: |
+        Record attendance check-in with GPS validation.
+        
+        ## GPS Requirements
+        - Latitude: -90 to 90 degrees
+        - Longitude: -180 to 180 degrees
+        - Must be within work location geofence (default: 100m radius)
+        - GPS accuracy ≤ 50m recommended for optimal validation
+        
+        ## Validation Process
+        1. GPS coordinates validation
+        2. Geofence boundary checking
+        3. Spoofing detection
+        4. Duplicate check-in prevention
+      operationId: checkInAttendance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckInRequest'
+            examples:
+              basic_checkin:
+                summary: Basic check-in request
+                value:
+                  latitude: -6.2088
+                  longitude: 106.8456
+                  accuracy: 10.5
+              with_location:
+                summary: Check-in with specific location
+                value:
+                  latitude: -6.2088
+                  longitude: 106.8456
+                  accuracy: 8.0
+                  work_location_id: 1
+      responses:
+        '201':
+          description: Check-in successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckInResponse'
+        '422':
+          description: Validation error or already checked in
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/ValidationErrorResponse'
+                  - $ref: '#/components/schemas/GPSValidationErrorResponse'
+              examples:
+                already_checked_in:
+                  summary: Already checked in today
+                  value:
+                    status: error
+                    message: "Anda sudah melakukan check-in hari ini"
+                    meta:
+                      version: "2.0"
+                      timestamp: "2025-07-15T10:30:00.000000Z"
+                      request_id: "uuid-string"
+                location_invalid:
+                  summary: Outside work area
+                  value:
+                    status: error
+                    message: "Lokasi Anda berada di luar area kerja yang diizinkan"
+                    errors:
+                      gps_validation:
+                        is_valid: false
+                        distance: 150.5
+                        max_distance: 100
+                      distance: 150.5
+                      gps_quality: "good"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /dashboards/nonparamedis/attendance/checkout:
+    post:
+      tags:
+        - Attendance
+      summary: Check Out Attendance
+      description: |
+        Record attendance check-out with work duration calculation.
+        
+        ## Requirements
+        - Must have checked in today
+        - GPS coordinates for location validation
+        
+        ## Processing
+        1. Validates existing check-in record
+        2. Records check-out time and location
+        3. Calculates total work duration
+        4. Updates attendance status
+      operationId: checkOutAttendance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckOutRequest'
+            examples:
+              basic_checkout:
+                summary: Basic check-out request
+                value:
+                  latitude: -6.2088
+                  longitude: 106.8456
+                  accuracy: 8.0
+      responses:
+        '200':
+          description: Check-out successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckOutResponse'
+        '422':
+          description: Validation error or no check-in found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                no_checkin:
+                  summary: No check-in found today
+                  value:
+                    status: error
+                    message: "Tidak ditemukan data check-in hari ini"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /dashboards/nonparamedis/attendance/today-history:
+    get:
+      tags:
+        - Attendance
+      summary: Get Today's Attendance History
+      description: Retrieve detailed history of today's attendance activities
+      operationId: getTodayHistory
+      responses:
+        '200':
+          description: Today's history retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodayHistoryResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  # Schedule Endpoints
+  /dashboards/nonparamedis/schedule:
+    get:
+      tags:
+        - Schedule
+      summary: Get Work Schedule
+      description: |
+        Get work schedule for specified month and current week.
+        
+        ## Features
+        - Monthly calendar view
+        - Weekly schedule breakdown
+        - Work duration summaries
+        - Approval status tracking
+      operationId: getSchedule
+      parameters:
+        - name: month
+          in: query
+          description: Month (1-12)
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+            example: 7
+        - name: year
+          in: query
+          description: Year (YYYY)
+          required: false
+          schema:
+            type: integer
+            minimum: 2000
+            maximum: 2100
+            example: 2025
+      responses:
+        '200':
+          description: Schedule retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  # Reports Endpoints
+  /dashboards/nonparamedis/reports:
+    get:
+      tags:
+        - Reports
+      summary: Get Attendance Reports
+      description: |
+        Generate comprehensive attendance reports and analytics.
+        
+        ## Report Types
+        - **Week**: 7-day period reports
+        - **Month**: Monthly attendance analysis
+        - **Year**: Annual performance overview
+        
+        ## Analytics Included
+        - Attendance rate and trends
+        - Work hour summaries
+        - Performance indicators
+        - Approval status breakdown
+      operationId: getReports
+      parameters:
+        - name: period
+          in: query
+          description: Report period type
+          required: false
+          schema:
+            type: string
+            enum: [week, month, year]
+            default: month
+            example: month
+        - name: date
+          in: query
+          description: Base date for report period (YYYY-MM-DD)
+          required: false
+          schema:
+            type: string
+            format: date
+            example: "2025-07-15"
+      responses:
+        '200':
+          description: Reports retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  # Profile Endpoints
+  /dashboards/nonparamedis/profile:
+    get:
+      tags:
+        - Profile
+      summary: Get User Profile
+      description: |
+        Get comprehensive user profile information including:
+        - Personal information
+        - Attendance statistics
+        - App settings and preferences
+        - Permission levels
+      operationId: getProfile
+      responses:
+        '200':
+          description: Profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+components:
+  securitySchemes:
+    sanctum:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Laravel Sanctum token authentication
+
+  schemas:
+    # Base Response Schemas
+    BaseResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [success, error]
+          example: success
+        message:
+          type: string
+          example: "Operation completed successfully"
+        meta:
+          $ref: '#/components/schemas/ResponseMeta'
+
+    ResponseMeta:
+      type: object
+      properties:
+        version:
+          type: string
+          example: "2.0"
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-07-15T10:30:00.000000Z"
+        request_id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+
+    ErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            status:
+              type: string
+              enum: [error]
+            errors:
+              type: object
+              additionalProperties: true
+              example: {}
+
+    ValidationErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          properties:
+            message:
+              example: "Validation failed"
+            errors:
+              type: object
+              properties:
+                latitude:
+                  type: array
+                  items:
+                    type: string
+                  example: ["The latitude field is required."]
+                longitude:
+                  type: array
+                  items:
+                    type: string
+                  example: ["The longitude field is required."]
+
+    GPSValidationErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/ErrorResponse'
+        - type: object
+          properties:
+            message:
+              example: "Lokasi Anda berada di luar area kerja yang diizinkan"
+            errors:
+              type: object
+              properties:
+                gps_validation:
+                  type: object
+                  properties:
+                    is_valid:
+                      type: boolean
+                      example: false
+                    distance:
+                      type: number
+                      format: float
+                      example: 150.5
+                    max_distance:
+                      type: number
+                      format: float
+                      example: 100
+                distance:
+                  type: number
+                  format: float
+                  example: 150.5
+                gps_quality:
+                  type: string
+                  enum: [excellent, good, fair, poor]
+                  example: "good"
+
+    # User Related Schemas
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Sari Lestari"
+        initials:
+          type: string
+          example: "SL"
+        email:
+          type: string
+          format: email
+          example: "sari.lestari@dokterku.com"
+        username:
+          type: string
+          example: "sari.lestari"
+        nip:
+          type: string
+          example: "NP001"
+        phone:
+          type: string
+          example: "081234567890"
+        role:
+          type: string
+          example: "Administrator Non-Medis"
+        join_date:
+          type: string
+          example: "01 Jan 2025"
+        is_verified:
+          type: boolean
+          example: true
+        status:
+          type: string
+          example: "active"
+
+    WorkLocation:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Klinik Dokterku Pusat"
+        address:
+          type: string
+          example: "Jl. Kesehatan No. 123"
+        radius:
+          type: number
+          format: float
+          example: 100
+        coordinates:
+          type: object
+          properties:
+            latitude:
+              type: number
+              format: float
+              example: -6.2088
+            longitude:
+              type: number
+              format: float
+              example: 106.8456
+
+    AttendanceStats:
+      type: object
+      properties:
+        hours_today:
+          type: integer
+          example: 8
+        minutes_today:
+          type: integer
+          example: 30
+        work_days_this_month:
+          type: integer
+          example: 20
+        total_work_hours_this_month:
+          type: number
+          format: float
+          example: 168.5
+        attendance_rate:
+          type: integer
+          example: 95
+        shifts_this_week:
+          type: integer
+          example: 5
+        expected_work_days:
+          type: integer
+          example: 22
+
+    QuickAction:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "attendance"
+        title:
+          type: string
+          example: "Check In"
+        subtitle:
+          type: string
+          example: "Belum check-in hari ini"
+        icon:
+          type: string
+          example: "🕐"
+        action:
+          type: string
+          example: "attendance"
+        enabled:
+          type: boolean
+          example: true
+
+    TodayAttendance:
+      type: object
+      nullable: true
+      properties:
+        check_in_time:
+          type: string
+          example: "08:15"
+        check_out_time:
+          type: string
+          nullable: true
+          example: "17:30"
+        work_duration:
+          type: string
+          example: "8 jam 30 menit"
+        status:
+          type: string
+          enum: [checked_in, checked_out, incomplete]
+          example: "checked_out"
+        approval_status:
+          type: string
+          enum: [pending, approved, rejected]
+          example: "approved"
+
+    # Request Schemas
+    CheckInRequest:
+      type: object
+      required:
+        - latitude
+        - longitude
+      properties:
+        latitude:
+          type: number
+          format: float
+          minimum: -90
+          maximum: 90
+          example: -6.2088
+          description: GPS latitude coordinate
+        longitude:
+          type: number
+          format: float
+          minimum: -180
+          maximum: 180
+          example: 106.8456
+          description: GPS longitude coordinate
+        accuracy:
+          type: number
+          format: float
+          minimum: 0
+          example: 10.5
+          description: GPS accuracy in meters
+        work_location_id:
+          type: integer
+          nullable: true
+          example: 1
+          description: Specific work location ID
+
+    CheckOutRequest:
+      type: object
+      required:
+        - latitude
+        - longitude
+      properties:
+        latitude:
+          type: number
+          format: float
+          minimum: -90
+          maximum: 90
+          example: -6.2088
+          description: GPS latitude coordinate
+        longitude:
+          type: number
+          format: float
+          minimum: -180
+          maximum: 180
+          example: 106.8456
+          description: GPS longitude coordinate
+        accuracy:
+          type: number
+          format: float
+          minimum: 0
+          example: 8.0
+          description: GPS accuracy in meters
+
+    # Response Schemas
+    TestResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                timestamp:
+                  type: string
+                  format: date-time
+                user:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    name:
+                      type: string
+                    role:
+                      type: string
+                    authenticated:
+                      type: boolean
+                    role_validated:
+                      type: boolean
+                session:
+                  type: object
+                  properties:
+                    token_name:
+                      type: string
+                    ip_address:
+                      type: string
+                    user_agent:
+                      type: string
+
+    DashboardResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                user:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    name:
+                      type: string
+                      example: "Sari Lestari"
+                    initials:
+                      type: string
+                      example: "SL"
+                    role:
+                      type: string
+                      example: "Admin Non-Medis"
+                stats:
+                  $ref: '#/components/schemas/AttendanceStats'
+                current_status:
+                  type: string
+                  enum: [checked_in, checked_out, not_checked_in]
+                  example: "not_checked_in"
+                today_attendance:
+                  $ref: '#/components/schemas/TodayAttendance'
+                quick_actions:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/QuickAction'
+
+    AttendanceStatusResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [checked_in, checked_out, not_checked_in]
+                  example: "not_checked_in"
+                check_in_time:
+                  type: string
+                  nullable: true
+                  example: "08:15:30"
+                check_out_time:
+                  type: string
+                  nullable: true
+                  example: "17:30:00"
+                work_duration:
+                  type: string
+                  nullable: true
+                  example: "8 jam 30 menit"
+                location:
+                  $ref: '#/components/schemas/WorkLocation'
+                can_check_in:
+                  type: boolean
+                  example: true
+                can_check_out:
+                  type: boolean
+                  example: false
+
+    CheckInResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                attendance_id:
+                  type: integer
+                  example: 123
+                check_in_time:
+                  type: string
+                  example: "08:15:30"
+                status:
+                  type: string
+                  example: "checked_in"
+                location:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    name:
+                      type: string
+                      example: "Klinik Dokterku Pusat"
+                    distance:
+                      type: number
+                      format: float
+                      example: 45.2
+                distance:
+                  type: number
+                  format: float
+                  example: 45.2
+
+    CheckOutResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                attendance_id:
+                  type: integer
+                  example: 123
+                check_out_time:
+                  type: string
+                  example: "17:30:00"
+                work_duration_hours:
+                  type: number
+                  format: float
+                  example: 8.5
+                work_duration_formatted:
+                  type: string
+                  example: "8 jam 30 menit"
+                status:
+                  type: string
+                  example: "checked_out"
+                location_valid:
+                  type: boolean
+                  example: true
+                distance:
+                  type: number
+                  format: float
+                  example: 35.8
+
+    TodayHistoryResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                history:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      action:
+                        type: string
+                        example: "Check-in"
+                      time:
+                        type: string
+                        example: "08:15"
+                      subtitle:
+                        type: string
+                        example: "Hari ini • Klinik Dokterku Pusat"
+                      location_valid:
+                        type: boolean
+                        example: true
+                      distance:
+                        type: number
+                        format: float
+                        example: 45.2
+                has_activity:
+                  type: boolean
+                  example: true
+                attendance_summary:
+                  type: object
+                  nullable: true
+                  properties:
+                    total_work_time:
+                      type: string
+                      example: "8 jam 30 menit"
+                    status:
+                      type: string
+                      example: "checked_out"
+                    approval_status:
+                      type: string
+                      example: "pending"
+
+    ScheduleResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                month:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: "Juli 2025"
+                    total_days:
+                      type: integer
+                      example: 22
+                    work_days:
+                      type: integer
+                      example: 20
+                    calendar:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          date:
+                            type: string
+                            format: date
+                            example: "2025-07-01"
+                          status:
+                            type: string
+                            example: "checked_out"
+                          approval_status:
+                            type: string
+                            example: "approved"
+                          work_duration:
+                            type: string
+                            example: "8 jam 15 menit"
+                          location:
+                            type: string
+                            example: "Klinik Dokterku Pusat"
+                weekly_shifts:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      date:
+                        type: string
+                        format: date
+                        example: "2025-07-15"
+                      day_name:
+                        type: string
+                        example: "Senin"
+                      check_in:
+                        type: string
+                        nullable: true
+                        example: "08:15"
+                      check_out:
+                        type: string
+                        nullable: true
+                        example: "17:30"
+                      duration:
+                        type: string
+                        nullable: true
+                        example: "8 jam 30 menit"
+                      location:
+                        type: string
+                        example: "Klinik Dokterku"
+                      status:
+                        type: string
+                        example: "checked_out"
+                      approval_status:
+                        type: string
+                        example: "approved"
+                summary:
+                  type: object
+                  properties:
+                    total_work_hours:
+                      type: number
+                      format: float
+                      example: 168.5
+                    average_daily_hours:
+                      type: number
+                      format: float
+                      example: 8.4
+
+    ReportsResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                period:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      example: "month"
+                    start_date:
+                      type: string
+                      format: date
+                      example: "2025-07-01"
+                    end_date:
+                      type: string
+                      format: date
+                      example: "2025-07-31"
+                    display_name:
+                      type: string
+                      example: "Juli 2025"
+                summary:
+                  type: object
+                  properties:
+                    total_scheduled_days:
+                      type: integer
+                      example: 22
+                    work_days_completed:
+                      type: integer
+                      example: 20
+                    expected_work_days:
+                      type: integer
+                      example: 23
+                    attendance_rate:
+                      type: number
+                      format: float
+                      example: 95.7
+                    total_work_hours:
+                      type: number
+                      format: float
+                      example: 168.5
+                    average_daily_hours:
+                      type: number
+                      format: float
+                      example: 8.4
+                    approval_summary:
+                      type: object
+                      properties:
+                        approved:
+                          type: integer
+                          example: 18
+                        pending:
+                          type: integer
+                          example: 2
+                        rejected:
+                          type: integer
+                          example: 0
+                recent_history:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      date:
+                        type: string
+                        example: "15 Jul 2025"
+                      day:
+                        type: string
+                        example: "Senin"
+                      check_in:
+                        type: string
+                        nullable: true
+                        example: "08:15"
+                      check_out:
+                        type: string
+                        nullable: true
+                        example: "17:30"
+                      duration:
+                        type: string
+                        nullable: true
+                        example: "8 jam 30 menit"
+                      location:
+                        type: string
+                        nullable: true
+                        example: "Klinik Dokterku Pusat"
+                      status:
+                        type: string
+                        example: "checked_out"
+                      approval_status:
+                        type: string
+                        example: "approved"
+                      location_valid:
+                        type: boolean
+                        example: true
+                performance_indicators:
+                  type: object
+                  properties:
+                    punctuality_score:
+                      type: number
+                      format: float
+                      example: 92.5
+                      description: "Percentage of on-time check-ins"
+                    consistency_score:
+                      type: number
+                      format: float
+                      example: 88.0
+                      description: "Work duration consistency rating"
+                    location_compliance:
+                      type: number
+                      format: float
+                      example: 100.0
+                      description: "GPS location validation compliance"
+
+    ProfileResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                user:
+                  $ref: '#/components/schemas/User'
+                attendance_stats:
+                  type: object
+                  properties:
+                    total_this_month:
+                      type: integer
+                      example: 20
+                    approved_this_month:
+                      type: integer
+                      example: 18
+                    approval_rate:
+                      type: number
+                      format: float
+                      example: 90.0
+                settings:
+                  type: object
+                  properties:
+                    notifications_enabled:
+                      type: boolean
+                      example: true
+                    dark_mode:
+                      type: boolean
+                      example: false
+                    language:
+                      type: string
+                      example: "id"
+                    auto_checkout:
+                      type: boolean
+                      example: false
+                    gps_accuracy_required:
+                      type: boolean
+                      example: true
+                permissions:
+                  type: object
+                  properties:
+                    can_check_in:
+                      type: boolean
+                      example: true
+                    can_check_out:
+                      type: boolean
+                      example: true
+                    can_view_reports:
+                      type: boolean
+                      example: true
+                    can_edit_profile:
+                      type: boolean
+                      example: false
+
+  responses:
+    Unauthorized:
+      description: Authentication token is missing or invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            status: error
+            message: "Unauthenticated"
+            meta:
+              version: "2.0"
+              timestamp: "2025-07-15T10:30:00.000000Z"
+              request_id: "uuid-string"
+
+    Forbidden:
+      description: User does not have required permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            status: error
+            message: "Access denied - insufficient permissions"
+            meta:
+              version: "2.0"
+              timestamp: "2025-07-15T10:30:00.000000Z"
+              request_id: "uuid-string"
+
+    RateLimitExceeded:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            status: error
+            message: "Rate limit exceeded. Please try again later."
+            meta:
+              version: "2.0"
+              timestamp: "2025-07-15T10:30:00.000000Z"
+              request_id: "uuid-string"
+
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            status: error
+            message: "Internal server error"
+            meta:
+              version: "2.0"
+              timestamp: "2025-07-15T10:30:00.000000Z"
+              request_id: "uuid-string"
