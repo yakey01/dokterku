@@ -87,6 +87,10 @@ function Dashboard({ userData, onNavigate }: DashboardProps) {
     }
   };
 
+  // Get display name and role from user data (moved up to be available for getTimeGreeting)
+  const displayName = user?.pegawai?.nama_lengkap || user?.name || 'Doctor';
+  const userRole = user?.role || 'dokter';
+
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString('id-ID', { 
       hour: '2-digit', 
@@ -103,10 +107,6 @@ function Dashboard({ userData, onNavigate }: DashboardProps) {
   };
 
   const { greeting, icon: TimeIcon, color } = getTimeGreeting();
-
-  // Get display name from user data
-  const displayName = user?.pegawai?.nama_lengkap || user?.name || 'Doctor';
-  const userRole = user?.role || 'dokter';
 
   if (loading) {
     return (
