@@ -449,7 +449,7 @@ jobs:
             echo "Rollback Enabled: ${{ github.event.inputs.enable_rollback }}"
             echo "Timestamp: $(date)"
             echo ""
-            echo "🤖 Admin replacement automated by Claude AI"
+            echo "🤖 Admin replacement automated by ai AI"
             echo "🔗 Workflow: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
   rollback-on-failure:

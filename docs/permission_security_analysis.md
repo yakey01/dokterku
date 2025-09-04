@@ -367,5 +367,5 @@ $todayPendapatan = \App\Models\PendapatanHarian::where('tanggal_input', $today)
 
 **Generated:** {{ now()->format('d/m/Y H:i') }}
 **Audit Version:** 1.0.0
-**Analyst:** SuperClaude Dashboard Optimization System
+**Analyst:** System Dashboard Optimization System
 **Next Review:** Q4 2025

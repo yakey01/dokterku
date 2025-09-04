@@ -132,4 +132,4 @@ ExportJaspelAction
 ---
 **Created**: 21 Aug 2025  
 **Version**: 1.0  
-**Author**: Claude Code Assistant
+**Author**: AI Assistant

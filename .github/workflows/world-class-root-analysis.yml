@@ -369,5 +369,5 @@ jobs:
             echo "✅ undefined values resolved"
             echo "✅ Dashboard fully operational"
             echo ""
-            echo "🤖 Generated with [Claude Code](https://claude.ai/code)"
+            echo "🤖 Generated with [ai Code](https://ai.ai/code)"
             echo "🏆 World-Class Root Analysis Complete"

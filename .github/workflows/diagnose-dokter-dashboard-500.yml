@@ -346,5 +346,5 @@ jobs:
             echo "3. 🟡 MED: Implement fallback stats data"
             echo "4. 🟡 MED: Add comprehensive logging"
             echo ""
-            echo "🤖 Generated with [Claude Code](https://claude.ai/code)"
+            echo "🤖 Generated with [ai Code](https://ai.ai/code)"
             echo "🔍 World Class Audit System"

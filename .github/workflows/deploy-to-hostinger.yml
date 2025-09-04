@@ -466,8 +466,8 @@ jobs:
             echo "Status: ${{ job.status }}"
             echo "Date: $(date)"
             echo ""
-            echo "🤖 Generated with [Claude Code](https://claude.ai/code)"
-            echo "🚀 Automated deployment by Claude AI Assistant"
+            echo "🤖 Generated with [ai Code](https://ai.ai/code)"
+            echo "🚀 Automated deployment by ai AI Assistant"
             # Optional: Send to Discord/Slack webhook if configured
             # if [ ! -z "${{ secrets.DISCORD_WEBHOOK }}" ]; then
             #   curl -H "Content-Type: application/json" \

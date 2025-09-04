@@ -377,4 +377,4 @@ jobs:
             echo "   - Automatic reconnection handling"
             echo ""
             echo "✅ Status: ${{ job.status }}"
-            echo "🤖 Generated with [Claude Code](https://claude.ai/code)"
+            echo "🤖 Generated with [ai Code](https://ai.ai/code)"

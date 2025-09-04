@@ -433,5 +433,5 @@ jobs:
             grep "^DB_" .env
             echo ""
             
-            echo "🤖 Generated with [Claude Code](https://claude.ai/code)"
+            echo "🤖 Generated with [ai Code](https://ai.ai/code)"
             echo "🔧 Database connection diagnostic and fix workflow"

@@ -12,7 +12,7 @@
 
 ### Files Organized
 - **8** documentation files moved to `/docs/archive/`
-- Kept essential files: README.md, CLAUDE_STRUCTURE.md, QUICK_DEPLOY_COMMANDS.md
+- Kept essential files: README.md, AI_STRUCTURE.md, QUICK_DEPLOY_COMMANDS.md
 
 ## 🎯 What Was Cleaned
 
@@ -31,7 +31,7 @@
 ### ✅ Documentation
 - Archived development documentation to `/docs/archive/`
 - Kept user-facing documentation in root
-- Preserved CLAUDE.md structure files
+- Preserved AI.md structure files
 
 ## 💾 Space Saved
 - Approximately **5-8 MB** of disk space recovered
@@ -48,7 +48,7 @@
 ```
 Dokterku/
 ├── README.md                    ✅ Kept
-├── CLAUDE_STRUCTURE.md          ✅ Kept
+├── AI_STRUCTURE.md          ✅ Kept
 ├── QUICK_DEPLOY_COMMANDS.md     ✅ Kept
 ├── deploy.sh                    ✅ Kept
 ├── build.sh                     ✅ Kept

@@ -661,5 +661,5 @@ jobs:
             fi
             echo "Application Status: $APP_STATUS"
             echo ""
-            echo "🤖 Generated with [Claude Code](https://claude.ai/code)"
-            echo "🚀 Automated deployment by Claude AI Assistant"
+            echo "🤖 Generated with [ai Code](https://ai.ai/code)"
+            echo "🚀 Automated deployment by ai AI Assistant"

@@ -189,5 +189,5 @@ For issues or questions:
 
 ---
 
-🤖 Generated with [Claude Code](https://claude.ai/code)
+🤖 Generated automatically
 🚀 Automated dashboard sync system

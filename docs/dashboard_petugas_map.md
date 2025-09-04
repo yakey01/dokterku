@@ -161,4 +161,4 @@ Dashboard Petugas adalah sistem manajemen untuk staff klinik yang menggunakan La
 ---
 
 *Generated: {{ now()->format('d/m/Y H:i') }}*
-*Audit by: SuperClaude Dashboard Optimization System*
+*Audit by: System Dashboard Optimization System*

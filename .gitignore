@@ -172,6 +172,16 @@ auto-save-list
 tramp
 .\#*
 
+# AI Assistant Files (prevent tracking)
+.claude/
+.claude*
+CLAUDE*.md
+CLAUDE*.json
+claude-*
+*claude*config*
+.ai/
+.assistant/
+
 # Temporary test files
 test-*.html
 *-test.html

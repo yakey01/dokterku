@@ -197,4 +197,4 @@ jobs:
             echo "   - attendance_rate_raw and performance_data defined"
             echo ""
             echo "✅ Deployment Status: ${{ job.status }}"
-            echo "🤖 Generated with [Claude Code](https://claude.ai/code)"
+            echo "🤖 Generated with [ai Code](https://ai.ai/code)"

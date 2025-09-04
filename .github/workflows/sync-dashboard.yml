@@ -413,5 +413,5 @@ jobs:
             fi
             
             echo ""
-            echo "🤖 Generated with [Claude Code](https://claude.ai/code)"
-            echo "🚀 Automated dashboard sync by Claude AI Assistant"
+            echo "🤖 Generated with [ai Code](https://ai.ai/code)"
+            echo "🚀 Automated dashboard sync by ai AI Assistant"

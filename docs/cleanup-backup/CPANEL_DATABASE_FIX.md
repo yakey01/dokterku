@@ -163,5 +163,5 @@ Setelah fix manual, verifikasi dengan:
 
 ---
 
-🤖 **Generated with [Claude Code](https://claude.ai/code)**  
+🤖 **Generated automatically
 🔧 **Manual database troubleshooting guide for Hostinger**

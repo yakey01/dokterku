@@ -9,7 +9,7 @@ This documentation provides comprehensive context for AI assistants working on t
 ### Core Documentation Files
 
 #### 1. `/CLAUDE.md` (Project Root)
-**Primary AI assistant instructions** - Contains project-specific guidance, development commands, and architectural notes for Claude Code.
+**Primary AI assistant instructions** - Contains project-specific guidance, development commands, and architectural notes for AI Assistant.
 
 **Key Sections:**
 - Project overview and technology stack
