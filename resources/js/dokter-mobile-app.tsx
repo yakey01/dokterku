@@ -6,6 +6,7 @@ import HolisticMedicalDashboard from './components/dokter/HolisticMedicalDashboa
 import HolisticMedicalDashboardOptimized from './components/dokter/HolisticMedicalDashboardOptimized';
 import OptimizedOriginalDashboard from './components/dokter/OptimizedOriginalDashboard';
 import SimpleDashboard from './components/dokter/SimpleDashboard';
+import Dashboard from './components/dokter/Dashboard'; // Gaming dashboard
 import ErrorBoundary from './components/ErrorBoundary';
 import getUnifiedAuth from './utils/UnifiedAuth';
 import { performanceMonitor } from './utils/PerformanceMonitor';
@@ -94,16 +95,20 @@ if (typeof window !== 'undefined') {
                     console.log('✅ DOKTERKU Mobile App initialized with comparison mode');
                 });
             } else {
-                // 🔄 RESTORED: Use dashboard with bottom navigation
+                // 🎮 DEFAULT: Use gaming dashboard with bottom navigation
                 const useOriginal = window.location.search.includes('original=true') || 
                                   localStorage.getItem('dashboard-mode') === 'original';
                 
-                // 🔧 TEMPORARY FIX: Default to original for stability 
                 const useOptimized = window.location.search.includes('optimized=true') || 
                                     localStorage.getItem('dashboard-mode') === 'optimized';
-                                    // Disabled auto-default to optimized to prevent blank page
                 
-                console.log('🎯 Dashboard mode selection:', { useOriginal, useOptimized, isComparisonMode });
+                const useSimple = window.location.search.includes('simple=true') || 
+                                 localStorage.getItem('dashboard-mode') === 'simple';
+                
+                const useHolistic = window.location.search.includes('holistic=true') || 
+                                   localStorage.getItem('dashboard-mode') === 'holistic';
+                
+                console.log('🎯 Dashboard mode selection:', { useOriginal, useOptimized, useSimple, useHolistic, isComparisonMode });
                 
                 if (useOriginal) {
                     console.log('🔄 Rendering OriginalDokterDashboard...');
@@ -123,16 +128,34 @@ if (typeof window !== 'undefined') {
                     );
                     performanceMonitor.end('app-initialization');
                     console.log('🚀 DOKTERKU Mobile App initialized with OPTIMIZED Dashboard + Original UI (Bottom Navigation)');
-                } else {
-                    // 🔧 SAFE FALLBACK: Use SimpleDashboard for guaranteed working state
-                    console.log('🔧 Rendering SimpleDashboard (safe fallback)...');
+                } else if (useSimple) {
+                    console.log('🔧 Rendering SimpleDashboard...');
                     root.render(
                         <ErrorBoundary>
                             <SimpleDashboard />
                         </ErrorBoundary>
                     );
                     performanceMonitor.end('app-initialization');
-                    console.log('✅ DOKTERKU Mobile App initialized with SimpleDashboard (Safe Working Version)');
+                    console.log('✅ DOKTERKU Mobile App initialized with SimpleDashboard (Simple Version)');
+                } else if (useHolistic) {
+                    console.log('🏥 Rendering HolisticMedicalDashboard...');
+                    root.render(
+                        <ErrorBoundary>
+                            <HolisticMedicalDashboard />
+                        </ErrorBoundary>
+                    );
+                    performanceMonitor.end('app-initialization');
+                    console.log('✅ DOKTERKU Mobile App initialized with HolisticMedicalDashboard (Complete Gaming Theme)');
+                } else {
+                    // 🎮 DEFAULT: Use Gaming Dashboard
+                    console.log('🎮 Rendering Gaming Dashboard (default)...');
+                    root.render(
+                        <ErrorBoundary>
+                            <Dashboard />
+                        </ErrorBoundary>
+                    );
+                    performanceMonitor.end('app-initialization');
+                    console.log('✅ DOKTERKU Mobile App initialized with Gaming Dashboard (XP System, Leaderboard, Achievements)');
                 }
             }
             
