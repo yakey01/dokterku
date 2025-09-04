@@ -1,12 +1,96 @@
 <x-filament-panels::page>
     @php
-        // Financial data untuk dashboard metrics
-        $financial = $this->getFinancialSummary();
-        $validation = $this->getValidationMetrics();
-        $activities = $this->getRecentActivities();
-        $trends = $this->getMonthlyTrends();
+        // APPLY SUCCESSFUL JASPEL DETAIL PATTERN - Direct service calls in template
+        try {
+            // DIRECT SERVICE CALLS (same pattern as jaspel detail page)
+            $currentMonth = now();
+            $lastMonth = now()->subMonth();
+            
+            // Financial calculations - direct from models
+            $currentPendapatan = \App\Models\Pendapatan::whereMonth('tanggal', $currentMonth->month)
+                ->whereYear('tanggal', $currentMonth->year)
+                ->where('status_validasi', 'disetujui')
+                ->sum('nominal');
+                
+            $currentPengeluaran = \App\Models\Pengeluaran::whereMonth('tanggal', $currentMonth->month)
+                ->whereYear('tanggal', $currentMonth->year)
+                ->sum('nominal');
+                
+            $lastPendapatan = \App\Models\Pendapatan::whereMonth('tanggal', $lastMonth->month)
+                ->whereYear('tanggal', $lastMonth->year)
+                ->where('status_validasi', 'disetujui')
+                ->sum('nominal');
+                
+            $lastPengeluaran = \App\Models\Pengeluaran::whereMonth('tanggal', $lastMonth->month)
+                ->whereYear('tanggal', $lastMonth->year)
+                ->sum('nominal');
+            
+            // Validation metrics - direct queries
+            $pendingValidation = \App\Models\Pendapatan::where('status_validasi', 'pending')->count() +
+                               \App\Models\Pengeluaran::where('status_validasi', 'pending')->count();
+            $approvedValidation = \App\Models\Pendapatan::where('status_validasi', 'disetujui')->count() +
+                                \App\Models\Pengeluaran::where('status_validasi', 'disetujui')->count();
+            
+            // Recent activities - direct queries
+            $recentPendapatan = \App\Models\Pendapatan::with(['inputBy'])
+                ->latest('updated_at')
+                ->limit(3)
+                ->get()
+                ->map(function ($item) {
+                    return [
+                        'type' => 'income',
+                        'description' => $item->nama_pendapatan,
+                        'amount' => $item->nominal,
+                        'status' => $item->status_validasi,
+                        'date' => $item->updated_at->format('d/m/Y'),
+                        'user' => $item->inputBy->name ?? 'System',
+                        'time' => $item->updated_at->diffForHumans()
+                    ];
+                });
+            
+            $recentPengeluaran = \App\Models\Pengeluaran::with(['inputBy'])
+                ->latest('updated_at')
+                ->limit(3)
+                ->get()
+                ->map(function ($item) {
+                    return [
+                        'type' => 'expense',
+                        'description' => $item->nama_pengeluaran,
+                        'amount' => $item->nominal,
+                        'status' => $item->status_validasi ?? 'approved',
+                        'date' => $item->updated_at->format('d/m/Y'),
+                        'user' => $item->inputBy->name ?? 'System',
+                        'time' => $item->updated_at->diffForHumans()
+                    ];
+                });
+            
+            // Build final data structure
+            $financial = [
+                'current' => ['pendapatan' => $currentPendapatan, 'pengeluaran' => $currentPengeluaran],
+                'changes' => [
+                    'pendapatan' => $lastPendapatan > 0 ? round((($currentPendapatan - $lastPendapatan) / $lastPendapatan) * 100, 1) : 0,
+                    'pengeluaran' => $lastPengeluaran > 0 ? round((($currentPengeluaran - $lastPengeluaran) / $lastPengeluaran) * 100, 1) : 0
+                ]
+            ];
+            $validation = ['total_pending' => $pendingValidation, 'total_approved' => $approvedValidation];
+            $activities = ['recent_activities' => $recentPendapatan->merge($recentPengeluaran)->sortByDesc('date')->take(6)->values()->toArray()];
+            
+            \Log::info('BendaharaDashboard: Direct service calls completed', [
+                'pendapatan' => $currentPendapatan,
+                'pengeluaran' => $currentPengeluaran,
+                'pending' => $pendingValidation,
+                'approved' => $approvedValidation
+            ]);
+            
+        } catch (\Exception $e) {
+            // Fallback data structure (same as jaspel detail pattern)
+            $financial = ['current' => ['pendapatan' => 0, 'pengeluaran' => 0], 'changes' => ['pendapatan' => 0, 'pengeluaran' => 0]];
+            $validation = ['total_pending' => 0, 'total_approved' => 0];
+            $activities = ['recent_activities' => []];
+            \Log::error('BendaharaDashboard: Direct queries failed - ' . $e->getMessage());
+        }
         
-        // Calculate key metrics
+        // Calculate key metrics (same as before)
         $totalPendapatan = $financial['current']['pendapatan'] ?? 0;
         $totalPengeluaran = $financial['current']['pengeluaran'] ?? 0;
         $netIncome = $totalPendapatan - $totalPengeluaran;
@@ -22,268 +106,12 @@
         $currentMonth = date('F Y');
     @endphp
 
-    <!-- WORLD-CLASS LIQUID GLASS STYLING -->
-    <style>
-        :root {
-            /* Liquid Glass Variables - Context7 Pattern */
-            --glass-frost-blur: 16px;
-            --glass-tint-opacity: 0.05;
-            --glass-outer-shadow: 24px;
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --glass-hover-border: rgba(255, 255, 255, 0.15);
-        }
-        
-        /* ENHANCE EXISTING STATS WITH GLASS EFFECTS */
-        .horizontal-stat {
-            background: linear-gradient(135deg, rgba(17, 17, 24, 0.8) 0%, rgba(26, 26, 32, 0.6) 100%) !important;
-            backdrop-filter: blur(var(--glass-frost-blur)) saturate(150%) !important;
-            border: 1px solid var(--glass-border) !important;
-            border-radius: 1.5rem !important;
-            box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.4),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.06) !important;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            position: relative !important;
-            overflow: hidden !important;
-            cursor: pointer !important;
-        }
-        
-        .horizontal-stat::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, 
-                var(--stat-gradient-start, #6b7280), 
-                var(--stat-gradient-end, #9ca3af));
-            opacity: 0.6;
-            transition: all 0.3s ease;
-        }
-        
-        .horizontal-stat:hover {
-            transform: translateY(-8px) scale(1.02) !important;
-            border-color: var(--glass-hover-border) !important;
-            backdrop-filter: blur(24px) saturate(200%) !important;
-            box-shadow: 
-                0 20px 60px rgba(0, 0, 0, 0.5),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.1) !important;
-        }
-        
-        .horizontal-stat:hover::before {
-            height: 4px;
-            opacity: 1;
-            box-shadow: 0 2px 8px var(--stat-glow, rgba(255, 255, 255, 0.2));
-        }
-        
-        /* ICON ENHANCEMENTS */
-        .stat-figure {
-            transition: all 0.3s ease !important;
-        }
-        
-        .horizontal-stat:hover .stat-figure {
-            transform: scale(1.1) rotate(5deg) !important;
-        }
-        
-        /* VALUE ENHANCEMENTS */
-        .stat-value {
-            transition: all 0.3s ease !important;
-        }
-        
-        .horizontal-stat:hover .stat-value {
-            transform: scale(1.05) !important;
-            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.6) !important;
-        }
-        
-        /* SPECIFIC STAT COLORS */
-        .horizontal-stat:nth-child(1) {
-            --stat-gradient-start: #10b981;
-            --stat-gradient-end: #059669;
-            --stat-glow: rgba(16, 185, 129, 0.3);
-        }
-        
-        .horizontal-stat:nth-child(2) {
-            --stat-gradient-start: #ef4444;
-            --stat-gradient-end: #dc2626;
-            --stat-glow: rgba(239, 68, 68, 0.3);
-        }
-        
-        .horizontal-stat:nth-child(3) {
-            --stat-gradient-start: #3b82f6;
-            --stat-gradient-end: #2563eb;
-            --stat-glow: rgba(59, 130, 246, 0.3);
-        }
-        
-        .horizontal-stat:nth-child(4) {
-            --stat-gradient-start: #f59e0b;
-            --stat-gradient-end: #d97706;
-            --stat-glow: rgba(245, 158, 11, 0.3);
-        }
-        
-        /* GLASS CONTAINER IMPROVEMENTS */
-        .saas-stats-container {
-            margin-bottom: 2rem !important;
-        }
-        
-        .stats-horizontal-wrapper {
-            gap: 1.5rem !important;
-        }
-        
-        /* ANIMATION CLASSES */
-        .glass-fade-in {
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.6s ease-out;
-        }
-        
-        .glass-fade-in.animate {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        
-        /* ENHANCE SECTIONS WITH GLASS EFFECTS */
-        .fi-section {
-            background: linear-gradient(135deg, rgba(17, 17, 24, 0.8) 0%, rgba(26, 26, 32, 0.6) 100%) !important;
-            backdrop-filter: blur(var(--glass-frost-blur)) saturate(150%) !important;
-            border: 1px solid var(--glass-border) !important;
-            border-radius: 1.5rem !important;
-            box-shadow: 
-                0 8px 32px rgba(0, 0, 0, 0.4),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.06) !important;
-            transition: all 0.3s ease !important;
-            position: relative !important;
-            overflow: hidden !important;
-        }
-        
-        .fi-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
-            opacity: 0.4;
-            transition: opacity 0.3s ease;
-        }
-        
-        .fi-section:hover {
-            border-color: var(--glass-hover-border) !important;
-            backdrop-filter: blur(20px) saturate(180%) !important;
-            transform: translateY(-4px) !important;
-            box-shadow: 
-                0 12px 40px rgba(0, 0, 0, 0.5),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.08) !important;
-        }
-        
-        .fi-section:hover::before {
-            opacity: 0.8;
-            height: 3px;
-        }
-        
-        /* VALIDATION STATS GLASS ENHANCEMENT */
-        .validation-stat-item {
-            backdrop-filter: blur(8px) !important;
-            border: 1px solid rgba(255, 255, 255, 0.05) !important;
-            border-radius: 1rem !important;
-            transition: all 0.2s ease !important;
-        }
-        
-        .validation-stat-item:hover {
-            background: rgba(255, 255, 255, 0.08) !important;
-            border-color: rgba(255, 255, 255, 0.12) !important;
-            transform: translateY(-2px) scale(1.02) !important;
-            backdrop-filter: blur(12px) !important;
-        }
-        
-        /* FINANCIAL SUMMARY CARDS GLASS ENHANCEMENT */
-        .financial-summary-card {
-            background: linear-gradient(135deg, rgba(17, 17, 24, 0.6) 0%, rgba(26, 26, 32, 0.4) 100%) !important;
-            backdrop-filter: blur(12px) saturate(140%) !important;
-            border: 1px solid rgba(255, 255, 255, 0.06) !important;
-            border-radius: 1.25rem !important;
-            padding: 1.5rem !important;
-            transition: all 0.3s ease !important;
-            position: relative !important;
-            overflow: hidden !important;
-            cursor: pointer !important;
-        }
-        
-        .financial-summary-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, 
-                var(--card-color-start, #6b7280), 
-                var(--card-color-end, #9ca3af));
-            opacity: 0.5;
-            transition: all 0.3s ease;
-        }
-        
-        .financial-summary-card:hover {
-            background: linear-gradient(135deg, rgba(17, 17, 24, 0.8) 0%, rgba(26, 26, 32, 0.6) 100%) !important;
-            border-color: rgba(255, 255, 255, 0.12) !important;
-            transform: translateY(-6px) scale(1.02) !important;
-            backdrop-filter: blur(16px) saturate(160%) !important;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4) !important;
-        }
-        
-        .financial-summary-card:hover::before {
-            opacity: 1;
-            height: 3px;
-            box-shadow: 0 1px 4px var(--card-glow, rgba(255, 255, 255, 0.2));
-        }
-        
-        .financial-summary-card.revenue {
-            --card-color-start: #10b981;
-            --card-color-end: #059669;
-            --card-glow: rgba(16, 185, 129, 0.3);
-        }
-        
-        .financial-summary-card.expense {
-            --card-color-start: #ef4444;
-            --card-color-end: #dc2626;
-            --card-glow: rgba(239, 68, 68, 0.3);
-        }
-        
-        .financial-summary-card.net-income {
-            --card-color-start: #3b82f6;
-            --card-color-end: #2563eb;
-            --card-glow: rgba(59, 130, 246, 0.3);
-        }
-        
-        /* RESPONSIVE GLASS EFFECTS */
-        @media (max-width: 768px) {
-            .horizontal-stat:hover {
-                transform: translateY(-4px) scale(1.01) !important;
-            }
-            
-            .fi-section:hover {
-                transform: translateY(-2px) !important;
-            }
-        }
-        
-        /* ANIMATION ENHANCEMENT */
-        .glass-scale-in {
-            opacity: 0;
-            transform: scale(0.95);
-            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .glass-scale-in.animate {
-            opacity: 1;
-            transform: scale(1);
-        }
-    </style>
-
-    <div class="space-y-6">
-        <!-- World-Class SaaS Horizontal Stats Layout (Enhanced with Glass) -->
-        <div class="saas-stats-container">
-            <div class="stats-horizontal-wrapper glass-fade-in">
+    <!-- LIVEWIRE COMPLIANCE: Single root element wrapper -->
+    <div>
+        <div class="space-y-6">
+        <!-- World-Class SaaS Horizontal Stats Layout (Petugas Pattern) -->
+        <div class="saas-stats-container glass-fade-in">
+            <div class="stats-horizontal-wrapper">
                 <!-- Total Pendapatan -->
                 <div class="horizontal-stat">
                     <div class="stat-figure">
@@ -339,7 +167,7 @@
         <!-- Main Content Grid (Following Petugas Pattern) -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Validation Center -->
-            <x-filament::section class="glass-scale-in">
+            <x-filament::section class="glass-fade-in">
                 <x-slot name="heading">
                     ✅ Pusat Validasi
                 </x-slot>
@@ -406,8 +234,8 @@
                 </div>
             </x-filament::section>
 
-            <!-- Recent Activities - LAYOUT SWITCHING SYSTEM -->
-            <x-filament::section class="glass-scale-in">
+            <!-- Recent Activities -->
+            <x-filament::section class="glass-fade-in">
                 <x-slot name="heading">
                     🕒 Aktivitas Terbaru
                 </x-slot>
@@ -415,12 +243,12 @@
                     Transaksi dan validasi terbaru
                 </x-slot>
                 <x-slot name="headerActions">
-                    <!-- BigDesign Inspired Layout Switcher -->
+                    <!-- Dual List Toggle Buttons -->
                     <div style="display: flex; gap: 0.5rem; align-items: center;">
                         <button onclick="switchActivityLayout('single')" 
                                 id="single-btn"
                                 title="Single Column List"
-                                style="padding: 0.5rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 0.5rem; color: #9ca3af; transition: all 0.2s ease;"
+                                style="padding: 0.5rem; background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 0.5rem; color: #3b82f6; transition: all 0.2s ease; cursor: pointer;"
                                 onmouseover="this.style.background='rgba(59, 130, 246, 0.3)'"
                                 onmouseout="this.style.background='rgba(59, 130, 246, 0.2)'">
                             <!-- Single Column List Icon -->
@@ -430,11 +258,11 @@
                         </button>
                         <button onclick="switchActivityLayout('double')" 
                                 id="double-btn"
-                                title="Two Column List"
-                                style="padding: 0.5rem; background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 0.5rem; color: #3b82f6; transition: all 0.2s ease;"
+                                title="Dual Column List"
+                                style="padding: 0.5rem; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 0.5rem; color: #9ca3af; transition: all 0.2s ease; cursor: pointer;"
                                 onmouseover="this.style.background='rgba(255, 255, 255, 0.1)'"
                                 onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'">
-                            <!-- Two Column List Icon -->
+                            <!-- Dual Column List Icon -->
                             <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M3 3h8v2H3V3zm10 0h8v2h-8V3zM3 7h8v2H3V7zm10 0h8v2h-8V7zM3 11h8v2H3v-2zm10 0h8v2h-8v-2zM3 15h8v2H3v-2zm10 0h8v2h-8v-2z"/>
                             </svg>
@@ -442,69 +270,36 @@
                     </div>
                 </x-slot>
 
-                @php
-                    $recentActivities = collect($activities['recent_activities'] ?? [])
-                        ->take(6);
-                @endphp
+                <!-- LAYOUT 1: SINGLE COLUMN LIST (Default) -->
+                <div id="activities-single-layout" class="space-y-3">
+                    @php
+                        $recentActivities = collect($activities['recent_activities'] ?? [])
+                            ->take(6);
+                    @endphp
 
-                <!-- LAYOUT 1: SINGLE COLUMN LIST (BigDesign Pattern) -->
-                <div id="activities-single-layout" class="space-y-3" style="display: none;">
                     @forelse($recentActivities as $activity)
-                        <div style="
-                            display: flex;
-                            align-items: center;
-                            gap: 1rem;
-                            padding: 1rem 1.5rem;
-                            background: rgba(255, 255, 255, 0.03);
-                            border: 1px solid rgba(255, 255, 255, 0.05);
-                            border-radius: 0.875rem;
-                            transition: all 0.2s ease;
-                            position: relative;
-                            overflow: hidden;
-                        "
-                        class="activity-list-item"
-                        onmouseover="this.style.background='rgba(255, 255, 255, 0.08)'; this.style.borderColor='rgba(255, 255, 255, 0.12)'; this.style.transform='translateX(8px)';"
-                        onmouseout="this.style.background='rgba(255, 255, 255, 0.03)'; this.style.borderColor='rgba(255, 255, 255, 0.05)'; this.style.transform='translateX(0)';">
-                            
-                            <!-- Icon -->
-                            <div style="
-                                width: 2.5rem;
-                                height: 2.5rem;
-                                background: {{ $activity['type'] === 'income' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)' }};
-                                border-radius: 0.75rem;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                flex-shrink: 0;
-                                backdrop-filter: blur(4px);
-                            ">
-                                <svg width="16" height="16" fill="{{ $activity['type'] === 'income' ? '#10b981' : '#ef4444' }}" viewBox="0 0 24 24">
-                                    <path d="{{ $activity['type'] === 'income' ? 'M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12s-1.536-.219-2.121-.659c-1.172-.879-1.172-2.303 0-3.182C10.464 7.781 11.232 8 12 8s1.536.219 2.121.659' : 'M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H15m-6.75 0h5.25m-5.25 0c.621 0 1.125.504 1.125 1.125v.375M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5a2.25 2.25 0 002.25-2.25m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5a2.25 2.25 0 012.25 2.25v7.5' }}"/>
-                                </svg>
+                        <div class="activity-item">
+                            <div class="activity-icon-container">
+                                <div class="activity-icon {{ $activity['type'] === 'income' ? 'bg-green-500/20' : 'bg-red-500/20' }}">
+                                    <x-filament::icon 
+                                        icon="{{ $activity['type'] === 'income' ? 'heroicon-o-plus-circle' : 'heroicon-o-minus-circle' }}" 
+                                        class="w-4 h-4 {{ $activity['type'] === 'income' ? 'text-green-400' : 'text-red-400' }}" 
+                                    />
+                                </div>
                             </div>
-                            
-                            <!-- Content -->
-                            <div style="flex: 1; min-width: 0;">
-                                <div style="font-weight: 600; color: #ffffff; margin-bottom: 0.25rem;">{{ $activity['description'] ?? 'Transaksi' }}</div>
-                                <div style="font-size: 0.875rem; color: #9ca3af;">{{ $activity['date'] ?? date('d/m/Y') }} • {{ $activity['user'] ?? 'System' }}</div>
-                            </div>
-                            
-                            <!-- Amount & Status -->
-                            <div style="text-align: right;">
-                                <div style="font-weight: 700; color: {{ $activity['type'] === 'income' ? '#22d65f' : '#ef4444' }}; margin-bottom: 0.25rem;">
+                            <div class="activity-content">
+                                <div class="activity-title">{{ $activity['description'] ?? 'Transaksi' }}</div>
+                                <div class="activity-subtitle">{{ $activity['date'] ?? date('d/m/Y') }} • {{ $activity['user'] ?? 'System' }}</div>
+                                <div class="activity-details">
                                     Rp {{ number_format($activity['amount'] ?? 0, 0, ',', '.') }}
                                 </div>
-                                <div style="
-                                    font-size: 0.75rem;
-                                    padding: 0.25rem 0.5rem;
-                                    background: {{ $activity['status'] === 'pending' ? 'rgba(245, 158, 11, 0.2)' : ($activity['status'] === 'approved' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)') }};
-                                    color: {{ $activity['status'] === 'pending' ? '#f59e0b' : ($activity['status'] === 'approved' ? '#10b981' : '#ef4444') }};
-                                    border-radius: 0.375rem;
-                                    border: 1px solid {{ $activity['status'] === 'pending' ? 'rgba(245, 158, 11, 0.3)' : ($activity['status'] === 'approved' ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)') }};
-                                ">
+                            </div>
+                            <div class="activity-meta">
+                                <div class="activity-time">{{ $activity['time'] ?? 'Baru saja' }}</div>
+                                <div class="activity-status status-{{ $activity['status'] ?? 'approved' }}">
                                     {{ match($activity['status'] ?? 'approved') {
                                         'pending' => '⏳ Pending',
-                                        'approved' => '✅ Approved', 
+                                        'approved' => '✅ Approved',
                                         'rejected' => '❌ Rejected',
                                         default => '✅ Approved'
                                     } }}
@@ -512,18 +307,16 @@
                             </div>
                         </div>
                     @empty
-                        <div style="text-align: center; padding: 3rem; color: #6b7280;">
-                            <svg style="width: 3rem; height: 3rem; margin: 0 auto 1rem; opacity: 0.5;" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
-                            </svg>
-                            <p>Belum ada aktivitas terbaru</p>
+                        <div class="empty-state">
+                            <x-filament::icon icon="heroicon-o-clipboard-document-list" class="w-8 h-8 text-white/30 mx-auto mb-2" />
+                            <p class="text-white/50 text-sm text-center">Belum ada aktivitas terbaru</p>
                         </div>
                     @endforelse
                 </div>
 
-                <!-- LAYOUT 2: TWO COLUMN LIST (BigDesign Grid Pattern) - DEFAULT DISPLAY -->
-                <div id="activities-double-layout" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                    @forelse($recentActivities as $activity)
+                <!-- LAYOUT 2: DUAL COLUMN LIST -->
+                <div id="activities-double-layout" style="display: none; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    @foreach($recentActivities as $activity)
                         <div style="
                             display: flex;
                             align-items: center;
@@ -533,13 +326,11 @@
                             border: 1px solid rgba(255, 255, 255, 0.05);
                             border-radius: 0.75rem;
                             transition: all 0.2s ease;
-                            position: relative;
-                            overflow: hidden;
                             cursor: pointer;
                         "
-                        class="activity-double-item"
-                        onmouseover="this.style.background='rgba(255, 255, 255, 0.08)'; this.style.borderColor='rgba(255, 255, 255, 0.12)'; this.style.transform='translateY(-2px)';"
-                        onmouseout="this.style.background='rgba(255, 255, 255, 0.03)'; this.style.borderColor='rgba(255, 255, 255, 0.05)'; this.style.transform='translateY(0)';">
+                        class="activity-dual-item"
+                        onmouseover="this.style.background='rgba(255, 255, 255, 0.08)'; this.style.transform='translateY(-2px)';"
+                        onmouseout="this.style.background='rgba(255, 255, 255, 0.03)'; this.style.transform='translateY(0)';">
                             
                             <!-- Compact Icon -->
                             <div style="
@@ -560,7 +351,7 @@
                             <!-- Compact Content -->
                             <div style="flex: 1; min-width: 0;">
                                 <div style="font-weight: 600; color: #ffffff; font-size: 0.875rem; margin-bottom: 0.25rem;">
-                                    {{ Str::limit($activity['description'] ?? 'Transaksi', 25) }}
+                                    {{ Str::limit($activity['description'] ?? 'Transaksi', 20) }}
                                 </div>
                                 <div style="font-size: 0.75rem; color: #9ca3af;">
                                     {{ $activity['date'] ?? date('d/m/Y') }}
@@ -570,14 +361,7 @@
                                 </div>
                             </div>
                         </div>
-                    @empty
-                        <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: #6b7280;">
-                            <svg style="width: 3rem; height: 3rem; margin: 0 auto 1rem; opacity: 0.5;" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
-                            </svg>
-                            <p>Belum ada aktivitas terbaru</p>
-                        </div>
-                    @endforelse
+                    @endforeach
                 </div>
             </x-filament::section>
         </div>
@@ -637,25 +421,120 @@
                 </div>
             </div>
         </x-filament::section>
-    </div>
-
-    <!-- CSS Styles (Following Petugas Patterns) -->
-    <style>
+        
+        <!-- CSS Styles (Following Petugas Patterns) -->
+        <style>
+        /* GLASS EFFECTS VARIABLES */
+        :root {
+            --glass-frost-blur: 16px;
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-hover-border: rgba(255, 255, 255, 0.15);
+        }
+        
+        /* HORIZONTAL STATS GLASS ENHANCEMENT */
+        .horizontal-stat {
+            background: linear-gradient(135deg, rgba(17, 17, 24, 0.8) 0%, rgba(26, 26, 32, 0.6) 100%) !important;
+            backdrop-filter: blur(var(--glass-frost-blur)) saturate(150%) !important;
+            border: 1px solid var(--glass-border) !important;
+            border-radius: 1.5rem !important;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.06) !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            position: relative !important;
+            overflow: hidden !important;
+            cursor: pointer !important;
+        }
+        
+        .horizontal-stat::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, 
+                var(--stat-gradient-start, #6b7280), 
+                var(--stat-gradient-end, #9ca3af));
+            opacity: 0.6;
+            transition: all 0.3s ease;
+        }
+        
+        .horizontal-stat:hover {
+            transform: translateY(-8px) scale(1.02) !important;
+            border-color: var(--glass-hover-border) !important;
+            backdrop-filter: blur(24px) saturate(200%) !important;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.1) !important;
+        }
+        
+        .horizontal-stat:hover::before {
+            height: 4px;
+            opacity: 1;
+            box-shadow: 0 2px 8px var(--stat-glow, rgba(255, 255, 255, 0.2));
+        }
+        
+        /* COLOR-CODED GLASS GRADIENTS */
+        .horizontal-stat:nth-child(1) {
+            --stat-gradient-start: #10b981;
+            --stat-gradient-end: #059669;
+            --stat-glow: rgba(16, 185, 129, 0.3);
+        }
+        
+        .horizontal-stat:nth-child(2) {
+            --stat-gradient-start: #ef4444;
+            --stat-gradient-end: #dc2626;
+            --stat-glow: rgba(239, 68, 68, 0.3);
+        }
+        
+        .horizontal-stat:nth-child(3) {
+            --stat-gradient-start: #3b82f6;
+            --stat-gradient-end: #2563eb;
+            --stat-glow: rgba(59, 130, 246, 0.3);
+        }
+        
+        .horizontal-stat:nth-child(4) {
+            --stat-gradient-start: #f59e0b;
+            --stat-gradient-end: #d97706;
+            --stat-glow: rgba(245, 158, 11, 0.3);
+        }
+        
         /* World-Class SaaS Horizontal Stats Layout (From Petugas) */
         .saas-stats-container {
-            background: rgba(10, 10, 11, 0.6);
+            background: linear-gradient(135deg, rgba(10, 10, 11, 0.8) 0%, rgba(17, 17, 24, 0.6) 100%);
             backdrop-filter: blur(20px) saturate(140%);
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 1.5rem;
             padding: 1.5rem;
             box-shadow: 0 8px 40px -12px rgba(0, 0, 0, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .saas-stats-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+            opacity: 0.5;
+            transition: all 0.3s ease;
         }
 
         .saas-stats-container:hover {
+            transform: translateY(-4px);
             backdrop-filter: blur(24px) saturate(160%);
             border-color: rgba(255, 255, 255, 0.12);
             box-shadow: 0 12px 60px -16px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+        }
+
+        .saas-stats-container:hover::before {
+            opacity: 1;
+            height: 3px;
         }
 
         .stats-horizontal-wrapper {
@@ -965,203 +844,139 @@
                 grid-template-columns: 1fr;
             }
         }
-    </style>
-    
-    <!-- WORLD-CLASS GLASS ANIMATION SYSTEM -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Progressive animation system with staggered timing
-            const animateElements = () => {
-                const elements = document.querySelectorAll('.glass-fade-in, .glass-scale-in');
-                const observer = new IntersectionObserver((entries) => {
-                    entries.forEach((entry, index) => {
-                        if (entry.isIntersecting) {
-                            setTimeout(() => {
-                                entry.target.classList.add('animate');
-                            }, index * 150);
-                        }
-                    });
-                }, { threshold: 0.1 });
-                
-                elements.forEach(el => observer.observe(el));
-            };
-            
-            // Enhanced glass effect interactions
-            const enhanceGlassEffects = () => {
-                const statCards = document.querySelectorAll('.horizontal-stat');
-                const sections = document.querySelectorAll('.fi-section');
-                const financialCards = document.querySelectorAll('.financial-summary-card');
-                
-                // Enhance stat cards
-                statCards.forEach((card, index) => {
-                    card.style.animationDelay = `${index * 100}ms`;
-                    
-                    card.addEventListener('mouseenter', function() {
-                        this.style.backdropFilter = 'blur(24px) saturate(200%)';
-                    });
-                    
-                    card.addEventListener('mouseleave', function() {
-                        this.style.backdropFilter = 'blur(16px) saturate(150%)';
-                    });
-                });
-                
-                // Enhance sections
-                sections.forEach(section => {
-                    section.addEventListener('mouseenter', function() {
-                        this.style.backdropFilter = 'blur(20px) saturate(180%)';
-                    });
-                    
-                    section.addEventListener('mouseleave', function() {
-                        this.style.backdropFilter = 'blur(16px) saturate(150%)';
-                    });
-                });
-                
-                // Enhance financial cards
-                financialCards.forEach(card => {
-                    card.addEventListener('mouseenter', function() {
-                        this.style.backdropFilter = 'blur(16px) saturate(160%)';
-                    });
-                    
-                    card.addEventListener('mouseleave', function() {
-                        this.style.backdropFilter = 'blur(12px) saturate(140%)';
-                    });
-                });
-            };
-            
-            // Initialize all enhancements
-            setTimeout(() => {
-                animateElements();
-                enhanceGlassEffects();
-                
-                // Initialize dual layout system AFTER animations
-                initializeDualLayout();
-            }, 150);
-            
-            // Add glass effect to new elements (for dynamic content)
-            const observeNewElements = new MutationObserver(() => {
-                enhanceGlassEffects();
-            });
-            
-            observeNewElements.observe(document.body, {
-                childList: true,
-                subtree: true
-            });
-        });
         
-        // ENHANCED DUAL LIST LAYOUT SWITCHING SYSTEM (BigDesign Pattern)
-        function switchActivityLayout(layout) {
-            console.log(`🔄 switchActivityLayout('${layout}') called`);
-            
-            const singleLayout = document.getElementById('activities-single-layout');
-            const doubleLayout = document.getElementById('activities-double-layout');
-            const singleBtn = document.getElementById('single-btn');
-            const doubleBtn = document.getElementById('double-btn');
-            
-            // Validate all elements exist
-            if (!singleLayout || !doubleLayout || !singleBtn || !doubleBtn) {
-                console.error('❌ CRITICAL: Required layout elements not found!', {
-                    singleLayout: !!singleLayout,
-                    doubleLayout: !!doubleLayout,
-                    singleBtn: !!singleBtn,
-                    doubleBtn: !!doubleBtn
-                });
-                return;
-            }
-            
-            if (layout === 'single') {
-                console.log('📄 Switching to SINGLE layout...');
-                
-                // Show single column list with important flag
-                singleLayout.style.setProperty('display', 'block', 'important');
-                doubleLayout.style.setProperty('display', 'none', 'important');
-                
-                // Clear any grid properties from double layout
-                doubleLayout.style.removeProperty('grid-template-columns');
-                doubleLayout.style.removeProperty('gap');
-                
-                console.log('✅ Single layout applied:', {
-                    singleDisplay: singleLayout.style.display,
-                    doubleDisplay: doubleLayout.style.display
-                });
-                
-                // Update button states
-                singleBtn.style.background = 'rgba(59, 130, 246, 0.2)';
-                singleBtn.style.borderColor = 'rgba(59, 130, 246, 0.3)';
-                singleBtn.style.color = '#3b82f6';
-                
-                doubleBtn.style.background = 'rgba(255, 255, 255, 0.05)';
-                doubleBtn.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                doubleBtn.style.color = '#9ca3af';
-                
-            } else if (layout === 'double') {
-                console.log('📋 Switching to DOUBLE layout...');
-                
-                // Show two column list with important flags
-                singleLayout.style.setProperty('display', 'none', 'important');
-                doubleLayout.style.setProperty('display', 'grid', 'important');
-                doubleLayout.style.setProperty('grid-template-columns', '1fr 1fr', 'important');
-                doubleLayout.style.setProperty('gap', '1rem', 'important');
-                
-                console.log('✅ Double layout applied:', {
-                    singleDisplay: singleLayout.style.display,
-                    doubleDisplay: doubleLayout.style.display,
-                    gridColumns: doubleLayout.style.gridTemplateColumns,
-                    gridGap: doubleLayout.style.gap
-                });
-                
-                // Update button states
-                doubleBtn.style.background = 'rgba(59, 130, 246, 0.2)';
-                doubleBtn.style.borderColor = 'rgba(59, 130, 246, 0.3)';
-                doubleBtn.style.color = '#3b82f6';
-                
-                singleBtn.style.background = 'rgba(255, 255, 255, 0.05)';
-                singleBtn.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                singleBtn.style.color = '#9ca3af';
-            }
-            
-            // Store preference in localStorage
-            try {
-                localStorage.setItem('bendahara_activities_layout', layout);
-                console.log(`💾 Layout '${layout}' saved to localStorage`);
-            } catch (e) {
-                console.error('❌ Failed to save layout preference:', e);
-            }
-            
-            console.log(`🎉 Layout switch to '${layout}' completed successfully`);
+        /* WORLD-CLASS ANIMATIONS AND MICRO-INTERACTIONS */
+        .glass-fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease-out;
         }
         
-        // UNIFIED INITIALIZATION SYSTEM
-        // Remove the duplicate DOMContentLoaded listener and integrate with the main one
-        function initializeDualLayout() {
-            console.log('🔄 Initializing dual layout system...');
+        .glass-fade-in.animate {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .stat-figure {
+            transition: all 0.3s ease !important;
+        }
+        
+        .horizontal-stat:hover .stat-figure {
+            transform: scale(1.1) rotate(5deg) !important;
+        }
+        
+        .stat-value {
+            transition: all 0.3s ease !important;
+        }
+        
+        .horizontal-stat:hover .stat-value {
+            transform: scale(1.05) !important;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.6) !important;
+        }
+        </style>
+        
+        <!-- WORLD-CLASS ANIMATION SYSTEM -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Progressive animation system
+                const animateElements = () => {
+                    const elements = document.querySelectorAll('.glass-fade-in');
+                    const observer = new IntersectionObserver((entries) => {
+                        entries.forEach((entry, index) => {
+                            if (entry.isIntersecting) {
+                                setTimeout(() => {
+                                    entry.target.classList.add('animate');
+                                }, index * 150);
+                            }
+                        });
+                    }, { threshold: 0.1 });
+                    
+                    elements.forEach(el => observer.observe(el));
+                };
+                
+                // Enhanced glass effect interactions
+                const enhanceGlassEffects = () => {
+                    const statCards = document.querySelectorAll('.horizontal-stat');
+                    const sections = document.querySelectorAll('.fi-section');
+                    
+                    statCards.forEach((card, index) => {
+                        card.style.animationDelay = `${index * 100}ms`;
+                        
+                        card.addEventListener('mouseenter', function() {
+                            this.style.backdropFilter = 'blur(24px) saturate(200%)';
+                        });
+                        
+                        card.addEventListener('mouseleave', function() {
+                            this.style.backdropFilter = 'blur(16px) saturate(150%)';
+                        });
+                    });
+                    
+                    sections.forEach(section => {
+                        section.addEventListener('mouseenter', function() {
+                            this.style.backdropFilter = 'blur(20px) saturate(180%)';
+                        });
+                        
+                        section.addEventListener('mouseleave', function() {
+                            this.style.backdropFilter = 'blur(16px) saturate(150%)';
+                        });
+                    });
+                };
+                
+                // Initialize enhancements
+                setTimeout(() => {
+                    animateElements();
+                    enhanceGlassEffects();
+                    
+                    // Initialize dual layout system
+                    const savedLayout = localStorage.getItem('bendahara_activities_layout') || 'single';
+                    switchActivityLayout(savedLayout);
+                }, 100);
+            });
             
-            // Wait for all DOM elements to be ready
-            const checkElements = () => {
+            // DUAL LIST LAYOUT SWITCHING SYSTEM
+            function switchActivityLayout(layout) {
                 const singleLayout = document.getElementById('activities-single-layout');
                 const doubleLayout = document.getElementById('activities-double-layout');
                 const singleBtn = document.getElementById('single-btn');
                 const doubleBtn = document.getElementById('double-btn');
                 
-                if (singleLayout && doubleLayout && singleBtn && doubleBtn) {
-                    console.log('✅ All dual layout elements found');
-                    
-                    // Get saved layout preference
-                    const savedLayout = localStorage.getItem('bendahara_activities_layout') || 'double';
-                    console.log(`📂 Loading saved layout: '${savedLayout}'`);
-                    
-                    // Apply the layout with a small delay to ensure DOM is stable
-                    setTimeout(() => {
-                        switchActivityLayout(savedLayout);
-                        console.log('🎉 Dual layout initialization completed');
-                    }, 200);
-                } else {
-                    console.warn('⚠️ Some dual layout elements not found, retrying...');
-                    // Retry after a short delay
-                    setTimeout(checkElements, 100);
+                if (!singleLayout || !doubleLayout || !singleBtn || !doubleBtn) {
+                    console.warn('Activity layout elements not found');
+                    return;
                 }
-            };
-            
-            checkElements();
-        }
-    </script>
+                
+                if (layout === 'single') {
+                    singleLayout.style.display = 'block';
+                    doubleLayout.style.display = 'none';
+                    
+                    // Update button states
+                    singleBtn.style.background = 'rgba(59, 130, 246, 0.2)';
+                    singleBtn.style.borderColor = 'rgba(59, 130, 246, 0.3)';
+                    singleBtn.style.color = '#3b82f6';
+                    
+                    doubleBtn.style.background = 'rgba(255, 255, 255, 0.05)';
+                    doubleBtn.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                    doubleBtn.style.color = '#9ca3af';
+                    
+                } else if (layout === 'double') {
+                    singleLayout.style.display = 'none';
+                    doubleLayout.style.display = 'grid';
+                    
+                    // Update button states
+                    doubleBtn.style.background = 'rgba(59, 130, 246, 0.2)';
+                    doubleBtn.style.borderColor = 'rgba(59, 130, 246, 0.3)';
+                    doubleBtn.style.color = '#3b82f6';
+                    
+                    singleBtn.style.background = 'rgba(255, 255, 255, 0.05)';
+                    singleBtn.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                    singleBtn.style.color = '#9ca3af';
+                }
+                
+                // Store preference
+                localStorage.setItem('bendahara_activities_layout', layout);
+                console.log(`✅ Activity layout switched to: ${layout}`);
+            }
+        </script>
+        </div>
+    </div>
 </x-filament-panels::page>

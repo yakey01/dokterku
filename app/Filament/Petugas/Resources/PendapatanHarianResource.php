@@ -234,6 +234,39 @@ class PendapatanHarianResource extends Resource
                         'ditolak' => '❌ Ditolak',
                     ])
                     ->placeholder('Semua Status'),
+                Tables\Filters\SelectFilter::make('bulan')
+                    ->label('📅 Filter Bulan')
+                    ->options([
+                        '01' => '🏔️ Januari',
+                        '02' => '❄️ Februari', 
+                        '03' => '🌸 Maret',
+                        '04' => '🌷 April',
+                        '05' => '🌺 Mei',
+                        '06' => '☀️ Juni',
+                        '07' => '🏖️ Juli',
+                        '08' => '🌻 Agustus',
+                        '09' => '🍂 September',
+                        '10' => '🎃 Oktober',
+                        '11' => '🍁 November',
+                        '12' => '❄️ Desember',
+                    ])
+                    ->placeholder('🗓️ Semua Bulan')
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['value'],
+                            fn (Builder $query, $month): Builder => $query->whereMonth('tanggal_input', $month)
+                        );
+                    })
+                    ->indicateUsing(function (array $data): ?string {
+                        if (!$data['value']) return null;
+                        $months = [
+                            '01' => '🏔️ Januari', '02' => '❄️ Februari', '03' => '🌸 Maret',
+                            '04' => '🌷 April', '05' => '🌺 Mei', '06' => '☀️ Juni',
+                            '07' => '🏖️ Juli', '08' => '🌻 Agustus', '09' => '🍂 September', 
+                            '10' => '🎃 Oktober', '11' => '🍁 November', '12' => '❄️ Desember'
+                        ];
+                        return '📅 Bulan: ' . $months[$data['value']];
+                    }),
                 Tables\Filters\Filter::make('tanggal_input')
                     ->label('📅 Rentang Tanggal')
                     ->form([

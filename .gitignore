@@ -105,6 +105,29 @@ super-*.sh
 ssh-*.exp
 *.exp
 
+# Debug and test HTML files
+DEBUG_*.html
+*-debug.html
+debug-*.html
+test-*.html
+*-test.html
+validate-*.html
+*-demo.html
+*-fix.html
+*-compliant*.blade.php
+
+# Debug and test Blade files
+*-debug.blade.php
+test-*.blade.php
+*-test.blade.php
+debug-*.blade.php
+
+# Documentation backup files
+*_COMPLETE.md
+*_FIX_REPORT.md
+*_BACKUP.md
+*-backup.md
+
 # Temporary Documentation (can contain sensitive info)
 *.txt
 *-analysis.md

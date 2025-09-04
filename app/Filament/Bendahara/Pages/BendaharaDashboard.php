@@ -40,7 +40,38 @@ class BendaharaDashboard extends Page
 
     public function mount(): void
     {
-        // Initialize world-class treasury dashboard
+        // Initialize world-class treasury dashboard with immediate load fix
+        // This prevents the synchronous loading issue by deferring heavy operations
+        
+        // AJAX requests handled separately - mount() remains void
+    }
+    
+    /**
+     * Handle AJAX request to load dashboard data
+     */
+    public function handleAjaxDataRequest()
+    {
+        try {
+            $data = [
+                'financial' => $this->getFinancialSummary(),
+                'validation' => $this->getValidationMetrics(),
+                'activities' => $this->getRecentActivities(),
+                'trends' => $this->getMonthlyTrends(),
+            ];
+            
+            return response()->json([
+                'success' => true,
+                'data' => $data
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Failed to load bendahara dashboard data: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'error' => 'Failed to load dashboard data'
+            ], 500);
+        }
     }
     
 

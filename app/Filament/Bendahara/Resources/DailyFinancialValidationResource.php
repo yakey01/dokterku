@@ -2,6 +2,7 @@
 
 namespace App\Filament\Bendahara\Resources;
 
+use App\Filament\Concerns\HasMonthlyArchive;
 use App\Models\PendapatanHarian;
 use App\Models\PengeluaranHarian;
 use Filament\Forms;
@@ -22,7 +23,21 @@ use App\Services\ValidationWorkflowService;
 
 class DailyFinancialValidationResource extends Resource
 {
+    use HasMonthlyArchive;
+    
     protected static ?string $model = PendapatanHarian::class; // Default to PendapatanHarian
+    
+    // Configure monthly archive to use tanggal_input column
+    public static function getArchiveDateColumn(): string
+    {
+        return 'tanggal_input';
+    }
+    
+    // Override to ensure proper date column resolution
+    protected static function getArchiveDateColumnName(): string
+    {
+        return 'tanggal_input';
+    }
     
     protected static ?string $navigationIcon = 'heroicon-o-calendar';
     
@@ -141,6 +156,26 @@ class DailyFinancialValidationResource extends Resource
                     ->sortable()
                     ->searchable(),
 
+                Tables\Columns\TextColumn::make('tipe_transaksi')
+                    ->label('Tipe')
+                    ->badge()
+                    ->color(fn (?string $state): string => match ($state) {
+                        'pendapatan' => 'success',
+                        'pengeluaran' => 'danger',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'pendapatan' => '📈 Pendapatan',
+                        'pengeluaran' => '📉 Pengeluaran',
+                        default => '-',
+                    })
+                    ->visible(function () {
+                        // Only show Tipe column when displaying combined data (status tabs)
+                        $activeTab = request()->get('activeTab', 'pendapatan');
+                        return in_array($activeTab, ['approved', 'rejected', 'all_pending']);
+                    })
+                    ->toggleable(),
+
                 Tables\Columns\TextColumn::make('shift')
                     ->label('Shift')
                     ->badge()
@@ -150,33 +185,6 @@ class DailyFinancialValidationResource extends Resource
                         default => 'gray',
                     }),
 
-                Tables\Columns\TextColumn::make('transaction_type')
-                    ->label('Jenis Transaksi')
-                    ->formatStateUsing(function ($record) {
-                        return $record instanceof PendapatanHarian 
-                            ? ($record->pendapatan?->nama_pendapatan ?? '-')
-                            : ($record->pengeluaran?->nama_pengeluaran ?? '-');
-                    })
-                    ->searchable(query: function (Builder $query, string $search): Builder {
-                        return $query->where(function (Builder $query) use ($search) {
-                            if (static::getModel() === PendapatanHarian::class) {
-                                $query->whereHas('pendapatan', function (Builder $query) use ($search) {
-                                    $query->where('nama_pendapatan', 'like', "%{$search}%");
-                                });
-                            } else {
-                                $query->whereHas('pengeluaran', function (Builder $query) use ($search) {
-                                    $query->where('nama_pengeluaran', 'like', "%{$search}%");
-                                });
-                            }
-                        });
-                    })
-                    ->limit(30)
-                    ->tooltip(function ($record) {
-                        $name = $record instanceof PendapatanHarian 
-                            ? ($record->pendapatan?->nama_pendapatan ?? '-')
-                            : ($record->pengeluaran?->nama_pengeluaran ?? '-');
-                        return strlen($name) > 30 ? $name : null;
-                    }),
 
                 Tables\Columns\TextColumn::make('nominal')
                     ->label('Nominal')
@@ -189,11 +197,6 @@ class DailyFinancialValidationResource extends Resource
                     ])
                     ->alignEnd(),
 
-                Tables\Columns\TextColumn::make('deskripsi')
-                    ->label('Deskripsi')
-                    ->limit(30)
-                    ->searchable()
-                    ->toggleable(),
 
                 Tables\Columns\TextColumn::make('status_validasi')
                     ->label('Status')
@@ -265,38 +268,8 @@ class DailyFinancialValidationResource extends Resource
                     ])
                     ->placeholder('Semua Shift'),
 
-                // Quick Date Range Filters
-                Tables\Filters\SelectFilter::make('date_range')
-                    ->label('Periode')
-                    ->options([
-                        'today' => 'Hari Ini',
-                        'yesterday' => 'Kemarin',
-                        'this_week' => 'Minggu Ini',
-                        'last_week' => 'Minggu Lalu',
-                        'this_month' => 'Bulan Ini',
-                        'last_month' => 'Bulan Lalu',
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        if (!$data['value']) return $query;
-                        
-                        return match ($data['value']) {
-                            'today' => $query->whereDate('tanggal_input', today()),
-                            'yesterday' => $query->whereDate('tanggal_input', now()->subDay()),
-                            'this_week' => $query->whereBetween('tanggal_input', [
-                                now()->startOfWeek(),
-                                now()->endOfWeek()
-                            ]),
-                            'last_week' => $query->whereBetween('tanggal_input', [
-                                now()->subWeek()->startOfWeek(),
-                                now()->subWeek()->endOfWeek()
-                            ]),
-                            'this_month' => $query->whereMonth('tanggal_input', now()->month)
-                                ->whereYear('tanggal_input', now()->year),
-                            'last_month' => $query->whereMonth('tanggal_input', now()->subMonth()->month)
-                                ->whereYear('tanggal_input', now()->subMonth()->year),
-                            default => $query
-                        };
-                    }),
+                // Monthly Archive Filters - defaults to current month
+                ...static::getMonthlyArchiveFilters(),
 
                 // Value-based Filters  
                 Tables\Filters\Filter::make('high_value')
@@ -309,25 +282,6 @@ class DailyFinancialValidationResource extends Resource
                     ->query(fn (Builder $query): Builder => $query->where('nominal', '>', 1000000))
                     ->toggle(),
 
-                // Custom Date Range Filter
-                Tables\Filters\Filter::make('custom_date_range')
-                    ->form([
-                        Forms\Components\DatePicker::make('from_date')
-                            ->label('Dari Tanggal'),
-                        Forms\Components\DatePicker::make('to_date')
-                            ->label('Sampai Tanggal'),
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        return $query
-                            ->when(
-                                $data['from_date'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('tanggal_input', '>=', $date),
-                            )
-                            ->when(
-                                $data['to_date'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('tanggal_input', '<=', $date),
-                            );
-                    }),
             ])
             ->actions([
                 ActionGroup::make([

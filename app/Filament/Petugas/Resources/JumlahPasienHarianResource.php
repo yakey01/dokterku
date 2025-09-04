@@ -3,6 +3,7 @@
 namespace App\Filament\Petugas\Resources;
 
 use App\Filament\Petugas\Resources\JumlahPasienHarianResource\Pages;
+use App\Filament\Concerns\HasMonthlyArchive;
 use App\Models\JumlahPasienHarian;
 use App\Models\Dokter;
 use Filament\Forms;
@@ -20,7 +21,15 @@ use Filament\Support\Enums\FontWeight;
 
 class JumlahPasienHarianResource extends Resource
 {
+    use HasMonthlyArchive;
+    
     protected static ?string $model = JumlahPasienHarian::class;
+    
+    // Configure monthly archive to use tanggal column
+    public static function getArchiveDateColumn(): string
+    {
+        return 'tanggal';
+    }
 
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
     
@@ -403,24 +412,8 @@ class JumlahPasienHarianResource extends Resource
                     ->searchable()
                     ->preload(),
 
-                Filter::make('tanggal')
-                    ->form([
-                        DatePicker::make('dari_tanggal')
-                            ->label('Dari Tanggal'),
-                        DatePicker::make('sampai_tanggal')
-                            ->label('Sampai Tanggal'),
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        return $query
-                            ->when(
-                                $data['dari_tanggal'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('tanggal', '>=', $date),
-                            )
-                            ->when(
-                                $data['sampai_tanggal'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('tanggal', '<=', $date),
-                            );
-                    }),
+                // Monthly Archive Filters - defaults to current month
+                ...static::getMonthlyArchiveFilters(),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

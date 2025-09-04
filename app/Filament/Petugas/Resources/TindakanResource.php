@@ -3,6 +3,7 @@
 namespace App\Filament\Petugas\Resources;
 
 use App\Filament\Petugas\Resources\TindakanResource\Pages;
+use App\Filament\Concerns\HasMonthlyArchive;
 use App\Models\JenisTindakan;
 use App\Models\Pasien;
 use App\Models\Tindakan;
@@ -29,6 +30,8 @@ use Exception;
 
 class TindakanResource extends Resource
 {
+    use HasMonthlyArchive;
+    
     protected static ?string $model = Tindakan::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
@@ -40,6 +43,12 @@ class TindakanResource extends Resource
     protected static ?string $modelLabel = 'Tindakan';
 
     protected static ?string $pluralModelLabel = 'Tindakan & History';
+    
+    // Configure monthly archive to use tanggal_tindakan column
+    public static function getArchiveDateColumn(): string
+    {
+        return 'tanggal_tindakan';
+    }
 
     protected static ?int $navigationSort = 1;
 
@@ -558,7 +567,7 @@ class TindakanResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->color('gray'),
             ])
-            ->filters([
+            ->filters(array_merge([
                 Tables\Filters\SelectFilter::make('data_scope')
                     ->label('Tampilkan Data')
                     ->options([
@@ -572,26 +581,12 @@ class TindakanResource extends Resource
                         }
                         return $query; // Show all data by default
                     }),
-
-                Tables\Filters\Filter::make('tanggal_tindakan')
-                    ->form([
-                        Forms\Components\DatePicker::make('dari')
-                            ->label('Dari Tanggal'),
-                        Forms\Components\DatePicker::make('sampai')
-                            ->label('Sampai Tanggal'),
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        return $query
-                            ->when(
-                                isset($data['dari']) && !empty($data['dari']),
-                                fn (Builder $query, $date): Builder => $query->whereDate('tanggal_tindakan', '>=', $data['dari']),
-                            )
-                            ->when(
-                                isset($data['sampai']) && !empty($data['sampai']),
-                                fn (Builder $query, $date): Builder => $query->whereDate('tanggal_tindakan', '<=', $data['sampai']),
-                            );
-                    }),
-
+                ], 
+                
+                // Monthly Archive Filters - defaults to current month
+                static::getMonthlyArchiveFilters(),
+                
+                [
                 Tables\Filters\SelectFilter::make('status_gabungan')
                     ->label('Status & Validasi')
                     ->options([
@@ -623,7 +618,8 @@ class TindakanResource extends Resource
                 Tables\Filters\SelectFilter::make('dokter_id')
                     ->label('Dokter')
                     ->options(\App\Models\Dokter::where('aktif', true)->orderBy('nama_lengkap')->pluck('nama_lengkap', 'id')),
-            ])
+                ]
+            ))
             ->actions([
                 // Quick actions (visible)
                 Tables\Actions\ViewAction::make()

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Bendahara\Resources;
 
+use App\Filament\Concerns\HasMonthlyArchive;
 use App\Models\Jaspel;
 use App\Models\User;
 use Filament\Forms;
@@ -19,7 +20,15 @@ use Illuminate\Support\Facades\Auth;
 
 class JaspelManagementResource extends Resource
 {
+    use HasMonthlyArchive;
+    
     protected static ?string $model = Jaspel::class;
+    
+    // Configure monthly archive to use tanggal column
+    public static function getArchiveDateColumn(): string
+    {
+        return 'tanggal';
+    }
 
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
     
@@ -242,6 +251,9 @@ class JaspelManagementResource extends Resource
                     ->relationship('user', 'name')
                     ->searchable()
                     ->preload(),
+                    
+                // Monthly Archive Filters - defaults to current month
+                ...static::getMonthlyArchiveFilters(),
             ])
             ->actions([
                 ActionGroup::make([

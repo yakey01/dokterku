@@ -2,6 +2,7 @@
 
 namespace App\Filament\Bendahara\Resources;
 
+use App\Filament\Concerns\HasMonthlyArchive;
 use App\Models\JumlahPasienHarian;
 use App\Services\ValidationWorkflowService;
 use Filament\Forms;
@@ -19,11 +20,19 @@ use App\Constants\ValidationStatus;
 
 class ValidasiJumlahPasienResource extends Resource
 {
+    use HasMonthlyArchive;
+    
     protected static ?string $model = JumlahPasienHarian::class;
+    
+    // Configure monthly archive to use tanggal column  
+    public static function getArchiveDateColumn(): string
+    {
+        return 'tanggal';
+    }
 
-    protected static ?string $navigationIcon = null;
+    protected static ?string $navigationIcon = 'heroicon-o-users';
 
-    protected static ?string $navigationGroup = 'Validasi Data';
+    protected static ?string $navigationGroup = 'Validasi Transaksi';
 
     protected static ?string $navigationLabel = 'Validasi Jumlah Pasien';
 
@@ -264,25 +273,10 @@ class ValidasiJumlahPasienResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
-            ->filters([
-                Tables\Filters\Filter::make('tanggal')
-                    ->form([
-                        Forms\Components\DatePicker::make('dari')
-                            ->label('Tanggal Dari'),
-                        Forms\Components\DatePicker::make('sampai')
-                            ->label('Tanggal Sampai'),
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        return $query
-                            ->when(
-                                $data['dari'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('tanggal', '>=', $date),
-                            )
-                            ->when(
-                                $data['sampai'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('tanggal', '<=', $date),
-                            );
-                    }),
+            ->filters(array_merge(
+                // Monthly Archive Filters - defaults to current month
+                static::getMonthlyArchiveFilters(),
+                [
 
                 Tables\Filters\SelectFilter::make('poli')
                     ->label('Poli')
@@ -330,7 +324,8 @@ class ValidasiJumlahPasienResource extends Resource
                 Tables\Filters\Filter::make('ada_jaspel')
                     ->label('Ada Jaspel')
                     ->query(fn (Builder $query): Builder => $query->whereNotNull('jaspel_rupiah')->where('jaspel_rupiah', '>', 0)),
-            ])
+                ]
+            ))
             ->actions([
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\Action::make('approve')

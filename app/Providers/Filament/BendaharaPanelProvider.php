@@ -300,8 +300,7 @@ class BendaharaPanelProvider extends PanelProvider
                     ->collapsed(false),
                 NavigationGroup::make('Audit & Kontrol')
                     ->collapsed(false),
-                NavigationGroup::make('Validasi Data')
-                    ->collapsed(false),
+                // REMOVED 'Validasi Data' - ValidasiJumlahPasienResource moved to 'Validasi Transaksi'
             ])
             ->middleware([
                 EncryptCookies::class,

@@ -262,26 +262,6 @@ class PetugasPanelProvider extends PanelProvider
                             border-radius: 0.5rem !important;
                         }
                         
-                        /* DEBUG: VERIFY CSS IS LOADING */
-                        body::before {
-                            content: "🔍 PETUGAS CSS LOADED ✅";
-                            position: fixed;
-                            top: 10px;
-                            left: 10px;
-                            background: #22c55e;
-                            color: white;
-                            padding: 5px 10px;
-                            border-radius: 5px;
-                            font-size: 12px;
-                            z-index: 9999;
-                            animation: fadeOut 3s forwards;
-                        }
-                        
-                        @keyframes fadeOut {
-                            0% { opacity: 1; }
-                            70% { opacity: 1; }
-                            100% { opacity: 0; }
-                        }
                     </style>
                 '
             )

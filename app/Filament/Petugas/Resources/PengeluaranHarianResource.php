@@ -5,6 +5,7 @@ namespace App\Filament\Petugas\Resources;
 use App\Filament\Petugas\Resources\PengeluaranHarianResource\Pages;
 use App\Models\PengeluaranHarian;
 use App\Models\Pengeluaran;
+use App\Models\ShiftTemplate;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -61,12 +62,14 @@ class PengeluaranHarianResource extends Resource
                             
                         Forms\Components\Select::make('shift')
                             ->label('Shift')
-                            ->options([
-                                'Pagi' => 'Pagi',
-                                'Sore' => 'Sore',
-                            ])
+                            ->options(function () {
+                                return ShiftTemplate::all()->mapWithKeys(function ($template) {
+                                    return [$template->nama_shift => $template->shift_display];
+                                });
+                            })
                             ->required()
-                            ->columnSpan(1),
+                            ->columnSpan(1)
+                            ->helperText('Pilih shift berdasarkan template yang tersedia'),
                     ]),
                 
                 Forms\Components\Select::make('pengeluaran_id')
@@ -129,18 +132,26 @@ class PengeluaranHarianResource extends Resource
                 Tables\Columns\TextColumn::make('shift')
                     ->label('Shift')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'Pagi' => 'success',
-                        'Sore' => 'warning',
+                    ->color(fn (string $state): string => match (strtolower($state)) {
+                        'pagi', 'morning' => 'success',
+                        'sore', 'afternoon', 'evening' => 'warning',
+                        'malam', 'night' => 'danger',
+                        default => 'info',
                     })
-                    ->icon(fn (string $state): string => match ($state) {
-                        'Pagi' => 'heroicon-o-sun',
-                        'Sore' => 'heroicon-o-moon',
+                    ->icon(fn (string $state): string => match (strtolower($state)) {
+                        'pagi', 'morning' => 'heroicon-o-sun',
+                        'sore', 'afternoon', 'evening' => 'heroicon-o-moon',
+                        'malam', 'night' => 'heroicon-s-moon',
+                        default => 'heroicon-o-clock',
                     })
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'Pagi' => 'Pagi',
-                        'Sore' => 'Sore',
-                        default => $state,
+                    ->formatStateUsing(function (string $state): string {
+                        // Try to get display info from ShiftTemplate
+                        $template = ShiftTemplate::where('nama_shift', $state)->first();
+                        if ($template) {
+                            return $template->shift_display;
+                        }
+                        // Fallback to original value for backward compatibility
+                        return $state;
                     }),
                 Tables\Columns\TextColumn::make('pengeluaran.nama_pengeluaran')
                     ->label('Jenis Pengeluaran')
@@ -198,10 +209,11 @@ class PengeluaranHarianResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('shift')
                     ->label('Filter Shift')
-                    ->options([
-                        'Pagi' => 'Shift Pagi',
-                        'Sore' => 'Shift Sore',
-                    ])
+                    ->options(function () {
+                        return ShiftTemplate::all()->mapWithKeys(function ($template) {
+                            return [$template->nama_shift => "Shift {$template->shift_display}"];
+                        });
+                    })
                     ->placeholder('Semua Shift')
                     ->multiple(),
                 Tables\Filters\SelectFilter::make('status_validasi')
@@ -465,10 +477,11 @@ class PengeluaranHarianResource extends Resource
                                 ->required(),
                             Select::make('shift')
                                 ->label('Shift')
-                                ->options([
-                                    'Pagi' => 'Pagi',
-                                    'Sore' => 'Sore',
-                                ])
+                                ->options(function () {
+                                    return ShiftTemplate::all()->mapWithKeys(function ($template) {
+                                        return [$template->nama_shift => $template->shift_display];
+                                    });
+                                })
                                 ->nullable(),
                         ])
                         ->action(function (Collection $records, array $data) {

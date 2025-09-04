@@ -524,7 +524,6 @@
         /* Method 1: Target by tag name */
         [data-filament-panel-id="bendahara"] section {
             background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
-            border: 2px solid #ff0000 !important; /* Red border for debugging */
             border-radius: 1rem !important;
         }
         
@@ -532,7 +531,6 @@
         [data-filament-panel-id="bendahara"] div[class] {
             /* Apply to any div with a class attribute */
             background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
-            border: 2px solid #00ff00 !important; /* Green border for debugging */
         }
         
         /* Method 3: Target by specific layout classes from screenshot */
@@ -541,14 +539,12 @@
         [data-filament-panel-id="bendahara"] .md\:grid-cols-4 > div,
         [data-filament-panel-id="bendahara"] .lg\:grid-cols-4 > div {
             background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
-            border: 2px solid #0000ff !important; /* Blue border for debugging */
             border-radius: 1rem !important;
         }
         
         /* Method 4: Brutforce - Target everything in the main content area */
         [data-filament-panel-id="bendahara"] main * {
             background: linear-gradient(135deg, #0a0a0b 0%, #111118 100%) !important;
-            border: 1px solid #ffa500 !important; /* Orange border for debugging */
             color: #ffffff !important;
         }
         
