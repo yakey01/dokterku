@@ -9,7 +9,7 @@ interface DashboardProps {
   onNavigate?: (tab: string) => void;
 }
 
-export function Dashboard({ userData, onNavigate }: DashboardProps) {
+function Dashboard({ userData, onNavigate }: DashboardProps) {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [doctorLevel, setDoctorLevel] = useState(7);
   const [experiencePoints, setExperiencePoints] = useState(2847);
