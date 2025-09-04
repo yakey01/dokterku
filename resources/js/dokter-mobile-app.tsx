@@ -147,15 +147,15 @@ if (typeof window !== 'undefined') {
                     performanceMonitor.end('app-initialization');
                     console.log('✅ DOKTERKU Mobile App initialized with HolisticMedicalDashboard (Complete Gaming Theme)');
                 } else {
-                    // 🎮 DEFAULT: Use Gaming Dashboard
-                    console.log('🎮 Rendering Gaming Dashboard (default)...');
+                    // 🎮 DEFAULT: Use HolisticMedicalDashboard with Bottom Navigation
+                    console.log('🎮 Rendering HolisticMedicalDashboard with Bottom Navigation (default)...');
                     root.render(
                         <ErrorBoundary>
-                            <Dashboard />
+                            <HolisticMedicalDashboard />
                         </ErrorBoundary>
                     );
                     performanceMonitor.end('app-initialization');
-                    console.log('✅ DOKTERKU Mobile App initialized with Gaming Dashboard (XP System, Leaderboard, Achievements)');
+                    console.log('✅ DOKTERKU Mobile App initialized with HolisticMedicalDashboard (Bottom Navigation, Gaming Theme)');
                 }
             }
             
