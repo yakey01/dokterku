@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, DollarSign, User, Home, TrendingUp, Award, Target, Heart, Zap, Flame, Coffee, Moon, Sun, Crown, Star, Shield, Calendar, Loader2, Trophy, Medal } from 'lucide-react';
 import doctorApi, { UserData, DoctorDashboardData, LeaderboardData } from '../../utils/doctorApi';
-import { AttendanceProgressBar, PerformanceProgressBar } from './DynamicProgressBar';
+import { AttendanceProgressBar, JaspelProgressBar, PerformanceProgressBar } from './DynamicProgressBar';
 import MedicalProgressDashboard from './MedicalProgressDashboard';
-import JaspelCurrentMonthProgress from './JaspelCurrentMonthProgress';
 
 interface DashboardProps {
   userData?: any;
@@ -22,8 +21,6 @@ export function Dashboard({ userData, onNavigate }: DashboardProps) {
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentMonthJaspelData, setCurrentMonthJaspelData] = useState<any>(null);
-  const [currentMonthJaspelLoading, setCurrentMonthJaspelLoading] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -48,9 +45,6 @@ export function Dashboard({ userData, onNavigate }: DashboardProps) {
       // Then fetch dashboard data
       const dashboard = await doctorApi.getDashboard();
       setDashboardData(dashboard);
-      
-      // Fetch current month Jaspel data
-      fetchCurrentMonthJaspel();
       
       // Fetch leaderboard data
       try {
@@ -90,38 +84,6 @@ export function Dashboard({ userData, onNavigate }: DashboardProps) {
       setError('Failed to load dashboard data');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchCurrentMonthJaspel = async () => {
-    try {
-      setCurrentMonthJaspelLoading(true);
-      console.log('📊 [Dashboard] Fetching current month Jaspel progress...');
-      
-      const response = await fetch('/api/v2/dashboards/dokter/jaspel/current-month', {
-        headers: {
-          'Accept': 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
-        },
-        credentials: 'include'
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      
-      if (result.success && result.data) {
-        console.log('✅ [Dashboard] Current month Jaspel data received:', result.data);
-        setCurrentMonthJaspelData(result.data);
-      } else {
-        console.error('❌ [Dashboard] Failed to fetch current month Jaspel:', result.message);
-      }
-    } catch (error) {
-      console.error('❌ [Dashboard] Error fetching current month Jaspel:', error);
-    } finally {
-      setCurrentMonthJaspelLoading(false);
     }
   };
 
@@ -268,12 +230,22 @@ export function Dashboard({ userData, onNavigate }: DashboardProps) {
               </h3>
               
               <div className="space-y-6">
-                {/* Current Month Jaspel Progress - NEW ANIMATED DISPLAY */}
-                <JaspelCurrentMonthProgress 
-                  data={currentMonthJaspelData} 
-                  loading={currentMonthJaspelLoading} 
-                />
-                
+                {/* Jaspel Progress with Dynamic Animation */}
+                <div className="p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-2xl border border-green-400/20">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <DollarSign className="w-5 h-5 text-green-400" />
+                    <div className="font-medium text-white">Jaspel Progress</div>
+                  </div>
+                  <JaspelProgressBar
+                    currentJaspel={dashboardData?.jaspel_summary?.current_month || 2847000}
+                    targetJaspel={3000000}
+                    delay={500}
+                  />
+                  <div className="text-green-300 text-sm mt-1">
+                    Rp {(dashboardData?.jaspel_summary?.current_month || 0).toLocaleString('id-ID')} this month
+                  </div>
+                </div>
+
                 {/* Attendance Progress with Dynamic Animation */}
                 <div className="p-4 bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-2xl border border-blue-400/20">
                   <div className="flex items-center space-x-3 mb-3">

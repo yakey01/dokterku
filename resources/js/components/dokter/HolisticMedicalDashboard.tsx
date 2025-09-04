@@ -1,16 +1,12 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { Calendar, Clock, DollarSign, Award, Brain, Star, Crown, Flame, Moon, Sun, HeartCrack } from 'lucide-react';
-import JadwalJaga from './JadwalJaga';
+import { Calendar, Clock, DollarSign, Award, Brain, Star, Crown, Flame, Moon, Sun } from 'lucide-react';
+import { JadwalJaga } from './JadwalJaga';
 import CreativeAttendanceDashboard from './Presensi';
 import JaspelComponent from './Jaspel';
 import ProfileComponent from './Profil';
-import JaspelCurrentMonthProgress from './JaspelCurrentMonthProgress';
 import doctorApi from '../../utils/doctorApi';
 import { performanceMonitor } from '../../utils/PerformanceMonitor';
 import AttendanceCalculator from '../../utils/AttendanceCalculator';
-import ErrorBoundary from '../ErrorBoundary';
-import { HoursFormatter } from '../../utils/hoursFormatter';
-import { safeGet, safeHas } from '../../utils/SafeObjectAccess';
 
 interface HolisticMedicalDashboardProps {
   userData?: {
@@ -124,16 +120,6 @@ const ProgressBarAnimation: React.FC<ProgressBarAnimationProps> = ({
 };
 
 const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ userData }) => {
-  // Log userData for debugging
-  useEffect(() => {
-    console.log('📊 HolisticMedicalDashboard received userData:', userData);
-    if (userData) {
-      console.log('👤 User Name:', userData.name);
-      console.log('📧 User Email:', userData.email);
-      console.log('🎭 User Role:', userData.role);
-    }
-  }, [userData]);
-
   const [currentTime, setCurrentTime] = useState(new Date());
   const [doctorLevel, setDoctorLevel] = useState(7);
   const [experiencePoints, setExperiencePoints] = useState(2847);
@@ -164,8 +150,6 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
     dashboard: false,
     error: null,
   });
-  const [currentMonthJaspelData, setCurrentMonthJaspelData] = useState<any>(null);
-  const [currentMonthJaspelLoading, setCurrentMonthJaspelLoading] = useState(false);
 
   // Ref to prevent duplicate API calls
   const isDataFetchingRef = useRef(false);
@@ -290,7 +274,7 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
             setLoading({ dashboard: false, error: null });
           }
           
-          // Process attendance data in background with bulletproof error handling
+          // Process attendance data in background
           let unifiedAttendanceMetrics = null;
           try {
             console.log('🔄 Dashboard: Processing attendance data...');
@@ -301,112 +285,60 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
               const attendanceData = await attendanceResponse.json();
               console.log('📊 Dashboard: Raw attendance data:', attendanceData);
             
-            // BULLETPROOF: Safe extraction of history data with multiple fallbacks
-            const history = (() => {
-              try {
-                return attendanceData?.data?.history || attendanceData?.history || [];
-              } catch (error) {
-                console.warn('⚠️ Error extracting history data:', error);
-                return [];
-              }
-            })();
+            // getPresensi endpoint returns data.history instead of just data
+            const history = attendanceData?.data?.history || [];
             console.log('History records received:', history.length);
             
-            // BULLETPROOF FORMATTING: Ultra-safe record processing with comprehensive error handling
-            const formattedHistory = history.map((record: any, recordIndex: number) => {
-              try {
-                // Multi-layer record validation
-                if (!record || typeof record !== 'object' || Array.isArray(record)) {
-                  console.warn(`⚠️ Invalid record at index ${recordIndex}:`, record);
-                  return null;
-                }
-                
-                // Format date with error handling
-                let formattedDate = '--/--/----';
-                try {
-                  const dateValue = record?.date || record?.tanggal;
-                  if (dateValue) {
-                    const date = new Date(dateValue);
-                    if (!isNaN(date.getTime())) {
-                      formattedDate = date.toLocaleDateString('id-ID', {
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit'
-                      });
-                    }
-                  }
-                } catch (dateError) {
-                  console.warn(`⚠️ Date formatting error for record ${recordIndex}:`, dateError);
-                }
+            // EXACT SAME FORMATTING AS PRESENSI.TSX
+            const formattedHistory = history.map((record: any) => {
+              // Format date
+              const date = new Date(record.date || record.tanggal);
+              const formattedDate = date.toLocaleDateString('id-ID', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+              });
               
-              // Extract raw check-in and check-out values outside try blocks to fix ReferenceError
-              const checkIn = record?.time_in || record?.check_in || record?.jam_masuk;
-              const checkOut = record?.time_out || record?.check_out || record?.jam_pulang;
+              // Format check-in time
+              const checkIn = record.time_in || record.check_in || record.jam_masuk;
+              const formattedCheckIn = checkIn ? 
+                (typeof checkIn === 'string' && checkIn.includes(':') ? 
+                  checkIn.substring(0, 5) : 
+                  new Date(checkIn).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+                ) : '-';
               
-              // Format check-in time with bulletproof error handling
-              let formattedCheckIn = '-';
-              try {
-                if (checkIn && typeof checkIn === 'string') {
-                  if (checkIn.includes(':')) {
-                    formattedCheckIn = checkIn.substring(0, 5);
-                  } else {
-                    const timeDate = new Date(checkIn);
-                    if (!isNaN(timeDate.getTime())) {
-                      formattedCheckIn = timeDate.toLocaleTimeString('id-ID', { 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
-                      });
-                    }
-                  }
-                }
-              } catch (timeError) {
-                console.warn(`⚠️ Check-in time error for record ${recordIndex}:`, timeError);
-              }
+              // Format check-out time
+              const checkOut = record.time_out || record.check_out || record.jam_pulang;
+              const formattedCheckOut = checkOut ? 
+                (typeof checkOut === 'string' && checkOut.includes(':') ? 
+                  checkOut.substring(0, 5) : 
+                  new Date(checkOut).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+                ) : '-';
               
-              // Format check-out time with bulletproof error handling
-              let formattedCheckOut = '-';
-              try {
-                if (checkOut && typeof checkOut === 'string') {
-                  if (checkOut.includes(':')) {
-                    formattedCheckOut = checkOut.substring(0, 5);
-                  } else {
-                    const timeDate = new Date(checkOut);
-                    if (!isNaN(timeDate.getTime())) {
-                      formattedCheckOut = timeDate.toLocaleTimeString('id-ID', { 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
-                      });
-                    }
-                  }
-                }
-              } catch (timeError) {
-                console.warn(`⚠️ Check-out time error for record ${recordIndex}:`, timeError);
-              }
-              
-              // Determine status - BULLETPROOF VERSION WITH ULTRA-SAFE TYPE CHECKING
+              // Determine status - EXACT SAME AS PRESENSI
               let status = 'Hadir';
-              if (record.status && typeof record.status === 'string') {
-                const statusLower = String(record.status).toLowerCase();
+              if (record.status) {
+                const statusLower = record.status.toLowerCase();
                 if (statusLower === 'late' || statusLower === 'terlambat') {
                   status = 'Terlambat';
                 } else if (statusLower === 'on_time' || statusLower === 'tepat waktu' || statusLower === 'present') {
                   status = 'Hadir';
                 } else if (statusLower === 'absent' || statusLower === 'tidak hadir') {
                   status = 'Tidak Hadir';
-                } else if (statusLower && (statusLower.includes('leave') || statusLower.includes('cuti'))) {
+                } else if (statusLower.includes('leave') || statusLower.includes('cuti')) {
                   status = 'Cuti';
                 } else if (statusLower === 'auto_closed' && checkIn) {
                   // auto_closed with check-in means they attended
                   status = 'Hadir';
                 } else {
                   // Default to Hadir if checked in
-                  status = checkIn && checkIn !== '-' && formattedCheckIn !== '-' ? 'Hadir' : 'Tidak Hadir';
+                  status = checkIn && checkIn !== '-' ? 'Hadir' : 'Tidak Hadir';
                 }
               }
               
               // Calculate duration - EXACT SAME AS PRESENSI
               let hours = '0h 0m';
-              if (formattedCheckIn !== '-' && formattedCheckOut !== '-') {
+              if (checkIn !== '-' && checkOut !== '-') {
                 try {
                   const start = new Date(`2000-01-01 ${formattedCheckIn}`);
                   const end = new Date(`2000-01-01 ${formattedCheckOut}`);
@@ -433,11 +365,7 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
                 status: status,
                 hours: hours
               };
-              } catch (recordError) {
-                console.error(`❌ Error processing record ${recordIndex}:`, recordError, record);
-                return null; // Will be filtered out
-              }
-            }).filter(record => record !== null); // Filter out failed records
+            });
             
             // Sort by date (most recent first) - SAME AS PRESENSI
             formattedHistory.sort((a: any, b: any) => {
@@ -529,8 +457,8 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
           stack: error instanceof Error ? error.stack : undefined
         });
         
-        // Retry logic for network errors - ULTRA-SAFE VERSION
-        if (retryCount < maxRetries && errorMessage && typeof errorMessage === 'string' && (errorMessage.includes('network') || errorMessage.includes('fetch'))) {
+        // Retry logic for network errors
+        if (retryCount < maxRetries && (errorMessage.includes('network') || errorMessage.includes('fetch'))) {
           retryCount++;
           console.log(`🔄 HolisticMedicalDashboard: Retrying... (${retryCount}/${maxRetries})`);
           
@@ -598,183 +526,55 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
       willFetch: !isDataFetchingRef.current && !dataFetchedRef.current
     });
     
-    // Fetch current month Jaspel data
-    const fetchCurrentMonthJaspel = async () => {
-      try {
-        console.log('🚀 Fetching current month Jaspel data...');
-        setCurrentMonthJaspelLoading(true);
-        const response = await fetch('/api/v2/dashboards/dokter/jaspel/current-month', {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
-          },
-          credentials: 'same-origin'
-        });
-        
-        console.log('📡 Current month Jaspel response:', response.status);
-        
-        if (response.ok) {
-          const data = await response.json();
-          console.log('✅ Current month Jaspel data received:', data);
-          if (mountedRef.current) {
-            setCurrentMonthJaspelData(data);
-          }
-        } else {
-          console.error('❌ Failed to fetch current month Jaspel:', response.status, response.statusText);
-          // Set fallback data for testing
-          const fallbackData = {
-            current_month: {
-              total_received: 1200000,
-              target_amount: 2000000,
-              progress_percentage: 60,
-              daily_breakdown: [],
-              count: 13,
-              month_name: 'Agustus',
-              days_elapsed: 18,
-              days_remaining: 13
-            },
-            real_time: {
-              last_entry: new Date().toISOString(),
-              is_live: true,
-              last_updated: new Date().toISOString()
-            },
-            insights: {
-              daily_average: 66667,
-              projected_total: 2000000,
-              target_likelihood: 'likely'
-            }
-          };
-          if (mountedRef.current) {
-            console.log('📝 Using fallback data for Jaspel component');
-            setCurrentMonthJaspelData(fallbackData);
-          }
-        }
-      } catch (error) {
-        console.error('❌ Error fetching current month Jaspel:', error);
-        // Set fallback data on error
-        const fallbackData = {
-          current_month: {
-            total_received: 1200000,
-            target_amount: 2000000,
-            progress_percentage: 60,
-            daily_breakdown: [],
-            count: 13,
-            month_name: 'Agustus',
-            days_elapsed: 18,
-            days_remaining: 13
-          },
-          real_time: {
-            last_entry: new Date().toISOString(),
-            is_live: true,
-            last_updated: new Date().toISOString()
-          },
-          insights: {
-            daily_average: 66667,
-            projected_total: 2000000,
-            target_likelihood: 'likely'
-          }
-        };
-        if (mountedRef.current) {
-          console.log('📝 Using fallback data for Jaspel component (error case)');
-          setCurrentMonthJaspelData(fallbackData);
-        }
-      } finally {
-        if (mountedRef.current) {
-          setCurrentMonthJaspelLoading(false);
-        }
-      }
-    };
-
     // Fetch leaderboard data
     const fetchLeaderboard = async () => {
       try {
         console.log('📊 Fetching leaderboard data...');
         setLeaderboardLoading(true);
         
-        // Get current month and year for monthly data
-        const currentDate = new Date();
-        const currentMonth = currentDate.getMonth() + 1; // 1-12
-        const currentYear = currentDate.getFullYear();
+        // Use fetch API directly to get leaderboard data
+        const response = await fetch('/api/v2/dashboards/dokter/leaderboard', {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include'
+        });
         
-        // ✅ FIXED: Use authenticated API call instead of direct fetch
-        const data = await doctorApi.getLeaderboard(currentMonth, currentYear);
+        console.log('📊 Leaderboard response status:', response.status);
         
-        console.log('📊 Leaderboard response received successfully');
+        if (!response.ok) {
+          console.error('❌ Leaderboard fetch failed with status:', response.status);
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
         console.log('📊 Leaderboard data received:', data);
         
-        // BULLETPROOF: Handle both response formats (wrapped and direct)
-        const isWrappedFormat = data && data.success && data.data;
-        const isDirectFormat = data && data.leaderboard && Array.isArray(data.leaderboard);
-        
-        if (isWrappedFormat || isDirectFormat) {
-          // BULLETPROOF: Use SafeObjectAccess for nested data extraction
-          const leaderboard = isWrappedFormat 
-            ? (safeGet(data, 'data.leaderboard') || safeGet(data, 'data') || [])
-            : (safeGet(data, 'leaderboard') || []);
+        if (data && data.success && data.data) {
+          const leaderboard = data.data.leaderboard || data.data || [];
           
-          // Get current month's data for monthly reset
-          const currentDate = new Date();
-          const currentDay = currentDate.getDate();
-          const currentMonth = currentDate.getMonth() + 1;
-          const currentYear = currentDate.getFullYear();
-          const daysInMonth = new Date(currentYear, currentDate.getMonth() + 1, 0).getDate();
-          const workingDays = Math.floor(daysInMonth * 6/7); // Exclude Sundays
-          
-          // BULLETPROOF: Transform data with ultra-safe object access
-          const transformedLeaderboard = Array.isArray(leaderboard) ? leaderboard.map((doctor: any, index: number) => {
-            try {
-              // Validate doctor object
-              if (!doctor || typeof doctor !== 'object') {
-                console.warn(`⚠️ Invalid doctor object at index ${index}:`, doctor);
-                return null;
-              }
-            // Calculate monthly accumulated data based on daily averages
-            const dailyPatients = Math.max(8 - index, 3); // 8, 7, 6, 5, 4, 3 patients per day
-            const dailyProcedures = Math.max(5 - Math.floor(index / 2), 2); // 5, 5, 4, 4, 3, 2 procedures per day
-            
-            // BULLETPROOF: Use SafeObjectAccess for all doctor properties
-            const monthlyPatients = safeGet(doctor, 'total_patients') || safeGet(doctor, 'patient_count') || (dailyPatients * currentDay);
-            const monthlyProcedures = safeGet(doctor, 'procedures_count') || safeGet(doctor, 'total_procedures') || (dailyProcedures * currentDay);
-            
-            return {
-              id: safeGet(doctor, 'id', { defaultValue: index + 1 }),
-              rank: safeGet(doctor, 'rank', { defaultValue: index + 1 }),
-              name: safeGet(doctor, 'name', { defaultValue: `Doctor ${index + 1}` }),
-              level: safeGet(doctor, 'level', { defaultValue: Math.floor(Math.random() * 10) + 1 }),
-              xp: safeGet(doctor, 'xp') || safeGet(doctor, 'experience_points', { defaultValue: Math.floor(Math.random() * 5000) + 1000 }),
-              attendance_rate: safeGet(doctor, 'attendance_rate') || safeGet(doctor, 'attendance', { defaultValue: Math.floor(Math.random() * 30) + 70 }),
-              streak_days: safeGet(doctor, 'streak_days') || safeGet(doctor, 'streak', { defaultValue: 0 }),
-              total_hours: (() => {
-                const hours = safeGet(doctor, 'total_hours', { defaultValue: Math.floor(Math.random() * 200) + 100 });
-                return typeof hours === 'number' ? HoursFormatter.formatHoursMinutes(hours) : 
-                       typeof hours === 'object' && hours.formatted ? hours.formatted : 
-                       HoursFormatter.formatHoursMinutes(0);
-              })(),
-              total_days: safeGet(doctor, 'total_days', { defaultValue: currentDay }),
-              // Monthly accumulated medical productivity (resets each month)
-              total_patients: monthlyPatients,
-              consultation_hours: safeGet(doctor, 'consultation_hours', { defaultValue: 6 * currentDay }), // 6 hours per day average
-              procedures_count: monthlyProcedures,
-              badge: safeGet(doctor, 'badge', { defaultValue: index === 0 ? '👑' : index === 1 ? '🥈' : index === 2 ? '🥉' : '⭐' }),
-              // Add month/year for tracking
-              month: currentMonth,
-              year: currentYear,
-              monthLabel: `${new Date(currentYear, currentMonth - 1).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}`
-            };
-            } catch (error) {
-              console.error(`❌ Error processing doctor ${index}:`, error, doctor);
-              return null; // Will be filtered out
-            }
-          }).filter(doctor => doctor !== null) : []; // Filter out failed transformations
+          // Transform the data to ensure it has the correct structure
+          const transformedLeaderboard = Array.isArray(leaderboard) ? leaderboard.map((doctor: any, index: number) => ({
+            id: doctor.id || index + 1,
+            rank: doctor.rank || index + 1,
+            name: doctor.name || `Doctor ${index + 1}`,
+            level: doctor.level || Math.floor(Math.random() * 10) + 1,
+            xp: doctor.xp || doctor.experience_points || Math.floor(Math.random() * 5000) + 1000,
+            attendance_rate: doctor.attendance_rate || doctor.attendance || Math.floor(Math.random() * 30) + 70,
+            streak_days: doctor.streak_days || doctor.streak || 0,
+            total_hours: doctor.total_hours || Math.floor(Math.random() * 200) + 100,
+            total_days: doctor.total_days || Math.floor(Math.random() * 30) + 1,
+            badge: doctor.badge || (index === 0 ? '👑' : index === 1 ? '🥈' : index === 2 ? '🥉' : '⭐')
+          })) : [];
           
           console.log('✅ Setting transformed leaderboard data:', transformedLeaderboard);
           setLeaderboardData(transformedLeaderboard);
           
-          // Update current user's XP and level if they're in the leaderboard - ULTRA-SAFE VERSION
+          // Update current user's XP and level if they're in the leaderboard
           const currentUserData = transformedLeaderboard.find((doctor: any) => 
-            doctor.name === userData?.name || (doctor.name && userData?.name && typeof doctor.name === 'string' && typeof userData.name === 'string' && doctor.name.includes(userData.name))
+            doctor.name === userData?.name || doctor.name?.includes(userData?.name)
           );
           
           if (currentUserData) {
@@ -797,13 +597,69 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
           console.error('Error stack:', error.stack);
         }
         
-        // Use fallback static data with monthly accumulation
-        const currentDate = new Date();
-        const currentDay = currentDate.getDate();
-        const currentMonth = currentDate.getMonth() + 1;
-        const currentYear = currentDate.getFullYear();
-        
-        const fallbackLeaderboard = [];
+        // Use fallback static data on error
+        const fallbackLeaderboard = [
+          {
+            id: 1,
+            rank: 1,
+            name: 'Dr. Sarah Johnson',
+            level: 12,
+            xp: 4250,
+            attendance_rate: 98,
+            streak_days: 45,
+            total_hours: 320,
+            total_days: 28,
+            badge: '👑'
+          },
+          {
+            id: 2,
+            rank: 2,
+            name: userData?.name || 'Dr. Dokter Umum',
+            level: 10,
+            xp: 3850,
+            attendance_rate: 95,
+            streak_days: 30,
+            total_hours: 285,
+            total_days: 26,
+            badge: '🥈'
+          },
+          {
+            id: 3,
+            rank: 3,
+            name: 'Dr. Michael Chen',
+            level: 9,
+            xp: 3420,
+            attendance_rate: 92,
+            streak_days: 21,
+            total_hours: 260,
+            total_days: 24,
+            badge: '🥉'
+          },
+          {
+            id: 4,
+            rank: 4,
+            name: 'Dr. Emma Wilson',
+            level: 8,
+            xp: 2980,
+            attendance_rate: 89,
+            streak_days: 15,
+            total_hours: 230,
+            total_days: 22,
+            badge: '⭐'
+          },
+          {
+            id: 5,
+            rank: 5,
+            name: 'Dr. James Lee',
+            level: 7,
+            xp: 2540,
+            attendance_rate: 85,
+            streak_days: 10,
+            total_hours: 200,
+            total_days: 20,
+            badge: '⭐'
+          }
+        ];
         
         console.log('⚠️ Using fallback leaderboard data');
         setLeaderboardData(fallbackLeaderboard);
@@ -817,7 +673,6 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
       console.log('🚀 Initiating dashboard data fetch');
       fetchDashboardData();
       fetchLeaderboard(); // Fetch leaderboard data alongside dashboard data
-      fetchCurrentMonthJaspel(); // Fetch current month Jaspel data
     } else {
       console.log('⏭️ Skipping dashboard fetch - already in progress or completed');
     }
@@ -883,12 +738,7 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
                 <div className="relative">
                   <div className="w-20 h-20 bg-gradient-to-br from-cyan-400 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center relative overflow-hidden">
                     <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
-                    {/* Dynamic icon based on attendance rate */}
-                    {dashboardMetrics.attendance.rate >= 100 ? (
-                      <Crown className="w-10 h-10 text-white relative z-10 animate-bounce" />
-                    ) : (
-                      <HeartCrack className="w-10 h-10 text-white relative z-10 animate-bounce" />
-                    )}
+                    <Crown className="w-10 h-10 text-white relative z-10 animate-bounce" />
                   </div>
                   <div className="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-black text-xs font-bold px-2 py-1 rounded-full border-2 border-white shadow-lg animate-pulse">
                     Lv.{doctorLevel}
@@ -955,11 +805,31 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
           <div className="space-y-4">
             <h4 className="font-semibold text-white mb-4">Recent Achievements</h4>
             
-            {/* Current Month Jaspel Progress */}
-            <JaspelCurrentMonthProgress 
-              data={currentMonthJaspelData}
-              loading={currentMonthJaspelLoading}
-            />
+            <div className="p-4 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-2xl border border-green-400/30">
+              <div className="flex items-center space-x-4 mb-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
+                  <DollarSign className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-medium text-white">Jaspel vs Bulan Lalu</div>
+                </div>
+                <div className="text-2xl">🟡</div>
+              </div>
+              <div className="mb-2">
+                <div className="text-right text-white font-semibold text-sm mb-1">
+                  {dashboardMetrics.jaspel.growthPercentage >= 0 
+                    ? `+${dashboardMetrics.jaspel.growthPercentage}%`
+                    : `${dashboardMetrics.jaspel.growthPercentage}%`
+                  }
+                </div>
+                <ProgressBarAnimation
+                  percentage={dashboardMetrics.jaspel.progressPercentage}
+                  delay={200}
+                  className="bg-green-900/30"
+                  gradientColors="bg-gradient-to-r from-green-400 via-emerald-400 to-yellow-400"
+                />
+              </div>
+            </div>
 
             <div className="p-4 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-2xl border border-blue-400/30">
               <div className="flex items-center space-x-4 mb-3">
@@ -990,19 +860,9 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
 
       {/* Leaderboard Preview */}
       <div className="px-6 pb-32 relative z-10">
-        <h3 className="text-xl md:text-2xl font-bold mb-3 text-center bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
+        <h3 className="text-xl md:text-2xl font-bold mb-6 text-center bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
           Elite Doctor Leaderboard
         </h3>
-        
-        {/* Month Period Indicator */}
-        <div className="text-center mb-6">
-          <span className="text-xs text-purple-300 bg-purple-900/30 px-3 py-1 rounded-full border border-purple-500/30">
-            📅 Periode: {new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
-          </span>
-          <p className="text-xs text-gray-400 mt-2">
-            Data akumulasi bulanan • Reset otomatis setiap awal bulan
-          </p>
-        </div>
         
         <div className="space-y-4">
           {leaderboardLoading ? (
@@ -1024,7 +884,7 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
           ) : leaderboardData.length > 0 ? (
             // Dynamic leaderboard
             leaderboardData.map((doctor, index) => {
-              const isCurrentUser = doctor.name === userData?.name || (doctor.name && userData?.name && typeof doctor.name === 'string' && typeof userData.name === 'string' && doctor.name.includes(userData.name));
+              const isCurrentUser = doctor.name === userData?.name || doctor.name?.includes(userData?.name);
               const rankColors = {
                 1: {
                   bg: 'from-yellow-500/30 to-amber-500/30',
@@ -1068,7 +928,7 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
                       {isCurrentUser && <span className="text-xs bg-green-500/30 px-2 py-1 rounded-full text-green-300">You</span>}
                     </div>
                     <div className={colors.textColor}>
-                      Tingkat Kehadiran • {doctor.attendance_rate}% Score
+                      Level {doctor.level} • {doctor.attendance_rate}% Score
                     </div>
                     {doctor.streak_days > 0 && (
                       <div className="text-xs text-orange-300 mt-1">
@@ -1078,10 +938,10 @@ const HolisticMedicalDashboard: React.FC<HolisticMedicalDashboardProps> = ({ use
                   </div>
                   <div className="text-right">
                     <div className={`text-2xl font-bold ${colors.xpColor}`}>
-                      {(doctor.total_patients || doctor.xp || 247).toLocaleString()} Pasien
+                      {doctor.xp.toLocaleString()} XP
                     </div>
                     <div className="text-xs text-gray-400">
-                      {doctor.procedures_count || 89} Tindakan
+                      {doctor.total_hours}h • {doctor.total_days} days
                     </div>
                   </div>
                 </div>
